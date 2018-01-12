@@ -1,0 +1,50 @@
+Not checked in yet: network AWD Summary. also calculates volume. Fixed bug
+in vertical coordinate conversion.  Check cross-sections for errors.
+
+
+v2-31:	   Version 2.31.  Zoom factor removed.  Zoom window implemented, but
+	   doesn't work very well.  All Icon images read from the jar
+	   file.  createNTShortcuts and createNTMenuItems replaced with 
+	   csdp.bat file.  Remove Centerline feature added Bug fixes:  
+	   Repainted problems fixed.  Previously not possible to view 
+	   some cross-sections if Color By Year and low thickness.
+	   Previously not possible to view a cross-section that contained
+	   bathymetry data at the bottom or top (southern or northern)
+	   boundaries of the data set.
+v2-4:	   Version 2.4.  Zoom Winow implemented, not tested.
+
+v2-4a:	   Zoom window implemented, along with pan, undo
+	   last zoom/pan, and fit.  All files (bathymetry, 
+	   network, landmark, and digital line graph) should have 
+	   metadata.  If they don't, default coordinates (Utm
+	   zone 10 nad 27, ngvd 1929) will be assigned.  All features
+	   still need testing.
+
+v2-4b:	   Zoom window, pan, undo, fit bugs fixed.  Bugs in metadata I/O
+	   fixed.  Added Display-Change Elevation Bins to change the bins
+	   used in the legend when coloring bathymetry data by elevation.
+	   Added Xsect-Extract Data for extracting data for HEC-RAS.
+
+v2-4c:	   Fixed bug in network coordinate conversion.  When a network,
+	   landmark, or channel outline file is loaded, its coordinates
+	   are adjusted if necessary to match the bathymetry datum.  Bathymetry data
+	   now stored as primitive arrays instead of resizable array
+	   objects.  Changed methods that returned arrays to void methods
+	   that change array objects passed as arguments.
+
+v2-4d:	   Add File-Save Zoomed Data, which saves
+	   only bathymetry data that is currently visible in window.
+	   Changed _fremontWeirElevation in CsdpFunctions from 33.5 to
+	   30.5, which is the correct NGVD 1929 value.  33.5 is the value
+	   in the USED datum. Removed error dialog which appeared with
+	   total width of all cross-sections was zero.
+
+v2-5:	   Fixed bug in cross-section vertical datum conversion. Added
+	   Landmark editing.  When writing any file, if
+	   a file exists with the same name, rename it to (filename).bak.
+	   Optimized performance of File-Save Zoomed Data.
+
+v2-51	   Fixed bug in network coordinate conversion: if network file had
+	   no metadata, vertical coordinates were not being converted
+	   correctly.
+v2-53	   Added metadata to xsect landmark file output.

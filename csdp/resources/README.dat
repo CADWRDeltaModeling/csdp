@@ -1,0 +1,21 @@
+Note:  coordinate conversion utilities will not work properly outside of windows.
+
+1.  Point your web browser http://java.sun.com/products/.  
+	Download and install JRE 1.31.
+2.  Download and install the CSDP from http://modeling.water.ca.gov/delta/models/dsm2/tools/csdp/index.html
+3.  put the following two lines in a batch file:
+	set JAVA_COMPCMD=FORCE_SIGNON
+	(path1)java -mx256m -cp (path2)csdp.jar;(path3)vista.jar;(path4)jpy.jar DWR.CSDP.Csdp
+
+    where 
+	-mx256m tells java to use 256 MB of memory.  You may want to change this number.
+	path1 = location of java.exe
+	path2 = location of csdp.jar
+	path3 = location of vista.jar
+	path4 = location of jpy.jar
+
+Here is an example of the above command for PC users:
+	c:\PROGRA~1\jdk1.31\bin\java -mx256m -cp d:\java\classes\csdp.jar;d:\java\vista\lib\vista.jar;d:\java\vista\lib\jpy.jar DWR.CSDP.Csdp
+
+Note:  the command is all on one line.
+
