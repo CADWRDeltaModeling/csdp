@@ -39,9 +39,18 @@
     or see our home page: http://wwwdelmod.water.ca.gov/
 */
 package DWR.CSDP.dialog;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+
+import java.awt.Button;
+import java.awt.Dialog;
+import java.awt.Frame;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.Label;
+import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Hashtable;
+
 /**
  * dialog with multiple labels and text fields
  *
@@ -49,46 +58,46 @@ import java.util.*;
  * @version $Id: TextFieldDialog.java,v 1.1 2002/06/12 18:48:38 btom Exp $
  */
 public class TextFieldDialog extends Dialog implements ActionListener {
-  
-  Frame _frame;
-  public TextFieldDialog(Frame parent, String title, boolean modal,
-			 String[] names, double[] initValue){
-    super(parent, title, modal);
-    _frame = parent;
-    _names = names;
-    _numNames = names.length;
-    GridLayout layout = new GridLayout(_numNames+1, 1);
-    setLayout(layout);
-    Button _okButton = new Button("ok");
 
-    for(int i=0; i<=_numNames-1; i++){
-	//      String index = (new Integer(i)).toString();
-	String index = Integer.toString(i);
-      add(new Label(names[i]));
-      _textFields.put(names[i], new TextField
-		      ( Double.toString(initValue[i]), FIELD_WIDTH));
-      add((TextField)(_textFields.get(names[i])));
-      if(DEBUG)System.out.println(names[i]);
-    }
-    add(_okButton);
-    validate();
-    doLayout();
-    ActionListener okButtonListener = this;
-    _okButton.addActionListener(okButtonListener);
-    setSize(500,150);
-  }//constructor
+	Frame _frame;
 
-  public Insets getInsets() {
-    return new Insets(30,10,10,10);
-  }
+	public TextFieldDialog(Frame parent, String title, boolean modal, String[] names, double[] initValue) {
+		super(parent, title, modal);
+		_frame = parent;
+		_names = names;
+		_numNames = names.length;
+		GridLayout layout = new GridLayout(_numNames + 1, 1);
+		setLayout(layout);
+		Button _okButton = new Button("ok");
 
-  public void actionPerformed(ActionEvent e){
-    dispose();
-  }
+		for (int i = 0; i <= _numNames - 1; i++) {
+			// String index = (new Integer(i)).toString();
+			String index = Integer.toString(i);
+			add(new Label(names[i]));
+			_textFields.put(names[i], new TextField(Double.toString(initValue[i]), FIELD_WIDTH));
+			add((TextField) (_textFields.get(names[i])));
+			if (DEBUG)
+				System.out.println(names[i]);
+		}
+		add(_okButton);
+		validate();
+		doLayout();
+		ActionListener okButtonListener = this;
+		_okButton.addActionListener(okButtonListener);
+		setSize(500, 150);
+	}// constructor
 
-  int _numNames = 0;
-  public String[] _names;
-  public Hashtable _textFields = new Hashtable();
-  protected static final int FIELD_WIDTH = 10;
-  protected static final boolean DEBUG = false;
-}//TextFieldDialog
+	public Insets getInsets() {
+		return new Insets(30, 10, 10, 10);
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		dispose();
+	}
+
+	int _numNames = 0;
+	public String[] _names;
+	public Hashtable _textFields = new Hashtable();
+	protected static final int FIELD_WIDTH = 10;
+	protected static final boolean DEBUG = false;
+}// TextFieldDialog

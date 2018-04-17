@@ -39,43 +39,42 @@
     or see our home page: http://wwwdelmod.water.ca.gov/
 */
 package DWR.CSDP;
-import java.io.*;
-import java.util.*;
 
 /**
- * A centerline point has x and y (UTM) coordinates
- * All values in feet-never use meters
+ * A centerline point has x and y (UTM) coordinates All values in feet-never use
+ * meters
  */
-public class CenterlinePoint{
+public class CenterlinePoint {
 
-  /**
-   * returns value of x at specified index
-   */
-public double getXFeet(){
-  return _x;
-}
-  /**
-   * returns value of y at specified index
-   */
-public double getYFeet(){
-  return _y;
-}
+	/**
+	 * returns value of x at specified index
+	 */
+	public double getXFeet() {
+		return _x;
+	}
 
-  /**
-   * puts value of x
-   */
-public void putXFeet(double value){
-  _x = value;
-}
+	/**
+	 * returns value of y at specified index
+	 */
+	public double getYFeet() {
+		return _y;
+	}
 
-  /**
-   * puts value of y
-   */
-public void putYFeet(double value){
-  _y = value;
-}
+	/**
+	 * puts value of x
+	 */
+	public void putXFeet(double value) {
+		_x = value;
+	}
 
-protected double _x;
-protected double _y;
+	/**
+	 * puts value of y
+	 */
+	public void putYFeet(double value) {
+		_y = value;
+	}
+
+	protected double _x;
+	protected double _y;
 
 }

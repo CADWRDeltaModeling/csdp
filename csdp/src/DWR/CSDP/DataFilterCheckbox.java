@@ -39,106 +39,121 @@
     or see our home page: http://wwwdelmod.water.ca.gov/
 */
 package DWR.CSDP;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+
+import java.awt.Button;
+import java.awt.Checkbox;
+import java.awt.Dialog;
+import java.awt.Frame;
+import java.awt.GridLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.Hashtable;
+
 /**
- * make checkbox to select data to be displayed.  Adds specified number of
+ * make checkbox to select data to be displayed. Adds specified number of
  * checkboxes to frame.
  *
  * @author
- * @version $Id: DataFilterCheckbox.java,v 1.1.1.1 2002/06/10 20:15:01 btom Exp $
+ * @version $Id: DataFilterCheckbox.java,v 1.1.1.1 2002/06/10 20:15:01 btom Exp
+ *          $
  */
 public class DataFilterCheckbox extends Dialog implements ActionListener {
-  
-  public DataFilterCheckbox(Frame parent, String title, boolean modal,
-			    ResizableStringArray names, 
-			    ResizableBooleanArray initState, int numNames){
-    super(parent, title, modal);
-    _frame = parent;
-    _names = names;
-    _numNames = numNames;
-    //    setLayout(new FlowLayout(FlowLayout.LEFT));
-    setLayout(new GridLayout(numNames+1,1));
-    Button _okButton = new Button("ok");
 
-    for(int i=0; i<=numNames-1; i++){
-      _checkboxes.put(names.get(i), new Checkbox(names.get(i), 
-						 initState.get(i).booleanValue()));
-      add((Checkbox)(_checkboxes.get(names.get(i))));
-      if(DEBUG)System.out.println(names.get(i));
-    }
-    add(_okButton);
-    ActionListener okButtonListener = this;
-    _okButton.addActionListener(okButtonListener);
-    setSize(HORIZONTAL,VERTICAL+COMPONENT_HEIGHT*numNames);
-  }//constructor
+	public DataFilterCheckbox(Frame parent, String title, boolean modal, ResizableStringArray names,
+			ResizableBooleanArray initState, int numNames) {
+		super(parent, title, modal);
+		_frame = parent;
+		_names = names;
+		_numNames = numNames;
+		// setLayout(new FlowLayout(FlowLayout.LEFT));
+		setLayout(new GridLayout(numNames + 1, 1));
+		Button _okButton = new Button("ok");
 
-  public DataFilterCheckbox(Frame parent, String title, boolean modal, 
-			    float defaultValue,
-			    ResizableStringArray names,
-			    ResizableBooleanArray initState, int numNames){
-    super(parent, title, modal);
-    _names = names;
-    String d = Float.toString(defaultValue);
-    _frame = parent;
+		for (int i = 0; i <= numNames - 1; i++) {
+			_checkboxes.put(names.get(i), new Checkbox(names.get(i), initState.get(i).booleanValue()));
+			add((Checkbox) (_checkboxes.get(names.get(i))));
+			if (DEBUG)
+				System.out.println(names.get(i));
+		}
+		add(_okButton);
+		ActionListener okButtonListener = this;
+		_okButton.addActionListener(okButtonListener);
+		setSize(HORIZONTAL, VERTICAL + COMPONENT_HEIGHT * numNames);
+	}// constructor
 
-    _numNames = numNames;
-    //    setLayout(new FlowLayout(FlowLayout.LEFT));
-    setLayout(new GridLayout(numNames+1,1));
-    Button _okButton = new Button("ok");
+	public DataFilterCheckbox(Frame parent, String title, boolean modal, float defaultValue, ResizableStringArray names,
+			ResizableBooleanArray initState, int numNames) {
+		super(parent, title, modal);
+		_names = names;
+		String d = Float.toString(defaultValue);
+		_frame = parent;
 
-    for(int i=0; i<=numNames-1; i++){
-      _checkboxes.put(names.get(i), new Checkbox(names.get(i), 
-						 initState.get(i).booleanValue()));
-      add((Checkbox)(_checkboxes.get(names.get(i))));
-      if(DEBUG)System.out.println(names.get(i));
-    }
-    add(_okButton);
-    ActionListener okButtonListener = this;
-    _okButton.addActionListener(okButtonListener);
-    setSize(HORIZONTAL,VERTICAL+COMPONENT_HEIGHT*numNames);
-  }//contructor
+		_numNames = numNames;
+		// setLayout(new FlowLayout(FlowLayout.LEFT));
+		setLayout(new GridLayout(numNames + 1, 1));
+		Button _okButton = new Button("ok");
 
-  public Insets getInsets() {
-    return new Insets(30,10,10,10);
-  }
+		for (int i = 0; i <= numNames - 1; i++) {
+			_checkboxes.put(names.get(i), new Checkbox(names.get(i), initState.get(i).booleanValue()));
+			add((Checkbox) (_checkboxes.get(names.get(i))));
+			if (DEBUG)
+				System.out.println(names.get(i));
+		}
+		add(_okButton);
+		ActionListener okButtonListener = this;
+		_okButton.addActionListener(okButtonListener);
+		setSize(HORIZONTAL, VERTICAL + COMPONENT_HEIGHT * numNames);
+	}// contructor
 
-  public void actionPerformed(ActionEvent e){
-    //setVisible(false);
-    dispose();
-  }
+	public Insets getInsets() {
+		return new Insets(30, 10, 10, 10);
+	}
 
-  int _numNames = 0;
-  public ResizableStringArray _names = null;
-  public Hashtable _checkboxes = new Hashtable();
-  
-  /**
-   * Handles events from checkbox
-   */
-  public class CListener implements ItemListener{
-    String _name = null;
-    DataFilterCheckbox _dfc = null;
-    public CListener(String name, DataFilterCheckbox dfc){
-      if(DEBUG)System.out.println("called constructor");
-      _name = name;
-      _dfc = dfc;
-    }//CListener
-    public void itemStateChanged(ItemEvent e){
-      if(DEBUG)System.out.println("state has changed");
-      if(((Checkbox)(_dfc._checkboxes.get(_name))).getState() == false){
-	if(DEBUG)System.out.println("setting checkbox true");
-	((Checkbox)(_dfc._checkboxes.get(_name))).setState(true);
-      }//if false then set true
-      else{
-	if(DEBUG)System.out.println("setting checkbox false");
-	((Checkbox)(_dfc._checkboxes.get(_name))).setState(false);
-      }//else
-    }//itemStateChanged
-  }//CListener
-  Frame _frame;
-  protected static final int HORIZONTAL = 300;
-  protected static final int VERTICAL   = 100;
-  protected static final int COMPONENT_HEIGHT = 20;
-  protected static final boolean DEBUG = false;
-}//DataFilterCheckbox
+	public void actionPerformed(ActionEvent e) {
+		// setVisible(false);
+		dispose();
+	}
+
+	int _numNames = 0;
+	public ResizableStringArray _names = null;
+	public Hashtable _checkboxes = new Hashtable();
+
+	/**
+	 * Handles events from checkbox
+	 */
+	public class CListener implements ItemListener {
+		String _name = null;
+		DataFilterCheckbox _dfc = null;
+
+		public CListener(String name, DataFilterCheckbox dfc) {
+			if (DEBUG)
+				System.out.println("called constructor");
+			_name = name;
+			_dfc = dfc;
+		}// CListener
+
+		public void itemStateChanged(ItemEvent e) {
+			if (DEBUG)
+				System.out.println("state has changed");
+			if (((Checkbox) (_dfc._checkboxes.get(_name))).getState() == false) {
+				if (DEBUG)
+					System.out.println("setting checkbox true");
+				((Checkbox) (_dfc._checkboxes.get(_name))).setState(true);
+			} // if false then set true
+			else {
+				if (DEBUG)
+					System.out.println("setting checkbox false");
+				((Checkbox) (_dfc._checkboxes.get(_name))).setState(false);
+			} // else
+		}// itemStateChanged
+	}// CListener
+
+	Frame _frame;
+	protected static final int HORIZONTAL = 300;
+	protected static final int VERTICAL = 100;
+	protected static final int COMPONENT_HEIGHT = 20;
+	protected static final boolean DEBUG = false;
+}// DataFilterCheckbox

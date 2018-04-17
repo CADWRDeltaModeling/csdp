@@ -39,26 +39,24 @@
     or see our home page: http://wwwdelmod.water.ca.gov/
 */
 package DWR.CSDP;
-import java.io.*;
-import java.util.*;
 
 /**
  * Stores parsed data from network file
  */
-public class NetworkParsedData{
+public class NetworkParsedData {
 
-public int numCenterlines;
+	public int numCenterlines;
 
-public String centerlineName;
-public int numCenterlinePoints;
-public ResizableFloatArray xUTM = new ResizableFloatArray();
-public ResizableFloatArray yUTM = new ResizableFloatArray();
-public int numXsect;
+	public String centerlineName;
+	public int numCenterlinePoints;
+	public ResizableFloatArray xUTM = new ResizableFloatArray();
+	public ResizableFloatArray yUTM = new ResizableFloatArray();
+	public int numXsect;
 
-public int numXsectPoints;
-public ResizableFloatArray station = new ResizableFloatArray();
-public ResizableFloatArray elevation = new ResizableFloatArray();
-public float distAlongCenterline=0.0f;
-public float xsectLineLength=0.0f;
-public String metadata;
-}//class NetworkParsedData
+	public int numXsectPoints;
+	public ResizableFloatArray station = new ResizableFloatArray();
+	public ResizableFloatArray elevation = new ResizableFloatArray();
+	public float distAlongCenterline = 0.0f;
+	public float xsectLineLength = 0.0f;
+	public String metadata;
+}// class NetworkParsedData

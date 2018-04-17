@@ -39,79 +39,82 @@
     or see our home page: http://wwwdelmod.water.ca.gov/
 */
 package DWR.CSDP;
-import DWR.CSDP.dialog.*;
-import java.awt.event.*;
-import java.awt.*;
-import java.io.*;
-public class XsectBathymetryMenu{
 
-  public XsectBathymetryMenu(XsectGraph xsectGraph){
-    _xsectGraph = xsectGraph;
-  }
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
-    /**
-     * color bathymetry points in xsect view by distance from cross-section line
-     */
-    public class XColorByDistance implements ItemListener{
-      public void itemStateChanged(ItemEvent e){
-        _xsectGraph.updateGraphCanvas();
-        _xsectGraph._gC.redoNextPaint();
-        _xsectGraph.validate();
-  	//removed for conversion to swing
-        //      _xsectGraph._gC.repaint();
-      }//itemStateChanged
-    }//XColorByDistance
+import DWR.CSDP.dialog.TextDialog;
 
-    /**
-     * color bathymetry points in xsect view by source
-     */
-    public class XColorBySource implements ItemListener{
-      public void itemStateChanged(ItemEvent e){
-        _xsectGraph.updateGraphCanvas();
-        _xsectGraph._gC.redoNextPaint();
-        _xsectGraph.validate();
-  	//removed for conversion to swing
-        //      _xsectGraph._gC.repaint();
-      }//itemStateChanged
-    }//XColorBySource
+public class XsectBathymetryMenu {
 
-    /**
-     * color bathymetry points in xsect view by year
-     */
-    public class XColorByYear implements ItemListener{
-      public void itemStateChanged(ItemEvent e){
-        _xsectGraph.updateGraphCanvas();
-        _xsectGraph._gC.redoNextPaint();
-        _xsectGraph.validate();
-  	//removed for conversion to swing
-        //      _xsectGraph._gC.repaint();
-      }//itemStateChanged
-    }//XColorByYear
+	public XsectBathymetryMenu(XsectGraph xsectGraph) {
+		_xsectGraph = xsectGraph;
+	}
 
-    /**
-     * Change size of points in cross-section window
-     */
-    public class BChangePointSize implements ActionListener{
-	public void actionPerformed(ActionEvent e){
-	    TextDialog d = new TextDialog(_xsectGraph, "Enter new point dimension", true,
-					  _xsectGraph.getPointSize());
-	    d.setVisible(true);
-//  	    String s = d.tf.getText();
-//  	    Float f = new Float(s);
-	    float f = Float.parseFloat(d.tf.getText());
-	    int nin = (int)(f);
-	    if(nin != _xsectGraph.getPointSize()){
-		System.out.println("Changing value");
-		_xsectGraph.setPointSize(nin);
-		_xsectGraph.updateGraphCanvas();
-		_xsectGraph._gC.redoNextPaint();
-		_xsectGraph.validate();
-	//removed for conversion to swing
-		//		_xsectGraph._gC.repaint();
-	    }//if
-	}//actionPerformed
-    }//BChangePointSize
+	/**
+	 * color bathymetry points in xsect view by distance from cross-section line
+	 */
+	public class XColorByDistance implements ItemListener {
+		public void itemStateChanged(ItemEvent e) {
+			_xsectGraph.updateGraphCanvas();
+			_xsectGraph._gC.redoNextPaint();
+			_xsectGraph.validate();
+			// removed for conversion to swing
+			// _xsectGraph._gC.repaint();
+		}// itemStateChanged
+	}// XColorByDistance
 
-  XsectGraph _xsectGraph;
-  protected static final boolean DEBUG = true;
-}//XsectEditMenu
+	/**
+	 * color bathymetry points in xsect view by source
+	 */
+	public class XColorBySource implements ItemListener {
+		public void itemStateChanged(ItemEvent e) {
+			_xsectGraph.updateGraphCanvas();
+			_xsectGraph._gC.redoNextPaint();
+			_xsectGraph.validate();
+			// removed for conversion to swing
+			// _xsectGraph._gC.repaint();
+		}// itemStateChanged
+	}// XColorBySource
+
+	/**
+	 * color bathymetry points in xsect view by year
+	 */
+	public class XColorByYear implements ItemListener {
+		public void itemStateChanged(ItemEvent e) {
+			_xsectGraph.updateGraphCanvas();
+			_xsectGraph._gC.redoNextPaint();
+			_xsectGraph.validate();
+			// removed for conversion to swing
+			// _xsectGraph._gC.repaint();
+		}// itemStateChanged
+	}// XColorByYear
+
+	/**
+	 * Change size of points in cross-section window
+	 */
+	public class BChangePointSize implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			TextDialog d = new TextDialog(_xsectGraph, "Enter new point dimension", true, _xsectGraph.getPointSize());
+			d.setVisible(true);
+			// String s = d.tf.getText();
+			// Float f = new Float(s);
+			float f = Float.parseFloat(d.tf.getText());
+			int nin = (int) (f);
+			if (nin != _xsectGraph.getPointSize()) {
+				System.out.println("Changing value");
+				_xsectGraph.setPointSize(nin);
+				_xsectGraph.updateGraphCanvas();
+				_xsectGraph._gC.redoNextPaint();
+				_xsectGraph.validate();
+				// removed for conversion to swing
+				// _xsectGraph._gC.repaint();
+			} // if
+		}// actionPerformed
+	}// BChangePointSize
+
+	XsectGraph _xsectGraph;
+	protected static final boolean DEBUG = true;
+}// XsectEditMenu

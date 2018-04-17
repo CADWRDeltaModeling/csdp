@@ -39,70 +39,78 @@
     or see our home page: http://wwwdelmod.water.ca.gov/
 */
 package DWR.CSDP.dialog;
-import java.awt.*;
-import java.awt.event.*;
+
+import java.awt.BorderLayout;
+import java.awt.Button;
+import java.awt.Color;
+import java.awt.Dialog;
+import java.awt.Frame;
+import java.awt.Insets;
+import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 /**
  * a dialog box with a text field to get input from user
  */
-public class TextDialog extends Dialog implements ActionListener{
-    public TextField tf;
-  Frame _f;
-  Button _okButton = new Button("OK");
-  public TextDialog(Frame parent, String title, boolean modal) {
-    super(parent, title, modal);
+public class TextDialog extends Dialog implements ActionListener {
+	public TextField tf;
+	Frame _f;
+	Button _okButton = new Button("OK");
 
-    _f = parent;
-    configure();
-  }
+	public TextDialog(Frame parent, String title, boolean modal) {
+		super(parent, title, modal);
 
-  public TextDialog(Frame parent, String title, boolean modal, double defaultValue) {
-    super(parent, title, modal);
+		_f = parent;
+		configure();
+	}
 
-    String d = Double.toString(defaultValue);
-    _f = parent;
-    configure(d);
-  }
+	public TextDialog(Frame parent, String title, boolean modal, double defaultValue) {
+		super(parent, title, modal);
 
-  public TextDialog(Frame parent, String title, boolean modal, String defaultValue) {
-    super(parent, title, modal);
+		String d = Double.toString(defaultValue);
+		_f = parent;
+		configure(d);
+	}
 
-    String d = defaultValue;
-    _f = parent;
-    configure(d);
-  }
+	public TextDialog(Frame parent, String title, boolean modal, String defaultValue) {
+		super(parent, title, modal);
 
-  public void configure(){
-    setLayout(new BorderLayout(10,10));
-    setBackground(Color.white);
-    tf = new TextField(20);
-    add("Center", tf);
-    add("South", _okButton);
-    ActionListener okListener = this;
-    _okButton.addActionListener(okListener);
-    setSize(300,150);
-    requestFocus();
-  }
+		String d = defaultValue;
+		_f = parent;
+		configure(d);
+	}
 
-  public void configure(String s){
-    setLayout(new BorderLayout(10,10));
-    setBackground(Color.white);
-    tf = new TextField(s, 20);
-    add("Center", tf);
-    add("South", _okButton);
-    ActionListener okListener = this;
-    _okButton.addActionListener(okListener);
-    setSize(300,150);
-    requestFocus();
-  }
+	public void configure() {
+		setLayout(new BorderLayout(10, 10));
+		setBackground(Color.white);
+		tf = new TextField(20);
+		add("Center", tf);
+		add("South", _okButton);
+		ActionListener okListener = this;
+		_okButton.addActionListener(okListener);
+		setSize(300, 150);
+		requestFocus();
+	}
 
-  public Insets getInsets() {
-    return new Insets(30,10,10,10);
-  }
+	public void configure(String s) {
+		setLayout(new BorderLayout(10, 10));
+		setBackground(Color.white);
+		tf = new TextField(s, 20);
+		add("Center", tf);
+		add("South", _okButton);
+		ActionListener okListener = this;
+		_okButton.addActionListener(okListener);
+		setSize(300, 150);
+		requestFocus();
+	}
 
-  public void actionPerformed(ActionEvent e){
-    //    setVisible(false);
-    dispose();
-  }
-}//class TextDialog
+	public Insets getInsets() {
+		return new Insets(30, 10, 10, 10);
+	}
 
+	public void actionPerformed(ActionEvent e) {
+		// setVisible(false);
+		dispose();
+	}
+}// class TextDialog

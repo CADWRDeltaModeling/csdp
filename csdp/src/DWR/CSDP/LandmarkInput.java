@@ -39,184 +39,194 @@
     or see our home page: http://wwwdelmod.water.ca.gov/
 */
 package DWR.CSDP;
-import DWR.CSDP.dialog.*;
-import java.io.*;
-import java.util.*;
+
+import java.io.File;
+import java.util.StringTokenizer;
+
+import DWR.CSDP.dialog.OkDialog;
 
 /**
- * Read landmark data.  Landmarks are symbols with labels that are displayed on map.
+ * Read landmark data. Landmarks are symbols with labels that are displayed on
+ * map.
  *
  * @author
  * @version
  */
 public abstract class LandmarkInput {
 
-  /**
-   * Make instance of subclass of LandmarkInput
-   */
-public static LandmarkInput getInstance(CsdpFrame gui, String directory, String filename) {
-  _directory = directory;
-  _landmark = new Landmark(gui);
-  _gui = gui;
-  _noMetadataDialog = new OkDialog(_gui, "This landmark file has no metadata. "+
-				   "UTM zone 10 NAD 27, NGVD 1929 will be assumed.",true);
-  _errorDialog = new OkDialog(_gui, "error message", true);
+	/**
+	 * Make instance of subclass of LandmarkInput
+	 */
+	public static LandmarkInput getInstance(CsdpFrame gui, String directory, String filename) {
+		_directory = directory;
+		_landmark = new Landmark(gui);
+		_gui = gui;
+		_noMetadataDialog = new OkDialog(_gui,
+				"This landmark file has no metadata. " + "UTM zone 10 NAD 27, NGVD 1929 will be assumed.", true);
+		_errorDialog = new OkDialog(_gui, "error message", true);
 
-    if((_directory.substring(_directory.length()-1,_directory.length())).
-       equals(File.separator) == false){
-	_directory += File.separator;
-    }
+		if ((_directory.substring(_directory.length() - 1, _directory.length())).equals(File.separator) == false) {
+			_directory += File.separator;
+		}
 
-    _filename=null;
-    _filetype=null;
-    LandmarkInput input = null;
-    if(filename.endsWith(ASCII_TYPE)){
-	input = new LandmarkAsciiInput();
-	_filetype = ASCII_TYPE;
-    }
+		_filename = null;
+		_filetype = null;
+		LandmarkInput input = null;
+		if (filename.endsWith(ASCII_TYPE)) {
+			input = new LandmarkAsciiInput();
+			_filetype = ASCII_TYPE;
+		}
 
-//   int dotIndex = filename.indexOf(".",0);
-//   _filename = filename.substring(0,dotIndex);
-//   _filetype = filename.substring(dotIndex+1);
-//   LandmarkInput input = null;
-//   if (_filetype.equals(ASCII_TYPE)) {
-//     input = new LandmarkAsciiInput();
-//   }
-    else {// throw new IllegalInputFileException(msg);
-	System.out.println("No landmark filetype defined for "+_filetype);
-	_filetype = null;
-    }
-    if(_filetype!=null){
-	_filename = filename.substring(0,filename.lastIndexOf(_filetype)-1);
-    }
+		// int dotIndex = filename.indexOf(".",0);
+		// _filename = filename.substring(0,dotIndex);
+		// _filetype = filename.substring(dotIndex+1);
+		// LandmarkInput input = null;
+		// if (_filetype.equals(ASCII_TYPE)) {
+		// input = new LandmarkAsciiInput();
+		// }
+		else {// throw new IllegalInputFileException(msg);
+			System.out.println("No landmark filetype defined for " + _filetype);
+			_filetype = null;
+		}
+		if (_filetype != null) {
+			_filename = filename.substring(0, filename.lastIndexOf(_filetype) - 1);
+		}
 
-  return input;
-} //getInstance
+		return input;
+	} // getInstance
 
-  /**
-   * Calls appropriate read method to read Landmark data
-   */
-public Landmark readData(){
-  open();
-  read();
-  close();
-  _landmark.convertToBathymetryDatum();
-  return _landmark;
-}
-
-  /**
-   * Open file
-   */
-protected abstract void open();
-  /**
-   * Read file
-   */
-protected abstract void read();
-  /**
-   * Close file
-   */
-protected abstract void close();
-
-    /*
-     * ;HorizontalDatum:  UTMNAD27
-     * ;HorizontalZone:   10
-     * ;HorizontalUnits:  Meters
-     * ;VerticalDatum:    NGVD29
-     * ;VerticalUnits:    USSurveyFeet
-     * ;Filetype: network
-     * ;NumElements: xxxx
-     */
-    protected void parseMetadata(String line, CsdpFileMetadata m){
-	StringTokenizer t = new StringTokenizer(line, " :");
-	String nextToken=t.nextToken();
-	nextToken=t.nextToken();
-	if(line.indexOf("HorizontalDatum")>=0){
-	    if(nextToken.equalsIgnoreCase("UTMNAD27")) m.setHDatum(CsdpFileMetadata.UTMNAD27);
-	    else if(nextToken.equalsIgnoreCase("UTMNAD83")) m.setHDatum(CsdpFileMetadata.UTMNAD83);
-	    else{
-		_errorDialog.setMessage("HorizontalDatum " + nextToken + 
-					" not recognized.  using default horizontal datum.");
-		_errorDialog.setVisible(true);
-	    }
-	}else if(line.indexOf("HorizontalZone")>=0){
-	    if(nextToken.equalsIgnoreCase("10")) m.setHZone(10);
-	    else{
-		_errorDialog.setMessage("HorizontalZone " + nextToken + 
-					" not recognized.  using default horizontal zone.");
-		_errorDialog.setVisible(true);
-	    }
-	}else if(line.indexOf("HorizontalUnits")>=0){
-	    if(nextToken.equalsIgnoreCase("Meters")) m.setHUnits(CsdpFileMetadata.METERS);
-	    else if(nextToken.equalsIgnoreCase("Feet")) m.setHUnits(CsdpFileMetadata.USSURVEYFEET);
-	    else{
-		_errorDialog.setMessage("HorizontalUnits " + nextToken + 
-					" not recognized.  using default horizontal units.");
-		_errorDialog.setVisible(true);
-	    }
-	}else if(line.indexOf("VerticalDatum")>=0){
-	    if(nextToken.equalsIgnoreCase("NGVD29")) m.setVDatum(CsdpFileMetadata.NGVD1929);
-	    else if(nextToken.equalsIgnoreCase("NAVD88")) m.setVDatum(CsdpFileMetadata.NAVD1988);
-	    else{
-		_errorDialog.setMessage("VerticalDatum " + nextToken + 
-					" not recognized.  using default vertical datum.");
-		_errorDialog.setVisible(true);
-	    }
-	}else if(line.indexOf("VerticalUnits")>=0){
-	    if(nextToken.equalsIgnoreCase("USSurveyFeet")) m.setVUnits(CsdpFileMetadata.USSURVEYFEET);
-	    else if(nextToken.equalsIgnoreCase("meters")) m.setVUnits(CsdpFileMetadata.METERS);
-	    else{
-		_errorDialog.setMessage("VerticalUnits " + nextToken + 
-					" not recognized.  using default vertical units.");
-		_errorDialog.setVisible(true);
-	    }
-	}else if(line.indexOf("Filetype")>=0){
-	    //do nothing...
-	}else if(line.indexOf("NumElements")>0){
-	    try{
-		//    numLines = new Integer(nextToken);
-		int numLines = Integer.parseInt(nextToken);
-		////		_net.putNumCenterlines(numLines);
-		_numLandmarks=numLines;
-		m.setNumElements(numLines);
-	    } catch(java.lang.NumberFormatException e) {
-		_errorDialog.setMessage("Error reading metadata line. Expecting NumElements. line="+line);
-		_errorDialog.setVisible(true);
-	    }//try
-	}else{
-	    _errorDialog.setMessage("unable to parse metadata line: " + 
-				    line +". File may not be loaded correctly");
-	    _errorDialog.setVisible(true);
+	/**
+	 * Calls appropriate read method to read Landmark data
+	 */
+	public Landmark readData() {
+		open();
+		read();
+		close();
+		_landmark.convertToBathymetryDatum();
+		return _landmark;
 	}
-    }//parseMetadata
 
+	/**
+	 * Open file
+	 */
+	protected abstract void open();
 
-  /**
-   * Stores a landmark point
-   */
-  protected void storeDataMeters(int dataNumber) {
-    float x = _pd.x;
-    float y = _pd.y;
-    String name = _pd.name;
-    _landmark.addLandmarkMeters(name, x, y); 
-  }//storeData
+	/**
+	 * Read file
+	 */
+	protected abstract void read();
 
-  /**
-   * Find maximum and minimum values of x and y and store them.
-   */
-  public void findMaxMin(int numLines){
-      _landmark.findMaxMin(numLines);
-  }
+	/**
+	 * Close file
+	 */
+	protected abstract void close();
 
-    protected static Landmark _landmark;
-    protected LandmarkParsedData _pd   = new LandmarkParsedData();  //vector-stores 6 values
-    public static final boolean DEBUG = false;
-    
-    protected static String _filename  = null;//part of filename before the first dot
-    protected static String _filetype  = null;// filename extension (after first dot)
-    protected static final String ASCII_TYPE = "cdl";
-    protected static String _directory = null;
-    protected int _numLandmarks;
-    protected static OkDialog _noMetadataDialog;
-    protected static OkDialog _errorDialog;
-    protected static CsdpFrame _gui;
+	/*
+	 * ;HorizontalDatum: UTMNAD27 ;HorizontalZone: 10 ;HorizontalUnits: Meters
+	 * ;VerticalDatum: NGVD29 ;VerticalUnits: USSurveyFeet ;Filetype: network
+	 * ;NumElements: xxxx
+	 */
+	protected void parseMetadata(String line, CsdpFileMetadata m) {
+		StringTokenizer t = new StringTokenizer(line, " :");
+		String nextToken = t.nextToken();
+		nextToken = t.nextToken();
+		if (line.indexOf("HorizontalDatum") >= 0) {
+			if (nextToken.equalsIgnoreCase("UTMNAD27"))
+				m.setHDatum(CsdpFileMetadata.UTMNAD27);
+			else if (nextToken.equalsIgnoreCase("UTMNAD83"))
+				m.setHDatum(CsdpFileMetadata.UTMNAD83);
+			else {
+				_errorDialog.setMessage(
+						"HorizontalDatum " + nextToken + " not recognized.  using default horizontal datum.");
+				_errorDialog.setVisible(true);
+			}
+		} else if (line.indexOf("HorizontalZone") >= 0) {
+			if (nextToken.equalsIgnoreCase("10"))
+				m.setHZone(10);
+			else {
+				_errorDialog
+						.setMessage("HorizontalZone " + nextToken + " not recognized.  using default horizontal zone.");
+				_errorDialog.setVisible(true);
+			}
+		} else if (line.indexOf("HorizontalUnits") >= 0) {
+			if (nextToken.equalsIgnoreCase("Meters"))
+				m.setHUnits(CsdpFileMetadata.METERS);
+			else if (nextToken.equalsIgnoreCase("Feet"))
+				m.setHUnits(CsdpFileMetadata.USSURVEYFEET);
+			else {
+				_errorDialog.setMessage(
+						"HorizontalUnits " + nextToken + " not recognized.  using default horizontal units.");
+				_errorDialog.setVisible(true);
+			}
+		} else if (line.indexOf("VerticalDatum") >= 0) {
+			if (nextToken.equalsIgnoreCase("NGVD29"))
+				m.setVDatum(CsdpFileMetadata.NGVD1929);
+			else if (nextToken.equalsIgnoreCase("NAVD88"))
+				m.setVDatum(CsdpFileMetadata.NAVD1988);
+			else {
+				_errorDialog
+						.setMessage("VerticalDatum " + nextToken + " not recognized.  using default vertical datum.");
+				_errorDialog.setVisible(true);
+			}
+		} else if (line.indexOf("VerticalUnits") >= 0) {
+			if (nextToken.equalsIgnoreCase("USSurveyFeet"))
+				m.setVUnits(CsdpFileMetadata.USSURVEYFEET);
+			else if (nextToken.equalsIgnoreCase("meters"))
+				m.setVUnits(CsdpFileMetadata.METERS);
+			else {
+				_errorDialog
+						.setMessage("VerticalUnits " + nextToken + " not recognized.  using default vertical units.");
+				_errorDialog.setVisible(true);
+			}
+		} else if (line.indexOf("Filetype") >= 0) {
+			// do nothing...
+		} else if (line.indexOf("NumElements") > 0) {
+			try {
+				// numLines = new Integer(nextToken);
+				int numLines = Integer.parseInt(nextToken);
+				//// _net.putNumCenterlines(numLines);
+				_numLandmarks = numLines;
+				m.setNumElements(numLines);
+			} catch (java.lang.NumberFormatException e) {
+				_errorDialog.setMessage("Error reading metadata line. Expecting NumElements. line=" + line);
+				_errorDialog.setVisible(true);
+			} // try
+		} else {
+			_errorDialog.setMessage("unable to parse metadata line: " + line + ". File may not be loaded correctly");
+			_errorDialog.setVisible(true);
+		}
+	}// parseMetadata
+
+	/**
+	 * Stores a landmark point
+	 */
+	protected void storeDataMeters(int dataNumber) {
+		float x = _pd.x;
+		float y = _pd.y;
+		String name = _pd.name;
+		_landmark.addLandmarkMeters(name, x, y);
+	}// storeData
+
+	/**
+	 * Find maximum and minimum values of x and y and store them.
+	 */
+	public void findMaxMin(int numLines) {
+		_landmark.findMaxMin(numLines);
+	}
+
+	protected static Landmark _landmark;
+	protected LandmarkParsedData _pd = new LandmarkParsedData(); // vector-stores
+																	// 6 values
+	public static final boolean DEBUG = false;
+
+	protected static String _filename = null;// part of filename before the
+												// first dot
+	protected static String _filetype = null;// filename extension (after first
+												// dot)
+	protected static final String ASCII_TYPE = "cdl";
+	protected static String _directory = null;
+	protected int _numLandmarks;
+	protected static OkDialog _noMetadataDialog;
+	protected static OkDialog _errorDialog;
+	protected static CsdpFrame _gui;
 } // class LandmarkInput

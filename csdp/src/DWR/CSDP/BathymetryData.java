@@ -40,14 +40,11 @@
 */
 package DWR.CSDP;
 
-import DWR.CSDP.semmscon.UseSemmscon;
-import java.util.*;
-import java.awt.*;
-import javax.swing.*;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.util.Hashtable;
+import java.util.Random;
 
 /**
  * Stores bathymetry data using automatically resized arrays. All coordinates
@@ -728,7 +725,6 @@ public class BathymetryData {
 		z[index] = CsdpFunctions.metersToFeet(value);
 	}
 
-	
 	/**
 	 * quicksort
 	 */
@@ -737,12 +733,12 @@ public class BathymetryData {
 		if (left < right) {
 			Random rand = new Random();
 			int pivotIndex = left + rand.nextInt(right - left + 1);
-			swap(x, left,pivotIndex);
-			swap(y, left,pivotIndex);
-			swap(z, left,pivotIndex);
-			swap(yearIndex, left,pivotIndex);
-			swap(sourceIndex, left,pivotIndex);
-			swap(descriptionIndex, left,pivotIndex);
+			swap(x, left, pivotIndex);
+			swap(y, left, pivotIndex);
+			swap(z, left, pivotIndex);
+			swap(yearIndex, left, pivotIndex);
+			swap(sourceIndex, left, pivotIndex);
+			swap(descriptionIndex, left, pivotIndex);
 			last = left;
 			for (int i = left + 1; i <= right; i++) {
 				if (y[i] < y[left]) {

@@ -40,29 +40,32 @@
 */
 
 package DWR.CSDP;
-import java.io.*;
-import java.awt.*;
-import java.util.*;
-    /**
-     * A point in a line in a DigitalLineGraph
-     */
-    public class DigitalLineGraphPoint{
-	public DigitalLineGraphPoint(double x, double y){
-	    putX(x);
-	    putY(y);
+
+/**
+ * A point in a line in a DigitalLineGraph
+ */
+public class DigitalLineGraphPoint {
+	public DigitalLineGraphPoint(double x, double y) {
+		putX(x);
+		putY(y);
 	}
-	public double getX(){
-	    return _x;
+
+	public double getX() {
+		return _x;
 	}
-	public void putX(double value){
-	    _x=value;
+
+	public void putX(double value) {
+		_x = value;
 	}
-	public double getY(){
-	    return _y;
+
+	public double getY() {
+		return _y;
 	}
-	public void putY(double value){
-	    _y=value;
+
+	public void putY(double value) {
+		_y = value;
 	}
+
 	private double _x;
 	private double _y;
-    }//class DigitalLineGraphPoint
+}// class DigitalLineGraphPoint

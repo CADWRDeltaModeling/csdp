@@ -39,8 +39,6 @@
     or see our home page: http://wwwdelmod.water.ca.gov/
 */
 package DWR.CSDP;
-import java.io.*;
-import java.util.*;
 
 /**
  * Write landmark file .cdl
@@ -49,44 +47,46 @@ import java.util.*;
  * @version
  */
 public abstract class XsectLandmarkOutput {
-  
-  public static final boolean DEBUG = false;
-  protected static final String FILENAME = "xsects.cdl";
 
-  /**
-   * Make instance of subclass of XsectLandmarkOutput
-   */
-  public static XsectLandmarkOutput getInstance(Network net) {
-    XsectLandmarkOutput output = null;
-    output = new XsectLandmarkAsciiOutput(net);
-    return output;
-  } //getInstance
-  
-  /**
-   * Calls appropriate write method to write XsectLandmark data
-   */
-public boolean writeData(){
-    boolean success = false;
-    boolean backupSuccess = CsdpFunctions.backupFile(FILENAME);
-    if(backupSuccess){
-	open();
-	write();
-	close();
-    }
-    return success;
-}//writeData
+	public static final boolean DEBUG = false;
+	protected static final String FILENAME = "xsects.cdl";
 
-  /**
-   * Open file
-   */
-  protected abstract void open();
-  /**
-   * write file
-   */
-  protected abstract void write();
-  /**
-   * Close file
-   */
-  protected abstract void close();
-  
-}//class XsectLandmarkOutput
+	/**
+	 * Make instance of subclass of XsectLandmarkOutput
+	 */
+	public static XsectLandmarkOutput getInstance(Network net) {
+		XsectLandmarkOutput output = null;
+		output = new XsectLandmarkAsciiOutput(net);
+		return output;
+	} // getInstance
+
+	/**
+	 * Calls appropriate write method to write XsectLandmark data
+	 */
+	public boolean writeData() {
+		boolean success = false;
+		boolean backupSuccess = CsdpFunctions.backupFile(FILENAME);
+		if (backupSuccess) {
+			open();
+			write();
+			close();
+		}
+		return success;
+	}// writeData
+
+	/**
+	 * Open file
+	 */
+	protected abstract void open();
+
+	/**
+	 * write file
+	 */
+	protected abstract void write();
+
+	/**
+	 * Close file
+	 */
+	protected abstract void close();
+
+}// class XsectLandmarkOutput

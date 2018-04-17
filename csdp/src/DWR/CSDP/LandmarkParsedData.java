@@ -39,7 +39,7 @@
     or see our home page: http://wwwdelmod.water.ca.gov/
 */
 package DWR.CSDP;
-import java.util.*;
+
 /**
  * Stores the values that are parsed from a line that is read from an ascii
  * file.
@@ -49,7 +49,7 @@ import java.util.*;
  */
 public class LandmarkParsedData {
 
-public float x;
-public float y;
-String name = null;
+	public float x;
+	public float y;
+	String name = null;
 } // class LandmarkParsedData

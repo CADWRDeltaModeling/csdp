@@ -39,557 +39,582 @@
     or see our home page: http://wwwdelmod.water.ca.gov/
 */
 package DWR.CSDP;
-import DWR.CSDP.dialog.*;
-import java.awt.event.*;
-import java.awt.*;
-import javax.swing.*;
-import java.io.*;
+
+import java.awt.Cursor;
+import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.File;
+
+import javax.swing.JFileChooser;
+
+import DWR.CSDP.dialog.OkDialog;
+import DWR.CSDP.dialog.TextDialog;
+import DWR.CSDP.dialog.YesNoDialog;
+
 /**
  * calls methods for creating and editing centerlines
  *
  * @author
  * @version
  */
-public class CenterlineMenu{
+public class CenterlineMenu {
 
-    public CenterlineMenu(CsdpFrame gui){
-	_gui = gui;
-	_td = new TextDialog((Frame)_gui, "Enter new centerline name", true);
-	_ynd = new YesNoDialog(_gui, "messagemessagemessagemessagemessagemessagemessage", true);
-    }
-
-  public void setLandmark(Landmark landmark){
-    _landmark = landmark;
-  }
-
-  /**
-   * return to cursor (turn modes off)
-   */
-  public class CCursor implements ActionListener{
-      CsdpFrame _gui;
-      public CCursor(CsdpFrame gui){
-	  _gui=gui;
-      }
-
-    public void actionPerformed(ActionEvent e){
-      _gui.setStopEditingMode();
-      _gui.setCursor(CsdpFunctions._defaultCursor);
-    }
-  }// class CAddPoint
-  
-    /**
-     * Remove a centerline from the network.
-     *
-     * @author
-     * @version $Id:
-     */
-    public class CRemove implements ActionListener{
-	TextDialog _td;
-	YesNoDialog _yndRemove;
-	OkDialog _okd;
-	public CRemove(CsdpFrame gui){
-	    _gui = gui;
-	    _td = new TextDialog((Frame)_gui, "Enter name of centerline to remove", true);
-	    _yndRemove = new YesNoDialog(_gui, "Are you sure?", true, 25);
-	    _okd = new OkDialog(_gui, "centerline doesn't exist", true);
+	public CenterlineMenu(CsdpFrame gui) {
+		_gui = gui;
+		_td = new TextDialog((Frame) _gui, "Enter new centerline name", true);
+		_ynd = new YesNoDialog(_gui, "messagemessagemessagemessagemessagemessagemessage", true);
 	}
-	public void actionPerformed(ActionEvent e){
-	    _net = _gui.getNetwork();
-	    if(_net == null){
-		System.out.println("ERROR in CenterlineMenu.CRemove.actionPerformed: network is null!");
-	    }else{
-		_td.setVisible(true);
-		String cname = _td.tf.getText();
-		//does specified centerline exist?
-		if(_net.centerlineExists(cname)){
-		    _yndRemove.setTitle("Remove Centerline "+cname+"?");
-		    _yndRemove.reset();
-		    _yndRemove.setVisible(true);
-		    if(_yndRemove._yes){
-			_net.removeCenterline(cname);
-			_gui.getPlanViewCanvas(0).redoNextPaint();
-			_gui.getPlanViewCanvas(0).repaint();
-		    }
-		}else{
-		    //requested centerline doesn't exist
-		    _okd.setMessage("requested centerline doesn't exist");
-		    _okd.setVisible(true);
-		}
-	    }
+
+	public void setLandmark(Landmark landmark) {
+		_landmark = landmark;
 	}
-    }
 
-  /**
-   * Draw new centerline--mouse clicks will add points
-   *
-   * @author
-   * @version $Id: CenterlineMenu.java,v 1.5 2003/07/22 22:23:11 btom Exp $
-   */
-  public class CCreate implements ActionListener{
-      TextDialog _td;
-  /**
-   * assign instances of application and gui classes to class variables
-   */
-    public CCreate(App app, CsdpFrame gui) {
-      _app = app;
-      _gui = gui;
-      _td = new TextDialog((Frame)_gui, "Enter new centerline name", true);
-    }
-    public void actionPerformed(ActionEvent e) {
-      _net = _gui.getNetwork();
-      if(_net == null){
-	_net = new Network("delta", _gui);
-	_gui.setNetwork(_net);
-	_app._net = _net;
-	_nplot = _app.setNetworkPlotter();
-	_gui.getPlanViewCanvas(0).setNetworkPlotter(_nplot);
-	_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
-	//removed for conversion to swing
-	_gui.getPlanViewCanvas(0).redoNextPaint();
-	_gui.getPlanViewCanvas(0).repaint();
-
-	//	_gui.enableAfterNetwork();
-	_gui.enableWhenNetworkExists();
-      }//if net is null
-      
-      String centerlineName = null;
-      ////      TextDialog d = new TextDialog((Frame)_gui, "Enter new centerline name", true);
-      _td.setVisible(true);
-      centerlineName = _td.tf.getText();
-
-      if(centerlineName.length() > 0){
-	  if(_net.getCenterline(centerlineName) != null){
-	      _ynd.setTitle("Centerline "+centerlineName+" already exists.  Replace?");
-	      _ynd.reset();
-	      _ynd.setVisible(true);
-	      if(_ynd._yes == true){
-		  addCenterline(centerlineName);
-	      }
-	  }
-	  else{
-	      addCenterline(centerlineName);
-	  }
-      }//if centerline name is not blank
-    }//actionPerformed
-      protected void addCenterline(String centerlineName){
-	_net.addCenterline(centerlineName);
-	_net.setSelectedCenterlineName(centerlineName);
-	_net.setSelectedCenterline(_net.getCenterline(centerlineName));
-	_gui.enableAfterCenterlineSelected();
-	_gui.setAddPointMode();
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-    
-  }// class CCreate
-    
-/**
- * Create new centerline with 2 points.  User will specify DSM channel number and
- * the new centerline will have its first point at the upstream node and the 
- * second point at the downstream node.
- *
- * @author
- * @version
- */
-    public class CDSMCreate implements ActionListener{
 	/**
-	 * assign instances of application and gui classes to class variables
+	 * return to cursor (turn modes off)
 	 */
-	public CDSMCreate(DSMChannels DSMChannels, App app, CsdpFrame gui) {
-	    _DSMChannels = DSMChannels;
-	    _app = app;
-	    _gui = gui;
-	    _jfcChannelsInp = new JFileChooser();
-	    _channelsInpFilter = new CsdpFileFilter
-		(_channelsInpExtensions, _numChannelsInpExtensions);
-	    _errorDialog = new OkDialog(_gui, "messagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessage", true);
-	    _td.setTitle("Enter a new DSM channel number");
-	}
+	public class CCursor implements ActionListener {
+		CsdpFrame _gui;
 
-	public void actionPerformed(ActionEvent e) {
-	    _gui.setDefaultModesStates();
-	    _net = _gui.getNetwork();
-	    if(_net == null){
-		_net = new Network("delta", _gui);
-		_gui.setNetwork(_net);
-		_app._net = _net;
-		_nplot = _app.setNetworkPlotter();
-		_gui.getPlanViewCanvas(0).setNetworkPlotter(_nplot);
-		_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
-	//removed for conversion to swing
-		_gui.getPlanViewCanvas(0).redoNextPaint();
-		_gui.getPlanViewCanvas(0).repaint();
-
-		//	_gui.enableAfterNetwork();
-		_gui.enableWhenNetworkExists();
-	    }//if net is null
-
-	    _td.setVisible(true);
-	    String centerlineName = _td.tf.getText();
-	    boolean loadAnotherChannelsInpFile = true;
-
-	    //if channels.inp file not loaded OR if channel # doesn't exist in current
-	    //DSMChannels object.  ask user if another file should be loaded--don't
-	    //assume there is another file with the channel.
-	    while(loadAnotherChannelsInpFile){
-		if(_DSMChannels != null &&
-		   _DSMChannels.channelExists(centerlineName) == false){
-		    _ynd.setTitle("Channel "+centerlineName+" not found in channel connectivity file.  Load another file?");
-		    _ynd.reset();
-		    _ynd.setVisible(true);
-		    if(_ynd._yes == true){
-			loadAnotherChannelsInpFile = true;
-		    }else{
-			loadAnotherChannelsInpFile = false;
-		    }
+		public CCursor(CsdpFrame gui) {
+			_gui = gui;
 		}
 
-		if(_DSMChannels == null || loadAnotherChannelsInpFile){
-		    String channelsFilename = null;
-		    //	FileDialog fd = new FileDialog(_gui, "Open DSM2 channel connectivity file");
-		    //	fd.setVisible(true);
-		    _jfcChannelsInp.setDialogTitle("Open DSM2 channel connectivity file");
-		    _jfcChannelsInp.setApproveButtonText("Open");
-		    _jfcChannelsInp.addChoosableFileFilter(_channelsInpFilter);
-		    _jfcChannelsInp.setFileFilter(_channelsInpFilter);
-		    
-		    if(CsdpFunctions.getOpenDirectory() != null){
-			_jfcChannelsInp.setCurrentDirectory
-			    (CsdpFunctions.getOpenDirectory());
-		    }
-		    _filechooserState = _jfcChannelsInp.showOpenDialog(_gui);
-		    if(_filechooserState == JFileChooser.APPROVE_OPTION){
-			channelsFilename = _jfcChannelsInp.getName
-			    (_jfcChannelsInp.getSelectedFile());
-			_directory = _jfcChannelsInp.getCurrentDirectory().
-			    getAbsolutePath()+File.separator;
-			
-			//	channelsFilename = fd.getFile();
-			//	_directory = fd.getDirectory();
-			_gui.setCursor(_waitCursor);
-			_DSMChannels = _app.chanReadStore(_directory, channelsFilename);
-			_gui.setDSMChannels(_DSMChannels);
-			_gui.setCursor(_defaultCursor);
-		    }else{
-			loadAnotherChannelsInpFile = false;
-		    }
-		}//if DSMChannels is null
-		
-		if(_filechooserState == JFileChooser.APPROVE_OPTION){
-		    if(_net.getCenterline(centerlineName) != null){
-			_ynd.setTitle("Centerline "+centerlineName+" already exists. Replace?");
-			_ynd.reset();
-			_ynd.setVisible(true);
-			if(_ynd._yes == true){
-			    //			    addDSMChannel(centerlineName);
-			    loadAnotherChannelsInpFile = addDSMChannel(centerlineName);
+		public void actionPerformed(ActionEvent e) {
+			_gui.setStopEditingMode();
+			_gui.setCursor(CsdpFunctions._defaultCursor);
+		}
+	}// class CAddPoint
+
+	/**
+	 * Remove a centerline from the network.
+	 *
+	 * @author
+	 * @version $Id:
+	 */
+	public class CRemove implements ActionListener {
+		TextDialog _td;
+		YesNoDialog _yndRemove;
+		OkDialog _okd;
+
+		public CRemove(CsdpFrame gui) {
+			_gui = gui;
+			_td = new TextDialog((Frame) _gui, "Enter name of centerline to remove", true);
+			_yndRemove = new YesNoDialog(_gui, "Are you sure?", true, 25);
+			_okd = new OkDialog(_gui, "centerline doesn't exist", true);
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			_net = _gui.getNetwork();
+			if (_net == null) {
+				System.out.println("ERROR in CenterlineMenu.CRemove.actionPerformed: network is null!");
+			} else {
+				_td.setVisible(true);
+				String cname = _td.tf.getText();
+				// does specified centerline exist?
+				if (_net.centerlineExists(cname)) {
+					_yndRemove.setTitle("Remove Centerline " + cname + "?");
+					_yndRemove.reset();
+					_yndRemove.setVisible(true);
+					if (_yndRemove._yes) {
+						_net.removeCenterline(cname);
+						_gui.getPlanViewCanvas(0).redoNextPaint();
+						_gui.getPlanViewCanvas(0).repaint();
+					}
+				} else {
+					// requested centerline doesn't exist
+					_okd.setMessage("requested centerline doesn't exist");
+					_okd.setVisible(true);
+				}
 			}
-		    }
-		    else{
-			//			addDSMChannel(centerlineName);
-			loadAnotherChannelsInpFile = addDSMChannel(centerlineName);
-		    }
-		}//if the cancel button wasn't pressed
-	    }//while
-	}//actionPerformed
+		}
+	}
 
-    /**
-     * adds a centerline for the specified DSM channel number.  First point is
-     * located at upstream node, last point is located at downstream node.
-     */
-    protected boolean addDSMChannel(String centerlineName){
-      int upnode = 0;
-      int downnode = 0;
-      String upnodeString = null;
-      String downnodeString = null;
-      double upnodeX   = 0.0;
-      double upnodeY   = 0.0;
-      double downnodeX = 0.0;
-      double downnodeY = 0.0;
-      Centerline centerline = null;
-      boolean landmarkError = false;
-      boolean channelsInpError = false;
+	/**
+	 * Draw new centerline--mouse clicks will add points
+	 *
+	 * @author
+	 * @version $Id: CenterlineMenu.java,v 1.5 2003/07/22 22:23:11 btom Exp $
+	 */
+	public class CCreate implements ActionListener {
+		TextDialog _td;
 
-      _net.addCenterline(centerlineName);
-      centerline = _net.getCenterline(centerlineName);
-      upnode   = _DSMChannels.getUpnode(centerlineName);
-      downnode = _DSMChannels.getDownnode(centerlineName);
+		/**
+		 * assign instances of application and gui classes to class variables
+		 */
+		public CCreate(App app, CsdpFrame gui) {
+			_app = app;
+			_gui = gui;
+			_td = new TextDialog((Frame) _gui, "Enter new centerline name", true);
+		}
 
-      if(upnode < 0 || downnode < 0){
-	  _errorDialog.setMessage
-	      ("ERROR:  node not found for centerline "+centerlineName);
-	  _errorDialog.setVisible(true);
-	  channelsInpError = true;
-      }
-      
-//        Integer upnodeInteger = new Integer(upnode);
-//        Integer downnodeInteger = new Integer(downnode);
-//        upnodeString = upnodeInteger.toString(upnode);
-//        downnodeString = downnodeInteger.toString(downnode);
+		public void actionPerformed(ActionEvent e) {
+			_net = _gui.getNetwork();
+			if (_net == null) {
+				_net = new Network("delta", _gui);
+				_gui.setNetwork(_net);
+				_app._net = _net;
+				_nplot = _app.setNetworkPlotter();
+				_gui.getPlanViewCanvas(0).setNetworkPlotter(_nplot);
+				_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+				// removed for conversion to swing
+				_gui.getPlanViewCanvas(0).redoNextPaint();
+				_gui.getPlanViewCanvas(0).repaint();
 
-      upnodeString = Integer.toString(upnode);
-      downnodeString = Integer.toString(downnode);
+				// _gui.enableAfterNetwork();
+				_gui.enableWhenNetworkExists();
+			} // if net is null
 
-      boolean giveUp = false;
-      double upX = -Double.MAX_VALUE;
-      double upY = -Double.MAX_VALUE;
-      double downX = -Double.MAX_VALUE;
-      double downY = -Double.MAX_VALUE;
+			String centerlineName = null;
+			//// TextDialog d = new TextDialog((Frame)_gui, "Enter new
+			//// centerline name", true);
+			_td.setVisible(true);
+			centerlineName = _td.tf.getText();
 
-      while(giveUp == false){
-	  if(DEBUG)System.out.println("landmark="+_landmark);
-	  if(_landmark == null) _landmark = _gui.getLandmark(); //load landmark file
-	  upX   = _landmark.getXFeet(upnodeString);
-	  upY   = _landmark.getYFeet(upnodeString);
-	  downX = _landmark.getXFeet(downnodeString);
-	  downY = _landmark.getYFeet(downnodeString);
-	  
-	  if(upX < 0.0f || upY < 0.0f){
-	      _errorDialog.setMessage
-		  ("ERROR:  insufficient information in landmark file for node "+
-		   upnodeString+".");
-	      landmarkError = true;
-	  }
-	  if(downX < 0.0f || downY < 0.0f){
-	      _errorDialog.setMessage
-		  ("ERROR:  insufficient information in landmark file for node "+
-		   downnodeString+".");
-	      landmarkError = true;
-	  }
-	  if(landmarkError){
-	      _errorDialog.setVisible(true);
-	      _ynd.setTitle("Load another landmark file?");
-	      _ynd.reset();
-	      _ynd.setVisible(true);
+			if (centerlineName.length() > 0) {
+				if (_net.getCenterline(centerlineName) != null) {
+					_ynd.setTitle("Centerline " + centerlineName + " already exists.  Replace?");
+					_ynd.reset();
+					_ynd.setVisible(true);
+					if (_ynd._yes == true) {
+						addCenterline(centerlineName);
+					}
+				} else {
+					addCenterline(centerlineName);
+				}
+			} // if centerline name is not blank
+		}// actionPerformed
 
-	      if(_ynd._yes == true){
-		  _landmark = _gui.getLandmark(); //load landmark file
-	      }else if(_ynd._no == true || _ynd._cancel == true){
-		  giveUp = true;
-	      }
-	  }else{
-	      giveUp=true;
-	  }
-      }//while
+		protected void addCenterline(String centerlineName) {
+			_net.addCenterline(centerlineName);
+			_net.setSelectedCenterlineName(centerlineName);
+			_net.setSelectedCenterline(_net.getCenterline(centerlineName));
+			_gui.enableAfterCenterlineSelected();
+			_gui.setAddPointMode();
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
 
-      if(channelsInpError == false && landmarkError == false){
-	  //getX function returns -BIG_FLOAT if node not found in open landmark file
-	  if(upX<0.0f || upY<0.0f || downX<0.0f || downY<0.0){
-	      _landmark = _gui.getLandmark(); //load landmark file
-	  }//could use a while loop, but user would never get out if no landmark file
-	  upnodeX   = _landmark.getXFeet(upnodeString);
-	  upnodeY   = _landmark.getYFeet(upnodeString);
-	  downnodeX = _landmark.getXFeet(downnodeString);
-	  downnodeY = _landmark.getYFeet(downnodeString);
-	  centerline.addCenterlinePointFeet(upnodeX, upnodeY);
-	  centerline.addCenterlinePointFeet(downnodeX, downnodeY);
-	  if(DEBUG)System.out.println
-		       ("landmark coordinates: upstream xy, downstream xy="+
-			upnodeX+","+upnodeY+","+downnodeX+","+downnodeY);
-	  
-	  _net.setSelectedCenterlineName(centerlineName);
-	  _net.setSelectedCenterline(_net.getCenterline(centerlineName));
-	  _gui.enableAfterCenterlineSelected();
-	  _gui.getPlanViewCanvas(0).setUpdateNetwork(true);
-	//removed for conversion to swing
-	  _gui.getPlanViewCanvas(0).redoNextPaint();
-	  _gui.getPlanViewCanvas(0).repaint();
-      }
-      return channelsInpError;
-    }//addDSMChannel
+	}// class CCreate
 
-      JFileChooser _jfcChannelsInp;
-      CsdpFileFilter _channelsInpFilter;
-      int _filechooserState;
-  }// class CDSMCreate
-  
-  /**
-   * Rename centerline
-   */
-  public class CRename implements ActionListener{
-    public void actionPerformed(ActionEvent e) {
-      if(_net != null){
-	Centerline centerline = _net.getSelectedCenterline();
-	String oldCenterlineName = _net.getSelectedCenterlineName();
-	if(centerline != null){
-	    _td.setTitle("Enter a new centerline name");
-	    _td.setVisible(true);
-	    String newCenterlineName = _td.tf.getText();
-	    centerline.setCenterlineName(newCenterlineName);
-	    _net.renameCenterline(oldCenterlineName, newCenterlineName);
-	}//if centerline has been selected
-      }//if there is a network
-    }//actionPerformed    
-  }// class CRename
-  
-    /**
-     * move point in centerline
-     */
-    public class CMovePoint implements ItemListener, ActionListener{
-      public void itemStateChanged(ItemEvent e){
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-      public void actionPerformed(ActionEvent e){
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-  
-    }// class CMovePoint
+	/**
+	 * Create new centerline with 2 points. User will specify DSM channel number
+	 * and the new centerline will have its first point at the upstream node and
+	 * the second point at the downstream node.
+	 *
+	 * @author
+	 * @version
+	 */
+	public class CDSMCreate implements ActionListener {
+		/**
+		 * assign instances of application and gui classes to class variables
+		 */
+		public CDSMCreate(DSMChannels DSMChannels, App app, CsdpFrame gui) {
+			_DSMChannels = DSMChannels;
+			_app = app;
+			_gui = gui;
+			_jfcChannelsInp = new JFileChooser();
+			_channelsInpFilter = new CsdpFileFilter(_channelsInpExtensions, _numChannelsInpExtensions);
+			_errorDialog = new OkDialog(_gui,
+					"messagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessage", true);
+			_td.setTitle("Enter a new DSM channel number");
+		}
 
-    /**
-     * insert point in centerline
-     */
-    public class CInsertPoint implements ItemListener, ActionListener{
-      public void itemStateChanged(ItemEvent e){
-	  //        _gui.setInsertPointMode();
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-      public void actionPerformed(ActionEvent e){
-	  //        _gui.setInsertPointMode();
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-  
-    }// class CInsertPoint
-    /**
-     * add point to centerline
-     */
-    public class CAddPoint implements ItemListener, ActionListener{
-      public void itemStateChanged(ItemEvent e){
-	  //        _gui.setAddPointMode();
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-      public void actionPerformed(ActionEvent e){
-	  //        _gui.setAddPointMode();
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-  
-    }// class CAddPoint
+		public void actionPerformed(ActionEvent e) {
+			_gui.setDefaultModesStates();
+			_net = _gui.getNetwork();
+			if (_net == null) {
+				_net = new Network("delta", _gui);
+				_gui.setNetwork(_net);
+				_app._net = _net;
+				_nplot = _app.setNetworkPlotter();
+				_gui.getPlanViewCanvas(0).setNetworkPlotter(_nplot);
+				_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+				// removed for conversion to swing
+				_gui.getPlanViewCanvas(0).redoNextPaint();
+				_gui.getPlanViewCanvas(0).repaint();
 
-    /**
-     * delete point from centerline
-     */
-    public class CDeletePoint implements ItemListener, ActionListener{
-      public void itemStateChanged(ItemEvent e){
-	  //        _gui.setDeletePointMode();
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-      public void actionPerformed(ActionEvent e){
-	  //        _gui.setDeletePointMode();
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-  
-    }// class CDelPoint
+				// _gui.enableAfterNetwork();
+				_gui.enableWhenNetworkExists();
+			} // if net is null
 
-    /**
-     * add cross-section to centerline
-     */
-    public class CAddXsect implements ItemListener, ActionListener{
-      public void itemStateChanged(ItemEvent e){
-	  //        _gui.setAddXsectMode();
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-      public void actionPerformed(ActionEvent e){
-	  //        _gui.setAddXsectMode();
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-  
-    }// class CAddXsect
+			_td.setVisible(true);
+			String centerlineName = _td.tf.getText();
+			boolean loadAnotherChannelsInpFile = true;
 
-    /**
-     * remove cross-section from centerline
-     */
-    public class CRemoveXsect implements ItemListener, ActionListener{
-      public void itemStateChanged(ItemEvent e){
-	  //        _gui.setRemoveXsectMode();
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-      public void actionPerformed(ActionEvent e){
-	  //        _gui.setRemoveXsectMode();
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-  
-    }// class CRemoveXsect
+			// if channels.inp file not loaded OR if channel # doesn't exist in
+			// current
+			// DSMChannels object. ask user if another file should be
+			// loaded--don't
+			// assume there is another file with the channel.
+			while (loadAnotherChannelsInpFile) {
+				if (_DSMChannels != null && _DSMChannels.channelExists(centerlineName) == false) {
+					_ynd.setTitle("Channel " + centerlineName
+							+ " not found in channel connectivity file.  Load another file?");
+					_ynd.reset();
+					_ynd.setVisible(true);
+					if (_ynd._yes == true) {
+						loadAnotherChannelsInpFile = true;
+					} else {
+						loadAnotherChannelsInpFile = false;
+					}
+				}
 
-    /**
-     * move cross-section along centerline
-     */
-    public class CMoveXsect implements ItemListener, ActionListener{
-      public void itemStateChanged(ItemEvent e){
-	  //        _gui.setMoveXsectMode();
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-      public void actionPerformed(ActionEvent e){
-	  //        _gui.setMoveXsectMode();
-	_gui.setCursor(CsdpFunctions._handCursor);
-      }
-  
-    }// class CMoveXsect
+				if (_DSMChannels == null || loadAnotherChannelsInpFile) {
+					String channelsFilename = null;
+					// FileDialog fd = new FileDialog(_gui, "Open DSM2 channel
+					// connectivity file");
+					// fd.setVisible(true);
+					_jfcChannelsInp.setDialogTitle("Open DSM2 channel connectivity file");
+					_jfcChannelsInp.setApproveButtonText("Open");
+					_jfcChannelsInp.addChoosableFileFilter(_channelsInpFilter);
+					_jfcChannelsInp.setFileFilter(_channelsInpFilter);
 
-  /**
-   * undo changes since last restore
-   */
-  public class CRestore implements ActionListener{
-    public void actionPerformed(ActionEvent e) {
-    }    
-    
-  }//class CRestore
-  
-  /**
-   * Keeps changes for next restore command
-   */
-  public class CKeep implements ActionListener{
-    public void actionPerformed(ActionEvent e) {
-    }    
-    
-  }
-  
-  /**
-   * view data along centerline
-   */
-  public class CView implements ActionListener{
-    public void actionPerformed(ActionEvent e) {
-    }    
-    
-  }// class CView
-  
-  /**
-   * display centerline info (name and length) at bottom of frame or canvas
-   */
-  public class CInfo implements ActionListener{
-    public void actionPerformed(ActionEvent e) {
-    }    
-    
-  }// class CInfo
-  
-  /**
-   * ?
-   */
-  public class CList implements ActionListener{
-    public void actionPerformed(ActionEvent e) {
-    }    
-    
-  }// class CList
-  
-  /**
-   * display centerline prop (A,P,W,Zc,Xc,r)
-   */
-  public class CSummary implements ActionListener{
-    public void actionPerformed(ActionEvent e) {
-    }    
-    
-  }// class CSummary
-  
-  Network _net;
-  App _app;
-  CsdpFrame _gui;
-  NetworkPlot _nplot;
-  Landmark _landmark;
-  DSMChannels _DSMChannels = null;
-  String _directory = null;
-  Cursor _waitCursor = new Cursor(Cursor.WAIT_CURSOR);
-  Cursor _defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
-    OkDialog _errorDialog;
-  protected static final boolean DEBUG = false;
-    TextDialog _td;
-    YesNoDialog _ynd;
-    String[] _channelsInpExtensions = {"inp"};
-    int _numChannelsInpExtensions = 1;
-}//CenterlineMenu
+					if (CsdpFunctions.getOpenDirectory() != null) {
+						_jfcChannelsInp.setCurrentDirectory(CsdpFunctions.getOpenDirectory());
+					}
+					_filechooserState = _jfcChannelsInp.showOpenDialog(_gui);
+					if (_filechooserState == JFileChooser.APPROVE_OPTION) {
+						channelsFilename = _jfcChannelsInp.getName(_jfcChannelsInp.getSelectedFile());
+						_directory = _jfcChannelsInp.getCurrentDirectory().getAbsolutePath() + File.separator;
+
+						// channelsFilename = fd.getFile();
+						// _directory = fd.getDirectory();
+						_gui.setCursor(_waitCursor);
+						_DSMChannels = _app.chanReadStore(_directory, channelsFilename);
+						_gui.setDSMChannels(_DSMChannels);
+						_gui.setCursor(_defaultCursor);
+					} else {
+						loadAnotherChannelsInpFile = false;
+					}
+				} // if DSMChannels is null
+
+				if (_filechooserState == JFileChooser.APPROVE_OPTION) {
+					if (_net.getCenterline(centerlineName) != null) {
+						_ynd.setTitle("Centerline " + centerlineName + " already exists. Replace?");
+						_ynd.reset();
+						_ynd.setVisible(true);
+						if (_ynd._yes == true) {
+							// addDSMChannel(centerlineName);
+							loadAnotherChannelsInpFile = addDSMChannel(centerlineName);
+						}
+					} else {
+						// addDSMChannel(centerlineName);
+						loadAnotherChannelsInpFile = addDSMChannel(centerlineName);
+					}
+				} // if the cancel button wasn't pressed
+			} // while
+		}// actionPerformed
+
+		/**
+		 * adds a centerline for the specified DSM channel number. First point
+		 * is located at upstream node, last point is located at downstream
+		 * node.
+		 */
+		protected boolean addDSMChannel(String centerlineName) {
+			int upnode = 0;
+			int downnode = 0;
+			String upnodeString = null;
+			String downnodeString = null;
+			double upnodeX = 0.0;
+			double upnodeY = 0.0;
+			double downnodeX = 0.0;
+			double downnodeY = 0.0;
+			Centerline centerline = null;
+			boolean landmarkError = false;
+			boolean channelsInpError = false;
+
+			_net.addCenterline(centerlineName);
+			centerline = _net.getCenterline(centerlineName);
+			upnode = _DSMChannels.getUpnode(centerlineName);
+			downnode = _DSMChannels.getDownnode(centerlineName);
+
+			if (upnode < 0 || downnode < 0) {
+				_errorDialog.setMessage("ERROR:  node not found for centerline " + centerlineName);
+				_errorDialog.setVisible(true);
+				channelsInpError = true;
+			}
+
+			// Integer upnodeInteger = new Integer(upnode);
+			// Integer downnodeInteger = new Integer(downnode);
+			// upnodeString = upnodeInteger.toString(upnode);
+			// downnodeString = downnodeInteger.toString(downnode);
+
+			upnodeString = Integer.toString(upnode);
+			downnodeString = Integer.toString(downnode);
+
+			boolean giveUp = false;
+			double upX = -Double.MAX_VALUE;
+			double upY = -Double.MAX_VALUE;
+			double downX = -Double.MAX_VALUE;
+			double downY = -Double.MAX_VALUE;
+
+			while (giveUp == false) {
+				if (DEBUG)
+					System.out.println("landmark=" + _landmark);
+				if (_landmark == null)
+					_landmark = _gui.getLandmark(); // load landmark file
+				upX = _landmark.getXFeet(upnodeString);
+				upY = _landmark.getYFeet(upnodeString);
+				downX = _landmark.getXFeet(downnodeString);
+				downY = _landmark.getYFeet(downnodeString);
+
+				if (upX < 0.0f || upY < 0.0f) {
+					_errorDialog.setMessage(
+							"ERROR:  insufficient information in landmark file for node " + upnodeString + ".");
+					landmarkError = true;
+				}
+				if (downX < 0.0f || downY < 0.0f) {
+					_errorDialog.setMessage(
+							"ERROR:  insufficient information in landmark file for node " + downnodeString + ".");
+					landmarkError = true;
+				}
+				if (landmarkError) {
+					_errorDialog.setVisible(true);
+					_ynd.setTitle("Load another landmark file?");
+					_ynd.reset();
+					_ynd.setVisible(true);
+
+					if (_ynd._yes == true) {
+						_landmark = _gui.getLandmark(); // load landmark file
+					} else if (_ynd._no == true || _ynd._cancel == true) {
+						giveUp = true;
+					}
+				} else {
+					giveUp = true;
+				}
+			} // while
+
+			if (channelsInpError == false && landmarkError == false) {
+				// getX function returns -BIG_FLOAT if node not found in open
+				// landmark file
+				if (upX < 0.0f || upY < 0.0f || downX < 0.0f || downY < 0.0) {
+					_landmark = _gui.getLandmark(); // load landmark file
+				} // could use a while loop, but user would never get out if no
+					// landmark file
+				upnodeX = _landmark.getXFeet(upnodeString);
+				upnodeY = _landmark.getYFeet(upnodeString);
+				downnodeX = _landmark.getXFeet(downnodeString);
+				downnodeY = _landmark.getYFeet(downnodeString);
+				centerline.addCenterlinePointFeet(upnodeX, upnodeY);
+				centerline.addCenterlinePointFeet(downnodeX, downnodeY);
+				if (DEBUG)
+					System.out.println("landmark coordinates: upstream xy, downstream xy=" + upnodeX + "," + upnodeY
+							+ "," + downnodeX + "," + downnodeY);
+
+				_net.setSelectedCenterlineName(centerlineName);
+				_net.setSelectedCenterline(_net.getCenterline(centerlineName));
+				_gui.enableAfterCenterlineSelected();
+				_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+				// removed for conversion to swing
+				_gui.getPlanViewCanvas(0).redoNextPaint();
+				_gui.getPlanViewCanvas(0).repaint();
+			}
+			return channelsInpError;
+		}// addDSMChannel
+
+		JFileChooser _jfcChannelsInp;
+		CsdpFileFilter _channelsInpFilter;
+		int _filechooserState;
+	}// class CDSMCreate
+
+	/**
+	 * Rename centerline
+	 */
+	public class CRename implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			if (_net != null) {
+				Centerline centerline = _net.getSelectedCenterline();
+				String oldCenterlineName = _net.getSelectedCenterlineName();
+				if (centerline != null) {
+					_td.setTitle("Enter a new centerline name");
+					_td.setVisible(true);
+					String newCenterlineName = _td.tf.getText();
+					centerline.setCenterlineName(newCenterlineName);
+					_net.renameCenterline(oldCenterlineName, newCenterlineName);
+				} // if centerline has been selected
+			} // if there is a network
+		}// actionPerformed
+	}// class CRename
+
+	/**
+	 * move point in centerline
+	 */
+	public class CMovePoint implements ItemListener, ActionListener {
+		public void itemStateChanged(ItemEvent e) {
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
+
+	}// class CMovePoint
+
+	/**
+	 * insert point in centerline
+	 */
+	public class CInsertPoint implements ItemListener, ActionListener {
+		public void itemStateChanged(ItemEvent e) {
+			// _gui.setInsertPointMode();
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			// _gui.setInsertPointMode();
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
+
+	}// class CInsertPoint
+
+	/**
+	 * add point to centerline
+	 */
+	public class CAddPoint implements ItemListener, ActionListener {
+		public void itemStateChanged(ItemEvent e) {
+			// _gui.setAddPointMode();
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			// _gui.setAddPointMode();
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
+
+	}// class CAddPoint
+
+	/**
+	 * delete point from centerline
+	 */
+	public class CDeletePoint implements ItemListener, ActionListener {
+		public void itemStateChanged(ItemEvent e) {
+			// _gui.setDeletePointMode();
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			// _gui.setDeletePointMode();
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
+
+	}// class CDelPoint
+
+	/**
+	 * add cross-section to centerline
+	 */
+	public class CAddXsect implements ItemListener, ActionListener {
+		public void itemStateChanged(ItemEvent e) {
+			// _gui.setAddXsectMode();
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			// _gui.setAddXsectMode();
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
+
+	}// class CAddXsect
+
+	/**
+	 * remove cross-section from centerline
+	 */
+	public class CRemoveXsect implements ItemListener, ActionListener {
+		public void itemStateChanged(ItemEvent e) {
+			// _gui.setRemoveXsectMode();
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			// _gui.setRemoveXsectMode();
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
+
+	}// class CRemoveXsect
+
+	/**
+	 * move cross-section along centerline
+	 */
+	public class CMoveXsect implements ItemListener, ActionListener {
+		public void itemStateChanged(ItemEvent e) {
+			// _gui.setMoveXsectMode();
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			// _gui.setMoveXsectMode();
+			_gui.setCursor(CsdpFunctions._handCursor);
+		}
+
+	}// class CMoveXsect
+
+	/**
+	 * undo changes since last restore
+	 */
+	public class CRestore implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+		}
+
+	}// class CRestore
+
+	/**
+	 * Keeps changes for next restore command
+	 */
+	public class CKeep implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+		}
+
+	}
+
+	/**
+	 * view data along centerline
+	 */
+	public class CView implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+		}
+
+	}// class CView
+
+	/**
+	 * display centerline info (name and length) at bottom of frame or canvas
+	 */
+	public class CInfo implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+		}
+
+	}// class CInfo
+
+	/**
+	 * ?
+	 */
+	public class CList implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+		}
+
+	}// class CList
+
+	/**
+	 * display centerline prop (A,P,W,Zc,Xc,r)
+	 */
+	public class CSummary implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+		}
+
+	}// class CSummary
+
+	Network _net;
+	App _app;
+	CsdpFrame _gui;
+	NetworkPlot _nplot;
+	Landmark _landmark;
+	DSMChannels _DSMChannels = null;
+	String _directory = null;
+	Cursor _waitCursor = new Cursor(Cursor.WAIT_CURSOR);
+	Cursor _defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+	OkDialog _errorDialog;
+	protected static final boolean DEBUG = false;
+	TextDialog _td;
+	YesNoDialog _ynd;
+	String[] _channelsInpExtensions = { "inp" };
+	int _numChannelsInpExtensions = 1;
+}// CenterlineMenu

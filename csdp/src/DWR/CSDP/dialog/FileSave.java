@@ -39,67 +39,72 @@
     or see our home page: http://wwwdelmod.water.ca.gov/
 */
 package DWR.CSDP.dialog;
-import java.awt.event.*;
-import java.awt.*;
-import java.io.*;
+
+import java.awt.event.ActionEvent;
+
 import javax.swing.JFrame;
+
 /**
- * This is the superclass of all classes that implement a file-save feature, which
- * saves a file to the directory in/from which it was last saved/read.
+ * This is the superclass of all classes that implement a file-save feature,
+ * which saves a file to the directory in/from which it was last saved/read.
  *
  * @author
  * @version $Id: FileSave.java,v 1.1 2002/06/12 18:48:38 btom Exp $
  */
-public abstract class FileSave extends FileIO{
+public abstract class FileSave extends FileIO {
 
-  public FileSave(JFrame gui, String dialogMessage, String errorMessage, 
-		  String successMessage, String failureMessage, boolean reportSuccess,
-		  String[] extensions, int numExtensions){
-    super(gui, dialogMessage, errorMessage, successMessage, failureMessage, reportSuccess,
-	  extensions, numExtensions);
-    _reportSuccess = reportSuccess;
-  }//FileSave
+	public FileSave(JFrame gui, String dialogMessage, String errorMessage, String successMessage, String failureMessage,
+			boolean reportSuccess, String[] extensions, int numExtensions) {
+		super(gui, dialogMessage, errorMessage, successMessage, failureMessage, reportSuccess, extensions,
+				numExtensions);
+		_reportSuccess = reportSuccess;
+	}// FileSave
 
-  public void actionPerformed(ActionEvent e){
-      boolean success = false;
-    String filename = getCurrentFilename();
-    String filetype = getCurrentFiletype();
-    String newFilename = null;
-    if(filename == null && filetype == null){
-      while(filename == null && _cancel == false){
-	newFilename = getFilename();
-	//	if(accept(newFilename) == false){
-	//  if(newFilename == null) _cancel = true;
-	//  newFilename = null;
-	//  _okd.show();
-	//}//if
-	filename = newFilename;
-      }//while
-      if(filename != null){
-	  success = accessFile(filename);
-	  setFilenameAndType(filename,filetype);
-      }//if
-    }//if no filename
-    else if(filename != null){
-	success = accessFile();
-	setFilenameAndType(filename,filetype);
-    }//else
-    //    else printErrorMessage();
-    if(_reportSuccess){
-	if(success == true){
-	    _successDialog.setVisible(true);
-	}else{
-	    _failureDialog.setVisible(true);
-	}//if
-    }//if
+	public void actionPerformed(ActionEvent e) {
+		boolean success = false;
+		String filename = getCurrentFilename();
+		String filetype = getCurrentFiletype();
+		String newFilename = null;
+		if (filename == null && filetype == null) {
+			while (filename == null && _cancel == false) {
+				newFilename = getFilename();
+				// if(accept(newFilename) == false){
+				// if(newFilename == null) _cancel = true;
+				// newFilename = null;
+				// _okd.show();
+				// }//if
+				filename = newFilename;
+			} // while
+			if (filename != null) {
+				success = accessFile(filename);
+				setFilenameAndType(filename, filetype);
+			} // if
+		} // if no filename
+		else if (filename != null) {
+			success = accessFile();
+			setFilenameAndType(filename, filetype);
+		} // else
+			// else printErrorMessage();
+		if (_reportSuccess) {
+			if (success == true) {
+				_successDialog.setVisible(true);
+			} else {
+				_failureDialog.setVisible(true);
+			} // if
+		} // if
 
-  }//actionPerformed
+	}// actionPerformed
 
-  public abstract String getCurrentFilename();
-  public abstract String getCurrentFiletype();
-  public abstract void setFilenameAndType(String filename, String filetype);
-  public abstract boolean accessFile(String filename);
-  public abstract boolean accessFile();
-    protected boolean reportSuccess;
-  //  public abstract void printErrorMessage();
-}//FileSave
+	public abstract String getCurrentFilename();
+
+	public abstract String getCurrentFiletype();
+
+	public abstract void setFilenameAndType(String filename, String filetype);
+
+	public abstract boolean accessFile(String filename);
+
+	public abstract boolean accessFile();
+
+	protected boolean reportSuccess;
+	// public abstract void printErrorMessage();
+}// FileSave
