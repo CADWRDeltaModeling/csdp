@@ -335,6 +335,24 @@ System.out.println(directory+","+filename+","+filetype);
   }  // fSave
 
   /**
+   * Saves bathymetry data as ascii(prn) in NAVD88 datum
+   */
+  public boolean fSaveAsNAVD88(String directory, String filename){
+      boolean success = false;
+    parseFilename(filename);
+
+    if(DEBUG)System.out.println("filename="+filename);
+
+    if(_filetype.equals(ASCII_TYPE)){ 
+      BathymetryOutput aoutput = 
+	BathymetryOutput.getInstanceForNAVD88(directory, _filename, ASCII_TYPE,_bathymetryData);
+      success = aoutput.writeData();
+      if(DEBUG)System.out.println("Done writing ascii bathymetry data file");
+    }
+    else System.out.println("filetype not defined for extension "+_filetype);
+    return success;
+  }  // fSaveAsNAVD88
+  /**
    * write properties file
    */
   public boolean pSaveAs(String directory, String filename){

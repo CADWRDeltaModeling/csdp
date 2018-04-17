@@ -42,6 +42,8 @@ package DWR.CSDP;
 import java.io.*;
 import java.util.*;
 
+import DWR.CSDP.semmscon.UseSemmscon;
+
 public class BathymetryAsciiOutput extends BathymetryOutput{
   FileWriter _aOutFile     = null;
   BufferedWriter _asciiOut = null;
@@ -59,8 +61,16 @@ public class BathymetryAsciiOutput extends BathymetryOutput{
    */
   BathymetryAsciiOutput(BathymetryData data){
     _data = data;
+    _convertToDatum=false;
   }
 
+  /**
+   * assigns data storage object to class variable and asks for saving in datum as indicated by string value
+   */
+  BathymetryAsciiOutput(BathymetryData data, boolean convertToDatum){
+    _data = data;
+    _convertToDatum=convertToDatum;
+  }
   /**
    * Open ascii file for writing
    */
@@ -264,7 +274,11 @@ protected void openExtractFile(){
 	    _asciiOut.newLine();
 	    _asciiOut.write(";HorizontalUnits:  "+m.getHUnitsString());
 	    _asciiOut.newLine();
-	    _asciiOut.write(";VerticalDatum:    " + m.getVDatumString());
+	    if (_convertToDatum){
+		    _asciiOut.write(";VerticalDatum:    " + "NAVD88");
+	    } else {
+		    _asciiOut.write(";VerticalDatum:    " + m.getVDatumString());
+	    }
 	    _asciiOut.newLine();
 	    _asciiOut.write(";VerticalUnits:    " + m.getVUnitsString());
 	    _asciiOut.newLine();
@@ -302,12 +316,25 @@ protected void openExtractFile(){
 	    FileWriter tempFW = new FileWriter(_directory+"tempbath"+"."+ASCII_TYPE);
 	    BufferedWriter tempBW = new BufferedWriter(tempFW);
 
+	    boolean convertToNAVD88 = _convertToDatum && (CsdpFunctions.getBathymetryMetadata().getVDatum() != CsdpFileMetadata.NAVD1988);
+	    //units:  1=Survey feet, 2=international feet, 3=meters
+        //test utm83ToUtm27    
+        final short utm83_units = 3;
+        final short utm83_zone = 10;
+        final short utm27_zone = 10;
+        final short utm27_units = 3;
+        final short elevUnitsIn = 1;
+        final short unitsOut = 1;
 	    //write data
 	    for(int dataNum = startIndex; dataNum<endIndex; dataNum++){
 		//for(int i=0; i<=_data.getNumLines()-1; i++){
 		_data.getPointMetersFeet(dataNum, _point);
 		if(_point[CsdpFunctions.xIndex] > xMinZoom && 
 		   _point[CsdpFunctions.xIndex] < xMaxZoom){
+			if (convertToNAVD88){
+				_point[CsdpFunctions.zIndex]=CsdpFunctions.getUseSemmscon().ngvd29_to_navd88_utm83(_point[CsdpFunctions.xIndex], _point[CsdpFunctions.yIndex], utm83_zone, utm83_units, 
+						_point[CsdpFunctions.zIndex], elevUnitsIn, unitsOut);
+			}
 		    year   = _data.getYear(_data.getYearIndex(dataNum));
 		    source = _data.getSource(_data.getSourceIndex(dataNum));
 		    line= _point[CsdpFunctions.xIndex]+" "+
@@ -352,10 +379,23 @@ protected void openExtractFile(){
 	short year;
 	String source = null;
 	boolean success = false;
+    boolean convertToNAVD88 = _convertToDatum && (CsdpFunctions.getBathymetryMetadata().getVDatum() != CsdpFileMetadata.NAVD1988);
+    //units:  1=Survey feet, 2=international feet, 3=meters
+    //test utm83ToUtm27    
+    final short utm83_units = 3;
+    final short utm83_zone = 10;
+    final short utm27_zone = 10;
+    final short utm27_units = 3;
+    final short elevUnitsIn = 1;
+    final short unitsOut = 1;
 	try {
 	    //write data
 	    for(int i=0; i<=_data.getNumLines()-1; i++){
 		_data.getPointMetersFeet(i, _point);
+		if (convertToNAVD88){
+			_point[CsdpFunctions.zIndex]=CsdpFunctions.getUseSemmscon().ngvd29_to_navd88_utm83(_point[CsdpFunctions.xIndex], _point[CsdpFunctions.yIndex], utm83_zone, utm83_units, 
+					_point[CsdpFunctions.zIndex], elevUnitsIn, unitsOut);
+		}
 		year   = _data.getYear(_data.getYearIndex(i));
 		source = _data.getSource(_data.getSourceIndex(i));
 		line= _point[CsdpFunctions.xIndex]+" "+

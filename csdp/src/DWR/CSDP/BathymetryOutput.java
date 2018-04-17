@@ -78,7 +78,30 @@ public static BathymetryOutput getInstance(String directory, String filename,
   return output;
 } //getInstance
 
-  /**
+/**
+ * Make instance of subclass of BathymetryOutput
+ */
+public static BathymetryOutput getInstanceForNAVD88(String directory, String filename, 
+					   String filetype, BathymetryData data) {
+_directory = directory;
+if((_directory.substring(_directory.length()-1,_directory.length())).
+   equals(File.separator) == false){
+    _directory += File.separator;
+}
+_filename = filename;
+_filetype = filetype;
+BathymetryOutput output = null;
+if (_filetype.equals(ASCII_TYPE)) {
+  output = new BathymetryAsciiOutput(data, true);
+}
+else {// throw new IllegalInputFileException(msg);
+  System.out.println();
+  _filetype = null;
+}
+return output;
+} //getInstance
+
+/**
    * Calls appropriate write method to write bathymetry data
    */
     public boolean writeData(){
@@ -244,6 +267,7 @@ protected abstract void close();
     protected static String _directory = null;
     protected static double[] _point = new double[3];
     protected BathymetryData _data     = null;
+    protected boolean _convertToDatum = false;
 
     protected static final int START_INDEX = 0;
     protected static final int END_INDEX   = 1;
