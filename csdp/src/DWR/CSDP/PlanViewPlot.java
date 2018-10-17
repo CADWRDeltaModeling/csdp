@@ -167,7 +167,7 @@ public abstract class PlanViewPlot {
 			// zoomBox has changed. Recalculate minSlope and plotBoundaries.
 			currentZS.updatePlotBoundaries();
 			if (currentZS.getMinSlope() < 0)
-				System.out.println("Error in BathymetryPlot: currentZS.getMinSlope()<0=" + currentZS.getMinSlope());
+				System.out.println("Error in PlanViewPlot: currentZS.getMinSlope()<0=" + currentZS.getMinSlope());
 		} // update minSlope and plotBoundaries
 	}// findMinSlope
 

@@ -227,11 +227,34 @@ public class Xsect {
 	 * calculate cross-section area at specified elevation
 	 */
 	public double getAreaSqft(double elevation) {
-		double area = 0.0;
-		for (int i = 0; i <= getNumLineSegments() - 1; i++) {
-			area += getAreaSqft(i, elevation);
+		//the new way 10/16/2018, based on trapezoidal calculation
+		double[] allUniqueElevations = getUniqueElevations();
+		//find index of highest layer that is below elevation
+		int lastLayerIndex = 0;
+		double lastLayerArea = 0.0;
+		for(int i=0; i<allUniqueElevations.length; i++) {
+			if(allUniqueElevations[i] < elevation) {
+				lastLayerIndex = i;
+				if(i>0) {
+					lastLayerArea += 0.5 * (getWidthFeet(allUniqueElevations[i]) + getWidthFeet(allUniqueElevations[i-1])) * 
+							(allUniqueElevations[i]-allUniqueElevations[i-1]);
+				}
+			}else {
+				break;
+			}
 		}
-		return area;
+		double lastElevation = allUniqueElevations[lastLayerIndex];
+		double lastWidth = getWidthFeet(lastElevation);
+		double currentWidth = getWidthFeet(elevation);
+		double a = lastLayerArea + 0.5 * (currentWidth+lastWidth) * (elevation - lastElevation);
+
+		return a;
+		//The old way: errors were found in this calculation
+//		double area = 0.0;
+//		for (int i = 0; i <= getNumLineSegments() - 1; i++) {
+//			area += getAreaSqft(i, elevation);
+//		}
+//		return area;
 	}
 
 	/**
@@ -359,7 +382,34 @@ public class Xsect {
 		}
 		zc = zca / getAreaSqft(elevation);
 		return zc;
-	}
+	}//getZCentroidFeet
+	
+	/*
+	 * Calculates dConveyance for all layers; returns array.
+	 */
+	public double[] getDConveyanceValues() {
+		double[] elevations = getUniqueElevations();
+		double[] returnValues = new double[elevations.length];
+		if(elevations.length>0) {
+			//set dConveyance at bottom to zero
+			returnValues[0] = 0.0;
+			for(int i=1; i<elevations.length; i++) {
+				double currentLayerArea = getAreaSqft(elevations[i]);
+				double lowerLayerArea = getAreaSqft(elevations[i-1]);
+				double currentLayerWetP = getWettedPerimeterFeet(elevations[i]);
+				double lowerLayerWetP = getWettedPerimeterFeet(elevations[i-1]);
+				double dz = elevations[i]-elevations[i-1];
+				double da = currentLayerArea-lowerLayerArea;
+				double dp = currentLayerWetP-lowerLayerWetP;
+				double partialAPartialZ = da/dz;
+				double partialPPartialZ = dp/dz;
+				double firstTerm = (5.0/3.0) * Math.pow(currentLayerArea,2.0/3.0)/Math.pow(currentLayerWetP, 2.0/3.0) * partialAPartialZ;
+				double secondTerm = (-2.0/3.0) * Math.pow(currentLayerArea,5.0/3.0)/Math.pow(currentLayerWetP, 5.0/3.0) * partialPPartialZ;
+				returnValues[i]= (1.486/CsdpFunctions.MANNINGS_N) * (firstTerm + secondTerm); 
+			}
+		}
+		return returnValues;
+	}//getDConveyanceTable
 
 	/**
 	 * returns array of all unique elevations in the cross-section
@@ -377,11 +427,17 @@ public class Xsect {
 		for (int i = 0; i <= getNumLineSegments() - 1; i++) {
 			leftElevation = getXsectPoint(i).getElevationFeet();
 			rightElevation = getXsectPoint(i + 1).getElevationFeet();
-			if (leftElevation == rightElevation && leftElevation != minElev) {
+//			if (leftElevation == rightElevation && leftElevation != minElev) {
+			//DSM2 doesn't seem to notice differences of less than .01 feet.
+			if(leftElevation - rightElevation < .01 && rightElevation != minElev) {
+//			if (leftElevation - rightElevation) < 0.01 && leftElevation != minElev) {
 				if (DEBUG)
 					System.out.println("leftElevation, rightElevation, minElev=" + leftElevation + "," + rightElevation
 							+ "," + minElev);
-				getXsectPoint(i).putElevationFeet(leftElevation + 0.01f);
+				getXsectPoint(i).putElevationFeet(leftElevation + 0.011f);
+			}else if(rightElevation-leftElevation<.01 && leftElevation != minElev) {
+				getXsectPoint(i+1).putElevationFeet(rightElevation + 0.011f);
+				
 			}
 		} // for i
 		for (int i = 0; i <= getNumPoints() - 1; i++) {
@@ -390,7 +446,7 @@ public class Xsect {
 		ue = sortArray(ue, getNumPoints());
 		ue = findUnique(ue, getNumPoints());
 		return ue;
-	}
+	}//getUniqueElevations
 
 	/**
 	 * return number of unique elevations in the cross-section
@@ -873,7 +929,6 @@ public class Xsect {
 		double sRight = getXsectPoint(index + 1).getStationFeet();
 		double eRight = getXsectPoint(index + 1).getElevationFeet();
 		double a = 0.0;
-
 		if (aboveWater(eLeft, eRight, elevation))
 			a = 0.0;
 		if (completelySubmerged(eLeft, eRight, elevation)) {

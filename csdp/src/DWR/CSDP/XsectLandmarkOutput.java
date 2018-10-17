@@ -54,9 +54,9 @@ public abstract class XsectLandmarkOutput {
 	/**
 	 * Make instance of subclass of XsectLandmarkOutput
 	 */
-	public static XsectLandmarkOutput getInstance(Network net) {
+	public static XsectLandmarkOutput getInstance(Network net, String directory) {
 		XsectLandmarkOutput output = null;
-		output = new XsectLandmarkAsciiOutput(net);
+		output = new XsectLandmarkAsciiOutput(net, directory);
 		return output;
 	} // getInstance
 

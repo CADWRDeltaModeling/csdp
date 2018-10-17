@@ -148,7 +148,8 @@ public class XsectGraph extends JFrame implements ActionListener {
 		// use this for Frame
 		// setLayout(new BorderLayout());
 		// use this instead for JFrame
-		setSize(800, 600);
+		setSize(1200, 600);
+
 		getContentPane().setLayout(new BorderLayout());
 		// setBackground(Color.gray);
 
@@ -161,6 +162,10 @@ public class XsectGraph extends JFrame implements ActionListener {
 		_xsPropPanel.add(_areaLabel);
 		_xsPropPanel.add(_hDepthLabel);
 
+		_dConveyancePanel.setLayout(new BoxLayout(_dConveyancePanel, BoxLayout.Y_AXIS));
+		_dConveyancePanel.setBorder(_lineBorder);
+		_dConveyancePanel.add(_dConveyanceTextArea);
+		
 		// _xsPropPanel.add(_dkLabel);
 
 		// use this for Frame
@@ -174,6 +179,8 @@ public class XsectGraph extends JFrame implements ActionListener {
 		_eastPanel.setLayout(new BoxLayout(_eastPanel, BoxLayout.Y_AXIS));
 		_eastPanel.add(_xsPropPanel);
 
+		_eastPanel.add(_dConveyancePanel);
+		
 		URL metadataIconUrl = this.getClass().getResource("images/metadataIcon.gif");
 		ImageIcon _metadataIcon = new ImageIcon(metadataIconUrl);
 		JLabel _metadataLabel = new JLabel(_metadataIcon, SwingConstants.CENTER);
@@ -290,36 +297,44 @@ public class XsectGraph extends JFrame implements ActionListener {
 		updateGraphCanvas();
 
 		Plot plot = _graph.getPlot();
-		plot.getAxis(AxisAttr.BOTTOM).setAxisLabel("Distance Along Cross-Section Line, feet");
-		plot.getAxis(AxisAttr.LEFT).setAxisLabel("Elevation(NGVD), ft");
-		// Plot plot = _graph.getPlot();
-		// /*
-		// * The following code copied from updateGraphCanvas
-		// */
-		// plot.getAxis(AxisAttr.BOTTOM).setAxisLabel("Distance Along
-		// Cross-Section Line, feet");
-		// plot.getAxis(AxisAttr.LEFT).setAxisLabel("Elevation(NGVD), ft");
-
-		// TickGenerator tg = new SimpleTickGenerator();
-
-		// plot.getAxis(AxisAttr.BOTTOM).setTickGenerator(tg);
-		// plot.getAxis(AxisAttr.LEFT).setTickGenerator(tg);
-
-		// AxisAttr aa =
-		// (AxisAttr)plot.getAxis(AxisAttr.BOTTOM).getAttributes();
-		// aa._tickLocation = AxisAttr.INSIDE;
-		// aa = (AxisAttr) plot.getAxis(AxisAttr.LEFT).getAttributes();
-		// aa._tickLocation = AxisAttr.BOTH;
-
-		// _graph.addGrid();
-
-		// //use this for Frame
-		// // add("Center", _gC);
-		// //use instead for JFrame
-		// getContentPane().add("Center", _gC);
-		// //this doesn't work right in swing--it just hides the window
-		// // enableEvents(WindowEvent.WINDOW_CLOSING);
-
+		if(plot!=null) {
+			vista.graph.Axis bottomAxis = plot.getAxis(AxisAttr.BOTTOM);
+			vista.graph.Axis leftAxis = plot.getAxis(AxisAttr.LEFT);
+			if(bottomAxis!=null && leftAxis!=null) {
+				bottomAxis.setAxisLabel("Distance Along Cross-Section Line, feet");
+				leftAxis.setAxisLabel("Elevation(NGVD), ft");
+				// Plot plot = _graph.getPlot();
+				// /*
+				// * The following code copied from updateGraphCanvas
+				// */
+				// plot.getAxis(AxisAttr.BOTTOM).setAxisLabel("Distance Along
+				// Cross-Section Line, feet");
+				// plot.getAxis(AxisAttr.LEFT).setAxisLabel("Elevation(NGVD), ft");
+		
+				// TickGenerator tg = new SimpleTickGenerator();
+		
+				// plot.getAxis(AxisAttr.BOTTOM).setTickGenerator(tg);
+				// plot.getAxis(AxisAttr.LEFT).setTickGenerator(tg);
+		
+				// AxisAttr aa =
+				// (AxisAttr)plot.getAxis(AxisAttr.BOTTOM).getAttributes();
+				// aa._tickLocation = AxisAttr.INSIDE;
+				// aa = (AxisAttr) plot.getAxis(AxisAttr.LEFT).getAttributes();
+				// aa._tickLocation = AxisAttr.BOTH;
+		
+				// _graph.addGrid();
+		
+				// //use this for Frame
+				// // add("Center", _gC);
+				// //use instead for JFrame
+				// getContentPane().add("Center", _gC);
+				// //this doesn't work right in swing--it just hides the window
+				// // enableEvents(WindowEvent.WINDOW_CLOSING);
+				updateDisplay();
+			}
+			this.dispose();
+			_xsCloseButton.doClick();
+		}
 		setCursor(CsdpFunctions._defaultCursor);
 	}// constructor
 
@@ -1135,6 +1150,7 @@ public class XsectGraph extends JFrame implements ActionListener {
 		// needed for swing
 		updateGraphCanvas();
 		updateXsectProp();
+		updateDConveyanceDisplay();
 		// needed for swing
 		validate();
 		_gC.redoNextPaint();
@@ -1152,19 +1168,35 @@ public class XsectGraph extends JFrame implements ActionListener {
 		double wetp = 0.0;
 		double hDepth = 0.0;
 		// double dk = 0.0;
-		width = _xsect.getWidthFeet(_xsectPropElevation);
-		area = _xsect.getAreaSqft(_xsectPropElevation);
-		wetp = _xsect.getWettedPerimeterFeet(_xsectPropElevation);
-		hDepth = _xsect.getHydraulicDepthFeet(_xsectPropElevation);
+		double e = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
+		width = _xsect.getWidthFeet(e);
+		area = _xsect.getAreaSqft(e);
+		wetp = _xsect.getWettedPerimeterFeet(e);
+		hDepth = _xsect.getHydraulicDepthFeet(e);
 		// dk = _xsect.getDConveyance(_xsectPropElevation);
-		_elevationLabel.setText("   Elevation, ft(NGVD)   = " + _xsectPropElevation + "   ");
-		_widthLabel.setText("   Width, ft            =" + CsdpFunctions.twoPlaces(width) + "   ");
-		_areaLabel.setText("   Area, square ft      = " + CsdpFunctions.twoPlaces(area) + "   ");
-		_wetpLabel.setText("   Wetted Perimeter, ft = " + CsdpFunctions.twoPlaces(wetp) + "   ");
-		_hDepthLabel.setText("   HydraulicDepth, ft   = " + CsdpFunctions.twoPlaces(hDepth) + "   ");
+		_elevationLabel.setText("   Elevation, ft(NGVD)   = " + e + "   ");
+		_widthLabel.setText("   Width, ft             = " + CsdpFunctions.twoPlaces(width) + "   ");
+		_areaLabel.setText("   Area, square ft       = " + CsdpFunctions.twoPlaces(area) + "   ");
+		_wetpLabel.setText("   Wetted Perimeter, ft  = " + CsdpFunctions.twoPlaces(wetp) + "   ");
+		_hDepthLabel.setText("   HydraulicDepth, ft    = " + CsdpFunctions.twoPlaces(hDepth) + "   ");
 		// _dkLabel.setText ("DConveyance = " + CsdpFunctions.twoPlaces(dk));
 	}
 
+	/*
+	 * Recalculates the dConveyance values and updates the display
+	 */
+	private void updateDConveyanceDisplay() {
+		double[] dConveyanceValues = _xsect.getDConveyanceValues();
+		double[] elevations = _xsect.getUniqueElevations();
+		String dConveyanceString = "Elevation\tdConveyance\n"
+				+ "-----------------------------------------------\n";
+		//add dConveyance values in reverse order
+		for(int i=elevations.length-1; i>=0; i--) {
+			dConveyanceString += String.format("%.2f", elevations[i])+"\t"+String.format("%.2f", dConveyanceValues[i])+"\n";
+		}
+		_dConveyanceTextArea.setText(dConveyanceString);
+	}
+	
 	/**
 	 * called when keep button pressed.
 	 */
@@ -1307,6 +1339,7 @@ public class XsectGraph extends JFrame implements ActionListener {
 
 	JPanel _eastPanel = new JPanel();
 	JPanel _xsPropPanel = new JPanel();
+	JPanel _dConveyancePanel = new JPanel();
 	JPanel _inputPanel = new JPanel();
 	JButton _elevationButton = new JButton("Change elevation");
 	JLabel _elevationLabel = new JLabel();
@@ -1315,12 +1348,12 @@ public class XsectGraph extends JFrame implements ActionListener {
 	JLabel _wetpLabel = new JLabel();
 	JLabel _hDepthLabel = new JLabel();
 	// JLabel _dkLabel = new JLabel();
-
+	JTextArea _dConveyanceTextArea = new JTextArea();
+	
 	// JCheckBoxMenuItem _bColorByDistance, _bColorBySource, _bColorByYear;
 	JMenuItem _bChangePointSize;
 	String _centerlineName = null;
 	int _xsectNum;
-	protected double _xsectPropElevation = 0.0;
 	Legend _legend;
 	CsdpFrame _gui;
 	public int COLOR_BY_DISTANCE = 0;

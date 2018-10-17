@@ -50,6 +50,7 @@ import java.io.File;
 
 import javax.swing.JFileChooser;
 
+import DWR.CSDP.dialog.CenterlineSummaryWindow;
 import DWR.CSDP.dialog.OkDialog;
 import DWR.CSDP.dialog.TextDialog;
 import DWR.CSDP.dialog.YesNoDialog;
@@ -602,6 +603,37 @@ public class CenterlineMenu {
 
 	}// class CSummary
 
+	/**
+	 * Display scatter plot showing variation of area, width, and wetted perimeter along centerline, 
+	 * with panel showing centerline length, channel volume, channel wetted area, and channel surface area
+	 * @author btom
+	 *
+	 */
+	public class DisplayCenterlineSummaryWindow implements ActionListener{
+
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			_net = _gui.getNetwork();
+			new CenterlineSummaryWindow(_net);
+		}
+	}//class DisplayCenterlineSummaryWindow
+
+	public class AddXSAtComputationalPoints implements ActionListener{
+
+		private NetworkInteractor networkInteractor;
+
+		public AddXSAtComputationalPoints(NetworkInteractor ni) {
+			// TODO Auto-generated constructor stub
+			this.networkInteractor = ni;
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			// TODO Auto-generated method stub
+			this.networkInteractor.addXsectsAtComputationalPoints(CsdpFunctions.DELTAX, CsdpFunctions.CROSS_SECTION_LINE_LENGTH);
+		}
+	}//class AddXSAtComputationalPoints
+	
 	Network _net;
 	App _app;
 	CsdpFrame _gui;

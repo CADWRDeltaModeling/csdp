@@ -5,8 +5,8 @@
   <jar>D:\temp\csdp-app.jar</jar>
   <outfile>d:\temp\csdp.exe</outfile>
   <errTitle></errTitle>
-  <cmdLine></cmdLine>
-  <chdir>.</chdir>
+  <cmdLine>-Xss512K</cmdLine>
+  <chdir></chdir>
   <priority>normal</priority>
   <downloadUrl>http://java.com/download</downloadUrl>
   <supportUrl></supportUrl>
@@ -18,12 +18,10 @@
     <path></path>
     <bundledJre64Bit>false</bundledJre64Bit>
     <bundledJreAsFallback>false</bundledJreAsFallback>
-    <minVersion>1.6.0</minVersion>
-    <maxVersion>1.8.0_200</maxVersion>
+    <minVersion>1.8.0</minVersion>
+    <maxVersion></maxVersion>
     <jdkPreference>preferJre</jdkPreference>
-    <runtimeBits>32</runtimeBits>
-    <initialHeapSize>256</initialHeapSize>
-    <maxHeapSize>1024</maxHeapSize>
-    <opt>-Xss512K</opt>
+    <runtimeBits>64</runtimeBits>
+    <maxHeapSize>10000</maxHeapSize>
   </jre>
 </launch4jConfig>

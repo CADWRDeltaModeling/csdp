@@ -432,7 +432,7 @@ public class NetworkMenu {
 			_xsectDirectoryChooser.setDialogTitle("Calculate network: select directory for output files");
 			_xsectDirectoryChooser.setApproveButtonText("Use this directory");
 			_xsectDirectoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			_okd = new OkDialog(gui, "Cross-section files written", true);
+			_okd = new OkDialog(gui, "DSM2 input files and xsects.cdl file written.", true);
 			_okd.setTitle("done");
 		}
 
@@ -446,25 +446,15 @@ public class NetworkMenu {
 			filechooserState = _xsectDirectoryChooser.showOpenDialog(_gui);
 			if (filechooserState == JFileChooser.APPROVE_OPTION) {
 
-				// if(_fdCalculate.getDirectory() != null &&
-				// _fdCalculate.getFile() != null){
-				//// calculateDirectory = _fdCalculate.getDirectory();
 				calculateDirectory = _xsectDirectoryChooser.getCurrentDirectory().getAbsolutePath() + File.separator;
 				calculateDirectory += _xsectDirectoryChooser.getName(_xsectDirectoryChooser.getSelectedFile())
 						+ File.separator;
 
 				System.out.println("calculateDirectory=" + calculateDirectory);
-
-				// CsdpFunctions.setCalculateDirectory(_fdCalculate.getDirectory());
-				// if(DEBUG)System.out.println
-				// ("directory for
-				// output="+CsdpFunctions.getCalculateDirectory());
-				///// filename=_fdCalculate.getFile();
-
-				// _app.nCalculate(CsdpFunctions.getCalculateDirectory());
-				_app.nCalculate(calculateDirectory);
-				_app.writeIrregularXsectsInp(calculateDirectory);
-				_app.writeXsectLandmark();
+				_app.nCalculateDSM2V8Format(calculateDirectory+File.separator+"DSM2V8.1Channels.inp");
+//				_app.nCalculate(calculateDirectory);
+//				_app.writeIrregularXsectsInp(calculateDirectory);
+				_app.writeXsectLandmark(calculateDirectory);
 				_okd.setVisible(true);
 			}
 		}// actionPerformed

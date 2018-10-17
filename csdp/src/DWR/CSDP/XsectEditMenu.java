@@ -125,8 +125,6 @@ public class XsectEditMenu {
 				System.out.println("xsectGraph=" + _xsectGraph);
 			System.out.println("XRestore actionPerformed!");
 			_xsectGraph.restoreXsect();
-			// _xsectGraph.updateNetworkDataSet();
-			_xsectGraph.updateXsectProp();
 			_xsectGraph.updateDisplay();
 			// removed for conversion to swing
 			//
@@ -144,15 +142,16 @@ public class XsectEditMenu {
 	 */
 	public class XChangeElevation implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			TextDialog d = new TextDialog(_xsectGraph, "enter new elevation", true, _xsectGraph._xsectPropElevation);
+			TextDialog d = new TextDialog(_xsectGraph, "enter new elevation", true, CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
 			d.setVisible(true);
 			// String s = d.tf.getText();
 			// Float f = new Float(s);
 			double nf = Double.parseDouble(d.tf.getText());
 			// float nf = f.floatValue();
-			if (nf != _xsectGraph._xsectPropElevation) {
-				_xsectGraph._xsectPropElevation = nf;
-				_xsectGraph.updateXsectProp();
+			if (nf != CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS) {
+				//actually don't want this to change the default value; just the value for the current xs
+				//				CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS = nf;
+				_xsectGraph.updateDisplay();
 				_xsectGraph._gC.redoNextPaint();
 				_xsectGraph.validate();
 				// removed for conversion to swing
@@ -435,7 +434,7 @@ public class XsectEditMenu {
 		public void actionPerformed(ActionEvent e) {
 			double value = Double.parseDouble(_xField.getText());
 			_xsect.adjustXCoord(value);
-			_xsectGraph.updateXsectProp();
+//			_xsectGraph.updateXsectProp();
 			_xsectGraph.updateDisplay();
 			_xsect.setIsUpdated(true);
 		}
@@ -460,7 +459,6 @@ public class XsectEditMenu {
 		public void actionPerformed(ActionEvent e) {
 			double value = Double.parseDouble(_yField.getText());
 			_xsect.adjustYCoord(value);
-			_xsectGraph.updateXsectProp();
 			_xsectGraph.updateDisplay();
 			_xsect.setIsUpdated(true);
 		}

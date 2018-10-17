@@ -88,23 +88,43 @@ public class DisplayMenu {
 		 */
 		public void actionPerformed(ActionEvent e) {
 			_plot = _gui.getPlotObject();
+			_net = _gui.getNetwork();
 
 			double oldThickness = CsdpFunctions._xsectThickness;
 			int oldPointSize = _plot.getPointSize();
-			String names[] = new String[2];
-			double initValue[] = new double[2];
+			double oldElevation = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
+			double oldDeltaX = CsdpFunctions.DELTAX;
+			double oldCrossSectionLineLength = CsdpFunctions.CROSS_SECTION_LINE_LENGTH;
+			
+			String names[] = new String[5];
+			double initValue[] = new double[5];
 			names[0] = "Cross-Section Thickness, ft";
 			names[1] = "Bathymetry Point Dimension, pixels";
+			names[2] = "Elevation for Conveyance Characteristics Calculations";
+			names[3] = "Delta X for adding cross-sections at computational points";
+			names[4] = "Cross-section line length for adding cross-sections at computational points";
+			
 			initValue[0] = oldThickness;
 			initValue[1] = (int) oldPointSize;
-
+			initValue[2] = oldElevation;
+			initValue[3] = oldDeltaX;
+			initValue[4] = oldCrossSectionLineLength;
+			
 			TextFieldDialog d = new TextFieldDialog(_gui, "Display Parameters", true, names, initValue);
 			d.setVisible(true);
 			String t = ((TextField) d._textFields.get(names[0])).getText();
 			String pd = ((TextField) d._textFields.get(names[1])).getText();
-
+			String newElevationString = ((TextField) d._textFields.get(names[2])).getText();
+			String newDeltaXString = ((TextField) d._textFields.get(names[3])).getText();
+			String newCrossSectionLineLengthString = ((TextField) d._textFields.get(names[4])).getText();
+			
+			
 			int newPointSize = (int) (Double.parseDouble(pd));
 			double newThickness = Double.parseDouble(t);
+			double newElevation = Double.parseDouble(newElevationString);
+			double newDeltaX = Double.parseDouble(newDeltaXString);
+			double newCrossSectionLineLength = Double.parseDouble(newCrossSectionLineLengthString);
+					
 			if (DEBUG)
 				System.out.println("thickness, point dimension=" + newThickness + "," + newPointSize);
 			if (newThickness != oldThickness) {
@@ -116,7 +136,21 @@ public class DisplayMenu {
 				// removed for conversion to swing
 				_gui.getPlanViewCanvas(0).repaint();
 			} // change point size
-		}
+			if(newElevation != oldElevation) {
+				CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS = newElevation;
+				Xsect xsect = _net.getSelectedXsect();
+				if(xsect != null) {
+					_gui.updateInfoPanel(xsect.getAreaSqft(newElevation), xsect.getWidthFeet(newElevation),
+							xsect.getWettedPerimeterFeet(newElevation), xsect.getHydraulicDepthFeet(newElevation));
+				}
+			}
+			if(newDeltaX != oldDeltaX) {
+				CsdpFunctions.DELTAX = newDeltaX;
+			}
+			if(newCrossSectionLineLength != oldCrossSectionLineLength) {
+				CsdpFunctions.CROSS_SECTION_LINE_LENGTH = newCrossSectionLineLength;
+			}
+		}//actionPerformed
 
 	} // Class DParameters
 
@@ -462,17 +496,19 @@ public class DisplayMenu {
 		}
 
 		public void itemStateChanged(ItemEvent e) {
-			// _gui.setAllColorByFalse();
-			// _gui.setColorUniform();
-			_gui.getPlanViewCanvas(0).setChangeZoom(false);
-			_gui.getPlanViewCanvas(0).setChangePan(false);
-			_gui.updateColorLegend();
-			_gui.getPlanViewCanvas(0).setUpdateBathymetry(true);
+			if(e.getStateChange()==ItemEvent.SELECTED) {
+				// _gui.setAllColorByFalse();
+				// _gui.setColorUniform();
+				_gui.getPlanViewCanvas(0).setChangeZoom(false);
+				_gui.getPlanViewCanvas(0).setChangePan(false);
+				_gui.updateColorLegend();
+				_gui.getPlanViewCanvas(0).setUpdateBathymetry(true);
+	
+				// removed for conversion to swing
+				// _gui.getPlanViewCanvas(0).repaint();
 
-			// removed for conversion to swing
-			// _gui.getPlanViewCanvas(0).repaint();
+			}
 		}
-
 	}
 
 	/**
@@ -486,14 +522,17 @@ public class DisplayMenu {
 		}
 
 		public void itemStateChanged(ItemEvent e) {
-			// _gui.setAllColorByFalse();
-			// _gui.setColorByDepth();
-			_gui.getPlanViewCanvas(0).setChangeZoom(false);
-			_gui.getPlanViewCanvas(0).setChangePan(false);
-			_gui.updateColorLegend();
-			_gui.getPlanViewCanvas(0).setUpdateBathymetry(true);
-			// removed for conversion to swing
-			// _gui.getPlanViewCanvas(0).repaint();
+			if(e.getStateChange()==ItemEvent.SELECTED) {
+	
+				// _gui.setAllColorByFalse();
+				// _gui.setColorByDepth();
+				_gui.getPlanViewCanvas(0).setChangeZoom(false);
+				_gui.getPlanViewCanvas(0).setChangePan(false);
+				_gui.updateColorLegend();
+				_gui.getPlanViewCanvas(0).setUpdateBathymetry(true);
+				// removed for conversion to swing
+				// _gui.getPlanViewCanvas(0).repaint();
+			}
 		}
 	}
 
@@ -508,14 +547,17 @@ public class DisplayMenu {
 		}
 
 		public void itemStateChanged(ItemEvent e) {
-			// _gui.setAllColorByFalse();
-			// _gui.setColorBySource();
-			_gui.getPlanViewCanvas(0).setChangeZoom(false);
-			_gui.getPlanViewCanvas(0).setChangePan(false);
-			_gui.updateColorLegend();
-			_gui.getPlanViewCanvas(0).setUpdateBathymetry(true);
-			// removed for conversion to swing
-			// _gui.getPlanViewCanvas(0).repaint();
+			if(e.getStateChange()==ItemEvent.SELECTED) {
+	
+				// _gui.setAllColorByFalse();
+				// _gui.setColorBySource();
+				_gui.getPlanViewCanvas(0).setChangeZoom(false);
+				_gui.getPlanViewCanvas(0).setChangePan(false);
+				_gui.updateColorLegend();
+				_gui.getPlanViewCanvas(0).setUpdateBathymetry(true);
+				// removed for conversion to swing
+				// _gui.getPlanViewCanvas(0).repaint();
+			}
 		}
 	}
 
@@ -530,14 +572,17 @@ public class DisplayMenu {
 		}
 
 		public void itemStateChanged(ItemEvent e) {
-			// _gui.setAllColorByFalse();
-			// _gui.setColorByYear();
-			_gui.getPlanViewCanvas(0).setChangeZoom(false);
-			_gui.getPlanViewCanvas(0).setChangePan(false);
-			_gui.updateColorLegend();
-			_gui.getPlanViewCanvas(0).setUpdateBathymetry(true);
-			_gui.getPlanViewCanvas(0).redoNextPaint();
-			_gui.getPlanViewCanvas(0).repaint();
+			if(e.getStateChange()==ItemEvent.SELECTED) {
+	
+				// _gui.setAllColorByFalse();
+				// _gui.setColorByYear();
+				_gui.getPlanViewCanvas(0).setChangeZoom(false);
+				_gui.getPlanViewCanvas(0).setChangePan(false);
+				_gui.updateColorLegend();
+				_gui.getPlanViewCanvas(0).setUpdateBathymetry(true);
+				_gui.getPlanViewCanvas(0).redoNextPaint();
+				_gui.getPlanViewCanvas(0).repaint();
+			}
 		}
 	}
 

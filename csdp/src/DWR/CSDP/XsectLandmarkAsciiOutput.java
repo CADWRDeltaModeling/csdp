@@ -41,6 +41,7 @@
 package DWR.CSDP;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -51,13 +52,15 @@ public class XsectLandmarkAsciiOutput extends XsectLandmarkOutput {
 	FileWriter _aOutFile = null; // ascii input file
 	BufferedWriter _asciiOut = null;
 	Network _net = null;
+	private String directory;
 	protected static final String SPACES = "          ";
 
 	/**
 	 * assigns data storage object to class variable
 	 */
-	public XsectLandmarkAsciiOutput(Network net) {
+	public XsectLandmarkAsciiOutput(Network net, String directory) {
 		_net = net;
+		this.directory = directory;
 	}
 
 	/**
@@ -65,7 +68,7 @@ public class XsectLandmarkAsciiOutput extends XsectLandmarkOutput {
 	 */
 	protected void open() {
 		try {
-			_aOutFile = new FileWriter(FILENAME);
+			_aOutFile = new FileWriter(this.directory+File.separator+FILENAME);
 			_asciiOut = new BufferedWriter(_aOutFile);
 		} catch (IOException e) {
 			System.out.println("Error ocurred while opening file " + FILENAME + e.getMessage());

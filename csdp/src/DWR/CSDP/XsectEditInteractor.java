@@ -287,7 +287,6 @@ public class XsectEditInteractor extends ElementInteractor {
 
 		// _xsectGraph.updateNetworkDataSet();
 		_xsectGraph.updateDisplay();
-		_xsectGraph.updateXsectProp();
 		_xsect.setIsUpdated(true);
 	}// addPoint
 

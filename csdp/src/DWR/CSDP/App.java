@@ -682,6 +682,84 @@ public class App {
 	// }//for j
 	// }//nCalculate
 
+	/*
+	 * Create DSM2 Input file with channel and irregular cross-section information
+	 */
+	public void nCalculateDSM2V8Format(String fullPath) {
+		AsciiFileWriter afw = new AsciiFileWriter(fullPath);
+		afw.writeLine("XSECT_LAYER");
+		afw.writeLine("CHAN_NO  DIST  ELEV  AREA  WIDTH  WET_PERIM");
+		
+		String filename = null;
+		String centerlineName = null;
+		Centerline centerline;
+		Xsect xsect;
+		double length;
+		double distAlongCenterline;
+		double normalizedDist;
+		for(int i=0; i<_net.getNumCenterlines(); i++) {
+			centerlineName = _net.getCenterlineName(i);
+			centerline = _net.getCenterline(centerlineName);
+			length = centerline.getLengthFeet();
+			for(int j=0; j<centerline.getNumXsects(); j++) {
+				xsect = centerline.getXsect(j);
+				if(xsect.getNumPoints()>0) {
+					distAlongCenterline = xsect.getDistAlongCenterlineFeet();
+					normalizedDist = distAlongCenterline / length;
+					double[] elevations = xsect.getUniqueElevations();
+					//remove elevations if within .01 feet of another layer
+					double[] goodElevations = removeCloseElevations(elevations);
+					
+					for(int k=goodElevations.length-1; k>=0; k--) {
+						double area = xsect.getAreaSqft(goodElevations[k]);
+						double width = xsect.getWidthFeet(goodElevations[k]);
+						double wetP = xsect.getWettedPerimeterFeet(goodElevations[k]);
+						String[] centerlineNameParts = centerlineName.split("_");
+						String channelNum = centerlineNameParts[0];
+//						String s = String.format("%-8s%-8.5f%-10.3f%-12.3f%-12.3f%-13.3f", channelNum,normalizedDist,elevations[k],area,width,wetP);
+						String s = channelNum+
+								"\t"+String.format("%.5f", normalizedDist)+
+								"\t"+String.format("%.2f", goodElevations[k])+
+								"\t"+String.format("%.3f", area)+
+								"\t"+String.format("%.1f", width)+
+								"\t"+String.format("%.1f", wetP); 
+						// afw.writeLine(centerlineName+"\t"+normalizedDist+"\t"+elevations[k]+"\t"+area+"\t"+width+"\t"+wetP);
+						afw.writeLine(s);
+					}
+				}//if
+			}//for j
+		}//for i
+		afw.writeLine("END");
+		afw.close();
+	}//nCalculateDSM2V812Format
+		
+	/*
+	 * Remove elevations that are within .01 feet of each other
+	 */
+	private double[] removeCloseElevations(double[] elevations) {
+		boolean[] removeElevation = new boolean[elevations.length];
+		int numKeep = 1;
+		removeElevation[0]=false;
+		for(int k=1; k<elevations.length; k++) {
+			if(Math.abs(elevations[k]-elevations[k-1]) < 0.01) {
+				removeElevation[k]=true;
+			}else {
+				removeElevation[k]=false;
+				numKeep++;
+			}
+		}
+
+		double[] goodElevations = new double[numKeep];
+		int goodElevationsIndex=0;
+		for(int k=0 ; k<elevations.length; k++) {
+			if(!removeElevation[k]) {
+				goodElevations[goodElevationsIndex] = elevations[k];
+				goodElevationsIndex++;
+			}
+		}
+		return goodElevations;
+	}
+	
 	/**
 	 * Calculate all cross-sections in network
 	 */
@@ -776,8 +854,8 @@ public class App {
 	/**
 	 * write a landmark file which labels all the cross-sections
 	 */
-	public void writeXsectLandmark() {
-		XsectLandmarkOutput xloutput = XsectLandmarkOutput.getInstance(_net);
+	public void writeXsectLandmark(String directory) {
+		XsectLandmarkOutput xloutput = XsectLandmarkOutput.getInstance(_net, directory);
 		xloutput.writeData();
 	}// writeXsectLandmark
 

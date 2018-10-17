@@ -833,6 +833,107 @@ public class Centerline {
 		return _maxY;
 	}
 
+	/*
+	 * Returns estimated volume for selected centerline. Assumptions:
+	 * 1. no interpolation from adjacent channels
+	 * 2. volume between cross-sections will be the average of the two volumes times the distance between them.
+	 * 3. volume between ends of channel and nearest cross-section will be area times length. 
+	 */
+	public double getChannelVolumeEstimateNoInterp(double elevation) {
+		int numXsects = getNumXsects();
+		double returnValue = 0.0;
+		Xsect lastXsect = null;
+		for(int i=0; i<numXsects; i++) {
+			Xsect currentXsect = getXsect(i);
+			double currentXSDist = currentXsect.getDistAlongCenterlineFeet();
+			double currentArea = currentXsect.getAreaSqft(elevation);
+			if(lastXsect!=null) {
+				double lastXSDist = lastXsect.getDistAlongCenterlineFeet();
+				double lastArea = lastXsect.getAreaSqft(elevation);
+				returnValue += 0.5*(lastArea+currentArea) * (currentXSDist-lastXSDist);
+			}else {
+				returnValue += currentXSDist * currentArea;
+			}
+			lastXsect = currentXsect;
+		}
+		//Add the last portion
+		returnValue += (getLengthFeet() - lastXsect.getDistAlongCenterlineFeet()) * lastXsect.getAreaSqft(elevation);
+		return returnValue;
+	}//getChannelVolumeEstimateNoInterp
+	
+	/*
+	 * Returns estimated wettedArea for selected centerline. Assumptions:
+	 * 1. no interpolation from adjacent channels
+	 * 2. wettedArea between cross-sections will be the average of the two wetted perimeters times the distance between them.
+	 * 3. wettedArea between ends of channel and nearest cross-section will be wetted perimeter times length. 
+	 */
+	public double getChannelWettedAreaEstimateNoInterp(double elevation) {
+		int numXsects = getNumXsects();
+		double returnValue = 0.0;
+		Xsect lastXsect = null;
+		for(int i=0; i<numXsects; i++) {
+			Xsect currentXsect = getXsect(i);
+			double currentXSDist = currentXsect.getDistAlongCenterlineFeet();
+			double currentWetP = currentXsect.getWettedPerimeterFeet(elevation);
+			if(lastXsect!=null) {
+				double lastXSDist = lastXsect.getDistAlongCenterlineFeet();
+				double lastWetP = lastXsect.getWettedPerimeterFeet(elevation);
+				returnValue += 0.5*(lastWetP+currentWetP) * (currentXSDist-lastXSDist);
+			}else {
+				returnValue += currentXSDist * currentWetP;
+			}
+			lastXsect = currentXsect;
+		}
+		//Add the last portion
+		returnValue += (getLengthFeet() - lastXsect.getDistAlongCenterlineFeet()) * lastXsect.getWettedPerimeterFeet(elevation);
+		return returnValue;
+	}//getChannelVolumeEstimateNoInterp
+
+	/*
+	 * Returns estimated surface area for selected centerline. Assumptions:
+	 * 1. no interpolation from adjacent channels
+	 * 2. surface area between cross-sections will be the average of the two widths times the distance between them.
+	 * 3. surface area between ends of channel and nearest cross-section will be width times length. 
+	 */
+	public double getChannelSurfaceAreaEstimateNoInterp(double elevation) {
+		int numXsects = getNumXsects();
+		double returnValue = 0.0;
+		Xsect lastXsect = null;
+		for(int i=0; i<numXsects; i++) {
+			Xsect currentXsect = getXsect(i);
+			double currentXSDist = currentXsect.getDistAlongCenterlineFeet();
+			double currentWidth = currentXsect.getWidthFeet(elevation);
+			if(lastXsect!=null) {
+				double lastXSDist = lastXsect.getDistAlongCenterlineFeet();
+				double lastWidth = lastXsect.getWidthFeet(elevation);
+				returnValue += 0.5*(lastWidth+currentWidth) * (currentXSDist-lastXSDist);
+			}else {
+				returnValue += currentXSDist * currentWidth;
+			}
+			lastXsect = currentXsect;
+		}
+		//Add the last portion
+		returnValue += (getLengthFeet() - lastXsect.getDistAlongCenterlineFeet()) * lastXsect.getWidthFeet(elevation);
+		return returnValue;
+	}//getChannelVolumeEstimateNoInterp
+	
+	/*
+	 * Returns the number of computational reaches based on delta x and centerline length
+	 */
+	public int getNumComputationalReaches(double deltaX) {
+		double length = getLengthFeet();
+		return 1+(int)(Math.max(0.0, length-deltaX)/deltaX);
+	}
+	
+	/*
+	 * Returns the number of computational points based on delta x and centerline length
+	 */
+	public int getNumComputationalPoints(double deltaX) {
+		double length = getLengthFeet();
+		return 3 + 2*(int)(Math.max(0.0, length-deltaX)/deltaX);
+	}
+	
+
 	private int _numCenterlinePoints;
 	private Vector _centerlinePoints = new Vector();
 	private Vector _xsects = new Vector();

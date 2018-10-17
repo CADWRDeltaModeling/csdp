@@ -235,6 +235,9 @@ public class XsectAsciiOutput extends XsectOutput {
 		return last;
 	}
 
+	/*
+	 * This actually truncates values; better to use string formatting to round values.
+	 */
 	protected String lastEleven(double value, double numDecimalPlaces) {
 		// Double vF = new Double(value*Math.pow(10.0f,numDecimalPlaces));
 		// int vFi = vF.intValue();

@@ -133,9 +133,9 @@ public class BathymetryBinaryInput extends BathymetryInput {
 	protected void read() {
 		try {
 			for (int lineNum = 0; lineNum <= _numLines - 1; lineNum++) {
-				_pd.x = _binaryIn.readFloat();
-				_pd.y = _binaryIn.readFloat();
-				_pd.z = _binaryIn.readFloat();
+				_pd.x = (float) _binaryIn.readDouble();
+				_pd.y = (float) _binaryIn.readDouble();
+				_pd.z = (float) _binaryIn.readDouble();
 				_pd.year = _binaryIn.readShort();
 				_pd.source = _binaryIn.readUTF();
 				storeData(lineNum, CsdpFunctions.getBathymetryMetadata());

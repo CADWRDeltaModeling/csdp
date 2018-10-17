@@ -873,7 +873,9 @@ public class CsdpFrame extends JFrame {
 		// cfCenterline.add(cInfo = new JMenuItem("Info"));
 		// cfCenterline.add(cList = new JMenuItem("List"));
 		// cfCenterline.add(cSummary = new JMenuItem("Summary"));
-
+		cfCenterline.add(cDisplaySummary = new JMenuItem("View Centerline Summary"));
+		cfCenterline.add(cAddXSAtComputationalPoints = new JMenuItem("Add cross-sections at Computational Pts"));
+		
 		cfCenterline.setMnemonic(KeyEvent.VK_C);
 
 		if (_addCenterlineMenu)
@@ -894,7 +896,9 @@ public class CsdpFrame extends JFrame {
 		ActionListener cAddXsectListener = _centerlineMenu.new CAddXsect();
 		ActionListener cRemoveXsectListener = _centerlineMenu.new CRemoveXsect();
 		ActionListener cMoveXsectListener = _centerlineMenu.new CMoveXsect();
-
+		ActionListener cDisplaySummaryListener = _centerlineMenu.new DisplayCenterlineSummaryWindow();
+		ActionListener cAddXSAtComputationalPointsListener = _centerlineMenu.new AddXSAtComputationalPoints(_ni);
+		
 		cCursor.addActionListener(cCursorListener);
 		cCreate.addActionListener(cCreateListener);
 		cDSMCreate.addActionListener(cDSMCreateListener);
@@ -902,7 +906,9 @@ public class CsdpFrame extends JFrame {
 		//// cRename.addActionListener(cRenameListener);
 		// cRestore.addActionListener(cRestoreListener);
 		// cKeep.addActionListener(cKeepListener);
-
+		cDisplaySummary.addActionListener(cDisplaySummaryListener);
+		cAddXSAtComputationalPoints.addActionListener(cAddXSAtComputationalPointsListener);
+				
 		_cursorButton.addActionListener(cCursorListener);
 		_moveButton.addActionListener(cMovePointListener);
 		_insertButton.addActionListener(cInsertPointListener);
@@ -1229,6 +1235,8 @@ public class CsdpFrame extends JFrame {
 			_deleteButton.setEnabled(true);
 			_addXsectButton.setEnabled(true);
 			_removeXsectButton.setEnabled(true);
+			cDisplaySummary.setEnabled(true);
+			cAddXSAtComputationalPoints.setEnabled(true);
 			if (getXsectSelected()) {
 				_moveXsectButton.setEnabled(true);
 				_viewXsectButton.setEnabled(true);
@@ -1253,6 +1261,8 @@ public class CsdpFrame extends JFrame {
 			lEditPopup.setEnabled(false);
 			lMovePopup.setEnabled(false);
 			lDeletePopup.setEnabled(false);
+			cDisplaySummary.setEnabled(false);
+			cAddXSAtComputationalPoints.setEnabled(false);
 		}
 	}// setStopEditingMode
 
@@ -1371,7 +1381,9 @@ public class CsdpFrame extends JFrame {
 		cCreate.setEnabled(false);
 		cDSMCreate.setEnabled(false);
 		//// cRename.setEnabled(false);
-
+		cDisplaySummary.setEnabled(false);
+		cAddXSAtComputationalPoints.setEnabled(false);
+		
 		tCalcRect.setEnabled(false);
 
 		// xMove.setEnabled(false);
@@ -1431,6 +1443,8 @@ public class CsdpFrame extends JFrame {
 		nOpen.setEnabled(true);
 		cCreate.setEnabled(true);
 		cDSMCreate.setEnabled(true);
+		cDisplaySummary.setEnabled(false);
+		cAddXSAtComputationalPoints.setEnabled(false);
 		// xMove.setEnabled(true);
 		// xInfo.setEnabled(true);xSummary.setEnabled(true);
 		zPan.setEnabled(_addZoomWindowOption);
@@ -1551,6 +1565,9 @@ public class CsdpFrame extends JFrame {
 		_addButton.setEnabled(true);
 		_deleteButton.setEnabled(true);
 		_addXsectButton.setEnabled(true);
+		cDisplaySummary.setEnabled(true);
+		cAddXSAtComputationalPoints.setEnabled(true);;
+
 		if (getXsectSelected()) {
 			_removeXsectButton.setEnabled(true);
 			_moveXsectButton.setEnabled(true);
@@ -1789,8 +1806,8 @@ public class CsdpFrame extends JFrame {
 	}
 
 	public void setDigitalLineGraph(DigitalLineGraph dlg) {
-		_dlg = dlg;
-		_canvas1.setDigitalLineGraph(_dlg);
+		_dDigitalLineGraph = dlg;
+		_canvas1.setDigitalLineGraph(_dDigitalLineGraph);
 	}
 
 	/**
@@ -1865,12 +1882,12 @@ public class CsdpFrame extends JFrame {
 		}
 		Color c = null;
 		if (index < getNumColors())
-			c = (Color) (_colors.elementAt(index));
+			c = (Color) _colorsVector.elementAt(index);
 		else {
 			while (index >= getNumColors()) {
-				_colors.addElement(_colors.elementAt(getNumColors() - 1));
+				_colorsVector.addElement(_colorsVector.elementAt(getNumColors() - 1));
 			} // while
-			c = (Color) (_colors.elementAt(index));
+			c = (Color) _colorsVector.elementAt(index);
 		} // else
 		return c;
 	}// getColor
@@ -1896,18 +1913,18 @@ public class CsdpFrame extends JFrame {
 	 *
 	 */
 	public static int getNumColors() {
-		return _colors.size();
+		return _colorsVector.size();
 	}
 
 	private void setDefaultColors() {
-		setDefaultColors(DEFAULT_NUM_COLORS);
+		setDefaultColors(_colorsVector.size());
 	}
 
 	private void setDefaultColors(int numColors) {
 		// to make rainbow, use HSB colors. Set S to 100, B to 100, and vary H
 		// from 1 to 280
 		System.out.println("setDefaultColors: " + numColors);
-		_colors.clear();
+		_colorsVector.clear();
 		float increment = (float) (0.8 / ((float) numColors - 1));
 		float s = (float) 1.0;
 		float b = (float) 1.0;
@@ -1915,7 +1932,7 @@ public class CsdpFrame extends JFrame {
 		for (int h = 0; h < numColors; h++) {
 			float hue = (float) h * increment;
 			int rgb = Color.HSBtoRGB(hue, s, b);
-			_colors.addElement(new Color(rgb));
+			_colorsVector.addElement(new Color(rgb));
 			System.out.println("adding color " + hue + "," + s + "," + b + "," + rgb);
 		}
 		// go through user set colors if any, and put them into color palette
@@ -1923,8 +1940,8 @@ public class CsdpFrame extends JFrame {
 			Integer indexObject = e.nextElement();
 			int index = indexObject.intValue();
 			Color c = _userSetColors.get(indexObject);
-			System.out.println("before out of bounds: colors.size, index=" + _colors.size() + "," + index);
-			_colors.set(index, c);
+			System.out.println("before out of bounds: colors.size, index=" + _colorsVector.size() + "," + index);
+			_colorsVector.set(index, c);
 		}
 
 		// _colors.addElement(new Color(255, 0, 0 )); // bright red
@@ -2283,7 +2300,7 @@ public class CsdpFrame extends JFrame {
 	// _cRemoveXsectMenuItem, _cMoveXsectMenuItem;
 
 	private Landmark _landmark;
-	private DigitalLineGraph _dlg;
+	private DigitalLineGraph _dDigitalLineGraph;
 	private DSMChannels _DSMChannels;
 	private JMenuBar menubar;
 
@@ -2313,7 +2330,7 @@ public class CsdpFrame extends JFrame {
 	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;
 
 	private JCheckBoxMenuItem noChannelLengthsOnly;
-	private JMenuItem cCursor, cCreate, cDSMCreate, cRemove;
+	private JMenuItem cCursor, cCreate, cDSMCreate, cRemove, cDisplaySummary, cAddXSAtComputationalPoints;
 	// JMenuItem cRemove;
 	//// JMenuItem cRename;
 	// JMenuItem cMovePoint, cAddPoint, cDelPoint,
@@ -2333,7 +2350,7 @@ public class CsdpFrame extends JFrame {
 	private static final int COLOR_BY_SOURCE = 1;
 	private static final int COLOR_BY_YEAR = 2;
 	private JToolBar _legendPanel;
-	private String _depthLegendTitle = "Elev(NGVD)";
+	private String _depthLegendTitle = "Elevation";
 	private String _sourceLegendTitle = "Source";
 	private String _yearLegendTitle = "Year";
 	private JPanel _infoPanel;
@@ -2356,7 +2373,7 @@ public class CsdpFrame extends JFrame {
 	private JLabel _propertiesFileLabel = new JLabel("Properties Filename:");
 	private JLabel _dlgFileLabel = new JLabel("DLG Filename:");
 
-	private static Vector _colors = new Vector();
+	private static Vector _colorsVector = new Vector();
 	private final int _initialWidth = 800;
 	private final int _initialHeight = 500;
 
@@ -2392,7 +2409,7 @@ public class CsdpFrame extends JFrame {
 		for (int i = 1; i <= num - 1; i++) {
 			_elevationBins[i] = _elevationBins[i - 1] - binSize;
 		}
-	}
+	}//updateElevBinValues
 
 	/**
 	 * stores values for coloring bathymetry data in color by elevation mode
@@ -2419,6 +2436,6 @@ public class CsdpFrame extends JFrame {
 	private static final boolean _addOWACalcOption = true;
 	private double[] _cursorPosition = new double[2];
 	private final boolean DEBUG = false;
-	private static final int DEFAULT_NUM_COLORS = 1;
 	private Hashtable<Integer, Color> _userSetColors = new Hashtable<Integer, Color>();
-}
+	
+}//class CSDPFrame

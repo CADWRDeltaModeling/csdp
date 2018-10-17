@@ -1510,6 +1510,23 @@ public class CsdpFunctions {
 	 */
 	protected static double BORDER_THICKNESS = 1000.0;
 
+	/*
+	 * For CenterlineSummaryWindow class. the elevation used to calculate volume, wetted area, and surface area 
+	 */
+	public static double ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS = 0.0;
+	/*
+	 * For determining number of computational points in a channel. Used for automatically drawing cross-section lines.
+	 */
+	public static double DELTAX = 5000.0;
+	/*
+	 * For for dconveyance calculations
+	 */
+	public static double MANNINGS_N = 0.030;
+	/*
+	 * For automatically drawing a cross-section line at each computational point.
+	 */
+	public static double CROSS_SECTION_LINE_LENGTH = 3000.0;
+	
 	public static boolean getWarnZoom() {
 		return _warnZoom;
 	}
@@ -1723,6 +1740,6 @@ public class CsdpFunctions {
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "2.54";
+	private static final String _version = "2.6";
 
 }// class CsdpFunctions

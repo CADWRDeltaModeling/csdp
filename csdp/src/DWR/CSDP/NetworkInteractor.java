@@ -48,6 +48,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.util.Vector;
 
+import javax.swing.JOptionPane;
+
 //import DWR.Graph.*;
 import vista.graph.ElementInteractor;
 
@@ -303,8 +305,9 @@ public class NetworkInteractor extends ElementInteractor {
 							_net.setSelectedXsect(centerline.getXsect(_net.getSelectedXsectNum()));
 							_gui.enableAfterXsectSelected();
 							_gui.updateInfoPanel(_net.getSelectedXsectNum());
-							_gui.updateInfoPanel(xsect.getAreaSqft(0.0f), xsect.getWidthFeet(0.0f),
-									xsect.getWettedPerimeterFeet(0.0f), xsect.getHydraulicDepthFeet(0.0f));
+							double elev = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
+							_gui.updateInfoPanel(xsect.getAreaSqft(elev), xsect.getWidthFeet(elev),
+									xsect.getWettedPerimeterFeet(elev), xsect.getHydraulicDepthFeet(elev));
 							// removed for conversion to swing
 							_can.redoNextPaint();
 							_can.repaint();
@@ -339,11 +342,20 @@ public class NetworkInteractor extends ElementInteractor {
 					_net._oldCenterlineName = _net._newCenterlineName;
 				} // if _nPlotter != null
 				if (_gui.getRemoveXsectMode()) {
-					_net.getSelectedCenterline().removeXsect(_net.getSelectedXsectNum());
-					_gui.updateInfoPanel(_net.getSelectedCenterlineName());
-					_gui.updateInfoPanel(_net.getSelectedXsectNum());
-					// _gui.setRemoveXsectMode();
-
+					String centerlineName = _net.getSelectedCenterlineName();
+					int selectedXsectNum = _net.getSelectedXsectNum();
+					String xsectName = centerlineName+"_"+selectedXsectNum;
+					int response = JOptionPane.showConfirmDialog(_gui, "Delete selected cross-section line("+xsectName+")?", 
+							"Are you sure?", JOptionPane.YES_NO_OPTION);
+					if(response==JOptionPane.YES_OPTION) {
+						_net.getSelectedCenterline().removeXsect(_net.getSelectedXsectNum());
+						_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+						_gui.updateInfoPanel(_net.getSelectedXsectNum());
+						// _gui.setRemoveXsectMode();
+						_net.setIsUpdated(true);
+						_can.redoNextPaint();
+						_can.repaint();
+					}
 					_gui.turnOffEditModes();
 				}
 			} // else
@@ -787,6 +799,83 @@ public class NetworkInteractor extends ElementInteractor {
 		_gui.setDefaultModesStates();
 	}// addXsect
 
+	
+	/*
+	 * Create a cross-section line at every computational point location
+	 */
+	public void addXsectsAtComputationalPoints(double deltaX, double xsectLineLength) {
+		Centerline centerline = _net.getSelectedCenterline();
+		int numXSToAdd = centerline.getNumComputationalPoints(deltaX);
+		double length = centerline.getLengthFeet();
+		double deltaXActual = length / (double)(numXSToAdd - 1);
+		for(int i=0; i<numXSToAdd; i++) {
+			double distance = deltaXActual*(double)i;
+			//if placing cross-section at endpoints, make it at least 10 feet from end, or 1% of channel length. 
+			//This should make it easier to distinguish from cross-section at endpoint of connecting channel
+			if(distance == 0.0) {
+				distance += Math.max(10.0, .01*length);
+			}else if(distance==length) {
+				distance -= Math.max(10.0, .01*length);
+			}
+			addXsectAtDistance(centerline, distance, xsectLineLength);
+		}
+	}//addXsectsAtComputationalPoints
+	
+	/*
+	 * Add a cross-section line at the specified distance. If distance is zero or 
+	 * equal to the channel length, move so it's not right at the end of the channel.
+	 */
+	private void addXsectAtDistance(Centerline centerline, double distance, double xsectLineLength) {
+		int lastIndex = 0;
+		Xsect xsect = null;
+		int numXsects = centerline.getNumXsects();
+		if(numXsects == 0){
+			centerline.addXsect();
+			xsect = centerline.getXsect(0);
+		}else {
+			for (int i = 0; i < centerline.getNumXsects(); i++) {
+				xsect = centerline.getXsect(i);
+				if (xsect.getDistAlongCenterlineFeet() < distance)
+					lastIndex = i;
+			}
+			centerline.addXsectAt(lastIndex + 1);
+			xsect = centerline.getXsect(lastIndex + 1);
+		}
+		xsect.putDistAlongCenterlineFeet(distance);
+		xsect.putXsectLineLengthFeet(xsectLineLength);
+
+		// sort
+		ResizableIntArray xsectIndices = centerline.sortXsectArray();
+		_app.renameOpenXsectGraphs(_net.getSelectedCenterlineName(), xsectIndices);
+	
+		_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+		// removed for conversion to swing
+		_gui.getPlanViewCanvas(0).redoNextPaint();
+		_gui.getPlanViewCanvas(0).repaint();
+	
+		int selectedXsectNum = 0;
+		if (numXsects == 0)
+			selectedXsectNum = lastIndex;
+		else
+			selectedXsectNum = lastIndex + 1;
+	
+		selectedXsectNum = xsectIndices.get(selectedXsectNum);
+	
+		if (DEBUG)
+			System.out.println("selected xsect number =" + selectedXsectNum);
+
+		_net.setSelectedXsectNum(selectedXsectNum);
+		_net.setSelectedXsect(xsect);
+		_gui.enableAfterXsectSelected();
+	
+		_gui.updateInfoPanel(_net.getSelectedXsectNum());
+		
+		_net.setIsUpdated(true);
+		_gui.setDefaultModesStates();
+	}//addXsectAtDistance
+
+	
+	
 	/**
 	 * find midpoint of xsect line, which is the intersection of the xsect line
 	 * and the centerline. Arguments are coordinates of xsect line.
