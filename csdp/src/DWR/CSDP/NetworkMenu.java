@@ -47,11 +47,10 @@ import java.awt.event.ItemListener;
 import java.io.File;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 import DWR.CSDP.dialog.FileIO;
 import DWR.CSDP.dialog.FileSave;
-import DWR.CSDP.dialog.OkDialog;
-import DWR.CSDP.dialog.YesNoDialog;
 
 public class NetworkMenu {
 
@@ -89,9 +88,9 @@ public class NetworkMenu {
 			_net = ((CsdpFrame) _gui).getNetwork();
 			if (_net != null) {
 				if (_net.isUpdated()) {
-					YesNoDialog d = new YesNoDialog(_gui, "Network file is not saved.  Save(y/n)?", true);
-					d.setVisible(true);
-					if (d._yes == true)
+					int response = JOptionPane.showConfirmDialog(_gui, "Network file is not saved.  Save(y/n)?", "save network?",
+							JOptionPane.YES_NO_OPTION);
+					if(response == JOptionPane.YES_OPTION)
 						((CsdpFrame) _gui).saveNetwork();
 				} // if network has changed
 			} // if net isn't null
@@ -147,23 +146,22 @@ public class NetworkMenu {
 	 * clear network from memory
 	 */
 	public class NClearNetwork implements ActionListener {
-		YesNoDialog _d;
 		CsdpFrame _gui;
 
 		public NClearNetwork(CsdpFrame gui) {
 			_gui = gui;
-			_d = new YesNoDialog(_gui, "Network file is not saved. Save(y/n)?", true);
 		}
 
 		public void actionPerformed(ActionEvent e) {
 			Network net = _gui.getNetwork();
 			if (net != null) {
 				if (net.isUpdated()) {
-					_d.setVisible(true);
-					if (_d._yes == true) {
+					int response = JOptionPane.showConfirmDialog(_gui, "Network file is not saved. Save(y/n)?", "save network?",
+							JOptionPane.YES_NO_OPTION);
+					if(response==JOptionPane.YES_OPTION) {
 						_gui.saveNetwork();
 						_app.clearNetwork();
-					} else if (_d._no == true) {
+					}else if(response == JOptionPane.NO_OPTION) {
 						_app.clearNetwork();
 					} else {
 						// do nothing
@@ -420,7 +418,6 @@ public class NetworkMenu {
 	 */
 	public class NCalculate implements ActionListener {
 		// FileDialog _fdCalculate;
-		OkDialog _okd;
 		JFileChooser _xsectDirectoryChooser = new JFileChooser();
 		CsdpFrame _gui;
 
@@ -432,8 +429,6 @@ public class NetworkMenu {
 			_xsectDirectoryChooser.setDialogTitle("Calculate network: select directory for output files");
 			_xsectDirectoryChooser.setApproveButtonText("Use this directory");
 			_xsectDirectoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			_okd = new OkDialog(gui, "DSM2 input files and xsects.cdl file written.", true);
-			_okd.setTitle("done");
 		}
 
 		public void actionPerformed(ActionEvent e) {
@@ -455,7 +450,8 @@ public class NetworkMenu {
 //				_app.nCalculate(calculateDirectory);
 //				_app.writeIrregularXsectsInp(calculateDirectory);
 				_app.writeXsectLandmark(calculateDirectory);
-				_okd.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "DSM2 input files and xsects.cdl file written.", "Done", JOptionPane.INFORMATION_MESSAGE);
+				
 			}
 		}// actionPerformed
 	} // NCalculate

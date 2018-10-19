@@ -50,9 +50,9 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 import DWR.CSDP.dialog.FileIO;
-import DWR.CSDP.dialog.YesNoDialog;
 
 public class FileMenu {
 
@@ -165,13 +165,12 @@ public class FileMenu {
 			Network net = _gui.getNetwork();
 			if (net != null) {
 				if (net.isUpdated()) {
-					YesNoDialog d = new YesNoDialog(_gui, "Network file is not saved.  Save(y/n)?", true);
-					d.setVisible(true);
-					if (d._yes == true) {
+					int response = JOptionPane.showConfirmDialog(_gui, "Network file is not saved.  Save(y/n)?", "Save?", JOptionPane.YES_NO_CANCEL_OPTION);
+					if(response==JOptionPane.YES_OPTION) {
 						_gui.saveNetwork();
 						if (CsdpFunctions._cancelSaveNetwork == false)
 							System.exit(0);
-					} else if (d._no == true) {
+					}else if(response==JOptionPane.NO_OPTION) {
 						System.exit(0);
 					} else {
 						// do nothing

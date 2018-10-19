@@ -46,6 +46,8 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.StringTokenizer;
 
+import javax.swing.JOptionPane;
+
 public class LandmarkAsciiInput extends LandmarkInput {
 
 	LineNumberReader _asciiIn;
@@ -87,7 +89,8 @@ public class LandmarkAsciiInput extends LandmarkInput {
 			line = _asciiIn.readLine();
 			if (line.indexOf(";") < 0) {
 				fileHasMetadata = false;
-				_noMetadataDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "This landmark file has no metadata. " + "UTM zone 10 NAD 27, NGVD 1929 will be assumed.", 
+						"No Metadata Found", JOptionPane.INFORMATION_MESSAGE);
 				landmarkMetadata.setToDefault();
 				parseFirstLine(line);
 			} else {
@@ -100,10 +103,9 @@ public class LandmarkAsciiInput extends LandmarkInput {
 					if (line.indexOf(";") >= 0) {
 						parseMetadata(line, landmarkMetadata);
 					} else {
-						_errorDialog.setMessage(
-								"incomplete landmark metadata! there should be " + CsdpFunctions.getNumMetadataLines()
-										+ " lines.  " + "The following line was expected to be metadata line:" + line);
-						_errorDialog.setVisible(true);
+						JOptionPane.showMessageDialog(_gui, "incomplete landmark metadata! there should be " + CsdpFunctions.getNumMetadataLines()
+						+ " lines.  " + "The following line was expected to be metadata line:" + line, 
+								"No Metadata Found", JOptionPane.ERROR_MESSAGE);
 					} // if it's a metadata line (should be)
 				} // read all metadata lines
 			}

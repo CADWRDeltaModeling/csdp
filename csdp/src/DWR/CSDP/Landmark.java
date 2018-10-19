@@ -44,7 +44,8 @@ package DWR.CSDP;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import DWR.CSDP.dialog.OkDialog;
+import javax.swing.JOptionPane;
+
 import DWR.CSDP.semmscon.UseSemmscon;
 
 /**
@@ -55,11 +56,12 @@ import DWR.CSDP.semmscon.UseSemmscon;
  */
 public class Landmark {
 
+	private CsdpFrame _gui;
 	/**
 	 * Constructor
 	 */
 	public Landmark(CsdpFrame gui) {
-		_warningDialog = new OkDialog(gui, "warning", true);
+		this._gui = gui;
 	}
 
 	// /**
@@ -224,10 +226,10 @@ public class Landmark {
 		if (currentZone != bathymetryZone) {
 			sameZone = false;
 			// zone always expected to be 10
-			_warningDialog.setMessage("ERROR in Landmark.convertToBathymetryDatum: Coordinates need "
+			JOptionPane.showMessageDialog(_gui, "ERROR in Landmark.convertToBathymetryDatum: Coordinates need "
 					+ "to be converted, but I can't convert them. " + "Landmark.convertToBathymetryDatum: currentZone "
-					+ "is different from bathymetry zone.  They should be the same!");
-			_warningDialog.setVisible(true);
+					+ "is different from bathymetry zone.  They should be the same!", 
+					"Error", JOptionPane.ERROR_MESSAGE);
 		} else {
 			sameZone = true;
 		}
@@ -237,19 +239,20 @@ public class Landmark {
 				if (currentHDatum == CsdpFileMetadata.UTMNAD27) {
 					utm27to83 = true;
 				} else {
-					_warningDialog.setMessage("landmark horizontal datum is different from "
+					JOptionPane.showMessageDialog(_gui, "landmark horizontal datum is different from "
 							+ "bathymetry horizontal datum, but I don't know " + "how to convert the landmark datum,"
-							+ currentHDatum + ", to the bathymetry datum, " + bathymetryHDatum);
-					_warningDialog.setVisible(true);
+							+ currentHDatum + ", to the bathymetry datum, " + bathymetryHDatum, 
+							"Error", JOptionPane.ERROR_MESSAGE);
+
 				} // if need to convert from utm nad27
 			} else if (bathymetryHDatum == CsdpFileMetadata.UTMNAD27) {
 				if (currentHDatum == CsdpFileMetadata.UTMNAD83) {
 					utm83to27 = true;
 				} else {
-					_warningDialog.setMessage("landmark horizontal datum is different from "
+					JOptionPane.showMessageDialog(_gui, "landmark horizontal datum is different from "
 							+ "bathymetry horizontal datum, but I don't know " + "how to convert the landmark datum,"
-							+ currentHDatum + ", to the bathymetry datum, " + bathymetryHDatum);
-					_warningDialog.setVisible(true);
+							+ currentHDatum + ", to the bathymetry datum, " + bathymetryHDatum, 
+							"Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		} else {
@@ -261,19 +264,19 @@ public class Landmark {
 				if (currentVDatum == CsdpFileMetadata.NGVD1929) {
 					ngvd29toNavd88 = true;
 				} else {
-					_warningDialog.setMessage("landmark vertical datum is different from "
+					JOptionPane.showMessageDialog(_gui, "landmark vertical datum is different from "
 							+ "bathymetry vertical datum, but I don't know " + "how to convert the landmark datum,"
-							+ currentVDatum + ", to the bathymetry datum, " + bathymetryVDatum);
-					_warningDialog.setVisible(true);
+							+ currentVDatum + ", to the bathymetry datum, " + bathymetryVDatum, 
+							"Error", JOptionPane.ERROR_MESSAGE);
 				} //
 			} else if (bathymetryVDatum == CsdpFileMetadata.NGVD1929) {
 				if (currentVDatum == CsdpFileMetadata.NAVD1988) {
 					navd88toNgvd29 = true;
 				} else {
-					_warningDialog.setMessage("landmark vertical datum is different from "
+					JOptionPane.showMessageDialog(_gui, "landmark vertical datum is different from "
 							+ "bathymetry vertical datum, but I don't know " + "how to convert the landmark datum,"
-							+ currentVDatum + ", to the bathymetry datum, " + bathymetryVDatum);
-					_warningDialog.setVisible(true);
+							+ currentVDatum + ", to the bathymetry datum, " + bathymetryVDatum, 
+							"Error", JOptionPane.ERROR_MESSAGE);
 				} //
 			} // if bath datum is...
 		} else {
@@ -294,9 +297,9 @@ public class Landmark {
 				System.out.println("m.getHDatum, bm.getHDatum, m.getVDatum, bm.getVDatum=" + m.getHDatum() + ","
 						+ bm.getHDatum() + "," + m.getVDatum() + "," + bm.getVDatum());
 
-				_warningDialog.setMessage("Converting landmark (" + m.getHDatumString() + "," + m.getVDatumString()
-						+ ")" + " to bathymetry datum (" + bm.getHDatumString() + "," + bm.getVDatumString() + ")");
-				_warningDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "Converting landmark (" + m.getHDatumString() + "," + m.getVDatumString()
+				+ ")" + " to bathymetry datum (" + bm.getHDatumString() + "," + bm.getVDatumString() + ")", 
+						"Error", JOptionPane.ERROR_MESSAGE);
 				UseSemmscon us = CsdpFunctions.getUseSemmscon();
 				// for each landmark, convert coordinates
 				String name = null;
@@ -607,7 +610,6 @@ public class Landmark {
 		return _selectedLandmarkName;
 	}
 
-	private OkDialog _warningDialog;
 	String _selectedLandmarkName;
 
 }// class Landmark

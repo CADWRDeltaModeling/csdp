@@ -45,9 +45,9 @@ import java.awt.event.ActionListener;
 import java.io.File;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 import DWR.CSDP.dialog.FileIO;
-import DWR.CSDP.dialog.OkDialog;
 
 /**
  * calls methods for editing and viewing cross-sections
@@ -60,9 +60,6 @@ public class XsectMenu {
 		_app = app;
 		_gui = gui;
 		_ni = ni;
-		_okd = new OkDialog(_gui, "You are already viewing that xsect!", true);
-		//// _okd = new OkDialog(_gui, "Only one cross-section window may be
-		//// open", true);
 		_fSaveFilter = new CsdpFileFilter(_saveExtensions, _numSaveExtensions);
 	}
 
@@ -70,7 +67,6 @@ public class XsectMenu {
 		_net = net;
 	}
 
-	OkDialog _okd;
 	App _app;
 	CsdpFrame _gui;
 	NetworkInteractor _ni;
@@ -96,7 +92,7 @@ public class XsectMenu {
 			if (DEBUG)
 				System.out.println(centerlineName + "_" + xsectNum);
 			if (_app._xsectGraph.containsKey(centerlineName + "_" + xsectNum)) {
-				_okd.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "You are already viewing that cross-section!", "", JOptionPane.ERROR_MESSAGE);
 				// ((XsectGraph)(_app._xsectGraph.get(centerlineName+"_"+xsectNum))).setVisible(true);
 			} else {
 				_app.viewXsect(xsect, centerlineName, xsectNum, CsdpFunctions._xsectThickness);

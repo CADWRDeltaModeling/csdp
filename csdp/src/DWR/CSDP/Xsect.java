@@ -429,15 +429,22 @@ public class Xsect {
 			rightElevation = getXsectPoint(i + 1).getElevationFeet();
 //			if (leftElevation == rightElevation && leftElevation != minElev) {
 			//DSM2 doesn't seem to notice differences of less than .01 feet.
-			if(leftElevation - rightElevation < .01 && rightElevation != minElev) {
-//			if (leftElevation - rightElevation) < 0.01 && leftElevation != minElev) {
+			if(Math.abs(leftElevation - rightElevation) < .01) {
 				if (DEBUG)
 					System.out.println("leftElevation, rightElevation, minElev=" + leftElevation + "," + rightElevation
 							+ "," + minElev);
-				getXsectPoint(i).putElevationFeet(leftElevation + 0.011f);
-			}else if(rightElevation-leftElevation<.01 && leftElevation != minElev) {
-				getXsectPoint(i+1).putElevationFeet(rightElevation + 0.011f);
-				
+				//previously was
+				//				if(leftElevation==rightElevation && leftElevation != minElev) {
+				//		    		getXsectPoint(i).putElevationFeet(leftElevation+0.01f);
+				//10/2018: change to:
+				//only modify right point, since we're iterating from left to right
+				if(leftElevation==rightElevation && leftElevation > minElev) {
+					getXsectPoint(i+1).putElevationFeet(rightElevation + 0.01);
+				}else if(leftElevation > rightElevation) {
+					getXsectPoint(i+1).putElevationFeet(rightElevation - 0.011);
+				}else if(rightElevation > leftElevation) {
+					getXsectPoint(i+1).putElevationFeet(rightElevation + 0.011);
+				}
 			}
 		} // for i
 		for (int i = 0; i <= getNumPoints() - 1; i++) {

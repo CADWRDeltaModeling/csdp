@@ -45,7 +45,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
-import DWR.CSDP.dialog.TextDialog;
+import javax.swing.JOptionPane;
+
 
 public class XsectBathymetryMenu {
 
@@ -97,11 +98,8 @@ public class XsectBathymetryMenu {
 	 */
 	public class BChangePointSize implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			TextDialog d = new TextDialog(_xsectGraph, "Enter new point dimension", true, _xsectGraph.getPointSize());
-			d.setVisible(true);
-			// String s = d.tf.getText();
-			// Float f = new Float(s);
-			float f = Float.parseFloat(d.tf.getText());
+			String dimensionString = JOptionPane.showInputDialog(_xsectGraph, "Enter new point dimension", _xsectGraph.getPointSize());
+			float f = Float.parseFloat(dimensionString);
 			int nin = (int) (f);
 			if (nin != _xsectGraph.getPointSize()) {
 				System.out.println("Changing value");

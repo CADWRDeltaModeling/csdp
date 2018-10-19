@@ -48,9 +48,9 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
 import java.util.Enumeration;
 
-import DWR.CSDP.dialog.TextDialog;
+import javax.swing.JOptionPane;
+
 import DWR.CSDP.dialog.TryAgainDialog;
-//import DWR.Graph.*;
 import vista.graph.ElementInteractor;
 
 /**
@@ -70,8 +70,6 @@ public class LandmarkInteractor extends ElementInteractor {
 		_gui = gui;
 		_can = can;
 		_app = app;
-		_td = new TextDialog((Frame) gui, ADD_LANDMARK_TITLE, true);
-		_tad = new TryAgainDialog(gui, "A landmark already exists with that name! Try again?", true);
 	}// constructor
 
 	/**
@@ -235,18 +233,16 @@ public class LandmarkInteractor extends ElementInteractor {
 	 */
 	public boolean editLandmark() {
 		boolean tryAgain = false;
-		_td.setTitle(EDIT_LANDMARK_TITLE);
-		_td.tf.setText(_landmark.getSelectedLandmarkName());
-		_td.setVisible(true);
-		String newLandmarkName = _td.tf.getText();
+		String newLandmarkName = JOptionPane.showInputDialog(_gui, EDIT_LANDMARK_TITLE, _landmark.getSelectedLandmarkName());
 		if (!newLandmarkName.equalsIgnoreCase(_landmark.getSelectedLandmarkName())) {
 			boolean success = _landmark.renameLandmark(_landmark.getSelectedLandmarkName(), newLandmarkName);
 			if (success) {
 				updateLandmarkDisplay();
 				_gui.turnOffEditModes();
 			} else {
-				_tad.setVisible(true);
-				if (_tad._tryAgain == true) {
+				int response = JOptionPane.showConfirmDialog(_gui, "A landmark already exists with that name. Try again?", 
+						"Landmark name exists!", JOptionPane.YES_NO_OPTION);
+				if(response==JOptionPane.YES_OPTION) {
 					tryAgain = true;
 				} else {
 					tryAgain = false;
@@ -273,10 +269,7 @@ public class LandmarkInteractor extends ElementInteractor {
 		_lPlotter = _can._landmarkPlotter;
 		ZoomState zs = _bathymetryPlot.getCurrentZoomState();
 		CoordConv cc = zs.getCoordConv();
-
-		_td.setTitle(ADD_LANDMARK_TITLE);
-		_td.setVisible(true);
-		String landmarkName = _td.tf.getText();
+		String landmarkName = JOptionPane.showInputDialog(_gui, ADD_LANDMARK_TITLE);
 
 		cc.pixelsToLength(_xi, _yi, _minX, _minY, _lengthI);
 		if (DEBUG)
@@ -287,8 +280,9 @@ public class LandmarkInteractor extends ElementInteractor {
 			updateLandmarkDisplay();
 			_gui.turnOffEditModes();
 		} else {
-			_tad.setVisible(true);
-			if (_tad._tryAgain == true) {
+			int response = JOptionPane.showConfirmDialog(_gui, "A landmark already exists with that name. Try again?", 
+					"Landmark name exists!", JOptionPane.YES_NO_OPTION);
+			if(response==JOptionPane.YES_OPTION) {
 				tryAgain = true;
 			} else {
 				tryAgain = false;
@@ -456,8 +450,6 @@ public class LandmarkInteractor extends ElementInteractor {
 	 * Final cursor position converted to length units.
 	 */
 	private double[] _lengthF = new double[2];
-	private TextDialog _td;
-	private TryAgainDialog _tad;
 
 	private final String ADD_LANDMARK_TITLE = "Enter new landmark name";
 	private final String EDIT_LANDMARK_TITLE = "Edit landmark name";

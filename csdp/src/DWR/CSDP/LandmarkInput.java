@@ -43,7 +43,8 @@ package DWR.CSDP;
 import java.io.File;
 import java.util.StringTokenizer;
 
-import DWR.CSDP.dialog.OkDialog;
+import javax.swing.JOptionPane;
+
 
 /**
  * Read landmark data. Landmarks are symbols with labels that are displayed on
@@ -61,9 +62,6 @@ public abstract class LandmarkInput {
 		_directory = directory;
 		_landmark = new Landmark(gui);
 		_gui = gui;
-		_noMetadataDialog = new OkDialog(_gui,
-				"This landmark file has no metadata. " + "UTM zone 10 NAD 27, NGVD 1929 will be assumed.", true);
-		_errorDialog = new OkDialog(_gui, "error message", true);
 
 		if ((_directory.substring(_directory.length() - 1, _directory.length())).equals(File.separator) == false) {
 			_directory += File.separator;
@@ -136,17 +134,16 @@ public abstract class LandmarkInput {
 			else if (nextToken.equalsIgnoreCase("UTMNAD83"))
 				m.setHDatum(CsdpFileMetadata.UTMNAD83);
 			else {
-				_errorDialog.setMessage(
-						"HorizontalDatum " + nextToken + " not recognized.  using default horizontal datum.");
-				_errorDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "HorizontalDatum " + nextToken + " not recognized.  using default horizontal datum.", 
+						"Using default zone", JOptionPane.INFORMATION_MESSAGE);
+
 			}
 		} else if (line.indexOf("HorizontalZone") >= 0) {
 			if (nextToken.equalsIgnoreCase("10"))
 				m.setHZone(10);
 			else {
-				_errorDialog
-						.setMessage("HorizontalZone " + nextToken + " not recognized.  using default horizontal zone.");
-				_errorDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "HorizontalZone " + nextToken + " not recognized.  using default horizontal zone.", 
+						"Using default zone", JOptionPane.INFORMATION_MESSAGE);
 			}
 		} else if (line.indexOf("HorizontalUnits") >= 0) {
 			if (nextToken.equalsIgnoreCase("Meters"))
@@ -154,9 +151,8 @@ public abstract class LandmarkInput {
 			else if (nextToken.equalsIgnoreCase("Feet"))
 				m.setHUnits(CsdpFileMetadata.USSURVEYFEET);
 			else {
-				_errorDialog.setMessage(
-						"HorizontalUnits " + nextToken + " not recognized.  using default horizontal units.");
-				_errorDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "HorizontalUnits " + nextToken + " not recognized.  using default horizontal units.", 
+						"Units not found", JOptionPane.INFORMATION_MESSAGE);
 			}
 		} else if (line.indexOf("VerticalDatum") >= 0) {
 			if (nextToken.equalsIgnoreCase("NGVD29"))
@@ -164,9 +160,8 @@ public abstract class LandmarkInput {
 			else if (nextToken.equalsIgnoreCase("NAVD88"))
 				m.setVDatum(CsdpFileMetadata.NAVD1988);
 			else {
-				_errorDialog
-						.setMessage("VerticalDatum " + nextToken + " not recognized.  using default vertical datum.");
-				_errorDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "VerticalDatum " + nextToken + " not recognized.  using default vertical datum.", 
+						"Using default datum", JOptionPane.INFORMATION_MESSAGE);
 			}
 		} else if (line.indexOf("VerticalUnits") >= 0) {
 			if (nextToken.equalsIgnoreCase("USSurveyFeet"))
@@ -174,9 +169,8 @@ public abstract class LandmarkInput {
 			else if (nextToken.equalsIgnoreCase("meters"))
 				m.setVUnits(CsdpFileMetadata.METERS);
 			else {
-				_errorDialog
-						.setMessage("VerticalUnits " + nextToken + " not recognized.  using default vertical units.");
-				_errorDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "VerticalUnits " + nextToken + " not recognized.  using default vertical units.", 
+						"Using default units", JOptionPane.INFORMATION_MESSAGE);
 			}
 		} else if (line.indexOf("Filetype") >= 0) {
 			// do nothing...
@@ -188,12 +182,12 @@ public abstract class LandmarkInput {
 				_numLandmarks = numLines;
 				m.setNumElements(numLines);
 			} catch (java.lang.NumberFormatException e) {
-				_errorDialog.setMessage("Error reading metadata line. Expecting NumElements. line=" + line);
-				_errorDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "Error reading metadata line. Expecting NumElements. line=" + line, 
+						"Metadata error", JOptionPane.ERROR_MESSAGE);
 			} // try
 		} else {
-			_errorDialog.setMessage("unable to parse metadata line: " + line + ". File may not be loaded correctly");
-			_errorDialog.setVisible(true);
+			JOptionPane.showMessageDialog(_gui, "unable to parse metadata line: " + line + ". File may not be loaded correctly", 
+					"Metadata error", JOptionPane.ERROR_MESSAGE);
 		}
 	}// parseMetadata
 
@@ -226,7 +220,5 @@ public abstract class LandmarkInput {
 	protected static final String ASCII_TYPE = "cdl";
 	protected static String _directory = null;
 	protected int _numLandmarks;
-	protected static OkDialog _noMetadataDialog;
-	protected static OkDialog _errorDialog;
 	protected static CsdpFrame _gui;
 } // class LandmarkInput

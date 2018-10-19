@@ -84,7 +84,7 @@ public class TextFieldDialog extends Dialog implements ActionListener {
 		doLayout();
 		ActionListener okButtonListener = this;
 		_okButton.addActionListener(okButtonListener);
-		setSize(500, 150);
+		setSize(1000, 150);
 	}// constructor
 
 	public Insets getInsets() {

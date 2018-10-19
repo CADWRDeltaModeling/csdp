@@ -47,6 +47,7 @@ import java.awt.event.ItemListener;
 import java.io.File;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 import DWR.CSDP.dialog.FileAndRadioDialog;
 import DWR.CSDP.dialog.FileIO;
@@ -659,21 +660,19 @@ public class ToolsMenu {
 							filenamesOk = true;
 							parseFilename(owaFilename);
 						} else {
-							_errorDialog.setMessage("no toe drain file selected!");
-							_errorDialog.setVisible(true);
+							JOptionPane.showMessageDialog(_gui, "no toe drain file selected!", "Error", JOptionPane.ERROR_MESSAGE);
 							filenamesOk = false;
 						}
 					} else {
 						if (owaFiletype.equals(_openExtensions[0]) == false) {
-							_errorDialog.setMessage("specified owa file does not have .owa extension");
+							JOptionPane.showMessageDialog(_gui, "specified owa file does not have .owa extension", "Error", JOptionPane.ERROR_MESSAGE);
 						}
 						if (tsdFiletype.equals(_stationExtensions[0]) == false) {
-							_errorDialog.setMessage("specified tsd file does not have .tsd extension");
+							JOptionPane.showMessageDialog(_gui, "specified tsd file does not have .tsd extension", "Error", JOptionPane.ERROR_MESSAGE);
 						}
 						if (outFiletype.equals(_saveExtensions[0]) == false) {
-							_errorDialog.setMessage("specified output file does not have .txt extension");
+							JOptionPane.showMessageDialog(_gui, "specified output file does not have .txt extension", "Error", JOptionPane.ERROR_MESSAGE);
 						}
-						_errorDialog.setVisible(true);
 						filenamesOk = false;
 					}
 				} // not cancelling
@@ -683,13 +682,13 @@ public class ToolsMenu {
 			if (filenamesOk && _cancel == false) {
 				success = accessFile();
 				if (success == false)
-					_failureDialog.setVisible(true);
+					JOptionPane.showMessageDialog(_gui, "Open Water Area Calculations failed!", "Error", JOptionPane.ERROR_MESSAGE);
 			} else {
 				System.out.println("not doing anything.  filenamesOk, _cancel=" + filenamesOk + "," + _cancel);
 			} // if
 			_cancel = false;
 			if (_reportSuccess && success == true) {
-				_successDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "Open Water Area Calculations succeeded!", "Error", JOptionPane.INFORMATION_MESSAGE);
 			}
 			// }//while
 		}// actionPerformed

@@ -44,6 +44,7 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 public abstract class FileIO {
 
@@ -61,9 +62,9 @@ public abstract class FileIO {
 		_failureMessage = failureMessage;
 		_fileExtensions = fileExtensions;
 		_numExtensions = numExtensions;
-		_errorDialog = new OkDialog(_gui, _errorMessage, true);
-		_successDialog = new OkDialog(_gui, _successMessage, true);
-		_failureDialog = new OkDialog(_gui, _failureMessage, true);
+//		_errorDialog = new OkDialog(_gui, _errorMessage, true);
+//		_successDialog = new OkDialog(_gui, _successMessage, true);
+//		_failureDialog = new OkDialog(_gui, _failureMessage, true);
 	}
 
 	/**
@@ -80,13 +81,15 @@ public abstract class FileIO {
 				if (fname == null || fname.length() == 0) {
 					// not necessary--use JFileChooser.CANCEL_OPTION in subclass
 					// _cancel = true;
-					_errorDialog.setMessage("no file selected!");
-					_errorDialog.setVisible(true);
+					JOptionPane.showMessageDialog(_gui, "No file selected!", "Error", JOptionPane.ERROR_MESSAGE);
+//					_errorDialog.setMessage("no file selected!");
+//					_errorDialog.setVisible(true);
 				} else {
 					if (accept(fname) == false) {
 						fname = null;
-						_errorDialog.setMessage(_errorMessage);
-						_errorDialog.setVisible(true);
+						JOptionPane.showMessageDialog(_gui, _errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
+//						_errorDialog.setMessage(_errorMessage);
+//						_errorDialog.setVisible(true);
 					}
 				} // else
 			} // not cancelling
@@ -96,11 +99,13 @@ public abstract class FileIO {
 		if (filename != null && _cancel == false) {
 			success = accessFile();
 			if (success == false)
-				_failureDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, _failureMessage, "Failed!", JOptionPane.ERROR_MESSAGE);
+//				_failureDialog.setVisible(true);
 		} // if
 		_cancel = false;
 		if (_reportSuccess && success == true) {
-			_successDialog.setVisible(true);
+			JOptionPane.showMessageDialog(_gui, _successMessage, "Done", JOptionPane.INFORMATION_MESSAGE);
+//			_successDialog.setVisible(true);
 		}
 		// }//while
 	}// actionPerformed
@@ -180,6 +185,6 @@ public abstract class FileIO {
 	public String _filename;
 	public String _filetype;
 	protected boolean _cancel = false;
-	public OkDialog _errorDialog, _successDialog, _failureDialog;
+//	public OkDialog _errorDialog, _successDialog, _failureDialog;
 	public boolean _reportSuccess;
 }// class FileIO

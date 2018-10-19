@@ -44,7 +44,8 @@ import java.awt.Polygon;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import DWR.CSDP.dialog.OkDialog;
+import javax.swing.JOptionPane;
+
 import DWR.CSDP.semmscon.UseSemmscon;
 
 /**
@@ -60,7 +61,6 @@ public class Network {
 	public Network(String name, CsdpFrame gui) {
 		_networkName = name;
 		_gui = gui;
-		_warningDialog = new OkDialog(_gui, "warning", true);
 	}
 
 	public boolean centerlineExists(String name) {
@@ -686,10 +686,10 @@ public class Network {
 		if (currentZone != bathymetryZone) {
 			sameZone = false;
 			// zone always expected to be 10
-			_warningDialog.setMessage("ERROR in Network.convertToBathymetryDatum: Coordinates need "
+			JOptionPane.showMessageDialog(_gui, "ERROR in Network.convertToBathymetryDatum: Coordinates need "
 					+ "to be converted, but I can't convert them. " + "Network.convertToBathymetryDatum: currentZone "
-					+ "is different from bathymetry zone.  They should be the same!");
-			_warningDialog.setVisible(true);
+					+ "is different from bathymetry zone.  They should be the same!", "Error", JOptionPane.ERROR_MESSAGE);
+
 		} else {
 			sameZone = true;
 		}
@@ -700,24 +700,25 @@ public class Network {
 				if (currentHDatum == CsdpFileMetadata.UTMNAD27) {
 					utm27to83 = true;
 				} else {
-					_warningDialog.setMessage("network horizontal datum is different from "
+					JOptionPane.showMessageDialog(_gui, "network horizontal datum is different from "
 							+ "bathymetry horizontal datum, but I don't know " + "how to convert the network datum,"
-							+ m.getHDatumString() + ", to the bathymetry datum, " + bm.getHDatumString());
-					_warningDialog.setVisible(true);
+							+ m.getHDatumString() + ", to the bathymetry datum, " + bm.getHDatumString(), 
+							"Error", JOptionPane.ERROR_MESSAGE);
 				} // if need to convert from utm nad27
 			} else if (bathymetryHDatum == CsdpFileMetadata.UTMNAD27) {
 				if (currentHDatum == CsdpFileMetadata.UTMNAD83) {
 					utm83to27 = true;
 				} else {
-					_warningDialog.setMessage("network horizontal datum is different from "
+					JOptionPane.showMessageDialog(_gui, "network horizontal datum is different from "
 							+ "bathymetry horizontal datum, but I don't know " + "how to convert the network datum,"
-							+ m.getHDatumString() + ", to the bathymetry datum, " + bm.getHDatumString());
-					_warningDialog.setVisible(true);
+							+ m.getHDatumString() + ", to the bathymetry datum, " + bm.getHDatumString(), 
+							"Error", JOptionPane.ERROR_MESSAGE);
 				}
 			} else {
-				_warningDialog.setMessage("bathymetryHDatum is not nad83 or 27 "
+				JOptionPane.showMessageDialog(_gui, "bathymetryHDatum is not nad83 or 27 "
 						+ "currentHDatum, bathymetryHDatum, nad27, nad83=" + currentHDatum + "," + bathymetryHDatum
-						+ "," + +CsdpFileMetadata.UTMNAD27 + "," + CsdpFileMetadata.UTMNAD83);
+						+ "," + +CsdpFileMetadata.UTMNAD27 + "," + CsdpFileMetadata.UTMNAD83, 
+						"Error", JOptionPane.ERROR_MESSAGE);
 			}
 		} else {
 			// no need to convert horizontal coordinates
@@ -729,23 +730,23 @@ public class Network {
 				if (currentVDatum == CsdpFileMetadata.NGVD1929) {
 					ngvd29toNavd88 = true;
 				} else {
-					_warningDialog.setMessage("network vertical datum is different from "
+					JOptionPane.showMessageDialog(_gui, "network vertical datum is different from "
 							+ "bathymetry vertical datum, but I don't know " + "how to convert the network datum,"
-							+ m.getVDatumString() + ", to the bathymetry datum, " + bm.getVDatumString());
-					_warningDialog.setVisible(true);
+							+ m.getVDatumString() + ", to the bathymetry datum, " + bm.getVDatumString(), 
+							"Error", JOptionPane.ERROR_MESSAGE);
 				} //
 			} else if (bathymetryVDatum == CsdpFileMetadata.NGVD1929) {
 				if (currentVDatum == CsdpFileMetadata.NAVD1988) {
 					navd88toNgvd29 = true;
 				} else {
-					_warningDialog.setMessage("network vertical datum is different from "
+					JOptionPane.showMessageDialog(_gui, "network vertical datum is different from "
 							+ "bathymetry vertical datum, but I don't know " + "how to convert the network datum,"
-							+ m.getVDatumString() + ", to the bathymetry datum, " + bm.getVDatumString());
-					_warningDialog.setVisible(true);
+							+ m.getVDatumString() + ", to the bathymetry datum, " + bm.getVDatumString(), 
+							"Error", JOptionPane.ERROR_MESSAGE);
 				} //
 			} else {
-				_warningDialog.setMessage("bathymetryVDatum is not navd88 or ngvd1929");
-				_warningDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "bathymetryVDatum is not navd88 or ngvd1929", 
+						"Error", JOptionPane.ERROR_MESSAGE);
 			}
 		} else {
 			// no need to convert v datum
@@ -772,9 +773,9 @@ public class Network {
 				System.out.println("m.getHDatum, bm.getHDatum, m.getVDatum, bm.getVDatum=" + m.getHDatum() + ","
 						+ bm.getHDatum() + "," + m.getVDatum() + "," + bm.getVDatum());
 
-				_warningDialog.setMessage("Converting network (" + m.getHDatumString() + "," + m.getVDatumString() + ")"
-						+ " to bathymetry datum (" + bm.getHDatumString() + "," + bm.getVDatumString() + ")");
-				_warningDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "Converting network (" + m.getHDatumString() + "," + m.getVDatumString() + ")"
+						+ " to bathymetry datum (" + bm.getHDatumString() + "," + bm.getVDatumString() + ")", 
+						"Error", JOptionPane.ERROR_MESSAGE);
 				UseSemmscon us = CsdpFunctions.getUseSemmscon();
 				// for each centerline
 				for (int i = 0; i <= getNumCenterlines() - 1; i++) {
@@ -847,12 +848,11 @@ public class Network {
 										// elev29="+elev+","+elevConverted);
 
 									} else {
-										_warningDialog.setMessage(
-												"ERROR in Network.convertToBathymetryDatum: cross-section conversion: "
-														+ "Bathymetry H Datum is UTMNAD83, but requested conversion is not "
-														+ "us.navd88_to_ngvd29_utm83 or us.ngvd29_to_navd88_utm83. "
-														+ "conversion will not be performed");
-										_warningDialog.setVisible(true);
+										JOptionPane.showMessageDialog(_gui, "ERROR in Network.convertToBathymetryDatum: cross-section conversion: "
+												+ "Bathymetry H Datum is UTMNAD83, but requested conversion is not "
+												+ "us.navd88_to_ngvd29_utm83 or us.ngvd29_to_navd88_utm83. "
+												+ "conversion will not be performed", 
+												"Error", JOptionPane.ERROR_MESSAGE);
 									}
 								} else if (bathymetryHDatum == CsdpFileMetadata.UTMNAD27) {
 									// if converting one vert datum or the other
@@ -863,12 +863,11 @@ public class Network {
 										elevConverted = us.ngvd29_to_navd88_utm27(x3, y3, utm27_zone, utm27_units, elev,
 												elev_units, elev_units);
 									} else {
-										_warningDialog.setMessage(
-												"ERROR in Network.convertToBathymetryDatum: cross-section conversion: "
-														+ "Bathymetry H Datum is UTMNAD27, but requested conversion is not "
-														+ "us.navd88_to_ngvd29_utm27 or us.ngvd29_to_navd88_utm27"
-														+ "conversion will not be performed");
-										_warningDialog.setVisible(true);
+										JOptionPane.showMessageDialog(_gui, "ERROR in Network.convertToBathymetryDatum: cross-section conversion: "
+												+ "Bathymetry H Datum is UTMNAD27, but requested conversion is not "
+												+ "us.navd88_to_ngvd29_utm27 or us.ngvd29_to_navd88_utm27"
+												+ "conversion will not be performed", 
+												"Error", JOptionPane.ERROR_MESSAGE);
 									}
 								} else {
 									elevConverted = elev;
@@ -880,9 +879,8 @@ public class Network {
 				} // for each centerline
 			} // if need to change datum
 		} else {
-			_warningDialog.setMessage(
-					"bathmetry and network file are in different UTM zones. Conversion will NOT be performed");
-			_warningDialog.setVisible(true);
+			JOptionPane.showMessageDialog(_gui, "bathmetry and network file are in different UTM zones. Conversion will NOT be performed", 
+					"Error", JOptionPane.ERROR_MESSAGE);
 		} // if same zone or not (if not, won't do datum change)
 			// set network datum to bath datum
 		m.setHDatum(bm.getHDatum());
@@ -990,6 +988,5 @@ public class Network {
 	protected double _minX;
 	protected double _maxY;
 	protected double _minY;
-	protected OkDialog _warningDialog;
 	private CsdpFrame _gui;
 } // class Network

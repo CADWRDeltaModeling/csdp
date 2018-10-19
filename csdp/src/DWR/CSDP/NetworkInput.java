@@ -43,7 +43,8 @@ package DWR.CSDP;
 import java.io.File;
 import java.util.StringTokenizer;
 
-import DWR.CSDP.dialog.OkDialog;
+import javax.swing.JOptionPane;
+
 
 /**
  * Read ascii and binary network data
@@ -52,9 +53,6 @@ import DWR.CSDP.dialog.OkDialog;
  * @version $Id: NetworkInput.java,v 1.3 2003/07/23 20:54:53 btom Exp $
  */
 public abstract class NetworkInput {
-	protected OkDialog _noMetadataDialog = new OkDialog(_gui,
-			"This network file has no metadata. " + "UTM zone 10 NAD 27, NGVD 1929 will be assumed.", true);
-	protected OkDialog _errorDialog = new OkDialog(_gui, "error message", true);
 
 	public static final boolean DEBUG = false;
 	protected static Network _net;
@@ -102,17 +100,15 @@ public abstract class NetworkInput {
 			else if (nextToken.equalsIgnoreCase("UTMNAD83"))
 				m.setHDatum(CsdpFileMetadata.UTMNAD83);
 			else {
-				_errorDialog.setMessage(
-						"HorizontalDatum " + nextToken + " not recognized.  using default horizontal datum.");
-				_errorDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "HorizontalDatum " + nextToken + " not recognized.  using default horizontal datum.", 
+						"Using default horizontal datum", JOptionPane.INFORMATION_MESSAGE);
 			}
 		} else if (line.indexOf("HorizontalZone") >= 0) {
 			if (nextToken.equalsIgnoreCase("10"))
 				m.setHZone(10);
 			else {
-				_errorDialog
-						.setMessage("HorizontalZone " + nextToken + " not recognized.  using default horizontal zone.");
-				_errorDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "HorizontalZone " + nextToken + " not recognized.  using default horizontal zone.", 
+						"Using default horizontal zone", JOptionPane.INFORMATION_MESSAGE);
 			}
 		} else if (line.indexOf("HorizontalUnits") >= 0) {
 			if (nextToken.equalsIgnoreCase("Meters"))
@@ -120,9 +116,8 @@ public abstract class NetworkInput {
 			else if (nextToken.equalsIgnoreCase("Feet"))
 				m.setHUnits(CsdpFileMetadata.USSURVEYFEET);
 			else {
-				_errorDialog.setMessage(
-						"HorizontalUnits " + nextToken + " not recognized.  using default horizontal units.");
-				_errorDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "HorizontalUnits " + nextToken + " not recognized.  using default horizontal units.", 
+						"Using default horizontal units", JOptionPane.INFORMATION_MESSAGE);
 			}
 		} else if (line.indexOf("VerticalDatum") >= 0) {
 			if (nextToken.equalsIgnoreCase("NGVD29"))
@@ -130,9 +125,8 @@ public abstract class NetworkInput {
 			else if (nextToken.equalsIgnoreCase("NAVD88"))
 				m.setVDatum(CsdpFileMetadata.NAVD1988);
 			else {
-				_errorDialog
-						.setMessage("VerticalDatum " + nextToken + " not recognized.  using default vertical datum.");
-				_errorDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "VerticalDatum " + nextToken + " not recognized.  using default vertical datum.", 
+						"Using default horizontal units", JOptionPane.INFORMATION_MESSAGE);
 			}
 		} else if (line.indexOf("VerticalUnits") >= 0) {
 			if (nextToken.equalsIgnoreCase("USSurveyFeet"))
@@ -140,9 +134,8 @@ public abstract class NetworkInput {
 			else if (nextToken.equalsIgnoreCase("meters"))
 				m.setVUnits(CsdpFileMetadata.METERS);
 			else {
-				_errorDialog
-						.setMessage("VerticalUnits " + nextToken + " not recognized.  using default vertical units.");
-				_errorDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "VerticalUnits " + nextToken + " not recognized.  using default vertical units.", 
+						"Using default vertical units", JOptionPane.INFORMATION_MESSAGE);
 			}
 		} else if (line.indexOf("Filetype") >= 0) {
 			// do nothing...
@@ -154,12 +147,12 @@ public abstract class NetworkInput {
 				_pd.numCenterlines = numLines;
 				m.setNumElements(numLines);
 			} catch (java.lang.NumberFormatException e) {
-				_errorDialog.setMessage("Error reading metadata line. Expecting NumElements. line=" + line);
-				_errorDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "Error reading metadata line. Expecting NumElements. line=" + line, 
+						"Error", JOptionPane.ERROR_MESSAGE);
 			} // try
 		} else {
-			_errorDialog.setMessage("unable to parse metadata line: " + line + ". File may not be loaded correctly");
-			_errorDialog.setVisible(true);
+			JOptionPane.showMessageDialog(_gui, "unable to parse metadata line: " + line + ". File may not be loaded correctly", 
+					"Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}// parseMetadata
 

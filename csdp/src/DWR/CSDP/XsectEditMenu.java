@@ -51,16 +51,12 @@ import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
-import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
-import DWR.CSDP.dialog.TextDialog;
-import DWR.CSDP.dialog.YesNoDialog;
-//import DWR.Graph.*;
-//import DWR.Graph.Canvas.*;
 import vista.graph.GECanvas;
 
 public class XsectEditMenu {
@@ -142,12 +138,8 @@ public class XsectEditMenu {
 	 */
 	public class XChangeElevation implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			TextDialog d = new TextDialog(_xsectGraph, "enter new elevation", true, CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
-			d.setVisible(true);
-			// String s = d.tf.getText();
-			// Float f = new Float(s);
-			double nf = Double.parseDouble(d.tf.getText());
-			// float nf = f.floatValue();
+			String elevString = JOptionPane.showInputDialog(_xsectGraph, "Enter new elevation", CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+			double nf = Double.parseDouble(elevString);
 			if (nf != CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS) {
 				//actually don't want this to change the default value; just the value for the current xs
 				//				CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS = nf;
@@ -240,9 +232,8 @@ public class XsectEditMenu {
 
 		private void closeWindow() {
 			if (_xsectGraph._xsect._isUpdated || _xsectGraph.getChangesKept()) {
-				YesNoDialog d = new YesNoDialog((JFrame) _xsectGraph, "Keep changes?", true);
-				d.setVisible(true);
-				if (d._no) {
+				int response = JOptionPane.showConfirmDialog(_xsectGraph, "Keep changes?", "Question", JOptionPane.YES_NO_OPTION);
+				if(response==JOptionPane.NO_OPTION) {
 					if (DEBUG)
 						System.out.println("not keeping changes");
 					_xsectGraph.restoreXsect();
@@ -256,7 +247,7 @@ public class XsectEditMenu {
 					_app.removeXsectGraph(_xsectGraph._centerlineName, _xsectGraph._xsectNum);
 					_xsect.setIsUpdated(false);
 				} // if
-				else if (d._yes) {
+				else if(response==JOptionPane.YES_OPTION) {
 					if (DEBUG)
 						System.out.println("keeping changes");
 					_xsectGraph.dispose();

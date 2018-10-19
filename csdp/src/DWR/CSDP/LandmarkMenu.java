@@ -47,12 +47,11 @@ import java.awt.event.ItemListener;
 import java.io.File;
 
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 import DWR.CSDP.dialog.FileIO;
 import DWR.CSDP.dialog.FileSave;
 import DWR.CSDP.dialog.MessageDialog;
-import DWR.CSDP.dialog.OkDialog;
-import DWR.CSDP.dialog.YesNoDialog;
 
 public class LandmarkMenu {
 
@@ -74,7 +73,6 @@ public class LandmarkMenu {
 			super(gui, _openDialogMessage, _openErrorMessage, _openSuccessMessage, _openFailureMessage, false,
 					_openExtensions, _numOpenExtensions);
 			_gui = gui;
-			_ynd = new YesNoDialog(_gui, "A landmark file is already loaded.  Replace?", true);
 			_jfc.setDialogTitle(_openDialogMessage);
 			_jfc.setApproveButtonText("Open");
 			_jfc.addChoosableFileFilter(_lOpenFilter);
@@ -120,8 +118,9 @@ public class LandmarkMenu {
 		 */
 		public boolean accessFile() {
 			if (_app._landmark != null) {
-				_ynd.setVisible(true);
-				if (_ynd._yes == true) {
+				int response = JOptionPane.showConfirmDialog(_gui, "A landmark file is already loaded.  Replace?", "Replace landmarks?",
+						JOptionPane.YES_NO_OPTION);
+				if(response==JOptionPane.YES_OPTION) {
 					readFile();
 				} // if
 			} // if
@@ -145,7 +144,6 @@ public class LandmarkMenu {
 			((CsdpFrame) _gui).enableAfterLandmark();
 		}
 
-		YesNoDialog _ynd;
 	} // Class LOpen
 
 	/**
@@ -266,14 +264,10 @@ public class LandmarkMenu {
 		public LAddPopup(CsdpFrame gui) {
 			_gui = gui;
 			_jfc = new JFileChooser();
-			_ynd = new YesNoDialog(_gui, "Replace existing landmark file?", true);
 			_jfc.setDialogTitle(_newLandmarkDialogMessage);
 			_jfc.setApproveButtonText("Create");
 			_jfc.addChoosableFileFilter(_lOpenFilter);
 			_jfc.setFileFilter(_lOpenFilter);
-			_errorDialog = new OkDialog(_gui, _saveErrorMessage, true);
-			_successDialog = new OkDialog(_gui, _saveSuccessMessage, true);
-			_failureDialog = new OkDialog(_gui, _saveFailureMessage, true);
 		}// constructor
 
 		public void actionPerformed(ActionEvent e) {
@@ -308,13 +302,11 @@ public class LandmarkMenu {
 						// not necessary--use JFileChooser.CANCEL_OPTION in
 						// subclass
 						// _cancel = true;
-						_errorDialog.setMessage("no file selected!");
-						_errorDialog.setVisible(true);
+						JOptionPane.showMessageDialog(_gui, "no file selected", "Error", JOptionPane.ERROR_MESSAGE);
 					} else {
 						if (accept(fname) == false) {
 							fname = null;
-							_errorDialog.setMessage(_saveErrorMessage);
-							_errorDialog.setVisible(true);
+							JOptionPane.showMessageDialog(_gui, _saveErrorMessage, "Error", JOptionPane.ERROR_MESSAGE);
 						}
 					} // else
 				} // not cancelling
@@ -378,9 +370,10 @@ public class LandmarkMenu {
 
 			File selectedFile = _jfc.getSelectedFile();
 			if (selectedFile.exists()) {
-				_ynd.setVisible(true);
-				if (_ynd._no == true || _ynd._cancel == true)
+				int response = JOptionPane.showConfirmDialog(_gui, "Replace existing landmark file?", "Replace landmarks?", JOptionPane.YES_NO_CANCEL_OPTION);
+				if(response==JOptionPane.NO_OPTION || response == JOptionPane.CANCEL_OPTION) {
 					filename = null;
+				}
 			}
 			return filename;
 		}
@@ -404,9 +397,7 @@ public class LandmarkMenu {
 		}// parseFilename
 
 		private JFileChooser _jfc;
-		public OkDialog _errorDialog, _successDialog, _failureDialog;
 		private String _filename, _filetype;
-		private YesNoDialog _ynd;
 		private boolean _cancel;
 	}// class LAddPopup
 

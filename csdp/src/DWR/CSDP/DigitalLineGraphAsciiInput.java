@@ -46,6 +46,8 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.StringTokenizer;
 
+import javax.swing.JOptionPane;
+
 public class DigitalLineGraphAsciiInput extends DigitalLineGraphInput {
 
 	LineNumberReader _asciiIn;
@@ -101,7 +103,9 @@ public class DigitalLineGraphAsciiInput extends DigitalLineGraphInput {
 			line = _asciiIn.readLine();
 			if (line.indexOf(";") < 0) {
 				fileHasMetadata = false;
-				_noMetadataDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "This DigitalLineGraph file has no metadata. " + 
+				"UTM zone 10 NAD 27, NGVD 1929 will be assumed.", "No Metadata", JOptionPane.INFORMATION_MESSAGE);
+
 				dlgMetadata.setToDefault();
 				_numLines = parseFirstLine(line);
 			} else {
@@ -114,10 +118,9 @@ public class DigitalLineGraphAsciiInput extends DigitalLineGraphInput {
 					if (line.indexOf(";") >= 0) {
 						parseMetadata(line, dlgMetadata);
 					} else {
-						_errorDialog.setMessage("incomplete DigitalLineGraph metadata!  there should be "
+						JOptionPane.showMessageDialog(_gui, "incomplete DigitalLineGraph metadata!  there should be "
 								+ CsdpFunctions.getNumMetadataLines() + " lines.  "
-								+ "The following line was expected to be metadata line:" + line);
-						_errorDialog.setVisible(true);
+								+ "The following line was expected to be metadata line:" + line, "Error", JOptionPane.ERROR_MESSAGE);
 					} // if it's a metadata line (should be)
 				} // read all metadata lines
 			}

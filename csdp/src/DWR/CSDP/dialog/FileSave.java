@@ -43,6 +43,7 @@ package DWR.CSDP.dialog;
 import java.awt.event.ActionEvent;
 
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  * This is the superclass of all classes that implement a file-save feature,
@@ -87,9 +88,11 @@ public abstract class FileSave extends FileIO {
 			// else printErrorMessage();
 		if (_reportSuccess) {
 			if (success == true) {
-				_successDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, _successMessage, "Done", JOptionPane.INFORMATION_MESSAGE);
+//				_successDialog.setVisible(true);
 			} else {
-				_failureDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, _failureMessage, "Failed!", JOptionPane.ERROR_MESSAGE);
+//				_failureDialog.setVisible(true);
 			} // if
 		} // if
 

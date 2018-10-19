@@ -43,7 +43,8 @@ package DWR.CSDP;
 
 import java.util.Hashtable;
 
-import DWR.CSDP.dialog.OkDialog;
+import javax.swing.JOptionPane;
+
 import DWR.CSDP.semmscon.UseSemmscon;
 
 /**
@@ -54,11 +55,12 @@ import DWR.CSDP.semmscon.UseSemmscon;
  */
 public class DigitalLineGraph {
 
+	private CsdpFrame _gui;
 	/**
 	 * Constructor
 	 */
 	public DigitalLineGraph(CsdpFrame gui) {
-		_warningDialog = new OkDialog(gui, "warning", true);
+		this._gui = gui;
 	}
 
 	/**
@@ -137,11 +139,12 @@ public class DigitalLineGraph {
 		if (currentZone != bathymetryZone) {
 			sameZone = false;
 			// zone always expected to be 10
-			_warningDialog.setMessage("ERROR in DigitalLineGraph.convertToBathymetryDatum: Coordinates need "
+			JOptionPane.showMessageDialog(_gui, "ERROR in DigitalLineGraph.convertToBathymetryDatum: Coordinates need "
 					+ "to be converted, but I can't convert them. "
 					+ "DigitalLineGraph.convertToBathymetryDatum: currentZone "
-					+ "is different from bathymetry zone.  They should be the same!");
-			_warningDialog.setVisible(true);
+					+ "is different from bathymetry zone.  They should be the same!", 
+					"Error", JOptionPane.ERROR_MESSAGE);
+
 		} else {
 			sameZone = true;
 		}
@@ -151,21 +154,21 @@ public class DigitalLineGraph {
 				if (currentHDatum == CsdpFileMetadata.UTMNAD27) {
 					utm27to83 = true;
 				} else {
-					_warningDialog.setMessage("DigitalLineGraph horizontal datum is different from "
+					JOptionPane.showMessageDialog(_gui, "DigitalLineGraph horizontal datum is different from "
 							+ "bathymetry horizontal datum, but I don't know "
 							+ "how to convert the DigitalLineGraph datum," + currentHDatum
-							+ ", to the bathymetry datum, " + bathymetryHDatum);
-					_warningDialog.setVisible(true);
+							+ ", to the bathymetry datum, " + bathymetryHDatum, 
+							"Error", JOptionPane.ERROR_MESSAGE);
 				} // if need to convert from utm nad27
 			} else if (bathymetryHDatum == CsdpFileMetadata.UTMNAD27) {
 				if (currentHDatum == CsdpFileMetadata.UTMNAD83) {
 					utm83to27 = true;
 				} else {
-					_warningDialog.setMessage("DigitalLineGraph horizontal datum is different from "
+					JOptionPane.showMessageDialog(_gui, "DigitalLineGraph horizontal datum is different from "
 							+ "bathymetry horizontal datum, but I don't know "
 							+ "how to convert the DigitalLineGraph datum," + currentHDatum
-							+ ", to the bathymetry datum, " + bathymetryHDatum);
-					_warningDialog.setVisible(true);
+							+ ", to the bathymetry datum, " + bathymetryHDatum, 
+							"Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		} else {
@@ -183,10 +186,10 @@ public class DigitalLineGraph {
 						+ "bathymetry datum. Not converting horizontal coordinates.");
 			} else {
 				System.out.println("m.getHDatum, bm.getHDatum=" + m.getHDatum() + "," + bm.getHDatum());
+				JOptionPane.showMessageDialog(_gui, "Converting DigitalLineGraph (" + m.getHDatumString() + ")"
+						+ " to bathymetry datum (" + bm.getHDatumString() + ")", 
+						"Error", JOptionPane.ERROR_MESSAGE);
 
-				_warningDialog.setMessage("Converting DigitalLineGraph (" + m.getHDatumString() + ")"
-						+ " to bathymetry datum (" + bm.getHDatumString() + ")");
-				_warningDialog.setVisible(true);
 				UseSemmscon us = CsdpFunctions.getUseSemmscon();
 				// for each DigitalLineGraph, convert coordinates
 
@@ -316,5 +319,4 @@ public class DigitalLineGraph {
 	protected double _minY = 0.0;
 	protected double _maxY = 0.0;
 	private final boolean DEBUG = false;
-	private OkDialog _warningDialog;
 }// class DigitalLineGraph

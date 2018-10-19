@@ -48,12 +48,11 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 
+import javax.management.relation.InvalidRelationTypeException;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 
 import DWR.CSDP.dialog.CenterlineSummaryWindow;
-import DWR.CSDP.dialog.OkDialog;
-import DWR.CSDP.dialog.TextDialog;
-import DWR.CSDP.dialog.YesNoDialog;
 
 /**
  * calls methods for creating and editing centerlines
@@ -65,8 +64,6 @@ public class CenterlineMenu {
 
 	public CenterlineMenu(CsdpFrame gui) {
 		_gui = gui;
-		_td = new TextDialog((Frame) _gui, "Enter new centerline name", true);
-		_ynd = new YesNoDialog(_gui, "messagemessagemessagemessagemessagemessagemessage", true);
 	}
 
 	public void setLandmark(Landmark landmark) {
@@ -96,15 +93,9 @@ public class CenterlineMenu {
 	 * @version $Id:
 	 */
 	public class CRemove implements ActionListener {
-		TextDialog _td;
-		YesNoDialog _yndRemove;
-		OkDialog _okd;
 
 		public CRemove(CsdpFrame gui) {
 			_gui = gui;
-			_td = new TextDialog((Frame) _gui, "Enter name of centerline to remove", true);
-			_yndRemove = new YesNoDialog(_gui, "Are you sure?", true, 25);
-			_okd = new OkDialog(_gui, "centerline doesn't exist", true);
 		}
 
 		public void actionPerformed(ActionEvent e) {
@@ -112,22 +103,19 @@ public class CenterlineMenu {
 			if (_net == null) {
 				System.out.println("ERROR in CenterlineMenu.CRemove.actionPerformed: network is null!");
 			} else {
-				_td.setVisible(true);
-				String cname = _td.tf.getText();
+				String cname = JOptionPane.showInputDialog(_gui, "Enter name of centerline to remove");
 				// does specified centerline exist?
 				if (_net.centerlineExists(cname)) {
-					_yndRemove.setTitle("Remove Centerline " + cname + "?");
-					_yndRemove.reset();
-					_yndRemove.setVisible(true);
-					if (_yndRemove._yes) {
+					int response = JOptionPane.showConfirmDialog(_gui, "Remove Centerline "+cname+"?", "Are you sure?", JOptionPane.YES_NO_OPTION);
+					if(response==JOptionPane.YES_OPTION) {
 						_net.removeCenterline(cname);
 						_gui.getPlanViewCanvas(0).redoNextPaint();
 						_gui.getPlanViewCanvas(0).repaint();
 					}
 				} else {
 					// requested centerline doesn't exist
-					_okd.setMessage("requested centerline doesn't exist");
-					_okd.setVisible(true);
+					JOptionPane.showMessageDialog(_gui, "requested centerline doesn't exist", 
+							"Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
 		}
@@ -140,7 +128,6 @@ public class CenterlineMenu {
 	 * @version $Id: CenterlineMenu.java,v 1.5 2003/07/22 22:23:11 btom Exp $
 	 */
 	public class CCreate implements ActionListener {
-		TextDialog _td;
 
 		/**
 		 * assign instances of application and gui classes to class variables
@@ -148,7 +135,6 @@ public class CenterlineMenu {
 		public CCreate(App app, CsdpFrame gui) {
 			_app = app;
 			_gui = gui;
-			_td = new TextDialog((Frame) _gui, "Enter new centerline name", true);
 		}
 
 		public void actionPerformed(ActionEvent e) {
@@ -169,17 +155,13 @@ public class CenterlineMenu {
 			} // if net is null
 
 			String centerlineName = null;
-			//// TextDialog d = new TextDialog((Frame)_gui, "Enter new
-			//// centerline name", true);
-			_td.setVisible(true);
-			centerlineName = _td.tf.getText();
+			centerlineName = JOptionPane.showInputDialog(_gui, "Enter new centerline name");
 
 			if (centerlineName.length() > 0) {
 				if (_net.getCenterline(centerlineName) != null) {
-					_ynd.setTitle("Centerline " + centerlineName + " already exists.  Replace?");
-					_ynd.reset();
-					_ynd.setVisible(true);
-					if (_ynd._yes == true) {
+					int response = JOptionPane.showConfirmDialog(_gui, "Centerline " + centerlineName + " already exists.  Replace?", 
+							"Centerline name exists", JOptionPane.YES_NO_OPTION);
+					if(response==JOptionPane.YES_OPTION) {
 						addCenterline(centerlineName);
 					}
 				} else {
@@ -217,9 +199,6 @@ public class CenterlineMenu {
 			_gui = gui;
 			_jfcChannelsInp = new JFileChooser();
 			_channelsInpFilter = new CsdpFileFilter(_channelsInpExtensions, _numChannelsInpExtensions);
-			_errorDialog = new OkDialog(_gui,
-					"messagemessagemessagemessagemessagemessagemessagemessagemessagemessagemessage", true);
-			_td.setTitle("Enter a new DSM channel number");
 		}
 
 		public void actionPerformed(ActionEvent e) {
@@ -240,8 +219,7 @@ public class CenterlineMenu {
 				_gui.enableWhenNetworkExists();
 			} // if net is null
 
-			_td.setVisible(true);
-			String centerlineName = _td.tf.getText();
+			String centerlineName = JOptionPane.showInputDialog(_gui, "Enter a new DSM2 channel number");
 			boolean loadAnotherChannelsInpFile = true;
 
 			// if channels.inp file not loaded OR if channel # doesn't exist in
@@ -251,11 +229,9 @@ public class CenterlineMenu {
 			// assume there is another file with the channel.
 			while (loadAnotherChannelsInpFile) {
 				if (_DSMChannels != null && _DSMChannels.channelExists(centerlineName) == false) {
-					_ynd.setTitle("Channel " + centerlineName
-							+ " not found in channel connectivity file.  Load another file?");
-					_ynd.reset();
-					_ynd.setVisible(true);
-					if (_ynd._yes == true) {
+					int response = JOptionPane.showConfirmDialog(_gui, "Channel " + centerlineName
+							+ " not found in channel connectivity file.  Load another file?", "Channel not found", JOptionPane.YES_NO_OPTION);
+					if(response==JOptionPane.YES_OPTION) {
 						loadAnotherChannelsInpFile = true;
 					} else {
 						loadAnotherChannelsInpFile = false;
@@ -293,10 +269,9 @@ public class CenterlineMenu {
 
 				if (_filechooserState == JFileChooser.APPROVE_OPTION) {
 					if (_net.getCenterline(centerlineName) != null) {
-						_ynd.setTitle("Centerline " + centerlineName + " already exists. Replace?");
-						_ynd.reset();
-						_ynd.setVisible(true);
-						if (_ynd._yes == true) {
+						int response = JOptionPane.showConfirmDialog(_gui, "Centerline " + centerlineName + " already exists. Replace?",
+								"Replace centerline?", JOptionPane.YES_NO_OPTION);
+						if(response==JOptionPane.YES_OPTION) {
 							// addDSMChannel(centerlineName);
 							loadAnotherChannelsInpFile = addDSMChannel(centerlineName);
 						}
@@ -332,8 +307,8 @@ public class CenterlineMenu {
 			downnode = _DSMChannels.getDownnode(centerlineName);
 
 			if (upnode < 0 || downnode < 0) {
-				_errorDialog.setMessage("ERROR:  node not found for centerline " + centerlineName);
-				_errorDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "ERROR:  node not found for centerline " + centerlineName, 
+						"Error", JOptionPane.ERROR_MESSAGE);
 				channelsInpError = true;
 			}
 
@@ -362,24 +337,21 @@ public class CenterlineMenu {
 				downY = _landmark.getYFeet(downnodeString);
 
 				if (upX < 0.0f || upY < 0.0f) {
-					_errorDialog.setMessage(
-							"ERROR:  insufficient information in landmark file for node " + upnodeString + ".");
+					JOptionPane.showMessageDialog(_gui, "ERROR:  insufficient information in landmark file for node " + upnodeString + ".", 
+							"Error", JOptionPane.ERROR_MESSAGE);
+
 					landmarkError = true;
 				}
 				if (downX < 0.0f || downY < 0.0f) {
-					_errorDialog.setMessage(
-							"ERROR:  insufficient information in landmark file for node " + downnodeString + ".");
+					JOptionPane.showMessageDialog(_gui, "ERROR:  insufficient information in landmark file for node " + downnodeString + ".", 
+							"Error", JOptionPane.ERROR_MESSAGE);
 					landmarkError = true;
 				}
 				if (landmarkError) {
-					_errorDialog.setVisible(true);
-					_ynd.setTitle("Load another landmark file?");
-					_ynd.reset();
-					_ynd.setVisible(true);
-
-					if (_ynd._yes == true) {
+					int response = JOptionPane.showConfirmDialog(_gui, "Load another landmark file?", "", JOptionPane.YES_NO_CANCEL_OPTION);
+					if(response==JOptionPane.YES_OPTION) {
 						_landmark = _gui.getLandmark(); // load landmark file
-					} else if (_ynd._no == true || _ynd._cancel == true) {
+					}else if(response==JOptionPane.NO_OPTION || response==JOptionPane.CANCEL_OPTION) {
 						giveUp = true;
 					}
 				} else {
@@ -429,9 +401,7 @@ public class CenterlineMenu {
 				Centerline centerline = _net.getSelectedCenterline();
 				String oldCenterlineName = _net.getSelectedCenterlineName();
 				if (centerline != null) {
-					_td.setTitle("Enter a new centerline name");
-					_td.setVisible(true);
-					String newCenterlineName = _td.tf.getText();
+					String newCenterlineName = JOptionPane.showInputDialog(_gui, "Enter a new centerline name");
 					centerline.setCenterlineName(newCenterlineName);
 					_net.renameCenterline(oldCenterlineName, newCenterlineName);
 				} // if centerline has been selected
@@ -643,10 +613,7 @@ public class CenterlineMenu {
 	String _directory = null;
 	Cursor _waitCursor = new Cursor(Cursor.WAIT_CURSOR);
 	Cursor _defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
-	OkDialog _errorDialog;
 	protected static final boolean DEBUG = false;
-	TextDialog _td;
-	YesNoDialog _ynd;
 	String[] _channelsInpExtensions = { "inp" };
 	int _numChannelsInpExtensions = 1;
 }// CenterlineMenu

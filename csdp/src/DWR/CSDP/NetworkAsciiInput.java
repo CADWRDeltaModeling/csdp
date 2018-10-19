@@ -46,7 +46,8 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.StringTokenizer;
 
-import DWR.CSDP.dialog.OkDialog;
+import javax.swing.JOptionPane;
+
 
 public class NetworkAsciiInput extends NetworkInput {
 
@@ -57,14 +58,6 @@ public class NetworkAsciiInput extends NetworkInput {
 	 * info.)
 	 */
 	boolean _newFormat = false;
-	OkDialog _parseXsectDialog = new OkDialog(_gui,
-			"This network file appears to have cross-section metadata, and will be converted to a version "
-					+ CsdpFunctions.getVersion() + " file",
-			true);
-	OkDialog _parseFirstLineDialog = new OkDialog(_gui,
-			"This network file was made with an old version of the CSDP, and will be converted to a version "
-					+ CsdpFunctions.getVersion() + " file",
-			true);
 
 	/**
 	 * Open ascii file
@@ -103,7 +96,9 @@ public class NetworkAsciiInput extends NetworkInput {
 
 			if (line.indexOf(";") < 0) {
 				fileHasMetadata = false;
-				_noMetadataDialog.setVisible(true);
+
+				JOptionPane.showMessageDialog(_gui, "Network File has no metadata. UTM Zone 10 Nad 27 and NGVD29 will be assumed", 
+						"No Metadata", JOptionPane.INFORMATION_MESSAGE);
 				networkMetadata.setToDefault();
 				parseFirstLine(line);
 			} else {
@@ -118,10 +113,11 @@ public class NetworkAsciiInput extends NetworkInput {
 					if (line.indexOf(";") >= 0) {
 						parseMetadata(line, networkMetadata);
 					} else {
-						_errorDialog.setMessage("incomplete network metadata! there should be "
+						JOptionPane.showMessageDialog(_gui, "incomplete network metadata! there should be "
 								+ CsdpFunctions.getNumMetadataLines() + " lines.  "
-								+ "The following line was expected to be a metadata line:" + line);
-						_errorDialog.setVisible(true);
+								+ "The following line was expected to be a metadata line:" + line, 
+								"Error", JOptionPane.ERROR_MESSAGE);
+
 					} // if it's a metadata line (should be)
 				} // read all metadata lines.
 			}
@@ -400,7 +396,8 @@ public class NetworkAsciiInput extends NetworkInput {
 		_pd.xsectLineLength = cl;
 
 		if (_newFormat == false && t.hasMoreTokens()) {
-			_parseXsectDialog.setVisible(true);
+			JOptionPane.showMessageDialog(_gui, "This network file appears to have cross-section metadata, and will be converted to a version "
+					+ CsdpFunctions.getVersion() + " file", "Coordinate conversion", JOptionPane.INFORMATION_MESSAGE);
 			_newFormat = true;
 		}
 
@@ -437,7 +434,9 @@ public class NetworkAsciiInput extends NetworkInput {
 			System.out.println("This network file was made with " + nextToken);
 			nextToken = t.nextToken();
 		} else if (nextToken.indexOf("Version") < 0) {
-			_parseFirstLineDialog.setVisible(true);
+			
+			JOptionPane.showMessageDialog(_gui, "This network file was made with an old version of the CSDP, and will be converted to a version "
+					+ CsdpFunctions.getVersion() + " file", "Coordinate Conversion", JOptionPane.INFORMATION_MESSAGE);
 		} else
 			System.out.println("Error in NetworkAsciiInput.parseFirstLine");
 

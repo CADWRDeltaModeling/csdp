@@ -63,6 +63,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -116,11 +117,11 @@ import vista.set.DefaultReference;
  * @author
  * @version $Id:
  */
-public class XsectGraph extends JFrame implements ActionListener {
+public class XsectGraph extends JDialog implements ActionListener {
 
 	public XsectGraph(CsdpFrame gui, App app, BathymetryData data, Network net, String centerlineName, int xsectNum,
 			double thickness, int colorOption) {
-		super("Cross-section view");
+		super(gui, "Cross-section view", ModalityType.MODELESS);
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
 		_gui = gui;
@@ -152,15 +153,34 @@ public class XsectGraph extends JFrame implements ActionListener {
 
 		getContentPane().setLayout(new BorderLayout());
 		// setBackground(Color.gray);
+		CsdpFileMetadata metadata = CsdpFunctions.getBathymetryMetadata();
+		metadata.getVDatumString();
+//		_numPointsLabel.setText("num points");
+//		_elevationLabel.setText("Elevation, ft ("+metadata.getVDatumString());
+//		_widthLabel.setText("Width, ft");
+//		_areaLabel.setText("Area, square ft");
+//		_wetpLabel.setText("Wetted Perimeter, ft");
+//		_hDepthLabel.setText("HydraulicDepth, ft");
 
+		
 		_xsPropPanel.setLayout(new BoxLayout(_xsPropPanel, BoxLayout.Y_AXIS));
 		_xsPropPanel.setBorder(_lineBorder);
 		_xsPropPanel.add(_elevationButton);
-		_xsPropPanel.add(_elevationLabel);
-		_xsPropPanel.add(_widthLabel);
-		_xsPropPanel.add(_wetpLabel);
-		_xsPropPanel.add(_areaLabel);
-		_xsPropPanel.add(_hDepthLabel);
+		_xsPropPanel.add(_conveyanceCharacteristicsTextArea);
+		
+//		_xsPropPanel.add(new JLabel());
+//		_xsPropPanel.add(_numPointsLabel);
+//		_xsPropPanel.add(_numPointsValueLabel);
+//		_xsPropPanel.add(_elevationLabel);
+//		_xsPropPanel.add(_elevationValueLabel);
+//		_xsPropPanel.add(_widthLabel);
+//		_xsPropPanel.add(_widthValueLabel);
+//		_xsPropPanel.add(_wetpLabel);
+//		_xsPropPanel.add(_wetpValueLabel);
+//		_xsPropPanel.add(_areaLabel);
+//		_xsPropPanel.add(_areaValueLabel);
+//		_xsPropPanel.add(_hDepthLabel);
+//		_xsPropPanel.add(_hDepthValueLabel);
 
 		_dConveyancePanel.setLayout(new BoxLayout(_dConveyancePanel, BoxLayout.Y_AXIS));
 		_dConveyancePanel.setBorder(_lineBorder);
@@ -183,7 +203,7 @@ public class XsectGraph extends JFrame implements ActionListener {
 		
 		URL metadataIconUrl = this.getClass().getResource("images/metadataIcon.gif");
 		ImageIcon _metadataIcon = new ImageIcon(metadataIconUrl);
-		JLabel _metadataLabel = new JLabel(_metadataIcon, SwingConstants.CENTER);
+		JLabel _metadataLabel = new JLabel(_metadataIcon, SwingConstants.LEFT);
 
 		_eastPanel.add(_metadataLabel);
 		_eastPanel.add(_metadataScrollPane);
@@ -679,7 +699,8 @@ public class XsectGraph extends JFrame implements ActionListener {
 		// xgXsect.add(xRestore = new JMenuItem("Restore Xsect"));
 		// xRestore.setAccelerator
 		// (KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
-		xgXsect.add(xPrint = new JMenuItem("Print Xsect"));
+		
+//		xgXsect.add(xPrint = new JMenuItem("Print Xsect"));
 		// xgXsect.add(xMetadata = new JMenuItem("Metadata"));
 		xgXsect.add(xClose = new JMenuItem("Close"));
 		xClose.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
@@ -749,7 +770,7 @@ public class XsectGraph extends JFrame implements ActionListener {
 		// xKeep.addActionListener(xKeepListener);
 		// xRestore.addActionListener(xRestoreListener);
 		_elevationButton.addActionListener(xChangeElevationListener);
-		xPrint.addActionListener(xPrintListener);
+//		xPrint.addActionListener(xPrintListener);
 		xClose.addActionListener((ActionListener) xCloseListener);
 
 		addWindowListener((WindowListener) xCloseListener);
@@ -1160,42 +1181,54 @@ public class XsectGraph extends JFrame implements ActionListener {
 	}// updateDisplay
 
 	/**
-	 * calculate xsectprop with new elevation
+	 * calculate xsect prop with new elevation
 	 */
 	protected void updateXsectProp() {
 		double width = 0.0;
 		double area = 0.0;
 		double wetp = 0.0;
 		double hDepth = 0.0;
-		// double dk = 0.0;
-		double e = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
-		width = _xsect.getWidthFeet(e);
-		area = _xsect.getAreaSqft(e);
-		wetp = _xsect.getWettedPerimeterFeet(e);
-		hDepth = _xsect.getHydraulicDepthFeet(e);
-		// dk = _xsect.getDConveyance(_xsectPropElevation);
-		_elevationLabel.setText("   Elevation, ft(NGVD)   = " + e + "   ");
-		_widthLabel.setText("   Width, ft             = " + CsdpFunctions.twoPlaces(width) + "   ");
-		_areaLabel.setText("   Area, square ft       = " + CsdpFunctions.twoPlaces(area) + "   ");
-		_wetpLabel.setText("   Wetted Perimeter, ft  = " + CsdpFunctions.twoPlaces(wetp) + "   ");
-		_hDepthLabel.setText("   HydraulicDepth, ft    = " + CsdpFunctions.twoPlaces(hDepth) + "   ");
-		// _dkLabel.setText ("DConveyance = " + CsdpFunctions.twoPlaces(dk));
-	}
+		double e = getXSPropElevation();
+		if(_xsect.getNumPoints()>0) {
+			width = _xsect.getWidthFeet(e);
+			area = _xsect.getAreaSqft(e);
+			wetp = _xsect.getWettedPerimeterFeet(e);
+			hDepth = _xsect.getHydraulicDepthFeet(e);
+			// dk = _xsect.getDConveyance(_xsectPropElevation);
+			CsdpFileMetadata metadata = CsdpFunctions.getBathymetryMetadata();
+			String ccString="";
+			ccString += String.format("%-22s", "Elevation, ft ("+metadata.getVDatumString()+")")+"\t"+ String.format("%.2f", e) +"\n";
+			ccString += String.format("%-22s", "Num points")+ "\t"+ String.format("%d", _xsect.getNumPoints()) +"\n";
+			ccString += String.format("%-22s", "Width, ft") + "\t\t"+ String.format("%.2f", width) +"\n";
+			ccString += String.format("%-22s", "Area, sq ft") + "\t\t"+ String.format("%.2f", area) +"\n";
+			ccString += String.format("%-22s", "Wetted Perimeter, ft") + "\t"+ String.format("%.2f", wetp) +"\n";
+			ccString += String.format("%-22s", "Hydraulic Depth, ft") + "\t"+ String.format("%.2f", hDepth) +"\n";
+//			_numPointsLabel.setText("num points");
+//			_elevationLabel.setText("Elevation, ft ("+metadata.getVDatumString());
+//			_widthLabel.setText("Width, ft");
+//			_areaLabel.setText("Area, square ft");
+//			_wetpLabel.setText("Wetted Perimeter, ft");
+//			_hDepthLabel.setText("HydraulicDepth, ft");
+			_conveyanceCharacteristicsTextArea.setText(ccString);
+		}
+	}//updateXsectProp
 
 	/*
 	 * Recalculates the dConveyance values and updates the display
 	 */
 	private void updateDConveyanceDisplay() {
-		double[] dConveyanceValues = _xsect.getDConveyanceValues();
-		double[] elevations = _xsect.getUniqueElevations();
-		String dConveyanceString = "Elevation\tdConveyance\n"
-				+ "-----------------------------------------------\n";
-		//add dConveyance values in reverse order
-		for(int i=elevations.length-1; i>=0; i--) {
-			dConveyanceString += String.format("%.2f", elevations[i])+"\t"+String.format("%.2f", dConveyanceValues[i])+"\n";
+		if(_xsect.getNumPoints()>0) {
+			double[] dConveyanceValues = _xsect.getDConveyanceValues();
+			double[] elevations = _xsect.getUniqueElevations();
+			String dConveyanceString = "Elevation\tdConveyance\n"
+					+ "-----------------------------------------------\n";
+			//add dConveyance values in reverse order
+			for(int i=elevations.length-1; i>=0; i--) {
+				dConveyanceString += String.format("%.2f", elevations[i])+"\t"+String.format("%.2f", dConveyanceValues[i])+"\n";
+			}
+			_dConveyanceTextArea.setText(dConveyanceString);
 		}
-		_dConveyanceTextArea.setText(dConveyanceString);
-	}
+	}//updateDConveyanceDisplay
 	
 	/**
 	 * called when keep button pressed.
@@ -1239,7 +1272,13 @@ public class XsectGraph extends JFrame implements ActionListener {
 	public boolean getColorByYearMode() {
 		return _colorByYearButton.isSelected();
 	}
-
+	public void setXSPropElevation(double nf) {
+		_xsPropElevation = nf;
+	}
+	private double getXSPropElevation() {
+		return _xsPropElevation;
+	}
+	
 	protected BathymetryPlot _plotter;
 	protected NetworkPlot _networkPlotter;
 	App _app;
@@ -1342,13 +1381,23 @@ public class XsectGraph extends JFrame implements ActionListener {
 	JPanel _dConveyancePanel = new JPanel();
 	JPanel _inputPanel = new JPanel();
 	JButton _elevationButton = new JButton("Change elevation");
+	JLabel _numPointsLabel = new JLabel();
 	JLabel _elevationLabel = new JLabel();
 	JLabel _widthLabel = new JLabel();
 	JLabel _areaLabel = new JLabel();
 	JLabel _wetpLabel = new JLabel();
 	JLabel _hDepthLabel = new JLabel();
+
+	JLabel _numPointsValueLabel = new JLabel();
+	JLabel _elevationValueLabel = new JLabel();
+	JLabel _widthValueLabel = new JLabel();
+	JLabel _wetpValueLabel = new JLabel();
+	JLabel _areaValueLabel = new JLabel();
+	JLabel _hDepthValueLabel = new JLabel();
+
 	// JLabel _dkLabel = new JLabel();
 	JTextArea _dConveyanceTextArea = new JTextArea();
+	JTextArea _conveyanceCharacteristicsTextArea = new JTextArea();
 	
 	// JCheckBoxMenuItem _bColorByDistance, _bColorBySource, _bColorByYear;
 	JMenuItem _bChangePointSize;
@@ -1365,7 +1414,7 @@ public class XsectGraph extends JFrame implements ActionListener {
 
 	// all new
 	public JTextArea _metadata;
-	private ResizableStringArray _metadataMessage;
+//	private ResizableStringArray _metadataMessage;
 	private JScrollPane _metadataScrollPane;
 
 	// DefaultGraphBuilder _dgb = new DefaultGraphBuilder();
@@ -1384,4 +1433,6 @@ public class XsectGraph extends JFrame implements ActionListener {
 	 * When color by distance used, this is the maximum number of bins.
 	 */
 	private final int NUM_DISTANCE_BINS = 10;
+
+	private double _xsPropElevation;
 }// class XsectGraph

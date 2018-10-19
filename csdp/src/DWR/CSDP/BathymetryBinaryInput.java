@@ -46,6 +46,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import javax.swing.JOptionPane;
+
 /**
  * Read binary bathymetry data.
  *
@@ -94,10 +96,9 @@ public class BathymetryBinaryInput extends BathymetryInput {
 					if (DEBUG)
 						System.out.println("parsed metadataline:" + metaLine);
 				} else {
-					_errorDialog.setMessage(
-							"incomplete metadata! there should be " + CsdpFunctions.getNumMetadataLines() + " lines.  "
-									+ "The following line was expected to be a metadata line:" + metaLine);
-					_errorDialog.setVisible(true);
+					JOptionPane.showMessageDialog(_gui, "incomplete metadata! there should be " + CsdpFunctions.getNumMetadataLines() + " lines.  "
+							+ "The following line was expected to be a metadata line:" + metaLine, 
+							"Error", JOptionPane.ERROR_MESSAGE);
 				}
 			} // for: read metadata
 

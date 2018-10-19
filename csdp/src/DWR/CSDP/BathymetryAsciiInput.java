@@ -46,6 +46,8 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.StringTokenizer;
 
+import javax.swing.JOptionPane;
+
 public class BathymetryAsciiInput extends BathymetryInput {
 
 	LineNumberReader _asciiIn;
@@ -96,7 +98,8 @@ public class BathymetryAsciiInput extends BathymetryInput {
 			line = _asciiIn.readLine();
 			if (line.indexOf(";") < 0) {
 				fileHasMetadata = false;
-				_noMetadataDialog.setVisible(true);
+				JOptionPane.showMessageDialog(_gui, "UTM zone 10 NAD 27, NGVD 1929 will be assumed.", 
+						"This bathymetry file has no metadata. ", JOptionPane.INFORMATION_MESSAGE);
 				bathymetryMetadata.setToDefault();
 				parseFirstLine(line);
 			} else {
@@ -113,10 +116,9 @@ public class BathymetryAsciiInput extends BathymetryInput {
 					if (line.indexOf(";") >= 0) {
 						parseMetadata(line, bathymetryMetadata);
 					} else {
-						_errorDialog.setMessage("incomplete metadata! there should be "
+						JOptionPane.showMessageDialog(_gui, "incomplete metadata! there should be "
 								+ CsdpFunctions.getNumMetadataLines() + " lines.  "
-								+ "The following line was expected to be a metadata line:" + line);
-						_errorDialog.setVisible(true);
+								+ "The following line was expected to be a metadata line:" + line, "Error", JOptionPane.ERROR_MESSAGE);
 					}
 				}
 				if (DEBUG)
