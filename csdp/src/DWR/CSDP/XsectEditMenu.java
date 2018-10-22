@@ -143,6 +143,7 @@ public class XsectEditMenu {
 			if (nf != CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS) {
 				//actually don't want this to change the default value; just the value for the current xs
 				//				CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS = nf;
+				_xsectGraph.setXSPropElevation(nf);
 				_xsectGraph.updateDisplay();
 				_xsectGraph._gC.redoNextPaint();
 				_xsectGraph.validate();
@@ -164,27 +165,28 @@ public class XsectEditMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			_gC = _xg.getGC();
-			// set size to 8.5 X 11 inches == 21.25 cm X 27.5 cm
-			Dimension pSize = _xg.getSize();
-			int resolution = 72; // in pixels per inch
-			_xg.setSize((int) 8.5 * resolution, 11 * resolution);
-
-			// PrintJob pj = Toolkit.getDefaultToolkit().getPrintJob
-			// (_xg, "GraphCanvas Print Job", null);
-
-			Toolkit t = _xg.getToolkit();
-			PrintJob pj = t.getPrintJob(_xg, "Cross-Section", null);
-			if (pj != null) {
-				Graphics pg = pj.getGraphics();
-				if (pg != null) {
-					_xg.printAll(pg);
-					pg.dispose();
-				}
-				pj.end();
-			} else {
-				System.out.println("no print job!");
-			}
+			//now that XsectGraph is a JDialog and not a JFrame, this won't work.
+//			_gC = _xg.getGC();
+//			// set size to 8.5 X 11 inches == 21.25 cm X 27.5 cm
+//			Dimension pSize = _xg.getSize();
+//			int resolution = 72; // in pixels per inch
+//			_xg.setSize((int) 8.5 * resolution, 11 * resolution);
+//
+//			// PrintJob pj = Toolkit.getDefaultToolkit().getPrintJob
+//			// (_xg, "GraphCanvas Print Job", null);
+//
+//			Toolkit t = _xg.getToolkit();
+//			PrintJob pj = t.getPrintJob(_xg, "Cross-Section", null);
+//			if (pj != null) {
+//				Graphics pg = pj.getGraphics();
+//				if (pg != null) {
+//					_xg.printAll(pg);
+//					pg.dispose();
+//				}
+//				pj.end();
+//			} else {
+//				System.out.println("no print job!");
+//			}
 
 			// if(pj != null){
 			// Graphics pg = pj.getGraphics();

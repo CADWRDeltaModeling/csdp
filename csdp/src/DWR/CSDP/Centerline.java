@@ -391,7 +391,7 @@ public class Centerline {
 			if (DEBUG)
 				System.out.println("inserting rectxs for centerline " + getCenterlineName());
 			if (DEBUG)
-				System.out.println("area at 0 ft ngvd=" + getRectXsect(k).getAreaSqft(0.0f));
+				System.out.println("area at 0 ft elevation=" + getRectXsect(k).getAreaSqft(0.0f));
 		}
 
 		// sort all xsects by distAlongCenterline

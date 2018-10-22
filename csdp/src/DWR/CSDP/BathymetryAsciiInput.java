@@ -77,10 +77,14 @@ public class BathymetryAsciiInput extends BathymetryInput {
 	}
 
 	/**
-	 * Read ascii file. Headers should have following format: ;HorizontalDatum:
-	 * UTMNAD27 ;HorizontalZone: 10 ;HorizontalUnits: Meters ;VerticalDatum:
-	 * NGVD29 ;VerticalUnits: USSurveyFeet ;Filetype: bathymetry ;NumElements:
-	 * 581913
+	 * Read ascii file. Headers should have following format: 
+	 * ;HorizontalDatum: UTMNAD27 
+	 * ;HorizontalZone: 10 
+	 * ;HorizontalUnits: Meters 
+	 * ;VerticalDatum: NGVD29 
+	 * ;VerticalUnits: USSurveyFeet 
+	 * ;Filetype: bathymetry 
+	 * ;NumElements: 581913
 	 *
 	 * If it's an older version of the file, the header will just be a single
 	 * integer that is the number of points in the file. Example: 581983

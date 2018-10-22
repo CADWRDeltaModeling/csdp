@@ -322,7 +322,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 			vista.graph.Axis leftAxis = plot.getAxis(AxisAttr.LEFT);
 			if(bottomAxis!=null && leftAxis!=null) {
 				bottomAxis.setAxisLabel("Distance Along Cross-Section Line, feet");
-				leftAxis.setAxisLabel("Elevation(NGVD), ft");
+				leftAxis.setAxisLabel("Elevation), ft");
 				// Plot plot = _graph.getPlot();
 				// /*
 				// * The following code copied from updateGraphCanvas

@@ -987,6 +987,22 @@ public class App {
 		}
 	}// updateAllXsectGraphs
 
+	public boolean anyUnsavedXsectEdits() {
+		boolean returnValue = false;
+		if (_xsectGraph.size()>0) {
+			Enumeration e=_xsectGraph.elements();
+			while(e.hasMoreElements()) {
+				XsectGraph xg=(XsectGraph) e.nextElement();
+				System.out.println("_xsectGraph.size(), xg="+_xsectGraph.size()+","+xg);
+				if (xg._xsect._isUpdated || xg.getChangesKept()) {			
+					returnValue = true;
+					break;
+				}
+			}
+		}
+		return returnValue;
+	}//anyUnsavedXsectEdits
+	
 	/**
 	 * redraw the xsect graph
 	 */

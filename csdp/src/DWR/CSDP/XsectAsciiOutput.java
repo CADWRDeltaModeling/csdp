@@ -109,7 +109,7 @@ public class XsectAsciiOutput extends XsectOutput {
 		try {
 			_asciiOut.write("Cross-section:  " + _filename + "\n");
 			_asciiOut.write(
-					"Elev(NGVD)       A          P          W         Rh         Xc         Zc         Aold" + "\n");
+					"Elevation       A          P          W         Rh         Xc         Zc         Aold" + "\n");
 			_asciiOut.write(
 					"======================================================================================" + "\n");
 		} catch (IOException e) {

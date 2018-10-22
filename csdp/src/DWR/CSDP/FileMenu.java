@@ -177,7 +177,14 @@ public class FileMenu {
 					}
 				} // if network has changed
 				else if (net.isUpdated() == false) {
-					System.exit(0);
+					if(_app.anyXsectGraphsOpen()){
+						int response = JOptionPane.showConfirmDialog(_gui, "There is at least one cross-section graph open. "
+								+ "Any unsaved changes in the graph(s) will be lost if you continue. \n\nClick Yes to quit without saving",
+								"Cross-section window open!", JOptionPane.YES_NO_OPTION);
+						if(response==JOptionPane.YES_OPTION) {
+							System.exit(0);
+						}
+					}
 				} // else
 			} // if net isn't null
 			else {

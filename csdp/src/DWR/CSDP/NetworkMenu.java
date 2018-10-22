@@ -447,8 +447,8 @@ public class NetworkMenu {
 
 				System.out.println("calculateDirectory=" + calculateDirectory);
 				_app.nCalculateDSM2V8Format(calculateDirectory+File.separator+"DSM2V8.1Channels.inp");
-//				_app.nCalculate(calculateDirectory);
-//				_app.writeIrregularXsectsInp(calculateDirectory);
+				_app.nCalculate(calculateDirectory);
+				_app.writeIrregularXsectsInp(calculateDirectory);
 				_app.writeXsectLandmark(calculateDirectory);
 				JOptionPane.showMessageDialog(_gui, "DSM2 input files and xsects.cdl file written.", "Done", JOptionPane.INFORMATION_MESSAGE);
 				
