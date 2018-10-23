@@ -40,9 +40,11 @@
 */
 package DWR.CSDP;
 
+import java.io.File;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -687,8 +689,6 @@ public class App {
 	 */
 	public void nCalculateDSM2V8Format(String fullPath) {
 		AsciiFileWriter afw = new AsciiFileWriter(fullPath);
-		afw.writeLine("XSECT_LAYER");
-		afw.writeLine("CHAN_NO  DIST  ELEV  AREA  WIDTH  WET_PERIM");
 		
 		String filename = null;
 		String centerlineName = null;
@@ -697,6 +697,69 @@ public class App {
 		double length;
 		double distAlongCenterline;
 		double normalizedDist;
+		
+		//First re-create CHANNEL information with CSDP channel lengths 
+		if (_DSMChannels == null) {
+			String channelsFilename = null;
+			// FileDialog fd = new FileDialog(_gui, "Open DSM2 channel
+			// connectivity file");
+			// fd.setVisible(true);
+			JFileChooser jfcChannelsInp = new JFileChooser();
+			String[] channelsInpExtensions = { "inp" };
+			int numChannelsInpExtensions = 1;
+			CsdpFileFilter channelsInpFilter = new CsdpFileFilter(channelsInpExtensions, numChannelsInpExtensions);
+			
+			jfcChannelsInp.setDialogTitle("Open DSM2 channel connectivity file");
+			jfcChannelsInp.setApproveButtonText("Open");
+			jfcChannelsInp.addChoosableFileFilter(channelsInpFilter);
+			jfcChannelsInp.setFileFilter(channelsInpFilter);
+
+			if (CsdpFunctions.getOpenDirectory() != null) {
+				jfcChannelsInp.setCurrentDirectory(CsdpFunctions.getOpenDirectory());
+			}
+			int filechooserState = jfcChannelsInp.showOpenDialog(_gui);
+			String directory = null;
+			if (filechooserState == JFileChooser.APPROVE_OPTION) {
+				channelsFilename = jfcChannelsInp.getName(jfcChannelsInp.getSelectedFile());
+				directory = jfcChannelsInp.getCurrentDirectory().getAbsolutePath() + File.separator;
+
+				// channelsFilename = fd.getFile();
+				// _directory = fd.getDirectory();
+				_DSMChannels = chanReadStore(directory, channelsFilename);
+//				_gui.setDSMChannels(_DSMChannels);
+			}
+		} // if DSMChannels is null		
+
+		afw.writeLine("#Created automatically by CSDP, using CSDP channel lengths");
+		afw.writeLine("CHANNEL");
+		String channelHeaderLine = 
+				String.format("%-9s", "CHAN_NO") +
+				String.format("%-8s", "LENGTH") +
+				String.format("%-9s", "MANNING")+
+				String.format("%-12s", "DISPERSION")+
+				String.format("%-8s", "UPNODE")+
+				String.format("%-8s", "DOWNNODE");
+		afw.writeLine(channelHeaderLine);
+		for(int i=0; i<_net.getNumCenterlines(); i++) {
+			centerlineName = _net.getCenterlineName(i);
+			centerline = _net.getCenterline(centerlineName);
+			length = centerline.getLengthFeet();
+			String chan = _DSMChannels.getChanNum(i);
+			String lineToWrite = 
+					String.format("%-9s", chan) + 
+					String.format("%-8.0f", length) + 
+					String.format("%-10s", _DSMChannels.getManning(chan)) + 
+					String.format("%-12s", _DSMChannels.getDispersion(chan)) +
+					String.format("%-8d", _DSMChannels.getUpnode(chan))+
+					String.format("%-8d", _DSMChannels.getDownnode(chan));
+			afw.writeLine(lineToWrite);
+		}
+		
+		afw.writeLine("END");
+		afw.writeLine("");
+		afw.writeLine("XSECT_LAYER");
+		afw.writeLine("CHAN_NO  DIST  ELEV  AREA  WIDTH  WET_PERIM");
+		
 		for(int i=0; i<_net.getNumCenterlines(); i++) {
 			centerlineName = _net.getCenterlineName(i);
 			centerline = _net.getCenterline(centerlineName);
@@ -709,20 +772,20 @@ public class App {
 					double[] elevations = xsect.getUniqueElevations();
 					//remove elevations if within .01 feet of another layer
 					double[] goodElevations = removeCloseElevations(elevations);
-					
-					for(int k=goodElevations.length-1; k>=0; k--) {
+
+					for(int k=0; k<goodElevations.length; k++) {
 						double area = xsect.getAreaSqft(goodElevations[k]);
 						double width = xsect.getWidthFeet(goodElevations[k]);
 						double wetP = xsect.getWettedPerimeterFeet(goodElevations[k]);
 						String[] centerlineNameParts = centerlineName.split("_");
 						String channelNum = centerlineNameParts[0];
 //						String s = String.format("%-8s%-8.5f%-10.3f%-12.3f%-12.3f%-13.3f", channelNum,normalizedDist,elevations[k],area,width,wetP);
-						String s = channelNum+
-								"\t"+String.format("%.5f", normalizedDist)+
-								"\t"+String.format("%.2f", goodElevations[k])+
-								"\t"+String.format("%.3f", area)+
-								"\t"+String.format("%.1f", width)+
-								"\t"+String.format("%.1f", wetP); 
+						String s = String.format("%-9s", channelNum)+
+								String.format("%-8.3f", normalizedDist)+
+								String.format("%-10.3f", goodElevations[k])+
+								String.format("%-12.3f", area)+
+								String.format("%-12.3f", width)+
+								String.format("%-12.3f", wetP); 
 						// afw.writeLine(centerlineName+"\t"+normalizedDist+"\t"+elevations[k]+"\t"+area+"\t"+width+"\t"+wetP);
 						afw.writeLine(s);
 					}

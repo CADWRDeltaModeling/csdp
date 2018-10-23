@@ -118,17 +118,20 @@ public abstract class DSMChannelsInput {
 	protected void storeData(int dataNumber) {
 		String name = _pd.chan;
 		int length = _pd.length;
+		String manning = _pd.manning;
+		String dispersion = _pd.dispersion;
 		int upnode = _pd.upnode;
 		int downnode = _pd.downnode;
-		int xsect1 = _pd.xsect1;
-		int dist1 = _pd.dist1;
-		int xsect2 = _pd.xsect2;
-		int dist2 = _pd.dist2;
+//		int xsect1 = _pd.xsect1;
+//		int dist1 = _pd.dist1;
+//		int xsect2 = _pd.xsect2;
+//		int dist2 = _pd.dist2;
 
 		if (DEBUG)
 			System.out.println("storing data: name, length, upnode, downnode=" + name + "," + length + "," + upnode
 					+ "," + downnode);
-		_data.addDSMChannel(dataNumber, name, length, upnode, downnode, xsect1, dist1, xsect2, dist2);
+//		_data.addDSMChannel(dataNumber, name, length, upnode, downnode, xsect1, dist1, xsect2, dist2);
+		_data.addDSMChannel(dataNumber, name, length, manning, dispersion, upnode, downnode);
 	}// storeData
 
 	DSMChannels _data = new DSMChannels();
@@ -153,12 +156,14 @@ public abstract class DSMChannelsInput {
 	public class DSMChannelsParsedData {
 		String chan = null;
 		public int length = 0;
+		public String manning = null;
+		public String dispersion = null;
 		public int upnode = 0;
 		public int downnode = 0;
-		public int xsect1 = 0;
-		public int dist1 = 0;
-		public int xsect2 = 0;
-		public int dist2 = 0;
+//		public int xsect1 = 0;
+//		public int dist1 = 0;
+//		public int xsect2 = 0;
+//		public int dist2 = 0;
 	} // class DSMChannelsParsedData
 
 } // class LandmarkInput

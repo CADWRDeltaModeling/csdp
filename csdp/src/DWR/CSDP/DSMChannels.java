@@ -50,18 +50,28 @@ public class DSMChannels {
 	/**
 	 * add a DSM channel.
 	 */
-	public void addDSMChannel(int index, String name, int length, int upnode, int downnode, int xsect1, int dist1,
-			int xsect2, int dist2) {
+//	public void addDSMChannel(int index, String name, int length, int upnode, int downnode, int xsect1, int dist1,
+//			int xsect2, int dist2) {
+//		putChanNum(index, name);
+//		putLength(name, length);
+//		putUpnode(name, upnode);
+//		putDownnode(name, downnode);
+//		putXsect1(name, xsect1);
+//		putDist1(name, dist1);
+//		putXsect2(name, xsect2);
+//		putDist2(name, dist2);
+//	}
+
+	public void addDSMChannel(int index, String name, int length, String manning, String dispersion, int upnode, int downnode) {
 		putChanNum(index, name);
 		putLength(name, length);
+		putManning(name, manning);
+		putDispersion(name, dispersion);
 		putUpnode(name, upnode);
 		putDownnode(name, downnode);
-		putXsect1(name, xsect1);
-		putDist1(name, dist1);
-		putXsect2(name, xsect2);
-		putDist2(name, dist2);
+		
 	}
-
+	
 	/**
 	 * stores channel number
 	 */
@@ -98,7 +108,7 @@ public class DSMChannels {
 	public int getLength(String chan) {
 		int length = -Integer.MAX_VALUE;
 		if (_length.containsKey(chan)) {
-			length = ((Integer) _length.get(chan)).intValue();
+			length = _length.get(chan).intValue();
 		} else {
 			System.out.println("Not writing output for channel " + chan + " because it's not in the DSM2 input file");
 		}
@@ -119,7 +129,7 @@ public class DSMChannels {
 	public int getDownnode(String chan) {
 		int returnValue = -Integer.MAX_VALUE;
 		if (_downnode.containsKey(chan)) {
-			returnValue = ((Integer) _downnode.get(chan)).intValue();
+			returnValue = _downnode.get(chan).intValue();
 		}
 		return returnValue;
 	}
@@ -170,7 +180,7 @@ public class DSMChannels {
 	public int getXsect1(String chan) {
 		int returnValue = -Integer.MAX_VALUE;
 		if (_xsect1.containsKey(chan)) {
-			returnValue = ((Integer) _xsect1.get(chan)).intValue();
+			returnValue = _xsect1.get(chan).intValue();
 		}
 		return returnValue;
 	}
@@ -181,7 +191,7 @@ public class DSMChannels {
 	public int getDist1(String chan) {
 		int returnValue = -Integer.MAX_VALUE;
 		if (_dist1.containsKey(chan)) {
-			returnValue = ((Integer) _dist1.get(chan)).intValue();
+			returnValue =  _dist1.get(chan).intValue();
 		}
 		return returnValue;
 	}
@@ -192,7 +202,7 @@ public class DSMChannels {
 	public int getXsect2(String chan) {
 		int returnValue = -Integer.MAX_VALUE;
 		if (_xsect2.containsKey(chan)) {
-			returnValue = ((Integer) _xsect2.get(chan)).intValue();
+			returnValue = _xsect2.get(chan).intValue();
 		}
 		return returnValue;
 	}
@@ -203,7 +213,7 @@ public class DSMChannels {
 	public int getDist2(String chan) {
 		int returnValue = -Integer.MAX_VALUE;
 		if (_dist2.containsKey(chan)) {
-			returnValue = ((Integer) _dist2.get(chan)).intValue();
+			returnValue = _dist2.get(chan).intValue();
 		}
 		return returnValue;
 	}
@@ -218,11 +228,35 @@ public class DSMChannels {
 			System.out.println("upnode=" + (Integer) _upnode.get(chan));
 		int returnValue = -Integer.MAX_VALUE;
 		if (_upnode.containsKey(chan)) {
-			returnValue = ((Integer) _upnode.get(chan)).intValue();
+			returnValue = _upnode.get(chan).intValue();
 		}
 		return returnValue;
 	}
 
+	public String getManning(String chan) {
+		String returnValue = "";
+		if(_manning.containsKey(chan)) {
+			returnValue = _manning.get(chan);
+		}
+		return returnValue;
+	}
+
+	public void putManning(String chan, String value) {
+		_manning.put(chan, value);
+	}
+
+	public String getDispersion(String chan) {
+		String returnValue = "";
+		if(_dispersion.containsKey(chan)) {
+			returnValue = _dispersion.get(chan);
+		}
+		return returnValue;
+	}
+
+	public void putDispersion(String chan, String value) {
+		_dispersion.put(chan, value);
+	}
+	
 	/**
 	 * To check if all information exists for the specified channel number
 	 */
@@ -242,13 +276,16 @@ public class DSMChannels {
 	protected int _numChannels = 0;
 
 	protected ResizableStringArray _chanNum = new ResizableStringArray();
-	protected Hashtable _length = new Hashtable();
-	protected Hashtable _downnode = new Hashtable();
-	protected Hashtable _upnode = new Hashtable();
-	protected Hashtable _xsect1 = new Hashtable();
-	protected Hashtable _dist1 = new Hashtable();
-	protected Hashtable _xsect2 = new Hashtable();
-	protected Hashtable _dist2 = new Hashtable();
+	protected Hashtable<String, Integer> _length = new Hashtable<String, Integer>();
+	protected Hashtable<String, String> _manning = new Hashtable<String, String>();
+	protected Hashtable<String, String> _dispersion = new Hashtable<String, String>();
+	protected Hashtable<String, Integer> _downnode = new Hashtable<String, Integer>();
+	protected Hashtable<String, Integer> _upnode = new Hashtable<String, Integer>();
+	
+	protected Hashtable<String, Integer> _xsect1 = new Hashtable<String, Integer>();
+	protected Hashtable<String, Integer> _dist1 = new Hashtable<String, Integer>();
+	protected Hashtable<String, Integer> _xsect2 = new Hashtable<String, Integer>();
+	protected Hashtable<String, Integer> _dist2 = new Hashtable<String, Integer>();
 	protected static final boolean DEBUG = false;
 
 }// DSMChannels
