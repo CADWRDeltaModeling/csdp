@@ -149,9 +149,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 		// use this for Frame
 		// setLayout(new BorderLayout());
 		// use this instead for JFrame
-		setSize(1200, 600);
 
 		getContentPane().setLayout(new BorderLayout());
+		setPreferredSize(new Dimension(1200, 900));
 		// setBackground(Color.gray);
 		CsdpFileMetadata metadata = CsdpFunctions.getBathymetryMetadata();
 		metadata.getVDatumString();

@@ -483,7 +483,7 @@ public class NetworkMenu {
 
 		public void actionPerformed(ActionEvent e) {
 			_app.awdSummary(0.0f);
-			_app.awdSummary(0.292f); // MSL
+			_app.awdSummary(0.292f); // MSL wrt NGVD
 		}// actionPerformed
 	} // NAWDSummary
 

@@ -234,7 +234,7 @@ public class XsectEditMenu {
 
 		private void closeWindow() {
 			if (_xsectGraph._xsect._isUpdated || _xsectGraph.getChangesKept()) {
-				int response = JOptionPane.showConfirmDialog(_xsectGraph, "Keep changes?", "Question", JOptionPane.YES_NO_OPTION);
+				int response = JOptionPane.showConfirmDialog(_xsectGraph, "Keep changes?", "Question", JOptionPane.YES_NO_CANCEL_OPTION);
 				if(response==JOptionPane.NO_OPTION) {
 					if (DEBUG)
 						System.out.println("not keeping changes");
@@ -266,6 +266,8 @@ public class XsectEditMenu {
 						System.out.println("This probably just means that there is no metadata--no problem.");
 					}
 					_xsect.putMetadata(newmd);
+				}else {
+					//Cancel clicked; do nothing.
 				}
 			} // if xsect changes haven't been saved
 			else {

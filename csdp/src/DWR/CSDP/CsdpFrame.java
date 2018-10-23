@@ -2374,8 +2374,8 @@ public class CsdpFrame extends JFrame {
 	private JLabel _dlgFileLabel = new JLabel("DLG Filename:");
 
 	private static Vector _colorsVector = new Vector();
-	private final int _initialWidth = 800;
-	private final int _initialHeight = 500;
+	private final int _initialWidth = 1200;
+	private final int _initialHeight = 800;
 
 	// default values
 	private double _minElevBin = -40.0;
