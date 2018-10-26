@@ -42,6 +42,7 @@ package DWR.CSDP;
 
 import java.io.File;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
 
 import javax.swing.JFileChooser;
@@ -571,7 +572,7 @@ public class App {
 			if (CsdpFunctions._networkFiletype == null)
 				CsdpFunctions._networkFiletype = NETWORK_TYPE;
 			NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions._networkFilename,
-					CsdpFunctions._networkFiletype, _net);
+					CsdpFunctions._networkFiletype, _net, null);
 			success = noutput.writeData();
 			if (DEBUG)
 				System.out.println("Done writing network file " + CsdpFunctions._networkFilename + "."
@@ -594,7 +595,30 @@ public class App {
 					+ CsdpFunctions._networkFiletype);
 
 		NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions._networkFilename,
-				CsdpFunctions._networkFiletype, _net);
+				CsdpFunctions._networkFiletype, _net, null);
+		success = noutput.writeData();
+		if (DEBUG)
+			System.out.println("Done writing network file " + CsdpFunctions._networkFilename + "."
+					+ CsdpFunctions._networkFiletype);
+		_gui.updateNetworkFilename(_filename + "." + _filetype);
+		return success;
+	}// nSaveAs
+
+	/**
+	 * write network file
+	 */
+	public boolean nSaveSpecifiedChannelsAs(String directory, String filename, HashSet<String> channelsToSave) {
+		boolean success = false;
+		parseFilename(filename);
+		CsdpFunctions._networkFilename = _filename;
+		CsdpFunctions._networkFiletype = _filetype;
+
+		if (DEBUG)
+			System.out.println("networkFilename, networkFiletype=" + CsdpFunctions._networkFilename + ","
+					+ CsdpFunctions._networkFiletype);
+
+		NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions._networkFilename,
+				CsdpFunctions._networkFiletype, _net, channelsToSave);
 		success = noutput.writeData();
 		if (DEBUG)
 			System.out.println("Done writing network file " + CsdpFunctions._networkFilename + "."
@@ -618,7 +642,7 @@ public class App {
 					+ CsdpFunctions._networkFiletype);
 
 		NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions._networkFilename,
-				CsdpFunctions._networkFiletype, _net);
+				CsdpFunctions._networkFiletype, _net, null);
 		noutput.setChannelLengthsOnly(channelLengthsOnly);
 		success = noutput.writeData();
 		if (DEBUG)
@@ -642,7 +666,7 @@ public class App {
 					+ CsdpFunctions._networkFiletype);
 
 		NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions._networkFilename,
-				CsdpFunctions._networkFiletype, _net);
+				CsdpFunctions._networkFiletype, _net, null);
 		noutput.set3DOutput(true);
 		success = noutput.writeData();
 		noutput.set3DOutput(false);

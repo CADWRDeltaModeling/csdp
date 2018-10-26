@@ -80,9 +80,11 @@ public class CenterlineSummaryWindow extends JFrame {
     	String titleArea = "Area Profile for Channel " + this.chanNum;
     	String titleWetP = "Wetted Perimeter Profile for Channel "+this.chanNum;
     	String titleWidth = "Width Profile for Channel "+this.chanNum;
+    	String titleBottomElevation = "Bottom Elevation Profile for Channel "+this.chanNum;
     	String yLabelArea = "Area, ft2";
     	String yLabelWetP = "WetP, ft2";
     	String yLabelWidth = "Width, ft2";
+    	String yLabelBottomElevation = "Bottom Elevation, ft";
 		
 		//			Xsect xsect = _net.getSelectedXsect();
 		String centerlineName = this.network.getSelectedCenterlineName();
@@ -92,6 +94,7 @@ public class CenterlineSummaryWindow extends JFrame {
     	XYSeries areaSeries = new XYSeries("Area");
     	XYSeries wetPSeries = new XYSeries("Wetted Perimeter");
     	XYSeries widthSeries = new XYSeries("Width");
+    	XYSeries bottomElevationSeries = new XYSeries("Botton Elevation");
 		for(int i=0; i<numXsects; i++){
 			Xsect currentXsect = centerline.getXsect(i);
 			double distanceAlong = currentXsect.getDistAlongCenterlineFeet();
@@ -99,28 +102,33 @@ public class CenterlineSummaryWindow extends JFrame {
 			double area = currentXsect.getAreaSqft(e);
 			double wetP = currentXsect.getWettedPerimeterFeet(e);
 			double width = currentXsect.getWettedPerimeterFeet(e);
+			double botElev = currentXsect.getMinimumElevationFeet();
 			areaSeries.add(area, distanceAlong);
 			wetPSeries.add(wetP, distanceAlong);
 			widthSeries.add(width, distanceAlong);
+			bottomElevationSeries.add(botElev, distanceAlong);
 		}
 
         XYDataset areaDataset = new XYSeriesCollection(areaSeries);
         XYDataset wetPDataset = new XYSeriesCollection(wetPSeries);
         XYDataset widthDataset = new XYSeriesCollection(widthSeries);
+        XYDataset bottomElevationDataset = new XYSeriesCollection(bottomElevationSeries);
         JFreeChart areaChart = createChart(titleArea, xLabel, yLabelArea, areaDataset);
         JFreeChart wetPChart = createChart(titleWetP,xLabel, yLabelWetP, wetPDataset);
         JFreeChart widthChart = createChart(titleWidth, xLabel, yLabelWidth, widthDataset);
-    	
+        JFreeChart bottomElevationChart = createChart(titleBottomElevation, xLabel, yLabelBottomElevation, bottomElevationDataset);
     	  	
         ChartPanel areaChartPanel = new ChartPanel(areaChart);
         ChartPanel wetPChartPanel = new ChartPanel(wetPChart);
         ChartPanel widthChartPanel = new ChartPanel(widthChart);
-		setSize(800, 600);
+        ChartPanel bottomElevationChartPanel = new ChartPanel(bottomElevationChart);
+		setSize(800, 800);
 		
 		JPanel chartsPanel = new JPanel(new GridLayout(0,1));
 		chartsPanel.add(areaChartPanel);
 		chartsPanel.add(wetPChartPanel);
 		chartsPanel.add(widthChartPanel);
+		chartsPanel.add(bottomElevationChartPanel);
 
 		JPanel conveyanceCharacteristicsPanel = new JPanel(new GridLayout(0,2,2,2));
 		conveyanceCharacteristicsPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));

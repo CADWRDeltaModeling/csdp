@@ -107,6 +107,7 @@ import vista.graph.TextLine;
 import vista.graph.TextLineAttr;
 import vista.graph.TickGenerator;
 import vista.set.DataReference;
+import vista.set.DataReferenceMath;
 import vista.set.DataRetrievalException;
 import vista.set.DataSet;
 import vista.set.DefaultReference;
@@ -433,6 +434,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 		plot.setInsets(new java.awt.Insets(20, 5, 20, 50));
 
 		// now add dataReferences
+		//the _refs array contains DefaultReference objects, each containing a bathymetry data set, with the last being a network data set
+		//the network data set will always be black points connected by black lines, and will be editable.
 		_refs = new DataReference[ncurves];
 		for (int i = 0; i <= _numBathymetryDataSets - 1; i++) {
 			_refs[i] = new DefaultReference((NetworkDataSet) _bathymetryDataSets.get(_bathymetryDataSetNames.get(i)));
@@ -441,6 +444,14 @@ public class XsectGraph extends JDialog implements ActionListener {
 		if (_networkDataSet != null) {
 			_refs[_numBathymetryDataSets] = new DefaultReference(_networkDataSet);
 		}
+
+		//if _refs is empty at this point, create a dummy network data set that will enable cross-section drawing where there are no data.
+		if(_refs.length==0) {
+			_refs = new DataReference[1];
+			makeDummyNetworkDataSet();
+			_refs[0]= new DefaultReference((NetworkDataSet)_networkDataSet); 
+		}
+		
 		_info = new GraphBuilderInfo(_refs, MainProperties.getProperties());
 
 		for (int i = 0; i < _refs.length; i++) {
@@ -993,6 +1004,20 @@ public class XsectGraph extends JDialog implements ActionListener {
 			_networkDataSet = new NetworkDataSet("Network", x, y);
 		}
 	}// make network data set
+	
+	/*
+	 * Makes a network data when there is no bathymetry data and there are no cross-section points.
+	 */
+	protected void makeDummyNetworkDataSet() {
+		double[] x = new double[]{-1000.0, -900.0, 900.0, 1000.0};
+		double[] y = new double[]{100.0, -100.0, -110.0, 100.0};
+		_xsect.addXsectPoint((float) x[0], (float)y[0]);
+		_xsect.addXsectPoint((float) x[1], (float)y[1]);
+		_xsect.addXsectPoint((float) x[2], (float)y[2]);
+		_xsect.addXsectPoint((float) x[3], (float)y[3]);
+//		_xsect.setIsUpdated(true);
+		_networkDataSet = new NetworkDataSet("Network",  x, y);
+	}
 
 	/**
 	 * Make NetworkDataSets to store bathymetry data to be plotted. Each set

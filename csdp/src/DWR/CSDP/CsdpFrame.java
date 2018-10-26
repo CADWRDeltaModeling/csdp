@@ -709,7 +709,8 @@ public class CsdpFrame extends JFrame {
 		cfNetwork.add(nOpen = new JMenuItem("Open"));
 		cfNetwork.add(nSave = new JMenuItem("Save"));
 		cfNetwork.add(nSaveAs = new JMenuItem("Save As"));
-
+		cfNetwork.add(nSaveSpecifiedChannelsAs = new JMenuItem("Save Specified Channels"));
+		
 		cfNetwork.setMnemonic(KeyEvent.VK_N);
 		nOpen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, ActionEvent.CTRL_MASK));
 		nOpen.setMnemonic(KeyEvent.VK_R);
@@ -741,6 +742,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener nOpenListener = networkMenu.new NOpen(this);
 		_nSaveListener = networkMenu.new NSave(this);
 		_nSaveAsListener = networkMenu.new NSaveAs(this);
+		_nSaveSpeficiedChannelsAsListener = networkMenu.new NSaveSpecifiedChannelsAs(this);
 		ActionListener nClearNetworkListener = networkMenu.new NClearNetwork(this);
 		ActionListener nExportToSEFormatListener = networkMenu.new NExportToSEFormat(this);
 		ActionListener nExportTo3DFormatListener = networkMenu.new NExportTo3DFormat(this);
@@ -754,6 +756,7 @@ public class CsdpFrame extends JFrame {
 		nOpen.addActionListener(nOpenListener);
 		nSave.addActionListener(_nSaveListener);
 		nSaveAs.addActionListener(_nSaveAsListener);
+		nSaveSpecifiedChannelsAs.addActionListener(_nSaveSpeficiedChannelsAsListener);
 		nClearNetwork.addActionListener(nClearNetworkListener);
 		nExportToSEFormat.addActionListener(nExportToSEFormatListener);
 		nExportTo3DFormat.addActionListener(nExportTo3DFormatListener);
@@ -1372,6 +1375,7 @@ public class CsdpFrame extends JFrame {
 		nOpen.setEnabled(false);
 		nSave.setEnabled(false);
 		nSaveAs.setEnabled(false);
+		nSaveSpecifiedChannelsAs.setEnabled(false);
 		nExportToSEFormat.setEnabled(false);
 		nExportTo3DFormat.setEnabled(false);
 		// nList.setEnabled(false);nSummary.setEnabled(false);
@@ -1477,6 +1481,7 @@ public class CsdpFrame extends JFrame {
 	protected void enableAfterNetwork() {
 		nSave.setEnabled(true);
 		nSaveAs.setEnabled(true);
+		nSaveSpecifiedChannelsAs.setEnabled(true);
 		nClearNetwork.setEnabled(true);
 		_networkSaveButton.setEnabled(true);
 		// nList.setEnabled(true);nSummary.setEnabled(true);
@@ -1517,6 +1522,7 @@ public class CsdpFrame extends JFrame {
 	protected void disableWhenNetworkCleared() {
 		nSave.setEnabled(false);
 		nSaveAs.setEnabled(false);
+		nSaveSpecifiedChannelsAs.setEnabled(false);
 		nClearNetwork.setEnabled(false);
 		_networkSaveButton.setEnabled(false);
 		// nList.setEnabled(false);nSummary.setEnabled(false);
@@ -1534,6 +1540,7 @@ public class CsdpFrame extends JFrame {
 	 */
 	public void enableWhenNetworkExists() {
 		nSaveAs.setEnabled(true);
+		nSaveSpecifiedChannelsAs.setEnabled(true);
 		nClearNetwork.setEnabled(true);
 		nExportToSEFormat.setEnabled(true);
 		nExportTo3DFormat.setEnabled(true);
@@ -2323,7 +2330,7 @@ public class CsdpFrame extends JFrame {
 			oUseToeDrainRestriction, oEchoToeDrainInput;
 	private JMenu tOpenWaterOptionsMenu, nExportOptions;
 	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc;
-	private JMenuItem nOpen, nSave, nSaveAs, nList, nSummary, nClearNetwork, nCalculate, nExportToSEFormat,
+	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nList, nSummary, nClearNetwork, nCalculate, nExportToSEFormat,
 			nExportTo3DFormat, nAWDSummary, nXSCheck;
 	private JMenuItem lSave, lSaveAs, lAdd, lMove, lEdit, lDelete, lHelp;
 
@@ -2344,6 +2351,7 @@ public class CsdpFrame extends JFrame {
 	private ActionListener _oLandmarkListener = null;
 	private ActionListener _nSaveListener = null;
 	private ActionListener _nSaveAsListener = null;
+	private ActionListener _nSaveSpeficiedChannelsAsListener = null;
 	private ActionEvent _nullActionEvent = new ActionEvent(this, 0, null);
 
 	private static final int COLOR_BY_DEPTH = 0;

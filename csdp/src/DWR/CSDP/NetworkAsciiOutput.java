@@ -100,6 +100,9 @@ public class NetworkAsciiOutput extends NetworkOutput {
 		try {
 			// write metadata
 			String nl = Integer.toString(_net.getNumCenterlines());
+			if(_channelsToExport != null) {
+				nl = Integer.toString(_channelsToExport.size());
+			}
 			_asciiOut.write(";HorizontalDatum:  " + nMeta.getHDatumString());
 			_asciiOut.newLine();
 			_asciiOut.write(";HorizontalZone:   " + nMeta.getHZone());
@@ -133,72 +136,79 @@ public class NetworkAsciiOutput extends NetworkOutput {
 			// _asciiOut.write(versionLine);
 			// _asciiOut.write(nl+"\n");
 			// write centerline
-
+			int numCenterlinesWritten = 0;
 			for (int i = 0; i <= _net.getNumCenterlines() - 1; i++) {
 				String centerlineName = _net.getCenterlineName(i);
-				centerline = _net.getCenterline(centerlineName);
-				line = "  " + "\"" + centerlineName + "\"" + " ";
-				line += centerline.getNumCenterlinePoints() + "\n" + "     ";
-				if (centerlineName.length() <= 0) {
-					System.out.println("not writing nameless centerline");
-				} else {
-					for (int j = 0; j <= centerline.getNumCenterlinePoints() - 1; j++) {
-						cPoint = centerline.getCenterlinePoint(j);
-						line += cPoint.getXFeet() + ",";
-						// line+=cPoint.getY()+" ";
-						line += cPoint.getYFeet() + "\n" + "     ";
-					} // for j
-					line += centerline.getNumXsects();
-					_asciiOut.write(line + "\n");
-					// _asciiOut.newLine();
-					// write cross-section lines
-					for (int k = 0; k <= centerline.getNumXsects() - 1; k++) {
-						xsect = centerline.getXsect(k);
-						line = "    " + "\"" + "\"" + " " + xsect.getNumPoints() + "\n" + "       ";
-						for (int m = 0; m <= xsect.getNumPoints() - 1; m++) {
-							xPoint = xsect.getXsectPoint(m);
-							if (get3DOutput()) {
-								double[] threeDCoord = _net.find3DXsectPointCoord(centerlineName, k, m);
-								line += threeDCoord[CsdpFunctions.x1Index] + ",";
-								line += threeDCoord[CsdpFunctions.y1Index] + ",";
-								line += xPoint.getElevationFeet() + "\n" + "       ";
-							} else {
-								line += xPoint.getStationFeet() + ",";
-								// line += xPoint.getElevation()+" ";
-								line += xPoint.getElevationFeet() + "\n" + "       ";
-							}
-						} // for m
-						line += xsect.getDistAlongCenterlineFeet() + " ";
-						line += xsect.getXsectLineLengthFeet() + " ";
-
-						// if there is no metadata for the cross-section, just
-						// write a
-						// set of empty quotes
-						metadata = xsect.getMetadata();
-						line += "\n" + "       " + "\"";
-						if (metadata != null) {
-							// if there are newline characters, replace with \n
-							for (int mIndex = 0; mIndex <= metadata.length() - 1; mIndex++) {
-								char metadataChar = metadata.charAt(mIndex);
-								if (metadataChar == '\r' || metadataChar == '\n') {
-									line += " *nl* ";
-									// line += " \n ";
+				if(_channelsToExport == null || _channelsToExport.contains(centerlineName)) {
+					centerline = _net.getCenterline(centerlineName);
+					line = "  " + "\"" + centerlineName + "\"" + " ";
+					line += centerline.getNumCenterlinePoints() + "\n" + "     ";
+					if (centerlineName.length() <= 0) {
+						System.out.println("not writing nameless centerline");
+					} else {
+						for (int j = 0; j <= centerline.getNumCenterlinePoints() - 1; j++) {
+							cPoint = centerline.getCenterlinePoint(j);
+							line += cPoint.getXFeet() + ",";
+							// line+=cPoint.getY()+" ";
+							line += cPoint.getYFeet() + "\n" + "     ";
+						} // for j
+						line += centerline.getNumXsects();
+						_asciiOut.write(line + "\n");
+						// _asciiOut.newLine();
+						// write cross-section lines
+						for (int k = 0; k <= centerline.getNumXsects() - 1; k++) {
+							xsect = centerline.getXsect(k);
+							line = "    " + "\"" + "\"" + " " + xsect.getNumPoints() + "\n" + "       ";
+							for (int m = 0; m <= xsect.getNumPoints() - 1; m++) {
+								xPoint = xsect.getXsectPoint(m);
+								if (get3DOutput()) {
+									double[] threeDCoord = _net.find3DXsectPointCoord(centerlineName, k, m);
+									line += threeDCoord[CsdpFunctions.x1Index] + ",";
+									line += threeDCoord[CsdpFunctions.y1Index] + ",";
+									line += xPoint.getElevationFeet() + "\n" + "       ";
 								} else {
-									line += metadataChar;
+									line += xPoint.getStationFeet() + ",";
+									// line += xPoint.getElevation()+" ";
+									line += xPoint.getElevationFeet() + "\n" + "       ";
+								}
+							} // for m
+							line += xsect.getDistAlongCenterlineFeet() + " ";
+							line += xsect.getXsectLineLengthFeet() + " ";
+	
+							// if there is no metadata for the cross-section, just
+							// write a
+							// set of empty quotes
+							metadata = xsect.getMetadata();
+							line += "\n" + "       " + "\"";
+							if (metadata != null) {
+								// if there are newline characters, replace with \n
+								for (int mIndex = 0; mIndex <= metadata.length() - 1; mIndex++) {
+									char metadataChar = metadata.charAt(mIndex);
+									if (metadataChar == '\r' || metadataChar == '\n') {
+										line += " *nl* ";
+										// line += " \n ";
+									} else {
+										line += metadataChar;
+									}
 								}
 							}
-						}
-						line += "\"";
-
-						_asciiOut.write(line + "\n");
-						line = null;
-					} // for k
-						// _asciiOut.newLine();
-					_asciiOut.write("\n");
-				} // else if centerline has a name
+							line += "\"";
+	
+							_asciiOut.write(line + "\n");
+							line = null;
+						} // for k
+							// _asciiOut.newLine();
+						_asciiOut.write("\n");
+					} // else if centerline has a name
+					numCenterlinesWritten ++;
+				}//if: only write channel if _channelsToExport is null or it's not null and channel number is contained in array
 			} // for i
+
+			System.out.println("numCenterlinesWritten="+numCenterlinesWritten);
 			_net.setIsUpdated(false);
 			success = true;
+			//make the array null again, so the static values will be persist.
+			_channelsToExport = null;
 		} catch (IOException e) {
 			System.out.println(
 					"Error ocurred while writing file " + _directory + _filename + "." + ASCII_TYPE + e.getMessage());

@@ -41,6 +41,7 @@
 package DWR.CSDP;
 
 import java.io.File;
+import java.util.HashSet;
 
 /**
  * Write ascii and binary network data
@@ -54,14 +55,16 @@ public abstract class NetworkOutput {
 
 	/**
 	 * Make instance of subclass of NetworkOutput
+	 * channelsToExport can be null; this would mean export every channel.
 	 */
-	public static NetworkOutput getInstance(String directory, String filename, String filetype, Network data) {
+	public static NetworkOutput getInstance(String directory, String filename, String filetype, Network data, HashSet<String> channelsToExport) {
 		_directory = directory;
 		if ((_directory.substring(_directory.length() - 1, _directory.length())).equals(File.separator) == false) {
 			_directory += File.separator;
 		}
 		_filename = filename;
 		_filetype = filetype;
+		_channelsToExport = channelsToExport;
 		NetworkOutput output = null;
 		if (_filetype.equals(ASCII_TYPE)) {
 			output = new NetworkAsciiOutput(data);
@@ -128,6 +131,13 @@ public abstract class NetworkOutput {
 	protected static final String ASCII_TYPE = "cdn";
 	protected static final String EXPORT_TYPE = "se";
 	protected static final String EXPORT_TYPE_3D = "3dn";
+	/*
+	 * If not null, will be an array of String representations of channels 
+	 * numbers that are the only numbers that should be exported. If null,
+	 * all channels will be exported.
+	 */
+	protected static HashSet<String> _channelsToExport; 
+	
 	// protected static final String BINARY_TYPE = "cdp";
 	protected static String _filename = null; // part of filename before the
 												// first dot

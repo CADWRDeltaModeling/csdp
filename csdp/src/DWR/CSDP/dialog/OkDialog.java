@@ -71,6 +71,23 @@ public class OkDialog extends JDialog {
 		configure(title);
 	}// constructor
 
+	public OkDialog(JFrame parent, String title, boolean modal, boolean editable) {
+		super(parent, title, modal);
+		_messageTA = new JTextArea(title);
+		_messageTA.setLineWrap(true);
+		_messageTA.setWrapStyleWord(true);
+		_messageTA.setEditable(editable);
+		_f = parent;
+		configure(title);
+	}// constructor
+
+	/*
+	 * For editable dialogs
+	 */
+	public String getMessage() {
+		return _messageTA.getText();
+	}
+	
 	/**
 	 * changes message displayed in top button
 	 */
@@ -98,6 +115,7 @@ public class OkDialog extends JDialog {
 		ActionListener okListener = new SetOk(this);
 		_okButton.addActionListener(okListener);
 		setMessage(title);
+		setVisible(true);
 	}// configure
 
 	public Insets getInsets() {

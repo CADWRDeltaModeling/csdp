@@ -54,8 +54,6 @@ import javax.swing.JOptionPane;
  */
 public abstract class NetworkInput {
 
-	public static final boolean DEBUG = false;
-	protected static Network _net;
 
 	/**
 	 * Make instance of subclass of BathymetryInput
@@ -224,6 +222,9 @@ public abstract class NetworkInput {
 			xsect.putMetadata(_pd.metadata);
 		} // if cross-section is inside centerline
 	}// storeXsectLine
+
+	public static final boolean DEBUG = false;
+	protected static Network _net;
 
 	protected NetworkParsedData _pd = new NetworkParsedData(); // vector-stores
 																// 6 values

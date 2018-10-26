@@ -45,12 +45,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
+import java.util.HashSet;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 import DWR.CSDP.dialog.FileIO;
 import DWR.CSDP.dialog.FileSave;
+import DWR.CSDP.dialog.OkDialog;
 
 public class NetworkMenu {
 
@@ -267,6 +269,80 @@ public class NetworkMenu {
 			boolean saved = false;
 			if (_cancel == false) {
 				saved = _app.nSaveAs(CsdpFunctions.getNetworkDirectory().getPath(), _filename + "." + _filetype);
+				((CsdpFrame) _gui).enableAfterNetwork();
+			} else {
+				saved = false;
+			}
+			return saved;
+		}
+
+	} // NSaveAs
+
+	/**
+	 * Save network file As
+	 *
+	 * @author
+	 * @version $Id: NetworkMenu.java,v 1.3 2003/04/15 19:46:14 btom Exp $
+	 */
+	public class NSaveSpecifiedChannelsAs extends FileIO implements ActionListener {
+		CsdpFrame _csdpFrame;
+		
+		public NSaveSpecifiedChannelsAs(CsdpFrame gui) {
+			super(gui, _saveDialogMessage, _saveErrorMessage, _saveSuccessMessage, _saveFailureMessage, true,
+					_saveExtensions, _numSaveExtensions);
+			_csdpFrame = gui;
+			_jfc.setDialogTitle(_saveDialogMessage);
+			_jfc.setApproveButtonText("Save");
+			_jfc.addChoosableFileFilter(_nSaveFilter);
+			_jfc.setFileFilter(_nSaveFilter);
+		}
+
+		/**
+		 * uses a dialog box to get filename from user
+		 */
+		protected String getFilename() {
+			int numLines = 0;
+			String filename = null;
+			if (CsdpFunctions.getNetworkDirectory() != null) {
+				_jfc.setCurrentDirectory(CsdpFunctions.getNetworkDirectory());
+			}
+
+			_filechooserState = _jfc.showSaveDialog(_gui);
+			if (_filechooserState == JFileChooser.APPROVE_OPTION) {
+				filename = _jfc.getName(_jfc.getSelectedFile());
+				CsdpFunctions.setNetworkDirectory(_jfc.getCurrentDirectory().getAbsolutePath() + File.separator);
+				parseFilename(filename);
+				_cancel = false;
+				CsdpFunctions._cancelSaveNetwork = false;
+			} else if (_filechooserState == JFileChooser.CANCEL_OPTION) {
+				_cancel = true;
+				CsdpFunctions._cancelSaveNetwork = true;
+				filename = null;
+			} else {
+				_cancel = true;
+				CsdpFunctions._cancelSaveNetwork = true;
+				filename = null;
+			} // if
+			return filename;
+		}// getFilename
+
+		public boolean accessFile() {
+			boolean saved = false;
+			if (_cancel == false) {
+				//enter channel numbers
+				OkDialog getChannelNumbers = new OkDialog(_gui, "Enter channel numbers to export", true, true);
+				String channelNumbers = getChannelNumbers.getMessage();
+				HashSet<String> channelNumbersHashSet = null;
+				if(channelNumbers.length() >0) {
+					channelNumbersHashSet = new HashSet<String>();
+					String[] parts = channelNumbers.split(" |,");
+					Network network = _csdpFrame.getNetwork();
+					for(int i=0; i<parts.length; i++) {
+						if(network.centerlineExists(parts[i]))
+						channelNumbersHashSet.add(parts[i]);
+					}
+				}
+				saved = _app.nSaveSpecifiedChannelsAs(CsdpFunctions.getNetworkDirectory().getPath(), _filename + "." + _filetype, channelNumbersHashSet);
 				((CsdpFrame) _gui).enableAfterNetwork();
 			} else {
 				saved = false;
