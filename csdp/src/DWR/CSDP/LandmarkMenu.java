@@ -55,11 +55,13 @@ import DWR.CSDP.dialog.MessageDialog;
 
 public class LandmarkMenu {
 
+
 	public LandmarkMenu(App app, CsdpFrame gui) {
 		_app = app;
 		_gui = gui;
 		_lOpenFilter = new CsdpFileFilter(_openExtensions, _numOpenExtensions);
 		_lSaveFilter = new CsdpFileFilter(_saveExtensions, _numSaveExtensions);
+		_lExportWKTFilter = new CsdpFileFilter(_wktExtensions, _numWKTExtensions);
 	}
 
 	/**
@@ -256,6 +258,62 @@ public class LandmarkMenu {
 
 	} // LSaveAs
 
+	public class LExportToWKT extends FileIO implements ActionListener {
+		private CsdpFrame gui;
+
+		public LExportToWKT(CsdpFrame gui) {
+			super(gui, _exportWKTDialogMessage, _exportWKTErrorMessage, _exportWKTSuccessMessage, _exportWKTFailureMessage, true,
+					_wktExtensions, _numWKTExtensions);
+			_jfc.setDialogTitle(_exportWKTDialogMessage);
+			_jfc.setApproveButtonText("Export landmarks to WKT format");
+			_jfc.addChoosableFileFilter(_lExportWKTFilter);
+			_jfc.setFileFilter(_lExportWKTFilter);
+			_gui = gui;
+			this.gui = gui;
+		}
+		
+		@Override
+		public boolean accessFile() {
+			boolean saved = false;
+			if(_cancel == false) {
+				saved = _app.lExportToWKT(gui.getLandmark(), CsdpFunctions.getLandmarkDirectory().getPath(), _filename+"."+_filetype);
+			}else {
+				saved = false;
+			}
+			return saved;
+		}//accessFile
+
+		/**
+		 * uses a dialog box to get filename from user
+		 */
+		protected String getFilename() {
+			int numLines = 0;
+			String filename = null;
+			if (CsdpFunctions.getLandmarkDirectory() != null) {
+				_jfc.setCurrentDirectory(CsdpFunctions.getLandmarkDirectory());
+			}
+
+			_filechooserState = _jfc.showSaveDialog(_gui);
+			if (_filechooserState == JFileChooser.APPROVE_OPTION) {
+				filename = _jfc.getName(_jfc.getSelectedFile());
+				CsdpFunctions.setLandmarkDirectory(_jfc.getCurrentDirectory().getAbsolutePath() + File.separator);
+				parseFilename(filename);
+				_cancel = false;
+				CsdpFunctions._cancelSaveLandmarks = false;
+			} else if (_filechooserState == JFileChooser.CANCEL_OPTION) {
+				_cancel = true;
+				CsdpFunctions._cancelSaveLandmarks = true;
+				filename = null;
+			} else {
+				_cancel = true;
+				CsdpFunctions._cancelSaveLandmarks = true;
+				filename = null;
+			} // if
+			return filename;
+		}// getFilename
+	}//class LExportToWKT
+
+	
 	/*
 	 * Add landmark listener for popup menu (right click) will create new
 	 * landmark file if landmark is null
@@ -601,6 +659,13 @@ public class LandmarkMenu {
 	private static final String[] _saveExtensions = { "cdl" };
 	private static final int _numSaveExtensions = 1;
 
+	private static final String _exportWKTDialogMessage = "Export landmarks to WKT(.wkt) file";
+	private static final String _exportWKTErrorMessage = "Only .wkt extension allowed";
+	private static final String _exportWKTSuccessMessage = "Exported landmarks to .wkt file";
+	private static final String _exportWKTFailureMessage = "Failed to export to .wkt file";
+	private static final String[] _wktExtensions = {"wkt"};
+	private static final int _numWKTExtensions = 1;
+	
 	private static final String _saveSuccessMessage = "Saved landmark file";
 	private static final String _saveFailureMessage = "ERROR:  LANDMARK FILE NOT SAVED!";
 	private static final String _openSuccessMessage = "";
@@ -609,6 +674,7 @@ public class LandmarkMenu {
 	private Landmark _landmark;
 	private CsdpFileFilter _lOpenFilter;
 	private CsdpFileFilter _lSaveFilter;
+	private CsdpFileFilter _lExportWKTFilter;
 	private CsdpFileFilter _nExportFilter;
 	private CsdpFileFilter _3dNExportFilter;
 	private LandmarkPlot _lplot;

@@ -73,7 +73,7 @@ public class OkDialog extends JDialog {
 
 	public OkDialog(JFrame parent, String title, boolean modal, boolean editable) {
 		super(parent, title, modal);
-		_messageTA = new JTextArea(title);
+		_messageTA = new JTextArea();
 		_messageTA.setLineWrap(true);
 		_messageTA.setWrapStyleWord(true);
 		_messageTA.setEditable(editable);

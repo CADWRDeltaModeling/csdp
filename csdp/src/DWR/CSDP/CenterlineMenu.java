@@ -236,6 +236,8 @@ public class CenterlineMenu {
 					} else {
 						loadAnotherChannelsInpFile = false;
 					}
+				}else {
+					loadAnotherChannelsInpFile = false;
 				}
 
 				if (_DSMChannels == null || loadAnotherChannelsInpFile) {

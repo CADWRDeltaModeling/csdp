@@ -145,8 +145,10 @@ public class NetworkAsciiInput extends NetworkInput {
 					centerlineLines = "";
 					line = _asciiIn.readLine();
 					centerlineLines += line + "\n";
-					if (DEBUG)
+					if (DEBUG) {
 						System.out.println("about to parse Centerline header=" + line);
+						System.out.println("numCenterlines, i="+_pd.numCenterlines+","+i);
+					}
 					int numCenterlinePoints = parseCenterlineHeader(line);
 					for (int j = 0; j <= numCenterlinePoints - 1; j++) {
 						line = _asciiIn.readLine();

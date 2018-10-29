@@ -604,6 +604,56 @@ public class App {
 		return success;
 	}// nSaveAs
 
+	public boolean nExportToWKT(Network net, String directory, String filename) {
+		AsciiFileWriter afw = new AsciiFileWriter(directory+File.separator+filename);
+		afw.writeLine("id;wkt");
+		boolean success = true;
+		try{
+			int numCenterlines = net.getNumCenterlines();
+			for(int i=0; i<numCenterlines; i++) {
+				String centerlineName = net.getCenterlineName(i);
+				Centerline centerline = (Centerline) net.getCenterline(centerlineName);
+				String lineToWrite = centerlineName+";LINESTRING(";
+				int numPoints = centerline.getNumCenterlinePoints();
+				for(int j=0; j<numPoints; j++) {
+					if(j>0) {
+						lineToWrite += ",";
+					}
+					CenterlinePoint cp = centerline.getCenterlinePoint(j);
+					lineToWrite+=cp._x+" "+cp._y;
+				}
+				lineToWrite += ")"; 
+				afw.writeLine(lineToWrite);
+			}
+			afw.close();
+			success = true;
+		}catch(Exception exception) {
+			success = false;
+		}
+		return success;
+	}//nExportToWKT
+
+	public boolean lExportToWKT(Landmark landmark, String directory, String filename) {
+		AsciiFileWriter afw = new AsciiFileWriter(directory+File.separator+filename);
+		afw.writeLine("id;wkt");
+		boolean success = true;
+		Enumeration<String> e = landmark.getLandmarkNames();
+		landmark.getNumLandmarks();
+		try {
+			while(e.hasMoreElements()) {
+				String landmarkName = e.nextElement();
+				double easting = landmark.getXMeters(landmarkName);
+				double northing = landmark.getYMeters(landmarkName);
+				afw.writeLine(landmarkName+";POINT("+easting+" "+northing+")");
+			}
+			afw.close();	
+			success = true;
+		}catch(Exception exception) {
+			success = false;
+		}
+		return success;
+	}//lExportToWKT
+	
 	/**
 	 * write network file
 	 */

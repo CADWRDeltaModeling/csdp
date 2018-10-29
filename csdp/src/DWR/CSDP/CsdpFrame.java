@@ -78,6 +78,11 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
+import com.sun.corba.se.spi.orbutil.fsm.Action;
+
+import DWR.CSDP.LandmarkMenu.LExportToWKT;
+import DWR.CSDP.NetworkMenu.NExportToWKTFormat;
+
 /**
  * Display Frame
  *
@@ -709,6 +714,7 @@ public class CsdpFrame extends JFrame {
 		cfNetwork.add(nOpen = new JMenuItem("Open"));
 		cfNetwork.add(nSave = new JMenuItem("Save"));
 		cfNetwork.add(nSaveAs = new JMenuItem("Save As"));
+		cfNetwork.add(nExportToWKT = new JMenuItem("Export to WKT format for GIS"));
 		cfNetwork.add(nSaveSpecifiedChannelsAs = new JMenuItem("Save Specified Channels"));
 		
 		cfNetwork.setMnemonic(KeyEvent.VK_N);
@@ -742,6 +748,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener nOpenListener = networkMenu.new NOpen(this);
 		_nSaveListener = networkMenu.new NSave(this);
 		_nSaveAsListener = networkMenu.new NSaveAs(this);
+		ActionListener nExportToWKTListener = networkMenu.new NExportToWKTFormat(this);
 		_nSaveSpeficiedChannelsAsListener = networkMenu.new NSaveSpecifiedChannelsAs(this);
 		ActionListener nClearNetworkListener = networkMenu.new NClearNetwork(this);
 		ActionListener nExportToSEFormatListener = networkMenu.new NExportToSEFormat(this);
@@ -757,6 +764,7 @@ public class CsdpFrame extends JFrame {
 		nSave.addActionListener(_nSaveListener);
 		nSaveAs.addActionListener(_nSaveAsListener);
 		nSaveSpecifiedChannelsAs.addActionListener(_nSaveSpeficiedChannelsAsListener);
+		nExportToWKT.addActionListener(nExportToWKTListener);
 		nClearNetwork.addActionListener(nClearNetworkListener);
 		nExportToSEFormat.addActionListener(nExportToSEFormatListener);
 		nExportTo3DFormat.addActionListener(nExportTo3DFormatListener);
@@ -778,6 +786,7 @@ public class CsdpFrame extends JFrame {
 		cfLandmark.add(cLandmarks = new JMenuItem("Clear Landmarks"));
 		cfLandmark.add(lSave = new JMenuItem("Save"));
 		cfLandmark.add(lSaveAs = new JMenuItem("Save As"));
+		cfLandmark.add(lExportToWKT = new JMenuItem("Export to WKT Format for GIS"));
 		cfLandmark.add(lHelp = new JMenuItem("Landmark Editing Help"));
 
 		if (_addLandmarkMenu)
@@ -788,6 +797,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener LClearLandmarksListener = landmarkMenu.new LClear();
 		ActionListener LSaveLandmarksListener = landmarkMenu.new LSave(this);
 		ActionListener LSaveLandmarksAsListener = landmarkMenu.new LSaveAs(this);
+		ActionListener LExportLandmarksToWKTListener = landmarkMenu.new LExportToWKT(this);
 		ActionListener LAddListener = landmarkMenu.new LAdd();
 		// these may not need listeners?
 		ActionListener LMoveListener = landmarkMenu.new LMove();
@@ -799,6 +809,7 @@ public class CsdpFrame extends JFrame {
 		cLandmarks.addActionListener(LClearLandmarksListener);
 		lSave.addActionListener(LSaveLandmarksListener);
 		lSaveAs.addActionListener(LSaveLandmarksAsListener);
+		lExportToWKT.addActionListener(LExportLandmarksToWKTListener);
 		lHelp.addActionListener(LHelpListener);
 		// _landmarkOpenButton.addActionListener(LAddListener);
 		// _landmarkAddButton.addActionListener(LAddListener);
@@ -1169,11 +1180,12 @@ public class CsdpFrame extends JFrame {
 	 */
 	public Landmark getLandmark() {
 		Landmark landmark = null;
-		// if(_landmark != null) landmark = _landmark;
-		// else{
-		_oLandmarkListener.actionPerformed(_nullActionEvent);
-		landmark = _landmark;
-		// }
+		if(_landmark != null) {
+			landmark = _landmark;
+		}else{
+			_oLandmarkListener.actionPerformed(_nullActionEvent);
+			landmark = _landmark;
+		}
 		return landmark;
 	}// getLandmark
 
@@ -1361,7 +1373,8 @@ public class CsdpFrame extends JFrame {
 		cLandmarks.setEnabled(false);
 		lSave.setEnabled(false);
 		lSaveAs.setEnabled(false);
-
+		lExportToWKT.setEnabled(false);
+		
 		lAddPopup.setEnabled(false);
 		lEditPopup.setEnabled(false);
 		lMovePopup.setEnabled(false);
@@ -1376,6 +1389,7 @@ public class CsdpFrame extends JFrame {
 		nSave.setEnabled(false);
 		nSaveAs.setEnabled(false);
 		nSaveSpecifiedChannelsAs.setEnabled(false);
+		nExportToWKT.setEnabled(false);
 		nExportToSEFormat.setEnabled(false);
 		nExportTo3DFormat.setEnabled(false);
 		// nList.setEnabled(false);nSummary.setEnabled(false);
@@ -1436,7 +1450,8 @@ public class CsdpFrame extends JFrame {
 		oLandmark.setEnabled(true);
 		lSave.setEnabled(true);
 		lSaveAs.setEnabled(true);
-
+		lExportToWKT.setEnabled(true);
+		
 		lAddPopup.setEnabled(true);
 		lEditPopup.setEnabled(true);
 		lMovePopup.setEnabled(true);
@@ -1481,6 +1496,7 @@ public class CsdpFrame extends JFrame {
 	protected void enableAfterNetwork() {
 		nSave.setEnabled(true);
 		nSaveAs.setEnabled(true);
+		nExportToWKT.setEnabled(true);
 		nSaveSpecifiedChannelsAs.setEnabled(true);
 		nClearNetwork.setEnabled(true);
 		_networkSaveButton.setEnabled(true);
@@ -1500,6 +1516,7 @@ public class CsdpFrame extends JFrame {
 	protected void enableAfterLandmark() {
 		lSave.setEnabled(true);
 		lSaveAs.setEnabled(true);
+		lExportToWKT.setEnabled(true);
 		cLandmarks.setEnabled(true);
 		// _landmarkSaveButton.setEnabled(true);
 		// _landmarkAddButton.setEnabled(true);
@@ -1522,6 +1539,7 @@ public class CsdpFrame extends JFrame {
 	protected void disableWhenNetworkCleared() {
 		nSave.setEnabled(false);
 		nSaveAs.setEnabled(false);
+		nExportToWKT.setEnabled(false);
 		nSaveSpecifiedChannelsAs.setEnabled(false);
 		nClearNetwork.setEnabled(false);
 		_networkSaveButton.setEnabled(false);
@@ -1541,6 +1559,7 @@ public class CsdpFrame extends JFrame {
 	public void enableWhenNetworkExists() {
 		nSaveAs.setEnabled(true);
 		nSaveSpecifiedChannelsAs.setEnabled(true);
+		nExportToWKT.setEnabled(true);
 		nClearNetwork.setEnabled(true);
 		nExportToSEFormat.setEnabled(true);
 		nExportTo3DFormat.setEnabled(true);
@@ -2330,9 +2349,9 @@ public class CsdpFrame extends JFrame {
 			oUseToeDrainRestriction, oEchoToeDrainInput;
 	private JMenu tOpenWaterOptionsMenu, nExportOptions;
 	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc;
-	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nList, nSummary, nClearNetwork, nCalculate, nExportToSEFormat,
+	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nList, nSummary, nClearNetwork, nCalculate, nExportToSEFormat,
 			nExportTo3DFormat, nAWDSummary, nXSCheck;
-	private JMenuItem lSave, lSaveAs, lAdd, lMove, lEdit, lDelete, lHelp;
+	private JMenuItem lSave, lSaveAs, lExportToWKT, lAdd, lMove, lEdit, lDelete, lHelp;
 
 	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;
 

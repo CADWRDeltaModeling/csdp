@@ -119,7 +119,7 @@ public abstract class FileIO {
 	 * accept is really supposed to be used by FilenameFilter, but since the
 	 * FilenameFilter doesn't work, I am calling it directly.
 	 */
-	public boolean accept(String name) {
+	private boolean accept(String name) {
 		parseFilename(name);
 		boolean value = false;
 		if (_filetype != null) {

@@ -50,6 +50,9 @@ import java.util.HashSet;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
+import com.sun.jndi.toolkit.ctx.StringHeadTail;
+import com.sun.org.glassfish.external.statistics.Statistic;
+
 import DWR.CSDP.dialog.FileIO;
 import DWR.CSDP.dialog.FileSave;
 import DWR.CSDP.dialog.OkDialog;
@@ -60,6 +63,7 @@ public class NetworkMenu {
 		_app = app;
 		_nOpenFilter = new CsdpFileFilter(_openExtensions, _numOpenExtensions);
 		_nSaveFilter = new CsdpFileFilter(_saveExtensions, _numSaveExtensions);
+		_nExportToWKTFilter = new CsdpFileFilter(_wktExtensions, _numWKTExtensions);
 		_nExportFilter = new CsdpFileFilter(_exportExtensions, _numExportExtensions);
 		_3dNExportFilter = new CsdpFileFilter(_3dExportExtensions, _3dNumExportExtensions);
 	}
@@ -278,6 +282,63 @@ public class NetworkMenu {
 
 	} // NSaveAs
 
+	public class NExportToWKTFormat extends FileIO implements ActionListener {
+		private CsdpFrame gui;
+
+		public NExportToWKTFormat(CsdpFrame gui) {
+			super(gui, _exportWKTDialogMessage, _saveErrorMessage, _exportWKTSuccessMessage, _exportWKTFailureMessage, true,
+					_wktExtensions, _numWKTExtensions);
+			_jfc.setDialogTitle(_exportWKTDialogMessage);
+			_jfc.setApproveButtonText("Export to WKT Format");
+			_jfc.addChoosableFileFilter(_nExportToWKTFilter);
+			_jfc.setFileFilter(_nExportToWKTFilter);
+			this.gui = gui;
+		}
+
+		@Override
+		public boolean accessFile() {
+			boolean saved = false;
+			if(_cancel==false) {
+				Network net = gui.getNetwork();
+				saved = _app.nExportToWKT(net, CsdpFunctions.getNetworkDirectory().getPath(), _filename+"."+_filetype);
+			}else {
+				saved=false;
+			}
+			return saved;
+		}
+
+		/**
+		 * uses a dialog box to get filename from user
+		 */
+		protected String getFilename() {
+			int numLines = 0;
+			String filename = null;
+			if (CsdpFunctions.getNetworkDirectory() != null) {
+				_jfc.setCurrentDirectory(CsdpFunctions.getNetworkDirectory());
+			}
+
+			_filechooserState = _jfc.showSaveDialog(_gui);
+			if (_filechooserState == JFileChooser.APPROVE_OPTION) {
+				filename = _jfc.getName(_jfc.getSelectedFile());
+				CsdpFunctions.setNetworkDirectory(_jfc.getCurrentDirectory().getAbsolutePath() + File.separator);
+				parseFilename(filename);
+				_cancel = false;
+				CsdpFunctions._cancelSaveNetwork = false;
+			} else if (_filechooserState == JFileChooser.CANCEL_OPTION) {
+				_cancel = true;
+				CsdpFunctions._cancelSaveNetwork = true;
+				filename = null;
+			} else {
+				_cancel = true;
+				CsdpFunctions._cancelSaveNetwork = true;
+				filename = null;
+			} // if
+			return filename;
+		}// getFilename
+	}//class NExportToWKTFormat
+
+	
+	
 	/**
 	 * Save network file As
 	 *
@@ -609,6 +670,13 @@ public class NetworkMenu {
 	protected static final String[] _saveExtensions = { "cdn" };
 	protected static final int _numSaveExtensions = 1;
 
+	protected static final String _exportWKTDialogMessage = "Export network to WKT(.wkt) format";
+	protected static final String _exportWKTErrorMessage = "Only .wkt extension allowed";
+	protected static final String _exportWKTSuccessMessage = "Exported to .wkt";
+	protected static final String _exportWKTFailureMessage = "Failed to export to .wkt!";
+	protected static final String[] _wktExtensions = {"wkt"};
+	protected static final int _numWKTExtensions = 1;
+	
 	protected static final String _saveSuccessMessage = "Saved network file";
 	protected static final String _saveFailureMessage = "ERROR:  NETWORK FILE NOT SAVED!";
 	protected static final String _openSuccessMessage = "";
@@ -632,6 +700,7 @@ public class NetworkMenu {
 
 	CsdpFileFilter _nOpenFilter;
 	CsdpFileFilter _nSaveFilter;
+	CsdpFileFilter _nExportToWKTFilter;
 	CsdpFileFilter _nExportFilter;
 	CsdpFileFilter _3dNExportFilter;
 
