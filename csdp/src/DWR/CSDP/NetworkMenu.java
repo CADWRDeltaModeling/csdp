@@ -50,9 +50,6 @@ import java.util.HashSet;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
-import com.sun.jndi.toolkit.ctx.StringHeadTail;
-import com.sun.org.glassfish.external.statistics.Statistic;
-
 import DWR.CSDP.dialog.FileIO;
 import DWR.CSDP.dialog.FileSave;
 import DWR.CSDP.dialog.OkDialog;
@@ -643,6 +640,41 @@ public class NetworkMenu {
 		}// actionPerformed
 	} // NXSCheck
 
+	public class NZoomToCenterline implements ActionListener {
+		CsdpFrame _gui;
+		public NZoomToCenterline(CsdpFrame gui) {
+			_gui = gui;
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			// TODO Auto-generated method stub
+			String response = JOptionPane.showInputDialog(_gui, "Enter centerline name", "Zoom to centerline", JOptionPane.OK_CANCEL_OPTION);
+			if(response!=null && response.length()>0) {
+				NetworkInteractor networkInteractor = _gui.getNetworkInteractor();
+				networkInteractor.zoomToCenterline(response);
+			}
+		}
+	}
+	public class NZoomToNode implements ActionListener {
+		CsdpFrame _gui;
+		public NZoomToNode(CsdpFrame gui) {
+			_gui = gui;
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			// TODO Auto-generated method stub
+			String response = JOptionPane.showInputDialog(_gui, "Enter node name", "Zoom to node", JOptionPane.OK_CANCEL_OPTION);
+			if(response!=null && response.length()>0) {
+				NetworkInteractor networkInteractor = _gui.getNetworkInteractor();
+				networkInteractor.zoomToNode(response);
+			}
+		}
+	}
+
+
+	
 	//// KEEP THIS CLASS--IT MIGHT BE NEEDED SOMEDAY
 	// // public class NetworkFilenameFilter implements FilenameFilter{
 	// // public boolean accept(File dir, String name){

@@ -590,6 +590,18 @@ public class CenterlineMenu {
 		}
 	}//class DisplayCenterlineSummaryWindow
 
+	public class PlotAllCrossSections implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			_net = _gui.getNetwork();
+			String centerlineName = _net.getSelectedCenterlineName();
+			MultipleXsectGraph mxg = new MultipleXsectGraph(_gui, _app, _net, centerlineName);
+			mxg.setVisible(true);
+		}
+	}
+
+	
 	public class AddXSAtComputationalPoints implements ActionListener{
 
 		private NetworkInteractor networkInteractor;

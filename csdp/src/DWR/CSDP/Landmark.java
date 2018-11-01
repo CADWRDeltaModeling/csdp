@@ -529,6 +529,10 @@ public class Landmark {
 		return _isUpdated;
 	}
 
+	public boolean containsLandmark(String landmarkName) {
+		return _landmarkTable.containsKey(landmarkName);
+	}
+	
 	/**
 	 * set to true whenever network is changed
 	 */

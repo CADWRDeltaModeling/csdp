@@ -1023,12 +1023,6 @@ public class XsectGraph extends JDialog implements ActionListener {
 	 * Make NetworkDataSets to store bathymetry data to be plotted. Each set
 	 * will be from a different year, source, or elevation range (bin) depending
 	 * on plot options.
-	 * 
-	 * 
-	 * 
-	 * if no data: make a dataset with 1 point at 0,0????????????? So user can
-	 * draw xs even if no bath
-	 * 
 	 */
 	protected void makeBathymetryDataSets() {
 

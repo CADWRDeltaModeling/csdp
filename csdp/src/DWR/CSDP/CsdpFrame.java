@@ -78,10 +78,6 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
-import com.sun.corba.se.spi.orbutil.fsm.Action;
-
-import DWR.CSDP.LandmarkMenu.LExportToWKT;
-import DWR.CSDP.NetworkMenu.NExportToWKTFormat;
 
 /**
  * Display Frame
@@ -504,15 +500,15 @@ public class CsdpFrame extends JFrame {
 		// _planViewJPanel.add(eastBox, BorderLayout.EAST);
 		// _planViewJPanel.add(southBox, BorderLayout.SOUTH);
 
-		_ni = new NetworkInteractor(this, _canvas1, _app);
+		_networkInteractor = new NetworkInteractor(this, _canvas1, _app);
 
 		// ZoomInteractor zi = new ZoomInteractor(_canvas1);
 		// _canvas1.addMouseListener(zi);
 		// _canvas1.addMouseMotionListener(zi);
 		_li = new LandmarkInteractor(this, _canvas1, _app);
 
-		_canvas1.addMouseListener(_ni);
-		_canvas1.addMouseMotionListener(_ni);
+		_canvas1.addMouseListener(_networkInteractor);
+		_canvas1.addMouseMotionListener(_networkInteractor);
 		_canvas1.addMouseListener(_li);
 		_canvas1.addMouseMotionListener(_li);
 
@@ -725,6 +721,8 @@ public class CsdpFrame extends JFrame {
 		nSaveAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK));
 		nSaveAs.setMnemonic(KeyEvent.VK_A);
 
+		cfNetwork.add(nZoomToCenterline = new JMenuItem("Zoom to centerline"));
+		cfNetwork.add(nZoomToNode = new JMenuItem("Zoom to node"));
 		cfNetwork.add(nClearNetwork = new JMenuItem("Clear Network"));
 		cfNetwork.add(nExportToSEFormat = new JMenuItem("Export to Station/Elevation format"));
 		cfNetwork.add(nExportTo3DFormat = new JMenuItem("Export to 3D format"));
@@ -751,6 +749,8 @@ public class CsdpFrame extends JFrame {
 		ActionListener nExportToWKTListener = networkMenu.new NExportToWKTFormat(this);
 		_nSaveSpeficiedChannelsAsListener = networkMenu.new NSaveSpecifiedChannelsAs(this);
 		ActionListener nClearNetworkListener = networkMenu.new NClearNetwork(this);
+		ActionListener nZoomToCenterlineListener = networkMenu.new NZoomToCenterline(this);
+		ActionListener nZoomToNodeListener = networkMenu.new NZoomToNode(this); 
 		ActionListener nExportToSEFormatListener = networkMenu.new NExportToSEFormat(this);
 		ActionListener nExportTo3DFormatListener = networkMenu.new NExportTo3DFormat(this);
 		EventListener noChannelLengthsOnlyListener = networkMenu.new NChannelLengthsOnly();
@@ -766,6 +766,8 @@ public class CsdpFrame extends JFrame {
 		nSaveSpecifiedChannelsAs.addActionListener(_nSaveSpeficiedChannelsAsListener);
 		nExportToWKT.addActionListener(nExportToWKTListener);
 		nClearNetwork.addActionListener(nClearNetworkListener);
+		nZoomToCenterline.addActionListener(nZoomToCenterlineListener);
+		nZoomToNode.addActionListener(nZoomToNodeListener);
 		nExportToSEFormat.addActionListener(nExportToSEFormatListener);
 		nExportTo3DFormat.addActionListener(nExportTo3DFormatListener);
 		noChannelLengthsOnly.addItemListener((ItemListener) noChannelLengthsOnlyListener);
@@ -888,6 +890,7 @@ public class CsdpFrame extends JFrame {
 		// cfCenterline.add(cList = new JMenuItem("List"));
 		// cfCenterline.add(cSummary = new JMenuItem("Summary"));
 		cfCenterline.add(cDisplaySummary = new JMenuItem("View Centerline Summary"));
+		cfCenterline.add(cPlotAllCrossSections = new JMenuItem("Plot all cross-sections"));
 		cfCenterline.add(cAddXSAtComputationalPoints = new JMenuItem("Add cross-sections at Computational Pts"));
 		
 		cfCenterline.setMnemonic(KeyEvent.VK_C);
@@ -911,7 +914,8 @@ public class CsdpFrame extends JFrame {
 		ActionListener cRemoveXsectListener = _centerlineMenu.new CRemoveXsect();
 		ActionListener cMoveXsectListener = _centerlineMenu.new CMoveXsect();
 		ActionListener cDisplaySummaryListener = _centerlineMenu.new DisplayCenterlineSummaryWindow();
-		ActionListener cAddXSAtComputationalPointsListener = _centerlineMenu.new AddXSAtComputationalPoints(_ni);
+		ActionListener cPlotAllCrossSectionsListener = _centerlineMenu.new PlotAllCrossSections();
+		ActionListener cAddXSAtComputationalPointsListener = _centerlineMenu.new AddXSAtComputationalPoints(_networkInteractor);
 		
 		cCursor.addActionListener(cCursorListener);
 		cCreate.addActionListener(cCreateListener);
@@ -921,6 +925,7 @@ public class CsdpFrame extends JFrame {
 		// cRestore.addActionListener(cRestoreListener);
 		// cKeep.addActionListener(cKeepListener);
 		cDisplaySummary.addActionListener(cDisplaySummaryListener);
+		cPlotAllCrossSections.addActionListener(cPlotAllCrossSectionsListener);
 		cAddXSAtComputationalPoints.addActionListener(cAddXSAtComputationalPointsListener);
 				
 		_cursorButton.addActionListener(cCursorListener);
@@ -955,7 +960,7 @@ public class CsdpFrame extends JFrame {
 			menubar.add(cfXsect);
 
 		// create and register action listener objects for the Xsect menu items
-		_xsectMenu = new XsectMenu(_app, this, _ni);
+		_xsectMenu = new XsectMenu(_app, this, _networkInteractor);
 		// ActionListener xCreateListener = _xsectMenu.new XCreate();
 		// ActionListener xRemoveListener = _xsectMenu.new XRemove();
 		// ActionListener xMoveListener = _xsectMenu.new XMove();
@@ -1152,7 +1157,7 @@ public class CsdpFrame extends JFrame {
 	 */
 	public void setNetwork(Network net) {
 		_net = net;
-		_ni.setNetwork(net);
+		_networkInteractor.setNetwork(net);
 		_xsectMenu.setNetwork(net);
 		_canvas1.setNetwork(net);
 	}// setNetwork
@@ -1164,6 +1169,10 @@ public class CsdpFrame extends JFrame {
 		return _net;
 	}// getNetwork
 
+	public NetworkInteractor getNetworkInteractor() {
+		return _networkInteractor;
+	}
+	
 	/**
 	 * save network file when quitting program (if user clicks "yes")
 	 */
@@ -1219,7 +1228,7 @@ public class CsdpFrame extends JFrame {
 	 */
 	public void setPlotObject(BathymetryPlot plot) {
 		_plot = plot;
-		_ni.setPlotter(plot);
+		_networkInteractor.setPlotter(plot);
 		_li.setPlotter(plot);
 	}// setPlotObject
 
@@ -1251,6 +1260,7 @@ public class CsdpFrame extends JFrame {
 			_addXsectButton.setEnabled(true);
 			_removeXsectButton.setEnabled(true);
 			cDisplaySummary.setEnabled(true);
+			cPlotAllCrossSections.setEnabled(true);
 			cAddXSAtComputationalPoints.setEnabled(true);
 			if (getXsectSelected()) {
 				_moveXsectButton.setEnabled(true);
@@ -1277,6 +1287,7 @@ public class CsdpFrame extends JFrame {
 			lMovePopup.setEnabled(false);
 			lDeletePopup.setEnabled(false);
 			cDisplaySummary.setEnabled(false);
+			cPlotAllCrossSections.setEnabled(false);
 			cAddXSAtComputationalPoints.setEnabled(false);
 		}
 	}// setStopEditingMode
@@ -1394,12 +1405,14 @@ public class CsdpFrame extends JFrame {
 		nExportTo3DFormat.setEnabled(false);
 		// nList.setEnabled(false);nSummary.setEnabled(false);
 		nClearNetwork.setEnabled(false);
+		nZoomToCenterline.setEnabled(false);
 		nCalculate.setEnabled(false);
 		_networkCalculateButton.setEnabled(false);
 		cCreate.setEnabled(false);
 		cDSMCreate.setEnabled(false);
 		//// cRename.setEnabled(false);
 		cDisplaySummary.setEnabled(false);
+		cPlotAllCrossSections.setEnabled(false);
 		cAddXSAtComputationalPoints.setEnabled(false);
 		
 		tCalcRect.setEnabled(false);
@@ -1463,6 +1476,7 @@ public class CsdpFrame extends JFrame {
 		cCreate.setEnabled(true);
 		cDSMCreate.setEnabled(true);
 		cDisplaySummary.setEnabled(false);
+		cPlotAllCrossSections.setEnabled(false);
 		cAddXSAtComputationalPoints.setEnabled(false);
 		// xMove.setEnabled(true);
 		// xInfo.setEnabled(true);xSummary.setEnabled(true);
@@ -1499,6 +1513,7 @@ public class CsdpFrame extends JFrame {
 		nExportToWKT.setEnabled(true);
 		nSaveSpecifiedChannelsAs.setEnabled(true);
 		nClearNetwork.setEnabled(true);
+		nZoomToCenterline.setEnabled(true);
 		_networkSaveButton.setEnabled(true);
 		// nList.setEnabled(true);nSummary.setEnabled(true);
 		nExportToSEFormat.setEnabled(true);
@@ -1527,7 +1542,6 @@ public class CsdpFrame extends JFrame {
 		lMovePopup.setEnabled(true);
 		lDeletePopup.setEnabled(true);
 		cLandmarks.setEnabled(true);
-
 		dFitByNetworkMenuItem.setEnabled(true);
 		tCalcRect.setEnabled(true);
 	}// enableAfterNetwork
@@ -1542,6 +1556,7 @@ public class CsdpFrame extends JFrame {
 		nExportToWKT.setEnabled(false);
 		nSaveSpecifiedChannelsAs.setEnabled(false);
 		nClearNetwork.setEnabled(false);
+		nZoomToCenterline.setEnabled(false);
 		_networkSaveButton.setEnabled(false);
 		// nList.setEnabled(false);nSummary.setEnabled(false);
 		nExportToSEFormat.setEnabled(false);
@@ -1561,6 +1576,7 @@ public class CsdpFrame extends JFrame {
 		nSaveSpecifiedChannelsAs.setEnabled(true);
 		nExportToWKT.setEnabled(true);
 		nClearNetwork.setEnabled(true);
+		nZoomToCenterline.setEnabled(true);
 		nExportToSEFormat.setEnabled(true);
 		nExportTo3DFormat.setEnabled(true);
 		nCalculate.setEnabled(true);
@@ -1592,6 +1608,7 @@ public class CsdpFrame extends JFrame {
 		_deleteButton.setEnabled(true);
 		_addXsectButton.setEnabled(true);
 		cDisplaySummary.setEnabled(true);
+		cPlotAllCrossSections.setEnabled(true);
 		cAddXSAtComputationalPoints.setEnabled(true);;
 
 		if (getXsectSelected()) {
@@ -2102,7 +2119,7 @@ public class CsdpFrame extends JFrame {
 	 */
 	protected Dimension _dim = null;
 	protected Network _net;
-	NetworkInteractor _ni;
+	NetworkInteractor _networkInteractor;
 	LandmarkInteractor _li;
 	BathymetryPlot _plot;
 	// display parameters
@@ -2318,7 +2335,7 @@ public class CsdpFrame extends JFrame {
 
 	private static final Dimension _iconSize = new Dimension(25, 25);
 	private static final Dimension _wideIconSize = new Dimension(35, 25);
-	private static final Dimension _colorByIconSize = new Dimension(40, 15);
+	public static final Dimension _colorByIconSize = new Dimension(40, 15);
 	// JButton _restoreButton = new JButton("Restore");
 	// JButton _keepButton = new JButton("Keep");
 	// protected JRadioButtonMenuItem _cMovePointMenuItem, _cAddPointMenuItem,
@@ -2349,14 +2366,14 @@ public class CsdpFrame extends JFrame {
 			oUseToeDrainRestriction, oEchoToeDrainInput;
 	private JMenu tOpenWaterOptionsMenu, nExportOptions;
 	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc;
-	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nList, nSummary, nClearNetwork, nCalculate, nExportToSEFormat,
+	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nZoomToCenterline, nZoomToNode, nList, nSummary, nClearNetwork, nCalculate, nExportToSEFormat,
 			nExportTo3DFormat, nAWDSummary, nXSCheck;
 	private JMenuItem lSave, lSaveAs, lExportToWKT, lAdd, lMove, lEdit, lDelete, lHelp;
 
 	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;
 
 	private JCheckBoxMenuItem noChannelLengthsOnly;
-	private JMenuItem cCursor, cCreate, cDSMCreate, cRemove, cDisplaySummary, cAddXSAtComputationalPoints;
+	private JMenuItem cCursor, cCreate, cDSMCreate, cRemove, cDisplaySummary, cPlotAllCrossSections, cAddXSAtComputationalPoints;
 	// JMenuItem cRemove;
 	//// JMenuItem cRename;
 	// JMenuItem cMovePoint, cAddPoint, cDelPoint,

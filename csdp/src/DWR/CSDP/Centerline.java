@@ -62,6 +62,26 @@ public class Centerline {
 		return _numCenterlinePoints;
 	}
 
+	/*
+	 * For zooming in to a centerline
+	 */
+	public double[] getMinMaxCenterlinePointCoordinatesFeet() {
+		double minX = Double.MAX_VALUE;
+		double maxX = -Double.MAX_VALUE;
+		double minY = Double.MAX_VALUE;
+		double maxY = -Double.MAX_VALUE;
+		for(int i=0; i<getNumCenterlinePoints(); i++) {
+			CenterlinePoint cp = getCenterlinePoint(i);
+			double x = cp.getXFeet();
+			double y = cp.getYFeet();
+			minX = Math.min(minX, x);
+			maxX = Math.max(maxX, x);
+			minY = Math.min(minY, y);
+			maxY = Math.max(maxY, y);
+		}
+		return new double[] {minX, maxX, minY, maxY};
+	}
+	
 	/**
 	 * Returns the normalized distance, which is the distance from the upstream
 	 * end of the centerline to the cross-section divided by the total length of

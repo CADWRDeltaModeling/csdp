@@ -422,6 +422,26 @@ public class NetworkInteractor extends ElementInteractor {
 		} // if centerlineName not null
 	}// addPoint
 
+//	/*
+//	 * Allows user to measure the distance between two points.
+//	 * Used to determine cross-section line length when automatically drawing 
+//	 * cross-section lines at computational points. 
+//	 */
+//	private void drawMeasurementLine() {
+//		double xDataCoord;
+//		double yDataCoord;
+//		_nPlotter = _can._networkPlotter;
+//		ZoomState zs = _bathymetryPlot.getCurrentZoomState();
+//		CoordConv cc = zs.getCoordConv();
+//		if(_numMeasurementPoints>0) {
+//			cc.pixelsToLength(_xi, _yi, _minX, _minY, _lengthI);
+//			xDataCoord = _lengthI[0];
+//			yDataCoord = _lengthI[1];
+//		}else {
+//			
+//		}
+//	}
+	
 	/**
 	 * move centerline point
 	 */
@@ -811,6 +831,8 @@ public class NetworkInteractor extends ElementInteractor {
 		for(int i=0; i<numXSToAdd; i++) {
 			double distance = deltaXActual*(double)i;
 			//if placing cross-section at endpoints, make it at least 10 feet from end, or 1% of channel length. 
+			//being within 5% of channel length from endpoint is desirable, because in DSM2, this will prevent interpolation
+			//from connected channel.
 			//This should make it easier to distinguish from cross-section at endpoint of connecting channel
 			if(distance == 0.0) {
 				distance += Math.max(10.0, .01*length);
@@ -941,6 +963,182 @@ public class NetworkInteractor extends ElementInteractor {
 		_mouseDragged = false;
 	}// mouseReleased
 
+//	public void selectChannelByName(String chan) {
+//		
+//	}
+	
+	/*
+	 * If the specified centerline exists in the network, 
+	 * select the centerline
+	 * find the min/max easting and northings of all the centerline points or
+	 *    maybe just the first point, and zoom in to a size that is about 
+	 */
+	public void zoomToCenterline(String centerlineName) {
+		if(_net.centerlineExists(centerlineName)) {
+			//find point that is in the middle of all centerline pionts
+			Centerline centerline = _net.getCenterline(centerlineName);
+			double[] centerlineMinMax = centerline.getMinMaxCenterlinePointCoordinatesFeet();
+			double xMin = centerlineMinMax[0];
+			double xMax = centerlineMinMax[1];
+			double yMin = centerlineMinMax[2];
+			double yMax = centerlineMinMax[3];
+			double xMid = xMin+0.5*(xMax-xMin);
+			double yMid = yMin+0.5*(yMax-yMin);
+
+			//set zoom window to 10x the centerline dimensions
+			double zoomWidth = 5.0*(xMax-xMin);
+			double zoomHeight = 5.0*(yMax-yMin);
+			
+//			these need to be Screen coordinates, not data coordinates. see BathymetryPlot.drawpoints for how to do this
+			ZoomState zs = _bathymetryPlot.getCurrentZoomState();
+			CoordConv cc = zs.getCoordConv();
+
+			double[] pb = zs.getPlotBoundaries();
+			double minX = pb[CsdpFunctions.minXIndex];
+			double minY = pb[CsdpFunctions.minYIndex];
+			double maxY = pb[CsdpFunctions.maxYIndex];
+			int[] pix = null;
+
+			double xInitial = xMid-0.5*zoomWidth;
+			double yInitial = yMid+0.5*zoomHeight;
+			double xFinal = xMid+0.5*zoomWidth;
+			double yFinal = yMid-0.5*zoomHeight;
+			
+			int[] initialPoint = cc.utmToPixels(xInitial, yInitial, minX, minY);
+			int xInitialPixels = initialPoint[0];
+			int yInitialPixels = initialPoint[1];
+			int[] finalPoint = cc.utmToPixels(xFinal, yFinal, minX, minY);
+			int xFinalPixels = finalPoint[0];
+			int yFinalPixels = finalPoint[1];
+			
+			if(DEBUG) {
+				System.out.println("zoomToCenterline: xInitial, yInitial, xFinal, yFinal="+
+						xInitial+","+yInitial+","+xFinal+","+yFinal);
+				System.out.println("zoomToCenterline: xInitialPixels, yInitialPixels, xFinalPixels, yFinalPixels="+
+						xInitialPixels+","+yInitialPixels+","+xFinalPixels+","+yFinalPixels);
+			}
+			setInitialPoint(xInitialPixels, yInitialPixels);
+			setFinalPoint(xFinalPixels, yFinalPixels);
+
+			if (_bathymetryPlot != null) {
+				_nPlotter = _can._networkPlotter;
+				if (_nPlotter != null) {
+					_minSlope = zs.getMinSlope();
+					_height = _nPlotter._height;
+					// _centerX = _nPlotter._centerX;
+					// _centerY = _nPlotter._centerY;
+				}
+				if (_bathymetryPlot != null && _bathymetryPlot._bathymetryData != null) {
+					// _minX = _bathymetryPlot._bathymetryData.getMinX();
+					// _minY = _bathymetryPlot._bathymetryData.getMinY();
+					double[] bb = zs.getPlotBoundaries();
+					_minX = bb[CsdpFunctions.minXIndex];
+					_minY = bb[CsdpFunctions.minYIndex];
+				}
+				_drawDragRect = false;
+				if (_zoomRect.width <= 5 || _zoomRect.height <= 5) {
+					if(DEBUG) System.out.println("Not zooming");
+					_gui.pressCursorButton();
+				} else {
+					if(DEBUG) System.out.println("zooming");
+
+					_net.setSelectedCenterlineName(centerlineName);
+					_net.setSelectedCenterline(centerline);
+					_net.setSelectedXsectNum(0);
+					_net.setSelectedXsect(null);
+					_gui.enableAfterCenterlineSelected();
+					_gui.disableIfNoXsectSelected();
+					_net.setNewCenterlineName(centerlineName);
+					_gui.updateInfoPanel(centerlineName);
+					
+					_can.zoomInOut(_zoomRect);
+				}
+			}
+			_mouseDragged = false;
+		}else {
+			JOptionPane.showMessageDialog(_gui, "Centerline name not found", "Error", JOptionPane.OK_OPTION);
+		}
+	}//zoomToChannel
+	
+	public void zoomToNode(String node) {
+		Landmark landmark = _gui.getLandmark();
+		if(landmark != null && landmark.containsLandmark(node)) {
+			//find point that is in the middle of all centerline pionts
+			double landmarkX = landmark.getXFeet(node);
+			double landmarkY = landmark.getYFeet(node);
+			//an arbitrary value...seems reasonable.
+			double zoomWidowDimension = 20000.0;
+			double xMin = landmarkX-zoomWidowDimension/2.0;
+			double xMax = landmarkX+zoomWidowDimension/2.0;
+			double yMin = landmarkY-zoomWidowDimension/2.0;
+			double yMax = landmarkY+zoomWidowDimension/2.0;
+			double xMid = landmarkX;
+			double yMid = landmarkY;
+
+			double zoomWidth = (xMax-xMin);
+			double zoomHeight = (yMax-yMin);
+			
+//			these need to be Screen coordinates, not data coordinates. see BathymetryPlot.drawpoints for how to do this
+			ZoomState zs = _bathymetryPlot.getCurrentZoomState();
+			CoordConv cc = zs.getCoordConv();
+
+			double[] pb = zs.getPlotBoundaries();
+			double minX = pb[CsdpFunctions.minXIndex];
+			double minY = pb[CsdpFunctions.minYIndex];
+
+			double xInitial = xMid-0.5*zoomWidth;
+			double yInitial = yMid+0.5*zoomHeight;
+			double xFinal = xMid+0.5*zoomWidth;
+			double yFinal = yMid-0.5*zoomHeight;
+			
+			int[] initialPoint = cc.utmToPixels(xInitial, yInitial, minX, minY);
+			int xInitialPixels = initialPoint[0];
+			int yInitialPixels = initialPoint[1];
+			int[] finalPoint = cc.utmToPixels(xFinal, yFinal, minX, minY);
+			int xFinalPixels = finalPoint[0];
+			int yFinalPixels = finalPoint[1];
+			
+//			if(DEBUG) {
+				System.out.println("zoomToNode: xInitial, yInitial, xFinal, yFinal="+
+						xInitial+","+yInitial+","+xFinal+","+yFinal);
+				System.out.println("zoomToNode: xInitialPixels, yInitialPixels, xFinalPixels, yFinalPixels="+
+						xInitialPixels+","+yInitialPixels+","+xFinalPixels+","+yFinalPixels);
+//			}
+			setInitialPoint(xInitialPixels, yInitialPixels);
+			setFinalPoint(xFinalPixels, yFinalPixels);
+
+			if (_bathymetryPlot != null) {
+				_nPlotter = _can._networkPlotter;
+				_minSlope = zs.getMinSlope();
+				if (_nPlotter != null) {
+					_minSlope = zs.getMinSlope();
+					_height = _nPlotter._height;
+					// _centerX = _nPlotter._centerX;
+					// _centerY = _nPlotter._centerY;
+				}
+				if (_bathymetryPlot != null && _bathymetryPlot._bathymetryData != null) {
+					// _minX = _bathymetryPlot._bathymetryData.getMinX();
+					// _minY = _bathymetryPlot._bathymetryData.getMinY();
+					double[] bb = zs.getPlotBoundaries();
+					_minX = bb[CsdpFunctions.minXIndex];
+					_minY = bb[CsdpFunctions.minYIndex];
+				}
+				_drawDragRect = false;
+				if (_zoomRect.width <= 5 || _zoomRect.height <= 5) {
+					if(DEBUG) System.out.println("Not zooming");
+					_gui.pressCursorButton();
+				} else {
+					if(DEBUG) System.out.println("zooming");
+					_can.zoomInOut(_zoomRect);
+					_gui.pressCursorButton();
+				}
+			}
+			_mouseDragged = false;
+		}else {
+			JOptionPane.showMessageDialog(_gui, "Node name not found", "Error", JOptionPane.OK_OPTION);
+		}
+	}//zoomToNode
+	
 	/**
 	 * Constructs a rectangle from a set of diagonally opposite points. Stores
 	 * rectangle in a stack.
