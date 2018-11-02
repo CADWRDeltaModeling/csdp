@@ -59,11 +59,13 @@ public class XsectBathymetryMenu {
 	 */
 	public class XColorByDistance implements ItemListener {
 		public void itemStateChanged(ItemEvent e) {
-			_xsectGraph.updateGraphCanvas();
-			_xsectGraph._gC.redoNextPaint();
-			_xsectGraph.validate();
-			// removed for conversion to swing
-			// _xsectGraph._gC.repaint();
+			if(e.getStateChange()==ItemEvent.SELECTED) {
+				_xsectGraph.updateGraphCanvas();
+				_xsectGraph._gC.redoNextPaint();
+				_xsectGraph.validate();
+				// removed for conversion to swing
+				// _xsectGraph._gC.repaint();
+			}
 		}// itemStateChanged
 	}// XColorByDistance
 
@@ -72,11 +74,13 @@ public class XsectBathymetryMenu {
 	 */
 	public class XColorBySource implements ItemListener {
 		public void itemStateChanged(ItemEvent e) {
-			_xsectGraph.updateGraphCanvas();
-			_xsectGraph._gC.redoNextPaint();
-			_xsectGraph.validate();
-			// removed for conversion to swing
-			// _xsectGraph._gC.repaint();
+			if(e.getStateChange()==ItemEvent.SELECTED) {
+				_xsectGraph.updateGraphCanvas();
+				_xsectGraph._gC.redoNextPaint();
+				_xsectGraph.validate();
+				// removed for conversion to swing
+				// _xsectGraph._gC.repaint();
+			}
 		}// itemStateChanged
 	}// XColorBySource
 
@@ -85,11 +89,13 @@ public class XsectBathymetryMenu {
 	 */
 	public class XColorByYear implements ItemListener {
 		public void itemStateChanged(ItemEvent e) {
-			_xsectGraph.updateGraphCanvas();
-			_xsectGraph._gC.redoNextPaint();
-			_xsectGraph.validate();
-			// removed for conversion to swing
-			// _xsectGraph._gC.repaint();
+			if(e.getStateChange()==ItemEvent.SELECTED) {
+				_xsectGraph.updateGraphCanvas();
+				_xsectGraph._gC.redoNextPaint();
+				_xsectGraph.validate();
+				// removed for conversion to swing
+				// _xsectGraph._gC.repaint();
+			}
 		}// itemStateChanged
 	}// XColorByYear
 

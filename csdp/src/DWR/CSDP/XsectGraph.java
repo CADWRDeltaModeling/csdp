@@ -202,8 +202,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 
 		_eastPanel.add(_dConveyancePanel);
 		
-		URL metadataIconUrl = this.getClass().getResource("images/metadataIcon.gif");
-		ImageIcon _metadataIcon = new ImageIcon(metadataIconUrl);
+		URL metadataIconUrl = this.getClass().getResource("images/MetadataIcon.png");
+//		ImageIcon _metadataIcon = new ImageIcon(metadataIconUrl);
+		ImageIcon _metadataIcon = CsdpFunctions.createScaledImageIcon(metadataIconUrl, WIDE_ICON_WIDTH*4, WIDE_ICON_HEIGHT);
 		JLabel _metadataLabel = new JLabel(_metadataIcon, SwingConstants.LEFT);
 
 		_eastPanel.add(_metadataLabel);
@@ -216,15 +217,15 @@ public class XsectGraph extends JDialog implements ActionListener {
 		updateXsectProp();
 
 		JPanel btnPanel = new JPanel();
-		_xsCloseButton.setPreferredSize(_wideIconSize);
-		_reverseButton.setPreferredSize(_iconSize);
-		_arrowButton.setPreferredSize(_iconSize);
-		_moveButton.setPreferredSize(_iconSize);
-		_addButton.setPreferredSize(_iconSize);
-		_insertButton.setPreferredSize(_iconSize);
-		_deleteButton.setPreferredSize(_iconSize);
-		_keepButton.setPreferredSize(_medIconSize);
-		_restoreButton.setPreferredSize(_wideIconSize);
+//		_xsCloseButton.setPreferredSize(_wideIconSize);
+//		_reverseButton.setPreferredSize(_iconSize);
+//		_arrowButton.setPreferredSize(_iconSize);
+//		_moveButton.setPreferredSize(_iconSize);
+//		_addButton.setPreferredSize(_iconSize);
+//		_insertButton.setPreferredSize(_iconSize);
+//		_deleteButton.setPreferredSize(_iconSize);
+//		_keepButton.setPreferredSize(_medIconSize);
+//		_restoreButton.setPreferredSize(_wideIconSize);
 		// _metadataButton.setPreferredSize(_medIconSize);
 
 		btnPanel.setLayout(new FlowLayout());
@@ -453,7 +454,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		}
 		
 		_info = new GraphBuilderInfo(_refs, MainProperties.getProperties());
-
+		
 		for (int i = 0; i < _refs.length; i++) {
 			int xPos = _info.getXAxisPosition(_refs[i]);
 			int yPos = _info.getYAxisPosition(_refs[i]);
@@ -539,7 +540,6 @@ public class XsectGraph extends JDialog implements ActionListener {
 		aa._tickLocation = AxisAttr.INSIDE;
 		aa = (AxisAttr) plot.getAxis(AxisAttr.LEFT).getAttributes();
 		aa._tickLocation = AxisAttr.BOTH;
-
 		_graph.addGrid();
 
 		// use this for Frame
@@ -1318,49 +1318,49 @@ public class XsectGraph extends JDialog implements ActionListener {
 	// protected JCheckBoxMenuItem _xMovePointMenuItem, _xAddPointMenuItem,
 	// _xInsertPointMenuItem, _xDeletePointMenuItem;
 
-	URL xsCloseUrl = this.getClass().getResource("images/XSCloseButton.jpg");
-	URL cursorIconUrl = this.getClass().getResource("images/ArrowButton.jpg");
-	URL reverseXsectIconUrl = this.getClass().getResource("images/ReverseXsectButton.jpg");
-	URL movePointIconUrl = this.getClass().getResource("images/MoveXsectPointButton.jpg");
-	URL addPointIconUrl = this.getClass().getResource("images/AddXsectPointButton.jpg");
-	URL insertPointIconUrl = this.getClass().getResource("images/InsertXsectPointButton.jpg");
-	URL deletePointIconUrl = this.getClass().getResource("images/DeleteXsectPointButton.jpg");
-	URL cursorIconSelectedUrl = this.getClass().getResource("images/ArrowButtonSelected.jpg");
-	URL movePointIconSelectedUrl = this.getClass().getResource("images/MoveXsectPointButtonSelected.jpg");
-	URL addPointIconSelectedUrl = this.getClass().getResource("images/AddXsectPointButtonSelected.jpg");
-	URL insertPointIconSelectedUrl = this.getClass().getResource("images/InsertXsectPointButtonSelected.jpg");
-	URL deletePointIconSelectedUrl = this.getClass().getResource("images/DeleteXsectPointButtonSelected.jpg");
-	URL keepIconUrl = this.getClass().getResource("images/KeepButton.jpg");
-	URL restoreIconUrl = this.getClass().getResource("images/RestoreButton.jpg");
-	URL colorByDistanceIconUrl = this.getClass().getResource("images/ColorDistanceButton.gif");
-	URL colorByDistanceIconSelectedUrl = this.getClass().getResource("images/ColorDistanceButtonSelected.gif");
-	URL colorBySourceIconUrl = this.getClass().getResource("images/ColorSourceButton.gif");
-	URL colorBySourceIconSelectedUrl = this.getClass().getResource("images/ColorSourceButtonSelected.gif");
-	URL colorByYearIconUrl = this.getClass().getResource("images/ColorYearButton.gif");
-	URL colorByYearIconSelectedUrl = this.getClass().getResource("images/ColorYearButtonSelected.gif");
+	URL xsCloseUrl = this.getClass().getResource("images/XSCloseButton.png");
+	URL cursorIconUrl = this.getClass().getResource("images/ArrowButton.png");
+	URL reverseXsectIconUrl = this.getClass().getResource("images/ReverseXsectButton.png");
+	URL movePointIconUrl = this.getClass().getResource("images/MoveXsectPointButton.png");
+	URL addPointIconUrl = this.getClass().getResource("images/AddXsectPointButton.png");
+	URL insertPointIconUrl = this.getClass().getResource("images/InsertXsectPointButton.png");
+	URL deletePointIconUrl = this.getClass().getResource("images/DeleteXsectPointButton.png");
+	URL cursorIconSelectedUrl = this.getClass().getResource("images/ArrowButtonSelected.png");
+	URL movePointIconSelectedUrl = this.getClass().getResource("images/MoveXsectPointButtonSelected.png");
+	URL addPointIconSelectedUrl = this.getClass().getResource("images/AddXsectPointButtonSelected.png");
+	URL insertPointIconSelectedUrl = this.getClass().getResource("images/InsertXsectPointButtonSelected.png");
+	URL deletePointIconSelectedUrl = this.getClass().getResource("images/DeleteXsectPointButtonSelected.png");
+	URL keepIconUrl = this.getClass().getResource("images/KeepButton.png");
+	URL restoreIconUrl = this.getClass().getResource("images/RestoreButton.png");
+	URL colorByDistanceIconUrl = this.getClass().getResource("images/ColorDistanceButton.png");
+	URL colorByDistanceIconSelectedUrl = this.getClass().getResource("images/ColorDistanceButtonSelected.png");
+	URL colorBySourceIconUrl = this.getClass().getResource("images/ColorSourceButton.png");
+	URL colorBySourceIconSelectedUrl = this.getClass().getResource("images/ColorSourceButtonSelected.png");
+	URL colorByYearIconUrl = this.getClass().getResource("images/ColorYearButton.png");
+	URL colorByYearIconSelectedUrl = this.getClass().getResource("images/ColorYearButtonSelected.png");
 
-	ImageIcon _xsCloseIcon = new ImageIcon(xsCloseUrl);
-	ImageIcon _cursorIcon = new ImageIcon(cursorIconUrl);
-	ImageIcon _reverseXsectIcon = new ImageIcon(reverseXsectIconUrl);
-	ImageIcon _movePointIcon = new ImageIcon(movePointIconUrl);
-	ImageIcon _addPointIcon = new ImageIcon(addPointIconUrl);
-	ImageIcon _insertPointIcon = new ImageIcon(insertPointIconUrl);
-	ImageIcon _deletePointIcon = new ImageIcon(deletePointIconUrl);
-	ImageIcon _cursorIconSelected = new ImageIcon(cursorIconSelectedUrl);
-	ImageIcon _movePointIconSelected = new ImageIcon(movePointIconSelectedUrl);
-	ImageIcon _addPointIconSelected = new ImageIcon(addPointIconSelectedUrl);
-	ImageIcon _insertPointIconSelected = new ImageIcon(insertPointIconSelectedUrl);
-	ImageIcon _deletePointIconSelected = new ImageIcon(deletePointIconSelectedUrl);
+	ImageIcon _xsCloseIcon = CsdpFunctions.createScaledImageIcon(xsCloseUrl, WIDE_ICON_WIDTH, WIDE_ICON_HEIGHT);
+	ImageIcon _cursorIcon = CsdpFunctions.createScaledImageIcon(cursorIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _reverseXsectIcon = CsdpFunctions.createScaledImageIcon(reverseXsectIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _movePointIcon = CsdpFunctions.createScaledImageIcon(movePointIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _addPointIcon = CsdpFunctions.createScaledImageIcon(addPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _insertPointIcon = CsdpFunctions.createScaledImageIcon(insertPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _deletePointIcon = CsdpFunctions.createScaledImageIcon(deletePointIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _cursorIconSelected = CsdpFunctions.createScaledImageIcon(cursorIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _movePointIconSelected = CsdpFunctions.createScaledImageIcon(movePointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _addPointIconSelected = CsdpFunctions.createScaledImageIcon(addPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _insertPointIconSelected = CsdpFunctions.createScaledImageIcon(insertPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _deletePointIconSelected = CsdpFunctions.createScaledImageIcon(deletePointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
 
-	ImageIcon _keepIcon = new ImageIcon(keepIconUrl);
-	ImageIcon _restoreIcon = new ImageIcon(restoreIconUrl);
+	ImageIcon _keepIcon = CsdpFunctions.createScaledImageIcon(keepIconUrl, WIDE_ICON_WIDTH, WIDE_ICON_HEIGHT);
+	ImageIcon _restoreIcon = CsdpFunctions.createScaledImageIcon(restoreIconUrl, (int)(1.3*WIDE_ICON_WIDTH), WIDE_ICON_HEIGHT);
 
-	ImageIcon _colorByDistanceIcon = new ImageIcon(colorByDistanceIconUrl);
-	ImageIcon _colorByDistanceIconSelected = new ImageIcon(colorByDistanceIconSelectedUrl);
-	ImageIcon _colorBySourceIcon = new ImageIcon(colorBySourceIconUrl);
-	ImageIcon _colorBySourceIconSelected = new ImageIcon(colorBySourceIconSelectedUrl);
-	ImageIcon _colorByYearIcon = new ImageIcon(colorByYearIconUrl);
-	ImageIcon _colorByYearIconSelected = new ImageIcon(colorByYearIconSelectedUrl);
+	ImageIcon _colorByDistanceIcon = CsdpFunctions.createScaledImageIcon(colorByDistanceIconUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+	ImageIcon _colorByDistanceIconSelected = CsdpFunctions.createScaledImageIcon(colorByDistanceIconSelectedUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+	ImageIcon _colorBySourceIcon = CsdpFunctions.createScaledImageIcon(colorBySourceIconUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+	ImageIcon _colorBySourceIconSelected = CsdpFunctions.createScaledImageIcon(colorBySourceIconSelectedUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+	ImageIcon _colorByYearIcon = CsdpFunctions.createScaledImageIcon(colorByYearIconUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+	ImageIcon _colorByYearIconSelected = CsdpFunctions.createScaledImageIcon(colorByYearIconSelectedUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
 
 	JRadioButton _colorByDistanceButton = new JRadioButton(_colorByDistanceIcon);
 	JRadioButton _colorBySourceButton = new JRadioButton(_colorBySourceIcon);
@@ -1380,10 +1380,16 @@ public class XsectGraph extends JDialog implements ActionListener {
 
 	ButtonGroup _colorByButtonGroup, _xsectEditButtonGroup;
 
-	private static final Dimension _iconSize = new Dimension(25, 25);
-	private static final Dimension _medIconSize = new Dimension(33, 25);
-	private static final Dimension _wideIconSize = new Dimension(50, 25);
+//	private static final Dimension _iconSize = new Dimension(25, 25);
+//	private static final Dimension _medIconSize = new Dimension(33, 25);
+//	private static final Dimension _wideIconSize = new Dimension(50, 25);
 
+	private static final int ICON_WIDTH = 38;
+	private static final int ICON_HEIGHT = 38;
+	private static final int COLOR_BY_ICON_WIDTH = 53;
+	private static final int COLOR_BY_ICON_HEIGHT = 23;
+	private static final int WIDE_ICON_WIDTH = 60;
+	private static final int WIDE_ICON_HEIGHT = 38;
 	protected boolean _restoreXsect = false;
 	protected double _thickness;
 	protected static final boolean DEBUG = false;

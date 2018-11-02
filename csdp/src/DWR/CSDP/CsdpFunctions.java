@@ -47,9 +47,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Vector;
+
+import javax.swing.ImageIcon;
 
 import DWR.CSDP.semmscon.UseSemmscon;
 
@@ -1737,9 +1740,18 @@ public class CsdpFunctions {
 		return success;
 	}// backupFile
 
+
+	/*
+	 * Create instance of ImageIcon using image Url scaled to specified width and height
+	 */
+	public static ImageIcon createScaledImageIcon(URL imageUrl, int width, int height) {
+		return new ImageIcon((new ImageIcon(imageUrl)).getImage().getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH));
+	}
+
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "2.6_20181101";
+	private static final String _version = "2.6_20181102";
+
 
 }// class CsdpFunctions

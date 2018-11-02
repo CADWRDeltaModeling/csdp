@@ -291,13 +291,12 @@ public class MultipleXsectGraph extends JDialog implements ActionListener {
 			if(bottomAxis!=null && leftAxis!=null) {
 				bottomAxis.setAxisLabel("Distance Along Cross-Section Line, feet");
 				leftAxis.setAxisLabel("Elevation), ft");
-				// Plot plot = _graph.getPlot();
+//				 Plot plot = _graph.getPlot();
 				// /*
 				// * The following code copied from updateGraphCanvas
 				// */
-				// plot.getAxis(AxisAttr.BOTTOM).setAxisLabel("Distance Along
-				// Cross-Section Line, feet");
-				// plot.getAxis(AxisAttr.LEFT).setAxisLabel("Elevation(NGVD), ft");
+				 plot.getAxis(AxisAttr.BOTTOM).setAxisLabel("Distance Along Cross-Section Line, feet");
+				 plot.getAxis(AxisAttr.LEFT).setAxisLabel("Elevation(NGVD), ft");
 		
 				// TickGenerator tg = new SimpleTickGenerator();
 		
@@ -974,7 +973,7 @@ public class MultipleXsectGraph extends JDialog implements ActionListener {
 			double[] station = new double[numXsectPoints];
 			double[] elevation = new double[numXsectPoints];
 			//name should be cross-section number
-			dataSetName = Integer.toString(i);
+			dataSetName = "Cross-Section Number " + Integer.toString(i);
 
 			// beginning of new dataSet, so set index to zero.
 			dataSetPointIndex = 0;

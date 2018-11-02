@@ -116,72 +116,87 @@ public class CsdpFrame extends JFrame {
 	}
 
 	private void makeIconButtons() {
-		URL bathUrl = this.getClass().getResource("images/FileOpenButton.jpg");
-		URL propUrl = this.getClass().getResource("images/PropOpenButton.jpg");
-		URL netOpenUrl = this.getClass().getResource("images/NetworkOpenButton.jpg");
-		URL netSaveUrl = this.getClass().getResource("images/NetworkSaveButton.jpg");
-		URL arrowUrl = this.getClass().getResource("images/ArrowButton.jpg");
-		URL insertPointUrl = this.getClass().getResource("images/InsertPointButton.gif");
-		URL movePointUrl = this.getClass().getResource("images/MovePointButton.gif");
-		URL addPointUrl = this.getClass().getResource("images/AddPointButton.gif");
-		URL deletePointUrl = this.getClass().getResource("images/DeletePointButton.gif");
-		URL addXsectUrl = this.getClass().getResource("images/AddXsectButton.gif");
+		URL bathUrl = this.getClass().getResource("images/FileOpenButton.png");
+		URL propUrl = this.getClass().getResource("images/PropOpenButton.png");
+		URL netOpenUrl = this.getClass().getResource("images/NetworkOpenButton.png");
+		URL netSaveUrl = this.getClass().getResource("images/NetworkSaveButton.png");
+		URL arrowUrl = this.getClass().getResource("images/ArrowButton.png");
+		URL insertPointUrl = this.getClass().getResource("images/InsertPointButton.png");
+		URL movePointUrl = this.getClass().getResource("images/MovePointButton.png");
+		URL addPointUrl = this.getClass().getResource("images/AddPointButton.png");
+		URL deletePointUrl = this.getClass().getResource("images/DeletePointButton.png");
+		URL addXsectUrl = this.getClass().getResource("images/AddXsectButton.png");
 
-		URL removeXsectUrl = this.getClass().getResource("images/RemoveXsectButton.gif");
-		URL moveXsectUrl = this.getClass().getResource("images/MoveXsectButton.gif");
+		URL removeXsectUrl = this.getClass().getResource("images/RemoveXsectButton.png");
+		URL moveXsectUrl = this.getClass().getResource("images/MoveXsectButton.png");
 
-		URL viewXsectUrl = this.getClass().getResource("images/ViewXsectButton.gif");
+		URL viewXsectUrl = this.getClass().getResource("images/ViewXsectButton.png");
 
-		URL colorUniformUrl = this.getClass().getResource("images/ColorUniformButton.gif");
-		URL colorElevUrl = this.getClass().getResource("images/ColorElevButton.gif");
-		URL colorSourceUrl = this.getClass().getResource("images/ColorSourceButton.gif");
-		URL colorYearUrl = this.getClass().getResource("images/ColorYearButton.gif");
-		URL filterSourceUrl = this.getClass().getResource("images/FilterSourceButton.gif");
-		URL filterYearUrl = this.getClass().getResource("images/FilterYearButton.gif");
-		URL filterLabelUrl = this.getClass().getResource("images/FilterLabel.gif");
+		URL colorUniformUrl = this.getClass().getResource("images/ColorUniformButton.png");
+		URL colorElevUrl = this.getClass().getResource("images/ColorElevButton.png");
+		URL colorSourceUrl = this.getClass().getResource("images/ColorSourceButton.png");
+		URL colorYearUrl = this.getClass().getResource("images/ColorYearButton.png");
+		URL filterSourceUrl = this.getClass().getResource("images/FilterSourceButton.png");
+		URL filterYearUrl = this.getClass().getResource("images/FilterYearButton.png");
+		URL filterLabelUrl = this.getClass().getResource("images/FilterLabel.png");
 
-		_fileOpenIcon = new ImageIcon(bathUrl);
-		_propOpenIcon = new ImageIcon(propUrl);
-		_networkOpenIcon = new ImageIcon(netOpenUrl);
-		_networkSaveIcon = new ImageIcon(netSaveUrl);
-		_cursorIcon = new ImageIcon(arrowUrl);
-		_insertIcon = new ImageIcon(insertPointUrl);
-		_moveIcon = new ImageIcon(movePointUrl);
-		_addIcon = new ImageIcon(addPointUrl);
-		_deleteIcon = new ImageIcon(deletePointUrl);
-		_addXsectIcon = new ImageIcon(addXsectUrl);
-		_removeXsectIcon = new ImageIcon(removeXsectUrl);
-		_moveXsectIcon = new ImageIcon(moveXsectUrl);
+//		_fileOpenIcon = new ImageIcon(bathUrl);
+//		_propOpenIcon = new ImageIcon(propUrl);
+//		_networkOpenIcon = new ImageIcon(netOpenUrl);
+//		_networkSaveIcon = new ImageIcon(netSaveUrl);
+//		_cursorIcon = new ImageIcon(arrowUrl);
+//		_insertIcon = new ImageIcon(insertPointUrl);
+//		_moveIcon = new ImageIcon(movePointUrl);
+//		_addIcon = new ImageIcon(addPointUrl);
+//		_deleteIcon = new ImageIcon(deletePointUrl);
+//		_addXsectIcon = new ImageIcon(addXsectUrl);
+//		_removeXsectIcon = new ImageIcon(removeXsectUrl);
+//		_moveXsectIcon = new ImageIcon(moveXsectUrl);
 
-		_viewIcon = new ImageIcon(viewXsectUrl);
+		_fileOpenIcon = CsdpFunctions.createScaledImageIcon(bathUrl, WIDE_ICON_WIDTH, WIDE_ICON_HEIGHT);
+		_propOpenIcon = CsdpFunctions.createScaledImageIcon(propUrl,WIDE_ICON_WIDTH, WIDE_ICON_HEIGHT);
+		_networkOpenIcon = CsdpFunctions.createScaledImageIcon(netOpenUrl,WIDE_ICON_WIDTH, WIDE_ICON_HEIGHT);
+		_networkSaveIcon = CsdpFunctions.createScaledImageIcon(netSaveUrl,WIDE_ICON_WIDTH, WIDE_ICON_HEIGHT);
+		_cursorIcon = CsdpFunctions.createScaledImageIcon(arrowUrl,ICON_WIDTH, ICON_HEIGHT);
+		_insertIcon = CsdpFunctions.createScaledImageIcon(insertPointUrl,ICON_WIDTH, ICON_HEIGHT);
+		_movePointIcon = CsdpFunctions.createScaledImageIcon(movePointUrl,ICON_WIDTH, ICON_HEIGHT);
+		_addIcon = CsdpFunctions.createScaledImageIcon(addPointUrl,ICON_WIDTH, ICON_HEIGHT);
+		_deleteIcon = CsdpFunctions.createScaledImageIcon(deletePointUrl,ICON_WIDTH, ICON_HEIGHT);
+		_addXsectIcon = CsdpFunctions.createScaledImageIcon(addXsectUrl,ICON_WIDTH, ICON_HEIGHT);
+		_removeXsectIcon = CsdpFunctions.createScaledImageIcon(removeXsectUrl,ICON_WIDTH, ICON_HEIGHT);
+		_moveXsectIcon = CsdpFunctions.createScaledImageIcon(moveXsectUrl,ICON_WIDTH, ICON_HEIGHT);
 
-		_colorUniformIcon = new ImageIcon(colorUniformUrl);
-		_colorElevIcon = new ImageIcon(colorElevUrl);
-		_colorSourceIcon = new ImageIcon(colorSourceUrl);
-		_colorYearIcon = new ImageIcon(colorYearUrl);
-		_filterSourceIcon = new ImageIcon(filterSourceUrl);
-		_filterYearIcon = new ImageIcon(filterYearUrl);
-		_filterLabelIcon = new ImageIcon(filterLabelUrl);
+		
+		
+		_viewIcon = CsdpFunctions.createScaledImageIcon(viewXsectUrl,ICON_WIDTH, ICON_HEIGHT);
 
-		URL networkCalculateUrl = this.getClass().getResource("images/NetworkCalculateButton.gif");
-		URL cursorIconSelectedUrl = this.getClass().getResource("images/ArrowButtonSelected.jpg");
-		URL insertPointButtonSelectedUrl = this.getClass().getResource("images/InsertPointButtonSelected.gif");
-		URL moveIconSelectedUrl = this.getClass().getResource("images/MovePointButtonSelected.jpg");
-		URL addIconSelectedUrl = this.getClass().getResource("images/AddPointButtonSelected.jpg");
-		URL deleteIconSelectedUrl = this.getClass().getResource("images/DeletePointButtonSelected.gif");
-		URL addXsectIconSelectedUrl = this.getClass().getResource("images/AddXsectButtonSelected.jpg");
-		URL removeXsectIconSelectedUrl = this.getClass().getResource("images/RemoveXsectButtonSelected.jpg");
-		URL moveXsectIconSelectedUrl = this.getClass().getResource("images/MoveXsectButtonSelected.jpg");
-		URL colorUniformIconSelectedUrl = this.getClass().getResource("images/ColorUniformButtonSelected.gif");
-		URL colorElevIconSelectedUrl = this.getClass().getResource("images/ColorElevButtonSelected.gif");
-		URL colorSourceIconSelectedUrl = this.getClass().getResource("images/ColorSourceButtonSelected.gif");
-		URL colorYearIconSelectedUrl = this.getClass().getResource("images/ColorYearButtonSelected.gif");
-		URL zoomBoxIconUrl = this.getClass().getResource("images/ZoomBoxButton.jpg");
-		URL zoomBoxIconSelectedUrl = this.getClass().getResource("images/ZoomBoxButtonSelected.jpg");
-		URL zoomPanIconUrl = this.getClass().getResource("images/ZoomPanButton.gif");
-		URL zoomPanIconSelectedUrl = this.getClass().getResource("images/ZoomPanButtonSelected.gif");
-		URL zoomFitIconUrl = this.getClass().getResource("images/ZoomFitButton.jpg");
-		URL zoomFitIconRolloverUrl = this.getClass().getResource("images/ZoomFitButtonRollover.jpg");
+		_colorUniformIcon = CsdpFunctions.createScaledImageIcon(colorUniformUrl,COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+		_colorElevIcon = CsdpFunctions.createScaledImageIcon(colorElevUrl,COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+		_colorSourceIcon = CsdpFunctions.createScaledImageIcon(colorSourceUrl,COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+		_colorYearIcon = CsdpFunctions.createScaledImageIcon(colorYearUrl,COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+		_filterSourceIcon = CsdpFunctions.createScaledImageIcon(filterSourceUrl,COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+		_filterYearIcon = CsdpFunctions.createScaledImageIcon(filterYearUrl,COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+		_filterLabelIcon = CsdpFunctions.createScaledImageIcon(filterLabelUrl,COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+
+		URL networkCalculateUrl = this.getClass().getResource("images/NetworkCalculateButton.png");
+		URL cursorIconSelectedUrl = this.getClass().getResource("images/ArrowButtonSelected.png");
+		URL insertPointButtonSelectedUrl = this.getClass().getResource("images/InsertPointButtonSelected.png");
+		URL movePointIconSelectedUrl = this.getClass().getResource("images/MovePointButtonSelected.png");
+		URL addIconSelectedUrl = this.getClass().getResource("images/AddPointButtonSelected.png");
+		URL deleteIconSelectedUrl = this.getClass().getResource("images/DeletePointButtonSelected.png");
+		URL addXsectIconSelectedUrl = this.getClass().getResource("images/AddXsectButtonSelected.png");
+		URL removeXsectIconSelectedUrl = this.getClass().getResource("images/RemoveXsectButtonSelected.png");
+		URL moveXsectIconSelectedUrl = this.getClass().getResource("images/MoveXsectButtonSelected.png");
+		URL colorUniformIconSelectedUrl = this.getClass().getResource("images/ColorUniformButtonSelected.png");
+		URL colorElevIconSelectedUrl = this.getClass().getResource("images/ColorElevButtonSelected.png");
+		URL colorSourceIconSelectedUrl = this.getClass().getResource("images/ColorSourceButtonSelected.png");
+		URL colorYearIconSelectedUrl = this.getClass().getResource("images/ColorYearButtonSelected.png");
+		URL zoomBoxIconUrl = this.getClass().getResource("images/ZoomBoxButton.png");
+		URL zoomBoxIconSelectedUrl = this.getClass().getResource("images/ZoomBoxButtonSelected.png");
+		URL zoomPanIconUrl = this.getClass().getResource("images/ZoomPanButton.png");
+		URL zoomPanIconSelectedUrl = this.getClass().getResource("images/ZoomPanButtonSelected.png");
+		URL zoomFitIconUrl = this.getClass().getResource("images/ZoomFitButton.png");
+		URL zoomFitIconRolloverUrl = this.getClass().getResource("images/ZoomFitButtonRollover.png");
 		URL zoomUndoIconUrl = this.getClass().getResource("images/Undo24.gif");
 
 		// URL landmarkAddUrl =
@@ -201,15 +216,15 @@ public class CsdpFrame extends JFrame {
 		// URL landmarkDeleteSelectedUrl =
 		// this.getClass().getResource("images/LDeleteButtonSelected.gif");
 
-		_networkCalculateIcon = new ImageIcon(networkCalculateUrl);
-		_cursorIconSelected = new ImageIcon(cursorIconSelectedUrl);
-		_insertIconSelected = new ImageIcon(insertPointButtonSelectedUrl);
-		_moveIconSelected = new ImageIcon(moveIconSelectedUrl);
-		_addIconSelected = new ImageIcon(addIconSelectedUrl);
-		_deleteIconSelected = new ImageIcon(deleteIconSelectedUrl);
-		_addXsectIconSelected = new ImageIcon(addXsectIconSelectedUrl);
-		_removeXsectIconSelected = new ImageIcon(removeXsectIconSelectedUrl);
-		_moveXsectIconSelected = new ImageIcon(moveXsectIconSelectedUrl);
+		_networkCalculateIcon = CsdpFunctions.createScaledImageIcon(networkCalculateUrl,ICON_WIDTH, ICON_HEIGHT);
+		_cursorIconSelected = CsdpFunctions.createScaledImageIcon(cursorIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
+		_insertIconSelected = CsdpFunctions.createScaledImageIcon(insertPointButtonSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
+		_movePointIconSelected = CsdpFunctions.createScaledImageIcon(movePointIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
+		_addIconSelected = CsdpFunctions.createScaledImageIcon(addIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
+		_deleteIconSelected = CsdpFunctions.createScaledImageIcon(deleteIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
+		_addXsectIconSelected = CsdpFunctions.createScaledImageIcon(addXsectIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
+		_removeXsectIconSelected = CsdpFunctions.createScaledImageIcon(removeXsectIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
+		_moveXsectIconSelected = CsdpFunctions.createScaledImageIcon(moveXsectIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
 		// landmark edit
 		// _landmarkAddIcon = new ImageIcon(landmarkAddUrl);
 		// _landmarkEditIcon = new ImageIcon(landmarkEditUrl);
@@ -221,17 +236,18 @@ public class CsdpFrame extends JFrame {
 		// _landmarkDeleteSelectedIcon = new
 		// ImageIcon(landmarkDeleteSelectedUrl);
 
-		_colorUniformIconSelected = new ImageIcon(colorUniformIconSelectedUrl);
-		_colorElevIconSelected = new ImageIcon(colorElevIconSelectedUrl);
-		_colorSourceIconSelected = new ImageIcon(colorSourceIconSelectedUrl);
-		_colorYearIconSelected = new ImageIcon(colorYearIconSelectedUrl);
-		_zoomBoxIcon = new ImageIcon(zoomBoxIconUrl);
-		_zoomBoxIconSelected = new ImageIcon(zoomBoxIconSelectedUrl);
-		_zoomPanIcon = new ImageIcon(zoomPanIconUrl);
-		_zoomPanIconSelected = new ImageIcon(zoomPanIconSelectedUrl);
-		_zoomFitIcon = new ImageIcon(zoomFitIconUrl);
-		_zoomFitIconRollover = new ImageIcon(zoomFitIconRolloverUrl);
-		_zoomUndoIcon = new ImageIcon(zoomUndoIconUrl);
+		_colorUniformIconSelected = CsdpFunctions.createScaledImageIcon(colorUniformIconSelectedUrl,COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+		_colorElevIconSelected = CsdpFunctions.createScaledImageIcon(colorElevIconSelectedUrl,COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+		_colorSourceIconSelected = CsdpFunctions.createScaledImageIcon(colorSourceIconSelectedUrl,COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+		_colorYearIconSelected = CsdpFunctions.createScaledImageIcon(colorYearIconSelectedUrl,COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+		
+		_zoomBoxIcon = CsdpFunctions.createScaledImageIcon(zoomBoxIconUrl,ICON_WIDTH, ICON_HEIGHT);
+		_zoomBoxIconSelected = CsdpFunctions.createScaledImageIcon(zoomBoxIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
+		_zoomPanIcon = CsdpFunctions.createScaledImageIcon(zoomPanIconUrl,ICON_WIDTH, ICON_HEIGHT);
+		_zoomPanIconSelected = CsdpFunctions.createScaledImageIcon(zoomPanIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
+		_zoomFitIcon = CsdpFunctions.createScaledImageIcon(zoomFitIconUrl,ICON_WIDTH, ICON_HEIGHT);
+		_zoomFitIconRollover = CsdpFunctions.createScaledImageIcon(zoomFitIconRolloverUrl,ICON_WIDTH, ICON_HEIGHT);
+		_zoomUndoIcon = CsdpFunctions.createScaledImageIcon(zoomUndoIconUrl,ICON_WIDTH, ICON_HEIGHT);
 
 		_fileOpenButton = new JButton(_fileOpenIcon);
 		_propOpenButton = new JButton(_propOpenIcon);
@@ -248,7 +264,7 @@ public class CsdpFrame extends JFrame {
 
 		_cursorButton = new JRadioButton(_cursorIcon);
 		_insertButton = new JRadioButton(_insertIcon);
-		_moveButton = new JRadioButton(_moveIcon);
+		_moveButton = new JRadioButton(_movePointIcon);
 		_addButton = new JRadioButton(_addIcon);
 		_deleteButton = new JRadioButton(_deleteIcon);
 		_addXsectButton = new JRadioButton(_addXsectIcon);
@@ -286,20 +302,20 @@ public class CsdpFrame extends JFrame {
 		JToolBar btnPanel = new JToolBar();
 		btnPanel.setFloatable(false);
 
-		_fileOpenButton.setPreferredSize(_wideIconSize);
-		_propOpenButton.setPreferredSize(_wideIconSize);
-		_networkOpenButton.setPreferredSize(_wideIconSize);
-		_networkSaveButton.setPreferredSize(_wideIconSize);
-		_cursorButton.setPreferredSize(_iconSize);
-		_colorUniformButton.setPreferredSize(_colorByIconSize);
-		_colorByElevButton.setPreferredSize(_colorByIconSize);
-		_colorBySourceButton.setPreferredSize(_colorByIconSize);
-		_colorByYearButton.setPreferredSize(_colorByIconSize);
-		_filterSourceButton.setPreferredSize(_colorByIconSize);
-		_filterYearButton.setPreferredSize(_colorByIconSize);
+//		_fileOpenButton.setPreferredSize(_wideIconSize);
+//		_propOpenButton.setPreferredSize(_wideIconSize);
+//		_networkOpenButton.setPreferredSize(_wideIconSize);
+//		_networkSaveButton.setPreferredSize(_wideIconSize);
+//		_cursorButton.setPreferredSize(_iconSize);
+//		_colorUniformButton.setPreferredSize(_colorByIconSize);
+//		_colorByElevButton.setPreferredSize(_colorByIconSize);
+//		_colorBySourceButton.setPreferredSize(_colorByIconSize);
+//		_colorByYearButton.setPreferredSize(_colorByIconSize);
+//		_filterSourceButton.setPreferredSize(_colorByIconSize);
+//		_filterYearButton.setPreferredSize(_colorByIconSize);
 		// _moveButton.setPreferredSize(_iconSize);
 		// _insertButton.setPreferredSize(_iconSize);
-		// _addButton.setPreferredSize(_iconSize);
+		// _addButton.setSize(_iconSize);
 		// _deleteButton.setPreferredSize(_iconSize);
 		// _addXsectButton.setPreferredSize(_iconSize);
 		// _removeXsectButton.setPreferredSize(_iconSize);
@@ -308,14 +324,15 @@ public class CsdpFrame extends JFrame {
 		// _networkCalculateButton.setPreferredSize(_iconSize);
 		// _zoomBoxButton.setPreferredSize(_iconSize);
 		// _zoomPanButton.setPreferredSize(_iconSize);
-		_zoomFitButton.setPreferredSize(_iconSize);
-		_zoomUndoButton.setPreferredSize(_iconSize);
+//		_zoomFitButton.setPreferredSize(_iconSize);
+//		_zoomUndoButton.setPreferredSize(_iconSize);
+
 		_cursorButton.setSelectedIcon(_cursorIconSelected);
 		_colorUniformButton.setSelectedIcon(_colorUniformIconSelected);
 		_colorByElevButton.setSelectedIcon(_colorElevIconSelected);
 		_colorBySourceButton.setSelectedIcon(_colorSourceIconSelected);
 		_colorByYearButton.setSelectedIcon(_colorYearIconSelected);
-		_moveButton.setSelectedIcon(_moveIconSelected);
+		_moveButton.setSelectedIcon(_movePointIconSelected);
 		_insertButton.setSelectedIcon(_insertIconSelected);
 		_addButton.setSelectedIcon(_addIconSelected);
 		_deleteButton.setSelectedIcon(_deleteIconSelected);
@@ -1984,7 +2001,13 @@ public class CsdpFrame extends JFrame {
 			int index = indexObject.intValue();
 			Color c = _userSetColors.get(indexObject);
 			System.out.println("before out of bounds: colors.size, index=" + _colorsVector.size() + "," + index);
-			_colorsVector.set(index, c);
+			if(_colorsVector.size()<index+1) {
+				while(_colorsVector.size()<index+1) {
+					_colorsVector.addElement(c);
+				}
+			}else {
+				_colorsVector.set(index, c);
+			}
 		}
 
 		// _colors.addElement(new Color(255, 0, 0 )); // bright red
@@ -2261,11 +2284,11 @@ public class CsdpFrame extends JFrame {
 	JButton _zoomFitButton;
 	JButton _zoomUndoButton;
 
-	ImageIcon _fileOpenIcon, _networkOpenIcon, _networkSaveIcon, _cursorIcon, _insertIcon, _moveIcon, _addIcon,
+	ImageIcon _fileOpenIcon, _networkOpenIcon, _networkSaveIcon, _cursorIcon, _insertIcon, _movePointIcon, _addIcon,
 			_deleteIcon, _addXsectIcon, _removeXsectIcon, _moveXsectIcon;
 
 	ImageIcon _viewIcon, _colorUniformIcon, _colorElevIcon, _colorSourceIcon, _colorYearIcon;
-	ImageIcon _networkCalculateIcon, _cursorIconSelected, _insertIconSelected, _moveIconSelected, _addIconSelected,
+	ImageIcon _networkCalculateIcon, _cursorIconSelected, _insertIconSelected, _movePointIconSelected, _addIconSelected,
 			_deleteIconSelected, _addXsectIconSelected, _removeXsectIconSelected, _moveXsectIconSelected;
 
 	// ImageIcon _landmarkAddIcon, _landmarkEditIcon, _landmarkDeleteIcon,
@@ -2333,9 +2356,15 @@ public class CsdpFrame extends JFrame {
 			_landmarkDeleteButton, _landmarkAddSelectedButton, _landmarkEditSelectedButton, _landmarkMoveSelectedButton,
 			_landmarkDeleteSelectedButton;
 
-	private static final Dimension _iconSize = new Dimension(25, 25);
-	private static final Dimension _wideIconSize = new Dimension(35, 25);
-	public static final Dimension _colorByIconSize = new Dimension(40, 15);
+//	private static final Dimension _iconSize = new Dimension(25, 25);
+//	private static final Dimension _wideIconSize = new Dimension(35, 25);
+//	public static final Dimension _colorByIconSize = new Dimension(40, 15);
+	private static final int ICON_WIDTH = 38;
+	private static final int ICON_HEIGHT = 38;
+	private static final int COLOR_BY_ICON_WIDTH = 53;
+	private static final int COLOR_BY_ICON_HEIGHT = 20;
+	private static final int WIDE_ICON_WIDTH = 53;
+	private static final int WIDE_ICON_HEIGHT = 38;
 	// JButton _restoreButton = new JButton("Restore");
 	// JButton _keepButton = new JButton("Keep");
 	// protected JRadioButtonMenuItem _cMovePointMenuItem, _cAddPointMenuItem,
