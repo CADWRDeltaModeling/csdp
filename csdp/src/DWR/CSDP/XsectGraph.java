@@ -80,6 +80,7 @@ import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentListener;
 
+import DWR.CSDP.XsectEditMenu.XSaveToImage;
 import vista.app.CurveFactory;
 import vista.app.GraphBuilderInfo;
 import vista.app.MainProperties;
@@ -325,6 +326,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 			if(bottomAxis!=null && leftAxis!=null) {
 				bottomAxis.setAxisLabel("Distance Along Cross-Section Line, feet");
 				leftAxis.setAxisLabel("Elevation), ft");
+				bottomAxis.setPlotAxisLabel(true);
+				leftAxis.setPlotAxisLabel(true);
 				// Plot plot = _graph.getPlot();
 				// /*
 				// * The following code copied from updateGraphCanvas
@@ -692,7 +695,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		JMenuBar menubar;
 
 		JMenu xgXsect, xgBathymetry, xgEdit;
-		JMenuItem xReverse, xKeep, xRestore, xPrint, xClose;
+		JMenuItem xReverse, xKeep, xRestore, xPrint, xSaveToImage, xClose;
 		// , xMetadata;
 		menubar = new JMenuBar();
 		this.setJMenuBar(menubar);
@@ -710,7 +713,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		// xgXsect.add(xRestore = new JMenuItem("Restore Xsect"));
 		// xRestore.setAccelerator
 		// (KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
-		
+		xgXsect.add(xSaveToImage = new JMenuItem("Save to Image file"));
 //		xgXsect.add(xPrint = new JMenuItem("Print Xsect"));
 		// xgXsect.add(xMetadata = new JMenuItem("Metadata"));
 		xgXsect.add(xClose = new JMenuItem("Close"));
@@ -761,6 +764,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		ActionListener xKeepListener = xsectEditMenu.new XKeep();
 		ActionListener xRestoreListener = xsectEditMenu.new XRestore();
 		ActionListener xChangeElevationListener = xsectEditMenu.new XChangeElevation();
+		ActionListener xSaveToImageListener = xsectEditMenu.new XSaveToImage(this);
 		ActionListener xPrintListener = xsectEditMenu.new XPrint(this);
 		EventListener xCloseListener = xsectEditMenu.new XClose();
 		ItemListener xMovePointListener = xsectEditMenu.new XMovePoint();
@@ -781,7 +785,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 		// xKeep.addActionListener(xKeepListener);
 		// xRestore.addActionListener(xRestoreListener);
 		_elevationButton.addActionListener(xChangeElevationListener);
-//		xPrint.addActionListener(xPrintListener);
+		xSaveToImage.addActionListener(xSaveToImageListener);
+		//		xPrint.addActionListener(xPrintListener);
 		xClose.addActionListener((ActionListener) xCloseListener);
 
 		addWindowListener((WindowListener) xCloseListener);

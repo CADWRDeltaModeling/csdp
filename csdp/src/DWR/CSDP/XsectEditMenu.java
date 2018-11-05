@@ -40,6 +40,7 @@
 */
 package DWR.CSDP;
 
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.PrintJob;
@@ -50,7 +51,13 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.io.File;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -201,6 +208,50 @@ public class XsectEditMenu {
 		}// actionPerformed
 	}// class XPrint
 
+	/*
+	 * Save cross-section window to image
+	 */
+	public class XSaveToImage implements ActionListener {
+
+		private XsectGraph xsectGraph;
+
+		public XSaveToImage(XsectGraph xsectGraph) {
+			this.xsectGraph = xsectGraph;
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			Container container = xsectGraph.getContentPane();
+			BufferedImage im = new BufferedImage(container.getWidth(), container.getHeight(), BufferedImage.TYPE_4BYTE_ABGR_PRE);
+			container.paint(im.getGraphics());
+			try {
+				JFileChooser jfc = new JFileChooser();
+				String[] extensions = { "png" };
+				int numExtensions = 1;
+				CsdpFileFilter channelsInpFilter = new CsdpFileFilter(extensions, numExtensions);
+				
+				jfc.setDialogTitle("Create Image File for Cross-Section window");
+				jfc.setApproveButtonText("Save");
+				jfc.addChoosableFileFilter(channelsInpFilter);
+				jfc.setFileFilter(channelsInpFilter);
+				jfc.setName(xsectGraph.getName()+".png");
+				if (CsdpFunctions.getOpenDirectory() != null) {
+					jfc.setCurrentDirectory(CsdpFunctions.getOpenDirectory());
+				}
+				int filechooserState = jfc.showOpenDialog(xsectGraph);
+				String directory = null;
+				if (filechooserState == JFileChooser.APPROVE_OPTION) {
+					String filename = jfc.getName(jfc.getSelectedFile());
+					directory = jfc.getCurrentDirectory().getAbsolutePath() + File.separator;
+					ImageIO.write(im, "PNG", new File(directory+File.separator+filename));
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}//class XSaveToImage
+	
 	/**
 	 * close xsect frame
 	 */

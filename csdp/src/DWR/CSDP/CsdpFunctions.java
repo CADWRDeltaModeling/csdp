@@ -1696,6 +1696,19 @@ public class CsdpFunctions {
 	}
 
 	private static UseSemmscon _us;
+	
+	/*
+	 * Will be equal to BIT_32 if the 32 bit JRE is being used, will be BIT_64 if 64 bit.
+	 */
+	public static int BITNESS;
+	/*
+	 * Indicates that the 32 bit JRE is being used.
+	 */
+	public static final int BIT_32 = 10;
+	/*
+	 * Indicates that the 64 bit JRE is being used.
+	 */
+	public static final int BIT_64 = 20;
 
 	public static boolean backupFile(String fullPath) {
 		String inputPath = fullPath;
@@ -1751,7 +1764,7 @@ public class CsdpFunctions {
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "2.6_20181102";
+	private static final String _version = "2.6_20181105";
 
 
 }// class CsdpFunctions

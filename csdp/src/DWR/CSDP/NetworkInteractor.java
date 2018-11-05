@@ -306,8 +306,12 @@ public class NetworkInteractor extends ElementInteractor {
 							_gui.enableAfterXsectSelected();
 							_gui.updateInfoPanel(_net.getSelectedXsectNum());
 							double elev = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
-							_gui.updateInfoPanel(xsect.getAreaSqft(elev), xsect.getWidthFeet(elev),
-									xsect.getWettedPerimeterFeet(elev), xsect.getHydraulicDepthFeet(elev));
+							if(xsect.getNumPoints()>0) {
+								_gui.updateInfoPanel(xsect.getAreaSqft(elev), xsect.getWidthFeet(elev),
+										xsect.getWettedPerimeterFeet(elev), xsect.getHydraulicDepthFeet(elev));
+							}else {
+								_gui.updateInfoPanel(0.0, 0.0, 0.0, 0.0);
+							}
 							// removed for conversion to swing
 							_can.redoNextPaint();
 							_can.repaint();
