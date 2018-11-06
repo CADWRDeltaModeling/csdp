@@ -1590,6 +1590,7 @@ public class CsdpFunctions {
 	public static final Cursor _defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);
 	public static final Cursor _crosshairCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
 	public static final Cursor _handCursor = new Cursor(Cursor.HAND_CURSOR);
+	public static final Cursor _moveCursor = new Cursor(Cursor.MOVE_CURSOR);
 	public static boolean _cancelSaveNetwork = true;
 	public static boolean _cancelSaveLandmarks = true;
 
@@ -1764,7 +1765,7 @@ public class CsdpFunctions {
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "2.6_20181105";
+	private static final String _version = "2.6_20181106";
 
 
 }// class CsdpFunctions

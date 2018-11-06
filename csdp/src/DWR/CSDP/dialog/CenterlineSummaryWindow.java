@@ -97,16 +97,18 @@ public class CenterlineSummaryWindow extends JFrame {
     	XYSeries bottomElevationSeries = new XYSeries("Botton Elevation");
 		for(int i=0; i<numXsects; i++){
 			Xsect currentXsect = centerline.getXsect(i);
-			double distanceAlong = currentXsect.getDistAlongCenterlineFeet();
-			double e = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
-			double area = currentXsect.getAreaSqft(e);
-			double wetP = currentXsect.getWettedPerimeterFeet(e);
-			double width = currentXsect.getWettedPerimeterFeet(e);
-			double botElev = currentXsect.getMinimumElevationFeet();
-			areaSeries.add(area, distanceAlong);
-			wetPSeries.add(wetP, distanceAlong);
-			widthSeries.add(width, distanceAlong);
-			bottomElevationSeries.add(botElev, distanceAlong);
+			if(currentXsect.getNumPoints()>0) {
+				double distanceAlong = currentXsect.getDistAlongCenterlineFeet();
+				double e = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
+				double area = currentXsect.getAreaSqft(e);
+				double wetP = currentXsect.getWettedPerimeterFeet(e);
+				double width = currentXsect.getWettedPerimeterFeet(e);
+				double botElev = currentXsect.getMinimumElevationFeet();
+				areaSeries.add(area, distanceAlong);
+				wetPSeries.add(wetP, distanceAlong);
+				widthSeries.add(width, distanceAlong);
+				bottomElevationSeries.add(botElev, distanceAlong);
+			}
 		}
 
         XYDataset areaDataset = new XYSeriesCollection(areaSeries);

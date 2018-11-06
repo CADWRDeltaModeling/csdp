@@ -80,7 +80,6 @@ import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentListener;
 
-import DWR.CSDP.XsectEditMenu.XSaveToImage;
 import vista.app.CurveFactory;
 import vista.app.GraphBuilderInfo;
 import vista.app.MainProperties;

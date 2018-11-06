@@ -92,7 +92,7 @@ public class ZoomMenu {
 	 */
 	public class ZPan implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
-			_gui.setCursor(CsdpFunctions._crosshairCursor);
+			_gui.setCursor(CsdpFunctions._moveCursor);
 		}
 	}// class ZPan
 

@@ -40,8 +40,6 @@
 */
 package DWR.CSDP;
 
-import java.awt.Checkbox;
-import java.awt.Frame;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -49,8 +47,10 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 
+import DWR.CSDP.dialog.DataFilterCheckbox;
 import DWR.CSDP.dialog.FileIO;
 import DWR.CSDP.dialog.TextFieldDialog;
 
@@ -416,15 +416,15 @@ public class DisplayMenu {
 				source.put(i, _data.getSource(i));
 				_sourceInitState.put(i, _data.getPlotSource(i));
 			}
-			DataFilterCheckbox d = new DataFilterCheckbox((Frame) _gui, "Select source(s) to be plotted", true, source,
+			DataFilterCheckbox d = new DataFilterCheckbox(_gui, "Select source(s) to be plotted", true, source,
 					_sourceInitState, numSources);
 			d.setVisible(true);
-			Checkbox checkbox = null;
+			JCheckBox checkbox = null;
 			boolean changed = false;
 			for (int i = 0; i <= numSources - 1; i++) {
-				checkbox = (Checkbox) (d._checkboxes.get(d._names.get(i)));
-				if (checkbox.getState() != _data.getPlotSource(i)) {
-					_data.putPlotSource(i, checkbox.getState());
+				checkbox = (JCheckBox) (d._checkboxes.get(d._names.get(i)));
+				if (checkbox.isSelected() != _data.getPlotSource(i)) {
+					_data.putPlotSource(i, checkbox.isSelected());
 					changed = true;
 				}
 			}
@@ -464,15 +464,15 @@ public class DisplayMenu {
 				year.put(i, yearString);
 				_yearInitState.put(i, _data.getPlotYear(i));
 			}
-			DataFilterCheckbox d = new DataFilterCheckbox((Frame) _gui, "Select year(s) to be plotted", true, year,
+			DataFilterCheckbox d = new DataFilterCheckbox(_gui, "Select year(s) to be plotted", true, year,
 					_yearInitState, numYears);
 			d.setVisible(true);
-			Checkbox checkbox = null;
+			JCheckBox checkbox = null;
 			boolean changed = false;
 			for (int i = 0; i <= numYears - 1; i++) {
-				checkbox = (Checkbox) (d._checkboxes.get(d._names.get(i)));
-				if (checkbox.getState() != _data.getPlotYear(i)) {
-					_data.putPlotYear(i, checkbox.getState());
+				checkbox = (JCheckBox) (d._checkboxes.get(d._names.get(i)));
+				if (checkbox.isSelected() != _data.getPlotYear(i)) {
+					_data.putPlotYear(i, checkbox.isSelected());
 					changed = true;
 				}
 			}

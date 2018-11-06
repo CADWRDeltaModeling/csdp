@@ -865,19 +865,25 @@ public class Centerline {
 		Xsect lastXsect = null;
 		for(int i=0; i<numXsects; i++) {
 			Xsect currentXsect = getXsect(i);
-			double currentXSDist = currentXsect.getDistAlongCenterlineFeet();
-			double currentArea = currentXsect.getAreaSqft(elevation);
-			if(lastXsect!=null) {
-				double lastXSDist = lastXsect.getDistAlongCenterlineFeet();
-				double lastArea = lastXsect.getAreaSqft(elevation);
-				returnValue += 0.5*(lastArea+currentArea) * (currentXSDist-lastXSDist);
-			}else {
-				returnValue += currentXSDist * currentArea;
+			if(currentXsect.getNumPoints()>0) {
+				double currentXSDist = currentXsect.getDistAlongCenterlineFeet();
+				double currentArea = currentXsect.getAreaSqft(elevation);
+				if(lastXsect!=null) {
+					double lastXSDist = lastXsect.getDistAlongCenterlineFeet();
+					double lastArea = lastXsect.getAreaSqft(elevation);
+					returnValue += 0.5*(lastArea+currentArea) * (currentXSDist-lastXSDist);
+				}else {
+					returnValue += currentXSDist * currentArea;
+				}
+				lastXsect = currentXsect;
 			}
-			lastXsect = currentXsect;
 		}
 		//Add the last portion
-		returnValue += (getLengthFeet() - lastXsect.getDistAlongCenterlineFeet()) * lastXsect.getAreaSqft(elevation);
+		if(getNumXsectsWithPoints()>=1) {
+			returnValue += (getLengthFeet() - lastXsect.getDistAlongCenterlineFeet()) * lastXsect.getAreaSqft(elevation);
+		}
+		System.out.println("area, length="+lastXsect.getAreaSqft(elevation)+","+getLengthFeet());
+		System.out.println("simple volume="+getLengthFeet()*lastXsect.getAreaSqft(elevation));
 		return returnValue;
 	}//getChannelVolumeEstimateNoInterp
 	
@@ -893,19 +899,23 @@ public class Centerline {
 		Xsect lastXsect = null;
 		for(int i=0; i<numXsects; i++) {
 			Xsect currentXsect = getXsect(i);
-			double currentXSDist = currentXsect.getDistAlongCenterlineFeet();
-			double currentWetP = currentXsect.getWettedPerimeterFeet(elevation);
-			if(lastXsect!=null) {
-				double lastXSDist = lastXsect.getDistAlongCenterlineFeet();
-				double lastWetP = lastXsect.getWettedPerimeterFeet(elevation);
-				returnValue += 0.5*(lastWetP+currentWetP) * (currentXSDist-lastXSDist);
-			}else {
-				returnValue += currentXSDist * currentWetP;
+			if(currentXsect.getNumPoints()>0) {
+				double currentXSDist = currentXsect.getDistAlongCenterlineFeet();
+				double currentWetP = currentXsect.getWettedPerimeterFeet(elevation);
+				if(lastXsect!=null) {
+					double lastXSDist = lastXsect.getDistAlongCenterlineFeet();
+					double lastWetP = lastXsect.getWettedPerimeterFeet(elevation);
+					returnValue += 0.5*(lastWetP+currentWetP) * (currentXSDist-lastXSDist);
+				}else {
+					returnValue += currentXSDist * currentWetP;
+				}
+				lastXsect = currentXsect;
 			}
-			lastXsect = currentXsect;
 		}
 		//Add the last portion
-		returnValue += (getLengthFeet() - lastXsect.getDistAlongCenterlineFeet()) * lastXsect.getWettedPerimeterFeet(elevation);
+		if(getNumXsectsWithPoints()>=1) {
+			returnValue += (getLengthFeet() - lastXsect.getDistAlongCenterlineFeet()) * lastXsect.getWettedPerimeterFeet(elevation);
+		}
 		return returnValue;
 	}//getChannelVolumeEstimateNoInterp
 
@@ -921,19 +931,23 @@ public class Centerline {
 		Xsect lastXsect = null;
 		for(int i=0; i<numXsects; i++) {
 			Xsect currentXsect = getXsect(i);
-			double currentXSDist = currentXsect.getDistAlongCenterlineFeet();
-			double currentWidth = currentXsect.getWidthFeet(elevation);
-			if(lastXsect!=null) {
-				double lastXSDist = lastXsect.getDistAlongCenterlineFeet();
-				double lastWidth = lastXsect.getWidthFeet(elevation);
-				returnValue += 0.5*(lastWidth+currentWidth) * (currentXSDist-lastXSDist);
-			}else {
-				returnValue += currentXSDist * currentWidth;
+			if(currentXsect.getNumPoints()>0) {
+				double currentXSDist = currentXsect.getDistAlongCenterlineFeet();
+				double currentWidth = currentXsect.getWidthFeet(elevation);
+				if(lastXsect!=null) {
+					double lastXSDist = lastXsect.getDistAlongCenterlineFeet();
+					double lastWidth = lastXsect.getWidthFeet(elevation);
+					returnValue += 0.5*(lastWidth+currentWidth) * (currentXSDist-lastXSDist);
+				}else {
+					returnValue += currentXSDist * currentWidth;
+				}
+				lastXsect = currentXsect;
 			}
-			lastXsect = currentXsect;
 		}
 		//Add the last portion
-		returnValue += (getLengthFeet() - lastXsect.getDistAlongCenterlineFeet()) * lastXsect.getWidthFeet(elevation);
+		if(getNumXsectsWithPoints()>1) {
+			returnValue += (getLengthFeet() - lastXsect.getDistAlongCenterlineFeet()) * lastXsect.getWidthFeet(elevation);
+		}
 		return returnValue;
 	}//getChannelVolumeEstimateNoInterp
 	

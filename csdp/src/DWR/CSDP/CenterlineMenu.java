@@ -586,7 +586,13 @@ public class CenterlineMenu {
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			_net = _gui.getNetwork();
-			new CenterlineSummaryWindow(_net);
+			Centerline selectedCenterline = _net.getSelectedCenterline();
+			int numXsectsWithPoints = selectedCenterline.getNumXsectsWithPoints();
+			if(numXsectsWithPoints>0) {
+				new CenterlineSummaryWindow(_net);
+			}else {
+				JOptionPane.showMessageDialog(_gui, "Selected centerline has no user-created cross-sections", "Nothing to plot", JOptionPane.OK_OPTION);
+			}
 		}
 	}//class DisplayCenterlineSummaryWindow
 
@@ -596,10 +602,17 @@ public class CenterlineMenu {
 		public void actionPerformed(ActionEvent arg0) {
 			_net = _gui.getNetwork();
 			String centerlineName = _net.getSelectedCenterlineName();
-			MultipleXsectGraph mxg = new MultipleXsectGraph(_gui, _app, _net, centerlineName);
-			mxg.setVisible(true);
+
+			Centerline selectedCenterline = _net.getSelectedCenterline();
+			int numXsectsWithPoints = selectedCenterline.getNumXsectsWithPoints();
+			if(numXsectsWithPoints>0) {
+				MultipleXsectGraph mxg = new MultipleXsectGraph(_gui, _app, _net, centerlineName);
+				mxg.setVisible(true);
+			}else {
+				JOptionPane.showMessageDialog(_gui, "Selected centerline has no user-created cross-sections", "Nothing to plot", JOptionPane.OK_OPTION);
+			}
 		}
-	}
+	}//class PlotAllCrossSections
 
 	
 	public class AddXSAtComputationalPoints implements ActionListener{

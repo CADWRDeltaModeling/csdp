@@ -273,8 +273,8 @@ public class MultipleXsectGraph extends JDialog implements ActionListener {
 		// necessary to do it here to create the oldNetworkDataSet
 		// using any exisiting points in the network.
 		makeNetworkDataSets();
-		double[] x;
-		double[] y;
+//		double[] x;
+//		double[] y;
 //		if (_networkDataSet != null) {
 //			x = _networkDataSet.getXArray();
 //			y = _networkDataSet.getYArray();
@@ -970,50 +970,52 @@ public class MultipleXsectGraph extends JDialog implements ActionListener {
 			double binValue = 0.0;
 			Xsect xsect = centerline.getXsect(i);
 			int numXsectPoints = xsect.getNumPoints();
-			double[] station = new double[numXsectPoints];
-			double[] elevation = new double[numXsectPoints];
-			//name should be cross-section number
-			dataSetName = "Cross-Section Number " + Integer.toString(i);
-
-			// beginning of new dataSet, so set index to zero.
-			dataSetPointIndex = 0;
-			double xCentroid = xsect.getXCentroidFeet(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
-			for (int j = 0; j <= numXsectPoints - 1; j++) {
-				XsectPoint xp = xsect.getXsectPoint(j);
-				station[dataSetPointIndex] = xp.getStationFeet() - xCentroid;
-				elevation[dataSetPointIndex] = xp.getElevationFeet();
-				dataSetPointIndex++;
-			} // for j: looping through all enclosed bathymetry points
-
-			// if any points were added to the dataset, create new arrays which
-			// are
-			// dimensioned to the number of points in the dataset.
-			if (dataSetPointIndex > 0) {
-				if (DEBUG)
-					System.out.println("making data set " + dataSetName + ", numPoints=" + dataSetPointIndex);
-
-//				double[] newStation = new double[dataSetPointIndex];
-//				double[] newElevation = new double[dataSetPointIndex];
-//				for (int j = 0; j <= dataSetPointIndex - 1; j++) {
-//					newStation[j] = station[j];
-//					newElevation[j] = elevation[j];
-//				}
-//				if (DEBUG)
-//					System.out.println(
-//							"xsectGraph.makeBathymetryDataSets: adding element to bathymetrydatasetnames. index, value="
-//									+ _numBathymetryDataSets + "," + dataSetName);
-
-//				_bathymetryDataSets.put(dataSetName, new NetworkDataSet(dataSetName, newStation, newElevation));
-//				_bathymetryDataSetNames.put(_numBathymetryDataSets, dataSetName);
-//				_numBathymetryDataSets++;
-
-				_networkDataSets.put(dataSetName, new NetworkDataSet(dataSetName,  station, elevation));
-				_networkDataSetNames.put(_numNetworkDataSets, dataSetName);
-				_numNetworkDataSets++;
-			} else {
-				if (DEBUG)
-					System.out.println("no points added to dataset " + dataSetName);
-			}
+			if(numXsectPoints>0) {
+				double[] station = new double[numXsectPoints];
+				double[] elevation = new double[numXsectPoints];
+				//name should be cross-section number
+				dataSetName = "Cross-Section Number " + Integer.toString(i);
+	
+				// beginning of new dataSet, so set index to zero.
+				dataSetPointIndex = 0;
+				double xCentroid = xsect.getXCentroidFeet(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+				for (int j = 0; j <= numXsectPoints - 1; j++) {
+					XsectPoint xp = xsect.getXsectPoint(j);
+					station[dataSetPointIndex] = xp.getStationFeet() - xCentroid;
+					elevation[dataSetPointIndex] = xp.getElevationFeet();
+					dataSetPointIndex++;
+				} // for j: looping through all enclosed bathymetry points
+	
+				// if any points were added to the dataset, create new arrays which
+				// are
+				// dimensioned to the number of points in the dataset.
+				if (dataSetPointIndex > 0) {
+					if (DEBUG)
+						System.out.println("making data set " + dataSetName + ", numPoints=" + dataSetPointIndex);
+	
+	//				double[] newStation = new double[dataSetPointIndex];
+	//				double[] newElevation = new double[dataSetPointIndex];
+	//				for (int j = 0; j <= dataSetPointIndex - 1; j++) {
+	//					newStation[j] = station[j];
+	//					newElevation[j] = elevation[j];
+	//				}
+	//				if (DEBUG)
+	//					System.out.println(
+	//							"xsectGraph.makeBathymetryDataSets: adding element to bathymetrydatasetnames. index, value="
+	//									+ _numBathymetryDataSets + "," + dataSetName);
+	
+	//				_bathymetryDataSets.put(dataSetName, new NetworkDataSet(dataSetName, newStation, newElevation));
+	//				_bathymetryDataSetNames.put(_numBathymetryDataSets, dataSetName);
+	//				_numBathymetryDataSets++;
+	
+					_networkDataSets.put(dataSetName, new NetworkDataSet(dataSetName,  station, elevation));
+					_networkDataSetNames.put(_numNetworkDataSets, dataSetName);
+					_numNetworkDataSets++;
+				} else {
+					if (DEBUG)
+						System.out.println("no points added to dataset " + dataSetName);
+				}
+			}//if numXsectPoints>0
 		} // for i
 
 		if (DEBUG)

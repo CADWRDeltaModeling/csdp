@@ -907,7 +907,7 @@ public class CsdpFrame extends JFrame {
 		// cfCenterline.add(cList = new JMenuItem("List"));
 		// cfCenterline.add(cSummary = new JMenuItem("Summary"));
 		cfCenterline.add(cDisplaySummary = new JMenuItem("View Centerline Summary"));
-		cfCenterline.add(cPlotAllCrossSections = new JMenuItem("Plot all cross-sections"));
+		cfCenterline.add(cPlotAllCrossSections = new JMenuItem("Multiple Cross-Section Graph"));
 		cfCenterline.add(cAddXSAtComputationalPoints = new JMenuItem("Add cross-sections at Computational Pts"));
 		
 		cfCenterline.setMnemonic(KeyEvent.VK_C);
