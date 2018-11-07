@@ -546,12 +546,12 @@ public class CsdpFrame extends JFrame {
 		/*
 		 * File menu
 		 */
-		cfFile = new JMenu("File");
-		cfFile.add(fOpen = new JMenuItem("Open"));
-		cfFile.add(fClose = new JMenuItem("Close"));
+		cfFile = new JMenu("Bathymetry");
+		cfFile.add(fOpen = new JMenuItem("Open File"));
+		cfFile.add(fClose = new JMenuItem("Close File"));
 		cfFile.addSeparator();
-		cfFile.add(fSave = new JMenuItem("Save"));
-		cfFile.add(fSaveAs = new JMenuItem("Save As..."));
+		cfFile.add(fSave = new JMenuItem("Save File"));
+		cfFile.add(fSaveAs = new JMenuItem("Save File As..."));
 		cfFile.add(fSaveAsNAVD88 = new JMenuItem("Save As NAVD88..."));
 		cfFile.add(fSaveZoomed = new JMenuItem("Save Zoomed data"));
 		cfFile.addSeparator();
@@ -677,6 +677,7 @@ public class CsdpFrame extends JFrame {
 		// cfDisplay.add(dErased = new MenuItem("Erased"));
 		// cfDisplay.addSeparator();
 		cfDisplay.add(dDigitalLineGraph = new JMenuItem("Digital Line Graph(Channel Outline)"));
+		cfDisplay.add(clearDigitalLineGraph = new JMenuItem("Clear Digital Line Graph (Channel Outline)"));
 		cfDisplay.addSeparator();
 		cfDisplay.add(dElevBins = new JMenuItem("Change Elevation Bins"));
 		// cfDisplay.addSeparator();
@@ -687,6 +688,7 @@ public class CsdpFrame extends JFrame {
 		DisplayMenu displayMenu = new DisplayMenu(_app, _net);
 		ActionListener dParametersListener = displayMenu.new DParameters(this);
 		ActionListener dDigitalLineGraphListener = displayMenu.new DDigitalLineGraph(this);
+		ActionListener clearDigitalLineGraphListener = displayMenu.new ClearDigitalLineGraph();
 		ActionListener dSourceListener = displayMenu.new DSource(this);
 		ActionListener dYearListener = displayMenu.new DYear(this);
 		ItemListener dColorUniformListener = displayMenu.new DColorUniform(this);
@@ -700,6 +702,7 @@ public class CsdpFrame extends JFrame {
 
 		dParameters.addActionListener(dParametersListener);
 		dDigitalLineGraph.addActionListener(dDigitalLineGraphListener);
+		clearDigitalLineGraph.addActionListener(clearDigitalLineGraphListener);
 		dSource.addActionListener(dSourceListener);
 		dYear.addActionListener(dYearListener);
 		dElevBins.addActionListener(dElevBinsListener);
@@ -1397,6 +1400,7 @@ public class CsdpFrame extends JFrame {
 		// dColorBy.setEnabled(false);
 		// dErased.setEnabled(false);
 		dDigitalLineGraph.setEnabled(false);
+		clearDigitalLineGraph.setEnabled(false);
 		oLandmark.setEnabled(false);
 		cLandmarks.setEnabled(false);
 		lSave.setEnabled(false);
@@ -1477,6 +1481,7 @@ public class CsdpFrame extends JFrame {
 		// dColorBy.setEnabled(true);
 		// dErased.setEnabled(true);
 		dDigitalLineGraph.setEnabled(true);
+		clearDigitalLineGraph.setEnabled(true);
 		oLandmark.setEnabled(true);
 		lSave.setEnabled(true);
 		lSaveAs.setEnabled(true);
@@ -2384,7 +2389,7 @@ public class CsdpFrame extends JFrame {
 			fPrint, fPrintSetup, fExit;
 	private JMenuItem pLoad, pSave, pSaveAs;
 	private JMenuItem mSource, mYear, mZSign, mErase, mRestore, mPurge, mStatus;
-	private JMenuItem dParameters, dSource, dYear, dColorBy, dErased, oLandmark, cLandmarks, dDigitalLineGraph,
+	private JMenuItem dParameters, dSource, dYear, dColorBy, dErased, oLandmark, cLandmarks, dDigitalLineGraph, clearDigitalLineGraph, 
 			dCopyToClipboard, dElevBins;
 	// JRadioButtonMenuItem dColorUniformRadioButton, dColorByDepthRadioButton,
 	// dColorBySourceRadioButton, dColorByYearRadioButton;

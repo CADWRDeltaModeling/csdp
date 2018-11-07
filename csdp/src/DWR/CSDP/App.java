@@ -468,6 +468,17 @@ public class App {
 	}
 
 	/*
+	 * Remove channel outlines from memory and display
+	 */
+	public void clearChannelOutlines() {
+		_dlg = null;
+		_gui.setDigitalLineGraph(null);
+		_gui.updateDigitalLineGraphFilename(null);
+		_gui.getPlanViewCanvas(0).redoNextPaint();
+		_gui.getPlanViewCanvas(0).repaint();
+	}
+	
+	/*
 	 * Create new landmark file (when landmark not loaded and user wants to
 	 * create landmarks)
 	 */

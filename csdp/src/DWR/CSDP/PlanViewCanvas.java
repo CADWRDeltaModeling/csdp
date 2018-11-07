@@ -153,7 +153,7 @@ public class PlanViewCanvas extends JPanel {
 				_landmarkPlotter.plotData(gg, this.getBounds(), _zoomBox, _changeZoom);
 				setUpdateLandmark(false);
 			}
-			if (_dlgPlotter != null) {
+			if (_dlgPlotter != null && _dlg != null) {
 				if (DEBUG)
 					System.out.println("dlgplotter not null!");
 				_dlgPlotter.setDigitalLineGraph(_dlg);

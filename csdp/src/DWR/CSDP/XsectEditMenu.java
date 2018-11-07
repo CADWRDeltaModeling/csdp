@@ -142,16 +142,12 @@ public class XsectEditMenu {
 		public void actionPerformed(ActionEvent e) {
 			String elevString = JOptionPane.showInputDialog(_xsectGraph, "Enter new elevation", CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
 			double nf = Double.parseDouble(elevString);
-			if (nf != CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS) {
-				//actually don't want this to change the default value; just the value for the current xs
-				//				CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS = nf;
-				_xsectGraph.setXSPropElevation(nf);
-				_xsectGraph.updateDisplay();
-				_xsectGraph._gC.redoNextPaint();
-				_xsectGraph.validate();
-				// removed for conversion to swing
-				// _xsectGraph._gC.repaint();
-			} // if user entered new elevation
+			_xsectGraph.setXSPropElevation(nf);
+			_xsectGraph.updateDisplay();
+			_xsectGraph._gC.redoNextPaint();
+			_xsectGraph.validate();
+			// removed for conversion to swing
+			// _xsectGraph._gC.repaint();
 		}// actionPerformed
 	}// XChangeElevation
 

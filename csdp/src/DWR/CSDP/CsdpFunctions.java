@@ -1765,7 +1765,7 @@ public class CsdpFunctions {
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "2.6_20181106";
+	private static final String _version = "2.6_20181107";
 
 
 }// class CsdpFunctions
