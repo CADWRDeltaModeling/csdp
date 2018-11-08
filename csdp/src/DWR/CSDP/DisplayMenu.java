@@ -92,34 +92,39 @@ public class DisplayMenu {
 
 			double oldThickness = CsdpFunctions._xsectThickness;
 			int oldPointSize = _plot.getPointSize();
+			int oldNetworkSelectedPointDimension = NetworkPlot.NETWORK_SELECTION_POINT_DIMENSION;
 			double oldElevation = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
 			double oldDeltaX = CsdpFunctions.DELTAX;
 			double oldCrossSectionLineLength = CsdpFunctions.CROSS_SECTION_LINE_LENGTH;
 			
-			String names[] = new String[5];
-			double initValue[] = new double[5];
+			String names[] = new String[6];
+			double initValue[] = new double[6];
 			names[0] = "Cross-Section Thickness, ft";
 			names[1] = "Bathymetry Point Dimension, pixels";
-			names[2] = "Elevation for Conveyance Characteristics Calculations";
-			names[3] = "Delta X for adding cross-sections at computational points";
-			names[4] = "Cross-section line length for adding cross-sections at computational points";
+			names[2] = "Network Selection Point Dimension, pixels";
+			names[3] = "Elevation for Conveyance Characteristics Calculations";
+			names[4] = "Delta X for adding cross-sections at computational points";
+			names[5] = "Cross-section line length for adding cross-sections at computational points";
 			
 			initValue[0] = oldThickness;
 			initValue[1] = (int) oldPointSize;
-			initValue[2] = oldElevation;
-			initValue[3] = oldDeltaX;
-			initValue[4] = oldCrossSectionLineLength;
+			initValue[2] = oldNetworkSelectedPointDimension;
+			initValue[3] = oldElevation;
+			initValue[4] = oldDeltaX;
+			initValue[5] = oldCrossSectionLineLength;
 			
 			TextFieldDialog d = new TextFieldDialog(_gui, "Display Parameters", true, names, initValue);
 			d.setVisible(true);
-			String t = ((TextField) d._textFields.get(names[0])).getText();
-			String pd = ((TextField) d._textFields.get(names[1])).getText();
-			String newElevationString = ((TextField) d._textFields.get(names[2])).getText();
-			String newDeltaXString = ((TextField) d._textFields.get(names[3])).getText();
-			String newCrossSectionLineLengthString = ((TextField) d._textFields.get(names[4])).getText();
+			String t = d._textFields.get(names[0]).getText();
+			String pd = d._textFields.get(names[1]).getText();
+			String npd = d._textFields.get(names[2]).getText();
+			String newElevationString = d._textFields.get(names[3]).getText();
+			String newDeltaXString = d._textFields.get(names[4]).getText();
+			String newCrossSectionLineLengthString = d._textFields.get(names[5]).getText();
 			
 			
 			int newPointSize = (int) (Double.parseDouble(pd));
+			int newNetworkSelectionPointSize = (int)Double.parseDouble(npd);
 			double newThickness = Double.parseDouble(t);
 			double newElevation = Double.parseDouble(newElevationString);
 			double newDeltaX = Double.parseDouble(newDeltaXString);
@@ -130,6 +135,9 @@ public class DisplayMenu {
 			if (newThickness != oldThickness) {
 				CsdpFunctions._xsectThickness = newThickness;
 			} // change thickness
+			if(newNetworkSelectionPointSize != oldNetworkSelectedPointDimension) {
+				NetworkPlot.NETWORK_SELECTION_POINT_DIMENSION = newNetworkSelectionPointSize;
+			}
 			if (newPointSize != oldPointSize) {
 				_plot.setPointSize(newPointSize);
 				_gui.getPlanViewCanvas(0).setUpdateCanvas(true);

@@ -84,7 +84,7 @@ public class TextFieldDialog extends Dialog implements ActionListener {
 		doLayout();
 		ActionListener okButtonListener = this;
 		_okButton.addActionListener(okButtonListener);
-		setSize(1000, 150);
+		setSize(1000, 200);
 	}// constructor
 
 	public Insets getInsets() {
@@ -97,7 +97,7 @@ public class TextFieldDialog extends Dialog implements ActionListener {
 
 	int _numNames = 0;
 	public String[] _names;
-	public Hashtable _textFields = new Hashtable();
+	public Hashtable<String, TextField> _textFields = new Hashtable<String, TextField>();
 	protected static final int FIELD_WIDTH = 10;
 	protected static final boolean DEBUG = false;
 }// TextFieldDialog

@@ -186,8 +186,8 @@ public class NetworkPlot extends PlanViewPlot {
 					_x1Pixels = pt[0];
 					_y1Pixels = pt[1];
 
-					g.drawRect((int) _x1Pixels - POINT_DIMENSION / 2, (int) _y1Pixels - POINT_DIMENSION / 2,
-							POINT_DIMENSION, POINT_DIMENSION);
+					g.fillRect((int) _x1Pixels - NETWORK_SELECTION_POINT_DIMENSION / 2, (int) _y1Pixels - NETWORK_SELECTION_POINT_DIMENSION / 2,
+							NETWORK_SELECTION_POINT_DIMENSION, NETWORK_SELECTION_POINT_DIMENSION);
 					// if upstream point, draw a "U"; if downstream point, draw
 					// a "D"
 					if (p == 0)
@@ -246,16 +246,16 @@ public class NetworkPlot extends PlanViewPlot {
 
 				g.drawLine((int) _x1Pixels, (int) _y1Pixels, (int) _x2Pixels, (int) _y2Pixels);
 				if (xsect == _net.getSelectedXsect()) {
-					g.drawRect((int) _x1Pixels - POINT_DIMENSION / 2, (int) _y1Pixels - POINT_DIMENSION / 2,
-							POINT_DIMENSION, POINT_DIMENSION);
-					g.drawRect((int) _x2Pixels - POINT_DIMENSION / 2, (int) _y2Pixels - POINT_DIMENSION / 2,
-							POINT_DIMENSION, POINT_DIMENSION);
+					g.fillRect((int) _x1Pixels - NETWORK_SELECTION_POINT_DIMENSION / 2, (int) _y1Pixels - NETWORK_SELECTION_POINT_DIMENSION / 2,
+							NETWORK_SELECTION_POINT_DIMENSION, NETWORK_SELECTION_POINT_DIMENSION);
+					g.fillRect((int) _x2Pixels - NETWORK_SELECTION_POINT_DIMENSION / 2, (int) _y2Pixels - NETWORK_SELECTION_POINT_DIMENSION / 2,
+							NETWORK_SELECTION_POINT_DIMENSION, NETWORK_SELECTION_POINT_DIMENSION);
 				} // if xsect
 			} // for xs
 		} // for c
 	}// plot
 
-	protected static final int POINT_SIZE = 1;// size of displayed data point
+//	protected static final int NETWORK_SELECTION_POINT_DIMENSION = 1;// size of displayed data point
 												// (square)
 	protected double _x1Pixels; // coordinates of centerline points converted to
 								// pixels
@@ -263,6 +263,6 @@ public class NetworkPlot extends PlanViewPlot {
 	protected double _x2Pixels;
 	protected double _y2Pixels;
 	Network _net = null;
-	protected int POINT_DIMENSION = 2;
+	protected static int NETWORK_SELECTION_POINT_DIMENSION = 4;
 	protected static final boolean DEBUG = false;
 } // class NetworkPlot
