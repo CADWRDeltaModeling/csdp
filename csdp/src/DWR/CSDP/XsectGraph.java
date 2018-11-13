@@ -193,9 +193,13 @@ public class XsectGraph extends JDialog implements ActionListener {
 		// add("South",_xsPropPanel);
 		// use this instead for JFrame
 
-		_metadata = new JTextArea(_xsect.getMetadata());
-		_metadataScrollPane = new JScrollPane(_metadata, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		_metadataJTextArea = new JTextArea(_xsect.getMetadata());
+//		_metadataScrollPane = new JScrollPane(_metadata, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+//				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		_metadataJTextArea.setLineWrap(true);
+		_metadataJTextArea.setWrapStyleWord(true);
+		_metadataScrollPane = new JScrollPane(_metadataJTextArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		_metadataScrollPane.setPreferredSize(new Dimension(300, 450));
 		_eastPanel.setLayout(new BoxLayout(_eastPanel, BoxLayout.Y_AXIS));
 		_eastPanel.add(_xsPropPanel);
@@ -778,7 +782,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 				// xsectEditMenu.new XMetadata(_centerlineName, _xsectNum,
 				// _xsect,_gui);
 				xsectEditMenu.new XMetadata();
-		_metadata.getDocument().addDocumentListener(xMetadataListener);
+		_metadataJTextArea.getDocument().addDocumentListener(xMetadataListener);
 
 		// xReverse.addActionListener(xReverseListener);
 		// xKeep.addActionListener(xKeepListener);
@@ -1442,7 +1446,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 	Border _lineBorder = BorderFactory.createLineBorder(Color.black, 2);
 
 	// all new
-	public JTextArea _metadata;
+	public JTextArea _metadataJTextArea;
 //	private ResizableStringArray _metadataMessage;
 	private JScrollPane _metadataScrollPane;
 

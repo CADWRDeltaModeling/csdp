@@ -298,8 +298,8 @@ public class XsectEditMenu {
 					_app.removeXsectGraph(_xsectGraph._centerlineName, _xsectGraph._xsectNum);
 					_net.setIsUpdated(true);
 					_xsect.setIsUpdated(false);
-					int metadataLength = _xsectGraph._metadata.getDocument().getLength();
-					Document doc = _xsectGraph._metadata.getDocument();
+					int metadataLength = _xsectGraph._metadataJTextArea.getDocument().getLength();
+					Document doc = _xsectGraph._metadataJTextArea.getDocument();
 					String newmd = null;
 					try {
 						newmd = doc.getText(0, metadataLength);

@@ -582,6 +582,7 @@ public class App {
 		if (CsdpFunctions._networkFilename != null) {
 			if (CsdpFunctions._networkFiletype == null)
 				CsdpFunctions._networkFiletype = NETWORK_TYPE;
+			_net.sortCenterlineNames();
 			NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions._networkFilename,
 					CsdpFunctions._networkFiletype, _net, null);
 			success = noutput.writeData();
@@ -605,6 +606,7 @@ public class App {
 			System.out.println("networkFilename, networkFiletype=" + CsdpFunctions._networkFilename + ","
 					+ CsdpFunctions._networkFiletype);
 
+		_net.sortCenterlineNames();
 		NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions._networkFilename,
 				CsdpFunctions._networkFiletype, _net, null);
 		success = noutput.writeData();
@@ -845,6 +847,8 @@ public class App {
 		afw.writeLine("XSECT_LAYER");
 		afw.writeLine("CHAN_NO  DIST  ELEV  AREA  WIDTH  WET_PERIM");
 		
+		_net.sortCenterlineNames();
+		
 		for(int i=0; i<_net.getNumCenterlines(); i++) {
 			centerlineName = _net.getCenterlineName(i);
 			centerline = _net.getCenterline(centerlineName);
@@ -866,7 +870,7 @@ public class App {
 						String channelNum = centerlineNameParts[0];
 //						String s = String.format("%-8s%-8.5f%-10.3f%-12.3f%-12.3f%-13.3f", channelNum,normalizedDist,elevations[k],area,width,wetP);
 						String s = String.format("%-9s", channelNum)+
-								String.format("%-8.3f", normalizedDist)+
+								String.format("%-8.5f", normalizedDist)+
 								String.format("%-10.3f", goodElevations[k])+
 								String.format("%-12.3f", area)+
 								String.format("%-12.3f", width)+
