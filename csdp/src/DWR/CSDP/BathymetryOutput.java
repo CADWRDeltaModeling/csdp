@@ -42,6 +42,8 @@ package DWR.CSDP;
 
 import java.io.File;
 
+import DWR.CSDP.XsectBathymetryData;
+
 /**
  * Write ascii and binary bathymetry data
  *
@@ -116,16 +118,17 @@ public abstract class BathymetryOutput {
 		return success;
 	}
 
-	public boolean extractXsectData(String centerlineName, int xsectNum, double thickness) {
+	public boolean extractXsectData(XsectBathymetryData xsectBathymetryData, String centerlineName, int xsectNum, double thickness) {
 		openExtractFile();
-		boolean success = writeExtractedXsectData(centerlineName, xsectNum, thickness);
+		boolean success = writeExtractedXsectData(xsectBathymetryData, centerlineName, xsectNum, thickness);
 		close();
 		return success;
 	}
 
 	protected abstract void openExtractFile();
 
-	protected abstract boolean writeExtractedXsectData(String centerlineName, int xsectNum, double thickness);
+	protected abstract boolean writeExtractedXsectData(XsectBathymetryData xsectBathymetryData, String centerlineName, 
+			int xsectNum, double thickness);
 
 	/**
 	 * Open file

@@ -80,6 +80,7 @@ import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentListener;
 
+import DWR.CSDP.XsectBathymetryData;
 import vista.app.CurveFactory;
 import vista.app.GraphBuilderInfo;
 import vista.app.MainProperties;
@@ -120,14 +121,179 @@ import vista.set.DefaultReference;
  */
 public class XsectGraph extends JDialog implements ActionListener {
 
-	public XsectGraph(CsdpFrame gui, App app, BathymetryData data, Network net, String centerlineName, int xsectNum,
-			double thickness, int colorOption) {
+	protected BathymetryPlot _plotter;
+	protected NetworkPlot _networkPlotter;
+	App _app;
+	BathymetryData _bathymetryData;
+	Network _net;
+	GECanvas _gC;
+	private NetworkDataSet _networkDataSet;
+	private NetworkDataSet _oldNetworkDataSet;
+//	public static final int DATA_LENGTH = 100;
+	/*
+	 * size of cross-section points
+	 */
+	// protected static int squareDimension = 2;
+	protected static final int stationIndex = 0;
+	protected static final int elevationIndex = 1;
+
+	Xsect _xsect;
+	// protected JCheckBoxMenuItem _xMovePointMenuItem, _xAddPointMenuItem,
+	// _xInsertPointMenuItem, _xDeletePointMenuItem;
+
+	URL xsCloseUrl = this.getClass().getResource("images/XSCloseButton.png");
+	URL cursorIconUrl = this.getClass().getResource("images/ArrowButton.png");
+	URL reverseXsectIconUrl = this.getClass().getResource("images/ReverseXsectButton.png");
+	URL movePointIconUrl = this.getClass().getResource("images/MoveXsectPointButton.png");
+	URL addPointIconUrl = this.getClass().getResource("images/AddXsectPointButton.png");
+	URL insertPointIconUrl = this.getClass().getResource("images/InsertXsectPointButton.png");
+	URL deletePointIconUrl = this.getClass().getResource("images/DeleteXsectPointButton.png");
+	URL cursorIconSelectedUrl = this.getClass().getResource("images/ArrowButtonSelected.png");
+	URL movePointIconSelectedUrl = this.getClass().getResource("images/MoveXsectPointButtonSelected.png");
+	URL addPointIconSelectedUrl = this.getClass().getResource("images/AddXsectPointButtonSelected.png");
+	URL insertPointIconSelectedUrl = this.getClass().getResource("images/InsertXsectPointButtonSelected.png");
+	URL deletePointIconSelectedUrl = this.getClass().getResource("images/DeleteXsectPointButtonSelected.png");
+	URL keepIconUrl = this.getClass().getResource("images/KeepButton.png");
+	URL restoreIconUrl = this.getClass().getResource("images/RestoreButton.png");
+	URL colorByDistanceIconUrl = this.getClass().getResource("images/ColorDistanceButton.png");
+	URL colorByDistanceIconSelectedUrl = this.getClass().getResource("images/ColorDistanceButtonSelected.png");
+	URL colorBySourceIconUrl = this.getClass().getResource("images/ColorSourceButton.png");
+	URL colorBySourceIconSelectedUrl = this.getClass().getResource("images/ColorSourceButtonSelected.png");
+	URL colorByYearIconUrl = this.getClass().getResource("images/ColorYearButton.png");
+	URL colorByYearIconSelectedUrl = this.getClass().getResource("images/ColorYearButtonSelected.png");
+
+	ImageIcon _xsCloseIcon = CsdpFunctions.createScaledImageIcon(xsCloseUrl, WIDE_ICON_WIDTH, WIDE_ICON_HEIGHT);
+	ImageIcon _cursorIcon = CsdpFunctions.createScaledImageIcon(cursorIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _reverseXsectIcon = CsdpFunctions.createScaledImageIcon(reverseXsectIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _movePointIcon = CsdpFunctions.createScaledImageIcon(movePointIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _addPointIcon = CsdpFunctions.createScaledImageIcon(addPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _insertPointIcon = CsdpFunctions.createScaledImageIcon(insertPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _deletePointIcon = CsdpFunctions.createScaledImageIcon(deletePointIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _cursorIconSelected = CsdpFunctions.createScaledImageIcon(cursorIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _movePointIconSelected = CsdpFunctions.createScaledImageIcon(movePointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _addPointIconSelected = CsdpFunctions.createScaledImageIcon(addPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _insertPointIconSelected = CsdpFunctions.createScaledImageIcon(insertPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _deletePointIconSelected = CsdpFunctions.createScaledImageIcon(deletePointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
+
+	ImageIcon _keepIcon = CsdpFunctions.createScaledImageIcon(keepIconUrl, WIDE_ICON_WIDTH, WIDE_ICON_HEIGHT);
+	ImageIcon _restoreIcon = CsdpFunctions.createScaledImageIcon(restoreIconUrl, (int)(1.3*WIDE_ICON_WIDTH), WIDE_ICON_HEIGHT);
+
+	ImageIcon _colorByDistanceIcon = CsdpFunctions.createScaledImageIcon(colorByDistanceIconUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+	ImageIcon _colorByDistanceIconSelected = CsdpFunctions.createScaledImageIcon(colorByDistanceIconSelectedUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+	ImageIcon _colorBySourceIcon = CsdpFunctions.createScaledImageIcon(colorBySourceIconUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+	ImageIcon _colorBySourceIconSelected = CsdpFunctions.createScaledImageIcon(colorBySourceIconSelectedUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+	ImageIcon _colorByYearIcon = CsdpFunctions.createScaledImageIcon(colorByYearIconUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+	ImageIcon _colorByYearIconSelected = CsdpFunctions.createScaledImageIcon(colorByYearIconSelectedUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
+
+	JRadioButton _colorByDistanceButton = new JRadioButton(_colorByDistanceIcon);
+	JRadioButton _colorBySourceButton = new JRadioButton(_colorBySourceIcon);
+	JRadioButton _colorByYearButton = new JRadioButton(_colorByYearIcon);
+
+	JButton _xsCloseButton = new JButton(_xsCloseIcon);
+	JButton _reverseButton = new JButton(_reverseXsectIcon);
+	JRadioButton _arrowButton = new JRadioButton(_cursorIcon);
+	JRadioButton _moveButton = new JRadioButton(_movePointIcon);
+	JRadioButton _addButton = new JRadioButton(_addPointIcon);
+	JRadioButton _insertButton = new JRadioButton(_insertPointIcon);
+	JRadioButton _deleteButton = new JRadioButton(_deletePointIcon);
+
+	JButton _restoreButton = new JButton(_restoreIcon);
+	JButton _keepButton = new JButton(_keepIcon);
+	// JButton _metadataButton = new JButton(_metadataIcon);
+
+	ButtonGroup _colorByButtonGroup, _xsectEditButtonGroup;
+
+//	private static final Dimension _iconSize = new Dimension(25, 25);
+//	private static final Dimension _medIconSize = new Dimension(33, 25);
+//	private static final Dimension _wideIconSize = new Dimension(50, 25);
+
+	private static final int ICON_WIDTH = 38;
+	private static final int ICON_HEIGHT = 38;
+	private static final int COLOR_BY_ICON_WIDTH = 53;
+	private static final int COLOR_BY_ICON_HEIGHT = 23;
+	private static final int WIDE_ICON_WIDTH = 60;
+	private static final int WIDE_ICON_HEIGHT = 38;
+	protected boolean _restoreXsect = false;
+	protected double _thickness;
+	protected static final boolean DEBUG = false;
+
+	protected Hashtable _bathymetryDataSets = new Hashtable();
+	protected int _numBathymetryDataSets = 0;
+	// protected boolean _colorByDistance = false;
+	// protected boolean _colorBySource = false;
+	// protected boolean _colorByYear = true;
+	protected ResizableStringArray _bathymetryDataSetNames = new ResizableStringArray();
+
+	JPanel _eastPanel = new JPanel();
+	JPanel _xsPropPanel = new JPanel();
+	JPanel _dConveyancePanel = new JPanel();
+	JPanel _inputPanel = new JPanel();
+	JButton _elevationButton = new JButton("Change elevation");
+	JLabel _numPointsLabel = new JLabel();
+	JLabel _elevationLabel = new JLabel();
+	JLabel _widthLabel = new JLabel();
+	JLabel _areaLabel = new JLabel();
+	JLabel _wetpLabel = new JLabel();
+	JLabel _hDepthLabel = new JLabel();
+
+	JLabel _numPointsValueLabel = new JLabel();
+	JLabel _elevationValueLabel = new JLabel();
+	JLabel _widthValueLabel = new JLabel();
+	JLabel _wetpValueLabel = new JLabel();
+	JLabel _areaValueLabel = new JLabel();
+	JLabel _hDepthValueLabel = new JLabel();
+
+	// JLabel _dkLabel = new JLabel();
+	JTextArea _dConveyanceTextArea = new JTextArea();
+	JTextArea _conveyanceCharacteristicsTextArea = new JTextArea();
+	
+	// JCheckBoxMenuItem _bColorByDistance, _bColorBySource, _bColorByYear;
+	JMenuItem _bChangePointSize;
+	String _centerlineName = null;
+	int _xsectNum;
+	Legend _legend;
+	CsdpFrame _gui;
+	public int COLOR_BY_DISTANCE = 0;
+	public int COLOR_BY_YEAR = 1;
+	public int COLOR_BY_SOURCE = 2;
+	protected boolean _changesKept = false;
+	Border _raisedBevel = BorderFactory.createRaisedBevelBorder();
+	Border _lineBorder = BorderFactory.createLineBorder(Color.black, 2);
+
+	// all new
+	public JTextArea _metadataJTextArea;
+//	private ResizableStringArray _metadataMessage;
+	private JScrollPane _metadataScrollPane;
+
+	// DefaultGraphBuilder _dgb = new DefaultGraphBuilder();
+	Graph _graph;
+	private GraphFactory _factory = new DefaultGraphFactory();
+	private MultiPlot _multiPlot;
+	private DataReference[] _refs;
+	GraphBuilderInfo _info;
+
+	private JTextField _moveXsectXField = new JTextField("0", 4);
+	private JTextField _moveXsectYField = new JTextField("0", 4);
+	private JButton _moveXsectXButton = new JButton("dX");
+	private JButton _moveXsectYButton = new JButton("dY");
+
+	/*
+	 * When color by distance used, this is the maximum number of bins.
+	 */
+	private final int NUM_DISTANCE_BINS = 10;
+
+	private double _xsPropElevation;
+	private XsectBathymetryData _xsectBathymetryData;
+
+	public XsectGraph(CsdpFrame gui, App app, BathymetryData data, XsectBathymetryData xsectBathymetryData, 
+			Network net, String centerlineName, int xsectNum, double thickness, int colorOption) {
 		super(gui, "Cross-section view", ModalityType.MODELESS);
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
 		_gui = gui;
 		_app = app;
 		_bathymetryData = data;
+		_xsectBathymetryData = xsectBathymetryData;
 		_net = net;
 		Centerline centerline = _net.getCenterline(centerlineName);
 		_xsect = centerline.getXsect(xsectNum);
@@ -1034,9 +1200,10 @@ public class XsectGraph extends JDialog implements ActionListener {
 	 */
 	protected void makeBathymetryDataSets() {
 
-		int numBathymetryValues = _bathymetryData.getNumEnclosedValues();
-		if (DEBUG)
-			System.out.println("numBathymetryValues=" + numBathymetryValues);
+		int numBathymetryValues = _xsectBathymetryData.getNumEnclosedValues();
+		if(DEBUG) {
+			System.out.println("XsectGraph.makeBathymetryDataSets: numBathymetryValues=" + numBathymetryValues);
+		}
 
 		int numDataSets = 0;
 		double[] point = new double[2];
@@ -1049,14 +1216,15 @@ public class XsectGraph extends JDialog implements ActionListener {
 		double[] sePoint = new double[2];
 
 		double[] xsectLine = _net.findXsectLineCoord(_centerlineName, _xsectNum);
+		
 		double x1 = xsectLine[CsdpFunctions.x1Index];
 		double y1 = xsectLine[CsdpFunctions.y1Index];
 		double x2 = xsectLine[CsdpFunctions.x2Index];
 		double y2 = xsectLine[CsdpFunctions.y2Index];
-
-		if (DEBUG)
-			System.out.println("got xsectLine. x1,y1,x2,y2=" + x1 + "," + y1 + "," + x2 + "," + y2);
-
+		if(DEBUG) {
+			System.out.println("got xsectLine. _centerlineName, _xsectNum, x1,y1,x2,y2=" + 
+				_centerlineName + "," + _xsectNum + "," + x1 + "," + y1 + "," + x2 + "," + y2);
+		}
 		// find number of series (number of colors to use in graph)
 		// why use number of colors?
 
@@ -1090,8 +1258,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 		for (int i = 0; i <= numDataSets - 1; i++) {
 			double binValue = 0.0;
 			double dist = 0.0;
-			double[] station = new double[_bathymetryData.getNumEnclosedValues()];
-			double[] elevation = new double[_bathymetryData.getNumEnclosedValues()];
+			double[] station = new double[_xsectBathymetryData.getNumEnclosedValues()];
+			double[] elevation = new double[_xsectBathymetryData.getNumEnclosedValues()];
 
 			// find name of data set(distance, year, or source)
 			if (getColorByDistanceMode()) {
@@ -1105,7 +1273,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 			// beginning of new dataSet, so set index to zero.
 			dataSetPointIndex = 0;
 			for (int j = 0; j <= numBathymetryValues - 1; j++) {
-				pointIndex = _bathymetryData.getEnclosedPointIndex(j);
+				pointIndex = _xsectBathymetryData.getEnclosedPointIndex(j);
 				_bathymetryData.getPointFeet(pointIndex, bPoint);
 				double x3 = bPoint[CsdpFunctions.xIndex];
 				double y3 = bPoint[CsdpFunctions.yIndex];
@@ -1117,7 +1285,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 				// within the range defined by the binValue, add it to the
 				// dataset
 				if (getColorByDistanceMode()) {
-					_bathymetryData.getEnclosedStationElevation(j, sePoint);
+					_xsectBathymetryData.getEnclosedStationElevation(j, sePoint);
 					if (DEBUG)
 						System.out.println("dist,binValue=" + dist + "," + binValue);
 
@@ -1130,7 +1298,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 				else if (getColorBySourceMode()) {
 					if (dist < Double.MAX_VALUE && dataSetName
 							.equals(_bathymetryData.getSource(_bathymetryData.getSourceIndex(pointIndex)))) {
-						_bathymetryData.getEnclosedStationElevation(j, sePoint);
+						_xsectBathymetryData.getEnclosedStationElevation(j, sePoint);
 						station[dataSetPointIndex] = (double) sePoint[stationIndex];
 						elevation[dataSetPointIndex] = (double) sePoint[elevationIndex];
 						dataSetPointIndex++;
@@ -1140,7 +1308,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 					int yearIndex = _bathymetryData.getYearIndex(pointIndex);
 					short year = _bathymetryData.getYear(yearIndex);
 					if (dist < Double.MAX_VALUE && dataSetName.equals(Short.toString(year))) {
-						_bathymetryData.getEnclosedStationElevation(j, sePoint);
+						_xsectBathymetryData.getEnclosedStationElevation(j, sePoint);
 						station[dataSetPointIndex] = (double) sePoint[stationIndex];
 						elevation[dataSetPointIndex] = (double) sePoint[elevationIndex];
 						dataSetPointIndex++;
@@ -1175,9 +1343,10 @@ public class XsectGraph extends JDialog implements ActionListener {
 			}
 		} // for i
 
-		if (DEBUG)
+		if (DEBUG) {
 			System.out.println("end of makeBathymetryDataSets.  numBathymetryDataSets=" + _numBathymetryDataSets);
-
+			System.out.println("End of makeBathymetryDataSets. numBathymetryDataSets = "+_numBathymetryDataSets);
+		}		
 	}// makeBathymetryDataSets
 
 	/**
@@ -1306,166 +1475,4 @@ public class XsectGraph extends JDialog implements ActionListener {
 		return _xsPropElevation;
 	}
 	
-	protected BathymetryPlot _plotter;
-	protected NetworkPlot _networkPlotter;
-	App _app;
-	BathymetryData _bathymetryData;
-	Network _net;
-	GECanvas _gC;
-	private NetworkDataSet _networkDataSet;
-	private NetworkDataSet _oldNetworkDataSet;
-	public static final int DATA_LENGTH = 100;
-	/*
-	 * size of cross-section points
-	 */
-	// protected static int squareDimension = 2;
-	protected static final int stationIndex = 0;
-	protected static final int elevationIndex = 1;
-
-	Xsect _xsect;
-	// protected JCheckBoxMenuItem _xMovePointMenuItem, _xAddPointMenuItem,
-	// _xInsertPointMenuItem, _xDeletePointMenuItem;
-
-	URL xsCloseUrl = this.getClass().getResource("images/XSCloseButton.png");
-	URL cursorIconUrl = this.getClass().getResource("images/ArrowButton.png");
-	URL reverseXsectIconUrl = this.getClass().getResource("images/ReverseXsectButton.png");
-	URL movePointIconUrl = this.getClass().getResource("images/MoveXsectPointButton.png");
-	URL addPointIconUrl = this.getClass().getResource("images/AddXsectPointButton.png");
-	URL insertPointIconUrl = this.getClass().getResource("images/InsertXsectPointButton.png");
-	URL deletePointIconUrl = this.getClass().getResource("images/DeleteXsectPointButton.png");
-	URL cursorIconSelectedUrl = this.getClass().getResource("images/ArrowButtonSelected.png");
-	URL movePointIconSelectedUrl = this.getClass().getResource("images/MoveXsectPointButtonSelected.png");
-	URL addPointIconSelectedUrl = this.getClass().getResource("images/AddXsectPointButtonSelected.png");
-	URL insertPointIconSelectedUrl = this.getClass().getResource("images/InsertXsectPointButtonSelected.png");
-	URL deletePointIconSelectedUrl = this.getClass().getResource("images/DeleteXsectPointButtonSelected.png");
-	URL keepIconUrl = this.getClass().getResource("images/KeepButton.png");
-	URL restoreIconUrl = this.getClass().getResource("images/RestoreButton.png");
-	URL colorByDistanceIconUrl = this.getClass().getResource("images/ColorDistanceButton.png");
-	URL colorByDistanceIconSelectedUrl = this.getClass().getResource("images/ColorDistanceButtonSelected.png");
-	URL colorBySourceIconUrl = this.getClass().getResource("images/ColorSourceButton.png");
-	URL colorBySourceIconSelectedUrl = this.getClass().getResource("images/ColorSourceButtonSelected.png");
-	URL colorByYearIconUrl = this.getClass().getResource("images/ColorYearButton.png");
-	URL colorByYearIconSelectedUrl = this.getClass().getResource("images/ColorYearButtonSelected.png");
-
-	ImageIcon _xsCloseIcon = CsdpFunctions.createScaledImageIcon(xsCloseUrl, WIDE_ICON_WIDTH, WIDE_ICON_HEIGHT);
-	ImageIcon _cursorIcon = CsdpFunctions.createScaledImageIcon(cursorIconUrl, ICON_WIDTH, ICON_HEIGHT);
-	ImageIcon _reverseXsectIcon = CsdpFunctions.createScaledImageIcon(reverseXsectIconUrl, ICON_WIDTH, ICON_HEIGHT);
-	ImageIcon _movePointIcon = CsdpFunctions.createScaledImageIcon(movePointIconUrl, ICON_WIDTH, ICON_HEIGHT);
-	ImageIcon _addPointIcon = CsdpFunctions.createScaledImageIcon(addPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
-	ImageIcon _insertPointIcon = CsdpFunctions.createScaledImageIcon(insertPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
-	ImageIcon _deletePointIcon = CsdpFunctions.createScaledImageIcon(deletePointIconUrl, ICON_WIDTH, ICON_HEIGHT);
-	ImageIcon _cursorIconSelected = CsdpFunctions.createScaledImageIcon(cursorIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
-	ImageIcon _movePointIconSelected = CsdpFunctions.createScaledImageIcon(movePointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
-	ImageIcon _addPointIconSelected = CsdpFunctions.createScaledImageIcon(addPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
-	ImageIcon _insertPointIconSelected = CsdpFunctions.createScaledImageIcon(insertPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
-	ImageIcon _deletePointIconSelected = CsdpFunctions.createScaledImageIcon(deletePointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
-
-	ImageIcon _keepIcon = CsdpFunctions.createScaledImageIcon(keepIconUrl, WIDE_ICON_WIDTH, WIDE_ICON_HEIGHT);
-	ImageIcon _restoreIcon = CsdpFunctions.createScaledImageIcon(restoreIconUrl, (int)(1.3*WIDE_ICON_WIDTH), WIDE_ICON_HEIGHT);
-
-	ImageIcon _colorByDistanceIcon = CsdpFunctions.createScaledImageIcon(colorByDistanceIconUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
-	ImageIcon _colorByDistanceIconSelected = CsdpFunctions.createScaledImageIcon(colorByDistanceIconSelectedUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
-	ImageIcon _colorBySourceIcon = CsdpFunctions.createScaledImageIcon(colorBySourceIconUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
-	ImageIcon _colorBySourceIconSelected = CsdpFunctions.createScaledImageIcon(colorBySourceIconSelectedUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
-	ImageIcon _colorByYearIcon = CsdpFunctions.createScaledImageIcon(colorByYearIconUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
-	ImageIcon _colorByYearIconSelected = CsdpFunctions.createScaledImageIcon(colorByYearIconSelectedUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
-
-	JRadioButton _colorByDistanceButton = new JRadioButton(_colorByDistanceIcon);
-	JRadioButton _colorBySourceButton = new JRadioButton(_colorBySourceIcon);
-	JRadioButton _colorByYearButton = new JRadioButton(_colorByYearIcon);
-
-	JButton _xsCloseButton = new JButton(_xsCloseIcon);
-	JButton _reverseButton = new JButton(_reverseXsectIcon);
-	JRadioButton _arrowButton = new JRadioButton(_cursorIcon);
-	JRadioButton _moveButton = new JRadioButton(_movePointIcon);
-	JRadioButton _addButton = new JRadioButton(_addPointIcon);
-	JRadioButton _insertButton = new JRadioButton(_insertPointIcon);
-	JRadioButton _deleteButton = new JRadioButton(_deletePointIcon);
-
-	JButton _restoreButton = new JButton(_restoreIcon);
-	JButton _keepButton = new JButton(_keepIcon);
-	// JButton _metadataButton = new JButton(_metadataIcon);
-
-	ButtonGroup _colorByButtonGroup, _xsectEditButtonGroup;
-
-//	private static final Dimension _iconSize = new Dimension(25, 25);
-//	private static final Dimension _medIconSize = new Dimension(33, 25);
-//	private static final Dimension _wideIconSize = new Dimension(50, 25);
-
-	private static final int ICON_WIDTH = 38;
-	private static final int ICON_HEIGHT = 38;
-	private static final int COLOR_BY_ICON_WIDTH = 53;
-	private static final int COLOR_BY_ICON_HEIGHT = 23;
-	private static final int WIDE_ICON_WIDTH = 60;
-	private static final int WIDE_ICON_HEIGHT = 38;
-	protected boolean _restoreXsect = false;
-	protected double _thickness;
-	protected static final boolean DEBUG = false;
-
-	protected Hashtable _bathymetryDataSets = new Hashtable();
-	protected int _numBathymetryDataSets = 0;
-	// protected boolean _colorByDistance = false;
-	// protected boolean _colorBySource = false;
-	// protected boolean _colorByYear = true;
-	protected ResizableStringArray _bathymetryDataSetNames = new ResizableStringArray();
-
-	JPanel _eastPanel = new JPanel();
-	JPanel _xsPropPanel = new JPanel();
-	JPanel _dConveyancePanel = new JPanel();
-	JPanel _inputPanel = new JPanel();
-	JButton _elevationButton = new JButton("Change elevation");
-	JLabel _numPointsLabel = new JLabel();
-	JLabel _elevationLabel = new JLabel();
-	JLabel _widthLabel = new JLabel();
-	JLabel _areaLabel = new JLabel();
-	JLabel _wetpLabel = new JLabel();
-	JLabel _hDepthLabel = new JLabel();
-
-	JLabel _numPointsValueLabel = new JLabel();
-	JLabel _elevationValueLabel = new JLabel();
-	JLabel _widthValueLabel = new JLabel();
-	JLabel _wetpValueLabel = new JLabel();
-	JLabel _areaValueLabel = new JLabel();
-	JLabel _hDepthValueLabel = new JLabel();
-
-	// JLabel _dkLabel = new JLabel();
-	JTextArea _dConveyanceTextArea = new JTextArea();
-	JTextArea _conveyanceCharacteristicsTextArea = new JTextArea();
-	
-	// JCheckBoxMenuItem _bColorByDistance, _bColorBySource, _bColorByYear;
-	JMenuItem _bChangePointSize;
-	String _centerlineName = null;
-	int _xsectNum;
-	Legend _legend;
-	CsdpFrame _gui;
-	public int COLOR_BY_DISTANCE = 0;
-	public int COLOR_BY_YEAR = 1;
-	public int COLOR_BY_SOURCE = 2;
-	protected boolean _changesKept = false;
-	Border _raisedBevel = BorderFactory.createRaisedBevelBorder();
-	Border _lineBorder = BorderFactory.createLineBorder(Color.black, 2);
-
-	// all new
-	public JTextArea _metadataJTextArea;
-//	private ResizableStringArray _metadataMessage;
-	private JScrollPane _metadataScrollPane;
-
-	// DefaultGraphBuilder _dgb = new DefaultGraphBuilder();
-	Graph _graph;
-	private GraphFactory _factory = new DefaultGraphFactory();
-	private MultiPlot _multiPlot;
-	private DataReference[] _refs;
-	GraphBuilderInfo _info;
-
-	private JTextField _moveXsectXField = new JTextField("0", 4);
-	private JTextField _moveXsectYField = new JTextField("0", 4);
-	private JButton _moveXsectXButton = new JButton("dX");
-	private JButton _moveXsectYButton = new JButton("dY");
-
-	/*
-	 * When color by distance used, this is the maximum number of bins.
-	 */
-	private final int NUM_DISTANCE_BINS = 10;
-
-	private double _xsPropElevation;
 }// class XsectGraph

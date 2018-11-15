@@ -71,6 +71,60 @@ public class DSMChannels {
 		putDownnode(name, downnode);
 		
 	}
+
+	public void addDSMXsectLayer(int index, String chan, String dist, String elev, String area, String width, String wetPerim) {
+		String xsectLayerID = chan+"_"+dist+"_"+elev;
+		putXsectLayerID(index, xsectLayerID);
+		putDist(xsectLayerID, dist);
+		putElev(xsectLayerID, elev);
+		putArea(xsectLayerID, area);
+		putWidth(xsectLayerID, width);
+		putWetPerim(xsectLayerID, wetPerim);
+	}
+	
+	protected void putXsectLayerID(int index, String xsectLayerID){
+		_xsectLayerID.put(index, xsectLayerID);
+		_numXsectLayers++;
+	}
+	
+	protected void putDist(String xsectLayerID, String dist) {
+		_xsectLayerDist.put(xsectLayerID, dist);
+	}
+	protected void putElev(String xsectLayerID, String elev) {
+		_xsectLayerElev.put(xsectLayerID, elev);
+	}
+	protected void putArea(String xsectLayerID, String area) {
+		_xsectLayerArea.put(xsectLayerID, area);
+	}
+	protected void putWidth(String xsectLayerID, String width) {
+		_xsectLayerWidth.put(xsectLayerID, width);
+	}
+	protected void putWetPerim(String xsectLayerID, String wetPerim) {
+		_xsectLayerWetPerim.put(xsectLayerID, wetPerim);
+	}
+
+	public String getXsectLayerID(int index) {
+		return _xsectLayerID.get(index);
+	}
+	public String getXsectDist(String xsectLayerID) {
+		return _xsectLayerDist.get(xsectLayerID);
+	}
+	public String getXsectElev(String xsectLayerID) {
+		return _xsectLayerElev.get(xsectLayerID);
+	}
+	public String getXsectArea(String xsectLayerID) {
+		return _xsectLayerArea.get(xsectLayerID);
+	}
+	public String getXsectWidth(String xsectLayerID) {
+		return _xsectLayerWidth.get(xsectLayerID);
+	}
+	public String getXsectWetPerim(String xsectLayerID) {
+		return _xsectLayerWetPerim.get(xsectLayerID);
+	}
+	
+	public int getNumXsectLayers() {
+		return _numXsectLayers;
+	}
 	
 	/**
 	 * stores channel number
@@ -286,6 +340,20 @@ public class DSMChannels {
 	protected Hashtable<String, Integer> _dist1 = new Hashtable<String, Integer>();
 	protected Hashtable<String, Integer> _xsect2 = new Hashtable<String, Integer>();
 	protected Hashtable<String, Integer> _dist2 = new Hashtable<String, Integer>();
+
+	protected int _numXsectLayers = 0;
+	protected ResizableStringArray _xsectLayerID = new ResizableStringArray();
+	protected Hashtable<String, String> _xsectLayerDist = new Hashtable<String, String>();
+	protected Hashtable<String, String> _xsectLayerElev = new Hashtable<String, String>();
+	protected Hashtable<String, String> _xsectLayerArea = new Hashtable<String, String>();
+	protected Hashtable<String, String> _xsectLayerWidth = new Hashtable<String, String>();
+	protected Hashtable<String, String> _xsectLayerWetPerim = new Hashtable<String, String>();
+	
+	protected final String ELEV_HEADER = "ELEV";
+	protected final String AREA_HEADER = "AREA";
+	protected final String WIDTH_HEADER = "WIDTH";
+	protected final String WET_PERIM_HEADER = "WET_PERIM";
+	
 	protected static final boolean DEBUG = false;
 
 }// DSMChannels

@@ -310,7 +310,9 @@ public class Network {
 				centerlineSegmentEndpoints[CsdpFunctions.x2Index], centerlineSegmentEndpoints[CsdpFunctions.y1Index],
 				centerlineSegmentEndpoints[CsdpFunctions.y2Index], distAlongSegment, thickness, xsectLineLength);
 
+		//Polygon object
 		returnValues.put("xsectDisplayRegion", xsectDisplayRegion);
+		//double[] array
 		returnValues.put("centerlineSegmentEndpoints", centerlineSegmentEndpoints);
 
 		return returnValues;

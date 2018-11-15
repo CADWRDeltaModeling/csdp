@@ -48,6 +48,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import DWR.CSDP.XsectBathymetryData;
+
 /**
  * Write binary bathymetry data.
  *
@@ -240,7 +242,7 @@ public class BathymetryBinaryOutput extends BathymetryOutput {
 	/*
 	 * not really needed...only for ascii.
 	 */
-	protected boolean writeExtractedXsectData(String centerlineName, int xsectNum, double thickness) {
+	protected boolean writeExtractedXsectData(XsectBathymetryData xsectBathymetryData, String centerlineName, int xsectNum, double thickness) {
 		boolean success = false;
 		return success;
 	}

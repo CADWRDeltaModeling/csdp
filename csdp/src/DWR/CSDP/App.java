@@ -49,6 +49,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import DWR.CSDP.XsectBathymetryData;
 import DWR.CSDP.dialog.MessageDialog;
 
 /**
@@ -831,15 +832,33 @@ public class App {
 			centerlineName = _net.getCenterlineName(i);
 			centerline = _net.getCenterline(centerlineName);
 			length = centerline.getLengthFeet();
-			String chan = _DSMChannels.getChanNum(i);
 			String lineToWrite = 
-					String.format("%-9s", chan) + 
+					String.format("%-9s", centerlineName) + 
 					String.format("%-8.0f", length) + 
+					String.format("%-10s", _DSMChannels.getManning(centerlineName)) + 
+					String.format("%-12s", _DSMChannels.getDispersion(centerlineName)) +
+					String.format("%-8d", _DSMChannels.getUpnode(centerlineName))+
+					String.format("%-8d", _DSMChannels.getDownnode(centerlineName));
+			afw.writeLine(lineToWrite);
+		}
+		
+		// now if there are any missing centerlines, write the data that was read from the dsm2 channels file
+		for(int i=0; i<_DSMChannels.getNumChannels(); i++) {
+			if(i==0) {
+				afw.writeLine("# The following channels are missing from the CSDP network file that was used to create this file.");
+				afw.writeLine("# data are copied from the previous version of the DSM2 input file. ");
+			}
+			String chan = _DSMChannels.getChanNum(i);
+			if(!_net.centerlineExists(chan)) {
+				String channelDataLine = 
+					String.format("%-9s", chan) + 
+					String.format("%-8d", _DSMChannels.getLength(chan)) + 
 					String.format("%-10s", _DSMChannels.getManning(chan)) + 
 					String.format("%-12s", _DSMChannels.getDispersion(chan)) +
 					String.format("%-8d", _DSMChannels.getUpnode(chan))+
 					String.format("%-8d", _DSMChannels.getDownnode(chan));
-			afw.writeLine(lineToWrite);
+				afw.writeLine(channelDataLine);
+			}
 		}
 		
 		afw.writeLine("END");
@@ -881,6 +900,32 @@ public class App {
 				}//if
 			}//for j
 		}//for i
+		
+		// now if there are any missing centerlines, write the cross-section data that was read from the dsm2 channels file
+		for(int i=0; i<_DSMChannels.getNumXsectLayers(); i++) {
+			
+			if(i==0) {
+				afw.writeLine("# The following cross-section layers belong to channels that are missing from the CSDP network file "
+						+ "that was used to create this file.");
+				afw.writeLine("# data are copied here from the previous version of the DSM2 input file. ");
+			}
+			String xsectLayerID = _DSMChannels.getXsectLayerID(i);
+			String[] xliParts = xsectLayerID.split("_");
+			String chan = xliParts[0];
+			System.out.println("xsectLayerID, chan="+xsectLayerID+","+chan);
+			//if the network does not contain a centerline with the given name AND there are no cross-sections with points.
+			if(!_net.centerlineExists(chan) || _net.getCenterline(chan).getNumXsectsWithPoints()<=0) {
+				String xsectDataLine = 
+					String.format("%-9s", chan) + 
+					String.format("%-8s", _DSMChannels.getXsectDist(xsectLayerID)) + 
+					String.format("%-10s", _DSMChannels.getXsectElev(xsectLayerID)) + 
+					String.format("%-12s", _DSMChannels.getXsectArea(xsectLayerID)) +
+					String.format("%-12s", _DSMChannels.getXsectWidth(xsectLayerID))+
+					String.format("%-12s", _DSMChannels.getXsectWetPerim(xsectLayerID));
+				afw.writeLine(xsectDataLine);
+			}
+		}//for each xsect layer in the DSM2 channels input file.
+		
 		afw.writeLine("END");
 		afw.close();
 	}//nCalculateDSM2V812Format
@@ -1019,12 +1064,12 @@ public class App {
 		boolean success = false;
 		_gui.setCursor(CsdpFunctions._waitCursor);
 		Hashtable xsectDisplayData = _net.findXsectDisplayRegion(centerlineName, xsectNum, thickness);
-		_bathymetryData.findXsectData(xsectDisplayData);
+		XsectBathymetryData xsectBathymetryData = _bathymetryData.findXsectData(xsectDisplayData);
 
 		if (_xsectGraph.contains(centerlineName + "_" + xsectNum)) {
 
 		} else {
-			if (_bathymetryData.getNumEnclosedValues() <= 0) {
+			if (xsectBathymetryData.getNumEnclosedValues() <= 0) {
 				JOptionPane.showOptionDialog(null, "ERROR!  THERE ARE NO POINTS TO EXPORT! TRY INCREASING THICKNESS",
 						"ERROR! NO POINTS TO DISPLAY", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
 						_options, _options[0]);
@@ -1036,7 +1081,7 @@ public class App {
 				BathymetryOutput aoutput = BathymetryOutput.getInstance(directory, filename, filetype, _bathymetryData);
 				if (DEBUG)
 					System.out.println("aoutput=" + aoutput);
-				success = aoutput.extractXsectData(centerlineName, xsectNum, thickness);
+				success = aoutput.extractXsectData(xsectBathymetryData, centerlineName, xsectNum, thickness);
 			}
 			_gui.setCursor(CsdpFunctions._defaultCursor);
 		}
@@ -1049,7 +1094,7 @@ public class App {
 	public void viewXsect(Xsect xsect, String centerlineName, int xsectNum, double thickness) {
 		_gui.setCursor(CsdpFunctions._waitCursor);
 		Hashtable xsectDisplayData = _net.findXsectDisplayRegion(centerlineName, xsectNum, thickness);
-		_bathymetryData.findXsectData(xsectDisplayData);
+		XsectBathymetryData xsectBathymetryData = _bathymetryData.findXsectData(xsectDisplayData);
 
 		if (_xsectGraph.contains(centerlineName + "_" + xsectNum)) {
 
@@ -1063,8 +1108,8 @@ public class App {
 			// _options, _options[0]);
 
 			// }else{
-			_xsectGraph.put(centerlineName + "_" + xsectNum, new XsectGraph(_gui, this, _bathymetryData, _net,
-					centerlineName, xsectNum, thickness, _xsectColorOption));
+			_xsectGraph.put(centerlineName + "_" + xsectNum, new XsectGraph(_gui, this, _bathymetryData, xsectBathymetryData,
+					_net, centerlineName, xsectNum, thickness, _xsectColorOption));
 			getXsectGraph(centerlineName, xsectNum).pack();
 			getXsectGraph(centerlineName, xsectNum).setVisible(true);
 			// }

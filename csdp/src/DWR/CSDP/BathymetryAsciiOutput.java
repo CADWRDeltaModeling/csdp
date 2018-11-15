@@ -47,6 +47,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import DWR.CSDP.XsectBathymetryData;
+
 public class BathymetryAsciiOutput extends BathymetryOutput {
 	FileWriter _aOutFile = null;
 	BufferedWriter _asciiOut = null;
@@ -185,13 +187,13 @@ public class BathymetryAsciiOutput extends BathymetryOutput {
 	/**
 	 * called by superclass
 	 */
-	protected boolean writeExtractedXsectData(String centerlineName, int xsectNum, double thickness) {
+	protected boolean writeExtractedXsectData(XsectBathymetryData xsectBathymetryData, String centerlineName, int xsectNum, double thickness) {
 		double[] stationElevation = new double[3];
 		String line = null;
 		short year = -Short.MAX_VALUE;
 		String source = null;
 		boolean success = false;
-		int numValues = _data.getNumEnclosedValues();
+		int numValues = xsectBathymetryData.getNumEnclosedValues();
 		int pointIndex = -Integer.MAX_VALUE;
 		// arrays for sorted data.
 		_utmX = new double[numValues];
@@ -206,9 +208,9 @@ public class BathymetryAsciiOutput extends BathymetryOutput {
 			_asciiOut.write(line);
 			_asciiOut.newLine();
 			for (int i = 0; i <= numValues - 1; i++) {
-				pointIndex = _data.getEnclosedPointIndex(i);
+				pointIndex = xsectBathymetryData.getEnclosedPointIndex(i);
 				_data.getPointMetersFeet(pointIndex, _point);
-				_data.getEnclosedStationElevation(i, stationElevation);
+				xsectBathymetryData.getEnclosedStationElevation(i, stationElevation);
 				year = _data.getYear(_data.getYearIndex(pointIndex));
 				source = _data.getSource(_data.getSourceIndex(pointIndex));
 

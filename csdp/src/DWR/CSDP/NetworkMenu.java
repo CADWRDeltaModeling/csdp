@@ -582,8 +582,8 @@ public class NetworkMenu {
 				System.out.println("calculateDirectory=" + calculateDirectory);
 				_app.nCalculateDSM2V8Format(calculateDirectory+File.separator+"channel_std_delta_grid_from_CSDP_NAVD.inp");
 				// The old calculations. Uncomment these lines to create files in the old format.
-				// _app.nCalculate(calculateDirectory);
-				//_app.writeIrregularXsectsInp(calculateDirectory);
+				 _app.nCalculate(calculateDirectory);
+				_app.writeIrregularXsectsInp(calculateDirectory);
 				_app.writeXsectLandmark(calculateDirectory);
 				JOptionPane.showMessageDialog(_gui, "DSM2 input files and xsects.cdl file written.", "Done", JOptionPane.INFORMATION_MESSAGE);
 				

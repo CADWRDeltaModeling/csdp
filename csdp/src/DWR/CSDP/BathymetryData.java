@@ -474,9 +474,13 @@ public class BathymetryData {
 	/**
 	 * finds all bathymetry data points that are within the specified polygon.
 	 * this is used to select points to be plotted in cross-section view
+	 * displayData contains 
+	 * 	a Polygon object mapped to the String "xsectDisplayRegion"
+	 * 	a double array mapped to the String "centerlineSegmentEndpoints"
 	 */
-	public void findXsectData(Hashtable displayData) {
-
+	public XsectBathymetryData findXsectData(Hashtable displayData) {
+		XsectBathymetryData returnXsectBathymetryData = new XsectBathymetryData();
+				
 		Polygon displayRegion = (Polygon) (displayData.get("xsectDisplayRegion"));
 
 		if (DEBUG)
@@ -531,14 +535,15 @@ public class BathymetryData {
 			point.setLocation((int) getXFeet(j), (int) getYFeet(j));
 			if (displayRegion.contains(point) && getPlotYear(yearIndex) && getPlotSource(sourceIndex)) {
 				// System.out.println("saving point");
-				storeEnclosedPointIndex(numValues, j);
+				returnXsectBathymetryData.storeEnclosedPointIndex(numValues, j);
 				// System.out.println("storing values
 				// "+getX(j)+","+getY(j)+","+getZ(j));
 				numValues++;
 			} // if contains point
 		} // for i
-		putNumEnclosedValues(numValues);
-		rotateXsectData(centerlineSegmentEndpoints);
+		returnXsectBathymetryData.putNumEnclosedValues(numValues);
+		rotateXsectData(centerlineSegmentEndpoints, returnXsectBathymetryData);
+		return returnXsectBathymetryData;
 	}// findXsectData
 
 	/**
@@ -585,7 +590,7 @@ public class BathymetryData {
 	 * local coordinate system with intersection of centerline and xsect line as
 	 * its origin.
 	 */
-	private void rotateXsectData(double[] endpoints) {
+	private void rotateXsectData(double[] endpoints, XsectBathymetryData xsectBathymetryData) {
 
 		/*
 		 * x1, y1 are coord. of upstream centerline segment point. x2, y2 are
@@ -604,16 +609,16 @@ public class BathymetryData {
 
 		if (DEBUG)
 			System.out.println("centerline coord:" + x1 + "," + y1 + "," + x2 + "," + y2);
-		for (int i = 0; i <= getNumEnclosedValues() - 1; i++) {
-			x3 = getXFeet(getEnclosedPointIndex(i));
-			y3 = getYFeet(getEnclosedPointIndex(i));
+		for (int i = 0; i <= xsectBathymetryData.getNumEnclosedValues() - 1; i++) {
+			x3 = getXFeet(xsectBathymetryData.getEnclosedPointIndex(i));
+			y3 = getYFeet(xsectBathymetryData.getEnclosedPointIndex(i));
 			dist = CsdpFunctions.shortestDistLine(x1, x2, x3, y1, y2, y3);
 
 			if (DEBUG)
 				System.out.println("x3,y3,shortestDist = " + x3 + "," + y3 + "," + dist);
 
 			sign = getSign(x1, x2, x3, y1, y2, y3);
-			putEnclosedStationElevation(i, sign * dist, getZFeet(getEnclosedPointIndex(i)));
+			xsectBathymetryData.putEnclosedStationElevation(i, sign * dist, getZFeet(xsectBathymetryData.getEnclosedPointIndex(i)));
 		}
 
 	}// rotateXsectData
@@ -832,49 +837,6 @@ public class BathymetryData {
 		maxY = Double.MIN_VALUE;
 	}// initialize variables
 
-	/**
-	 * store number of values to be displayed in xsect view
-	 */
-	private void putNumEnclosedValues(int value) {
-		_numEnclosedValues = value;
-	}
-
-	/**
-	 * returns number of values to be displayed in xsect view
-	 */
-	public int getNumEnclosedValues() {
-		return _numEnclosedValues;
-	}
-
-	/**
-	 * stores indices of points that are to be displayed in the xsect view
-	 */
-	private void storeEnclosedPointIndex(int index, int value) {
-		_enclosedPointIndex.put(index, value);
-	}
-
-	/**
-	 * returns indices of points that are to be displayed in the xsect view
-	 */
-	public int getEnclosedPointIndex(int index) {
-		return _enclosedPointIndex.get(index);
-	}
-
-	/**
-	 * stores point to be displayed in xsect view using local coord. sys.
-	 */
-	private void putEnclosedStationElevation(int index, double station, double elevation) {
-		_enclosedStation.put(index, station);
-		_enclosedElevation.put(index, elevation);
-	}
-
-	/**
-	 * stores point to be displayed in xsect view using local coord. sys.
-	 */
-	public void getEnclosedStationElevation(int index, double[] point) {
-		point[stationIndex] = _enclosedStation.get(index);
-		point[elevationIndex] = _enclosedElevation.get(index);
-	}
 
 	// /**
 	// * compare metadata object to default metadata values.
@@ -949,10 +911,6 @@ public class BathymetryData {
 	// }//convertToDefaultDatum
 
 	private double[] _returnPoint = new double[2];
-	private ResizableIntArray _enclosedPointIndex = new ResizableIntArray();
-	private int _numEnclosedValues = 0;
-	private ResizableDoubleArray _enclosedStation = new ResizableDoubleArray();
-	private ResizableDoubleArray _enclosedElevation = new ResizableDoubleArray();
 
 	/**
 	 * number of unique year values in bathymetry data set
@@ -996,8 +954,6 @@ public class BathymetryData {
 	private final int y1Index = 1;
 	private final int x2Index = 2;
 	private final int y2Index = 3;
-	private static final int stationIndex = 0;
-	private static final int elevationIndex = 1;
 	private static final boolean DEBUG = false;
 
 	/*

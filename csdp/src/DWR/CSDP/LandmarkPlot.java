@@ -119,7 +119,9 @@ public class LandmarkPlot extends PlanViewPlot {
 			if (DEBUG)
 				System.out.println("x, y=" + xPixels + "," + yPixels);
 			g.fillRect((int) xPixels - pd / 2, (int) yPixels - pd / 2, pd, pd);
-			g.drawString(name, xPixels, yPixels);
+			//we want the name to be shifted to the left by a number of pixels equal to 1.5 times the font size
+			int fontSize = _gui.getFont().getSize();
+			g.drawString(name, xPixels-(int)(1.5*fontSize), yPixels);
 		}
 	}// plot landmark
 
