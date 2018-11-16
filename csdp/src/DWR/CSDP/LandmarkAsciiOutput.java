@@ -53,8 +53,10 @@ public class LandmarkAsciiOutput extends LandmarkOutput {
 	FileWriter _aOutFile = null; // ascii input file
 	BufferedWriter _asciiOut = null;
 	Landmark _landmark = null;
+	private ResizableStringArray _landmarkNamesRSA;
 
-	public LandmarkAsciiOutput(Landmark landmark) {
+	public LandmarkAsciiOutput(ResizableStringArray landmarkNamesRSA, Landmark landmark) {
+		_landmarkNamesRSA = landmarkNamesRSA;
 		_landmark = landmark;
 	}
 
@@ -105,9 +107,8 @@ public class LandmarkAsciiOutput extends LandmarkOutput {
 			// write data
 			String versionLine = null;
 			Integer numLines = null;
-
-			for (Enumeration<String> e = _landmark.getLandmarkNames(); e.hasMoreElements();) {
-				String name = e.nextElement();
+			for(int i=0; i<_landmarkNamesRSA.getSize(); i++) {
+				String name = _landmarkNamesRSA.get(i);
 				double x = _landmark.getXMeters(name);
 				double y = _landmark.getYMeters(name);
 				String line = x + "," + y + "," + name;

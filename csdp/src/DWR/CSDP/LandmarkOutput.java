@@ -64,7 +64,8 @@ public abstract class LandmarkOutput {
 		_filetype = filetype;
 		LandmarkOutput output = null;
 		if (_filetype.equals(ASCII_TYPE)) {
-			output = new LandmarkAsciiOutput(data);
+			ResizableStringArray landmarkNamesRSA = data.getSortedLandmarkNameRSA();
+			output = new LandmarkAsciiOutput(landmarkNamesRSA, data);
 		} else {// throw new IllegalInputFileException(msg);
 			System.out.println("Error in LandmarkOutput:  filetype " + _filetype + " not recognized");
 			_filetype = null;

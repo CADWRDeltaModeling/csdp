@@ -543,6 +543,21 @@ public class Landmark {
 			System.out.println("setting is updated to " + value);
 
 	}
+	
+	/*
+	 * This will be used when saving landmarks, to make sure they're sorted. Having every 
+	 * landmark file sorted will help with file comparison/version control.
+	 */
+	public ResizableStringArray getSortedLandmarkNameRSA() {
+		Enumeration<String> landmarkKeysEnum = _landmarkTable.keys();
+		ResizableStringArray returnRSA = new ResizableStringArray(_landmarkTable.size());
+		int i=0;
+		while(landmarkKeysEnum.hasMoreElements()) {
+			returnRSA.put(i, landmarkKeysEnum.nextElement());
+			i++;
+		}
+		return CsdpFunctions.qsort(returnRSA, 0, returnRSA.getSize()-1);
+	}//getSortedLandmarkNameRSA
 
 	protected int _numLandmarks = 0;
 	protected Hashtable<String, LandmarkPoint> _landmarkTable = new Hashtable<String, LandmarkPoint>();
