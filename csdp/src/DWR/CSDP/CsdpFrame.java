@@ -78,6 +78,8 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
+import DWR.CSDP.NetworkMenu.NDConveyanceReport;
+
 
 /**
  * Display Frame
@@ -468,10 +470,14 @@ public class CsdpFrame extends JFrame {
 		_infoPanel.add(_xsectLabel);
 		_infoPanel.add(_mouseXLabel);
 		_infoPanel.add(_mouseYLabel);
+
+		//11/2018: remove hydraulic depth, shift others over and add centerline length
+		_infoPanel.add(_centerlineLengthLabel);
 		_infoPanel.add(_areaLabel);
 		_infoPanel.add(_wetPLabel);
 		_infoPanel.add(_widthLabel);
-		_infoPanel.add(_hydraulicDepthLabel);
+//		_infoPanel.add(_hydraulicDepthLabel);
+		
 		_infoPanel.add(_bathymetryFileLabel);
 		_infoPanel.add(_networkFileLabel);
 		_infoPanel.add(_landmarkFileLabel);
@@ -753,8 +759,12 @@ public class CsdpFrame extends JFrame {
 		// cfNetwork.addSeparator();
 		cfNetwork.add(nCalculate = new JMenuItem("Calculate"));
 		nCalculate.setMnemonic(KeyEvent.VK_C);
-		cfNetwork.add(nAWDSummary = new JMenuItem("AWD Summary"));
-		cfNetwork.add(nXSCheck = new JMenuItem("Check cross-sections for errors"));
+		
+		JMenu reportsMenu = new JMenu("Reports");
+		reportsMenu.add(nAWDSummaryReport = new JMenuItem("AWD Summary"));
+		reportsMenu.add(nXSCheckReport = new JMenuItem("Cross-sections with errors"));
+		reportsMenu.add(nDConveyanceReport = new JMenuItem("Cross-sections with -dConveyance"));
+		cfNetwork.add(reportsMenu);
 		if (_addNetworkMenu)
 			menubar.add(cfNetwork);
 
@@ -777,9 +787,10 @@ public class CsdpFrame extends JFrame {
 		//// ActionListener nListListener = networkMenu.new NList();
 		//// ActionListener nSummaryListener = networkMenu.new NSummary();
 		ActionListener nCalculateListener = networkMenu.new NCalculate(this);
-		ActionListener nAWDSummaryListener = networkMenu.new NAWDSummary(this);
-		ActionListener nXSCheckListener = networkMenu.new NXSCheck(this);
-
+		ActionListener nAWDSummaryReportListener = networkMenu.new NAWDSummaryReport(this);
+		ActionListener nXSCheckReportListener = networkMenu.new NXSCheckReport(this);
+		ActionListener nDConveyanceReportListener = networkMenu.new NDConveyanceReport(this);
+		
 		nOpen.addActionListener(nOpenListener);
 		nSave.addActionListener(_nSaveListener);
 		nSaveAs.addActionListener(_nSaveAsListener);
@@ -794,8 +805,9 @@ public class CsdpFrame extends JFrame {
 		//// nList.addActionListener(nListListener);
 		//// nSummary.addActionListener(nSummaryListener);
 		nCalculate.addActionListener(nCalculateListener);
-		nAWDSummary.addActionListener(nAWDSummaryListener);
-		nXSCheck.addActionListener(nXSCheckListener);
+		nAWDSummaryReport.addActionListener(nAWDSummaryReportListener);
+		nXSCheckReport.addActionListener(nXSCheckReportListener);
+		nDConveyanceReport.addActionListener(nDConveyanceReportListener);
 		_networkOpenButton.addActionListener(nOpenListener);
 		_networkSaveButton.addActionListener(_nSaveListener);
 		_networkCalculateButton.addActionListener(nCalculateListener);
@@ -1806,6 +1818,10 @@ public class CsdpFrame extends JFrame {
 		_centerlineLabel.setText("Selected Centerline:  " + centerlineName);
 	}// updateInfoPanel
 
+	public void updateInfoPanel(double centerlineLength) {
+		_centerlineLengthLabel.setText("Centerline Length: "+String.format("%.0f", centerlineLength));
+	}
+	
 	/**
 	 * updates displayed value of cross-section properties
 	 */
@@ -2282,6 +2298,30 @@ public class CsdpFrame extends JFrame {
 		return cfLandmarkPopup.isVisible();
 	}
 
+	public double getMinElevBin() {
+		return _minElevBin;
+	}
+
+	public double getMaxElevBin() {
+		return _maxElevBin;
+	}
+
+	public int getNumElevBins() {
+		return _numElevBins;
+	}
+
+	public void updateElevBinValues(double min, double max, int num) {
+		_minElevBin = min;
+		_maxElevBin = max;
+		_numElevBins = num;
+		_elevationBins = new double[num];
+		double binSize = (max - min) / (num - 1.0f);
+		_elevationBins[0] = max;
+		for (int i = 1; i <= num - 1; i++) {
+			_elevationBins[i] = _elevationBins[i - 1] - binSize;
+		}
+	}//updateElevBinValues
+
 	Border _raisedBevel = BorderFactory.createRaisedBevelBorder();
 
 	JRadioButton _zoomBoxButton;
@@ -2401,7 +2441,7 @@ public class CsdpFrame extends JFrame {
 	private JMenu tOpenWaterOptionsMenu, nExportOptions;
 	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc;
 	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nZoomToCenterline, nZoomToNode, nList, nSummary, nClearNetwork, nCalculate, nExportToSEFormat,
-			nExportTo3DFormat, nAWDSummary, nXSCheck;
+			nExportTo3DFormat, nAWDSummaryReport, nXSCheckReport, nDConveyanceReport;
 	private JMenuItem lSave, lSaveAs, lExportToWKT, lAdd, lMove, lEdit, lDelete, lHelp;
 
 	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;
@@ -2438,6 +2478,7 @@ public class CsdpFrame extends JFrame {
 	private JLabel _verDatumUnitsLabel = new JLabel("Ver. Datum Units:");
 
 	private JLabel _centerlineLabel = new JLabel("Selected Centerline:");
+	private JLabel _centerlineLengthLabel = new JLabel("Centerline length:");
 	private JLabel _xsectLabel = new JLabel("Selected Xsect:");
 	private JLabel _mouseXLabel = new JLabel("X coordinate (UTM):");
 	private JLabel _mouseYLabel = new JLabel("Y coordinate (UTM):");
@@ -2465,29 +2506,6 @@ public class CsdpFrame extends JFrame {
 	// private double _maxElevBin = 2.70f;
 	// private int _numElevBins = 11;
 
-	public double getMinElevBin() {
-		return _minElevBin;
-	}
-
-	public double getMaxElevBin() {
-		return _maxElevBin;
-	}
-
-	public int getNumElevBins() {
-		return _numElevBins;
-	}
-
-	public void updateElevBinValues(double min, double max, int num) {
-		_minElevBin = min;
-		_maxElevBin = max;
-		_numElevBins = num;
-		_elevationBins = new double[num];
-		double binSize = (max - min) / (num - 1.0f);
-		_elevationBins[0] = max;
-		for (int i = 1; i <= num - 1; i++) {
-			_elevationBins[i] = _elevationBins[i - 1] - binSize;
-		}
-	}//updateElevBinValues
 
 	/**
 	 * stores values for coloring bathymetry data in color by elevation mode

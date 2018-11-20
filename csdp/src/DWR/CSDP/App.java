@@ -1327,6 +1327,40 @@ public class App {
 		md.setVisible(true);
 	}// xsCheck
 
+	public void dConveyanceReport(CsdpFrame gui) {
+		_net.sortCenterlineNames();
+		
+		String message = "Cross-sections with negative dConveyance\n";
+		message+="===========================================\n";
+		int numLinesInMessage = 2;
+		String centerlineName = null;
+		Centerline centerline = null;
+		double length;
+		Xsect xsect = null;
+		double distAlongCenterline;
+		double normalizedDist;
+		String allZeroArea = "";
+		String allDuplicateStations = "";
+
+		for (int i = 0; i < _net.getNumCenterlines(); i++) {
+			centerlineName = _net.getCenterlineName(i);
+			centerline = _net.getCenterline(centerlineName);
+			for(int j=0; j<centerline.getNumXsectsWithPoints(); j++) {
+				xsect = centerline.getXsect(j);
+				String dConveyanceReport = xsect.getNegativeDConveyanceReport();
+				if(dConveyanceReport.length()>0) {
+					message+=centerlineName+="_"+j+": ";
+					message+=dConveyanceReport+"\n";
+					numLinesInMessage++;
+				}
+			}//for each cross-section with user created points
+		}//for each centerline
+		message+="===========================================\n";
+		MessageDialog mDialog = new MessageDialog(gui, "Cross-sections with negative dConveyance", message, false, 
+				false, 90, numLinesInMessage);
+		mDialog.setVisible(true);
+	}//dConveyanceReport
+
 	/*
 	 * Print a table of area, width, and depth for the given elevation Then
 	 * estimate volume
@@ -1340,41 +1374,45 @@ public class App {
 		double normalizedDist;
 		String line = "";
 
-		System.out.println("====================================================================");
-		System.out.println("centerline, length, channel volume-thousand sqft, for elevation " + elevation);
-		System.out.println("====================================================================");
-
+		String message = "====================================================================\n";
+		message+="centerline, length, channel volume-thousand sqft, for elevation " + elevation+"\n";
+		message+="====================================================================\n";
+		int numLinesInMessage=3;
+		
 		for (int i = 0; i < _net.getNumCenterlines(); i++) {
 			centerlineName = _net.getCenterlineName(i);
 			centerline = _net.getCenterline(centerlineName);
 			length = centerline.getLengthFeet();
-			double volume = 0.0;
-			double lastDistAlongCenterline = -Double.MAX_VALUE;
-			double lastArea = -Double.MAX_VALUE;
-			for (int j = 0; j < centerline.getNumXsects(); j++) {
-				xsect = centerline.getXsect(j);
-				distAlongCenterline = xsect.getDistAlongCenterlineFeet();
-				double area = xsect.getAreaSqft(elevation);
-				// calculate volume
-				if (j == 0) {
-					volume += distAlongCenterline * area / 1000;
-				} else {
-					volume += (distAlongCenterline - lastDistAlongCenterline) * 0.5 * (area + lastArea) / 1000;
-				}
-				if (j == centerline.getNumXsects() - 1) {
-					volume += area * (length - distAlongCenterline) / 1000;
-				}
-				lastDistAlongCenterline = distAlongCenterline;
-				lastArea = area;
-			}
-			System.out.println(centerlineName + "," + length + "," + volume);
+			double volume = centerline.getChannelVolumeEstimateNoInterp(elevation);
+//			double volume = 0.0;
+//			double lastDistAlongCenterline = -Double.MAX_VALUE;
+//			double lastArea = -Double.MAX_VALUE;
+//			for (int j = 0; j < centerline.getNumXsects(); j++) {
+//				xsect = centerline.getXsect(j);
+//				distAlongCenterline = xsect.getDistAlongCenterlineFeet();
+//				double area = xsect.getAreaSqft(elevation);
+//				// calculate volume
+//				if (j == 0) {
+//					volume += distAlongCenterline * area / 1000;
+//				} else {
+//					volume += (distAlongCenterline - lastDistAlongCenterline) * 0.5 * (area + lastArea) / 1000;
+//				}
+//				if (j == centerline.getNumXsects() - 1) {
+//					volume += area * (length - distAlongCenterline) / 1000;
+//				}
+//				lastDistAlongCenterline = distAlongCenterline;
+//				lastArea = area;
+//			}
+			message+=centerlineName + "," + length + "," + volume+"\n";
+			numLinesInMessage++;
 		}
-		System.out.println("====================================================================\n");
+		message+="====================================================================\n\n";
 
-		System.out.println("====================================================================");
-		System.out.println("cross-section, Area, Width, Depth, Hydraulic Depth, for elevation " + elevation);
-		System.out.println("====================================================================");
-
+		message+="====================================================================\n";
+		message+="cross-section, Area, Width, Depth, Hydraulic Depth, for elevation " + elevation+"\n";
+		message+="====================================================================\n";
+		numLinesInMessage+=4;
+		
 		for (int i = 0; i < _net.getNumCenterlines(); i++) {
 			centerlineName = _net.getCenterlineName(i);
 			centerline = _net.getCenterline(centerlineName);
@@ -1390,12 +1428,16 @@ public class App {
 				double width = xsect.getWidthFeet(elevation);
 				double depth = elevation - xsect.getMinimumElevationFeet();
 				double hydraulicDepth = xsect.getHydraulicDepthFeet(elevation);
-				line += "," + area + "," + width + "," + depth + "," + hydraulicDepth;
-				System.out.println(line);
+				line += "," + area + "," + width + "," + depth + "," + hydraulicDepth+"\n";
+				message+=line;
+				numLinesInMessage++;
 			}
 		}
-		System.out.println("====================================================================");
-	}
+		message+="====================================================================\n";
+		numLinesInMessage++;
+		MessageDialog md = new MessageDialog(_gui, "Cross-section area, width, depth summary", message, false, false, 90, numLinesInMessage);
+		md.setVisible(true);
+	}//awdSummary
 
 	// /*
 	// * Print a table of area, width, and depth for the given elevation

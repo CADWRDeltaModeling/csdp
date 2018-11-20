@@ -243,11 +243,13 @@ public class Xsect {
 				break;
 			}
 		}
-		double lastElevation = allUniqueElevations[lastLayerIndex];
-		double lastWidth = getWidthFeet(lastElevation);
-		double currentWidth = getWidthFeet(elevation);
-		double a = lastLayerArea + 0.5 * (currentWidth+lastWidth) * (elevation - lastElevation);
-
+		double a = 0.0;
+		if(getNumPoints()>0) {
+			double lastElevation = allUniqueElevations[lastLayerIndex];
+			double lastWidth = getWidthFeet(lastElevation);
+			double currentWidth = getWidthFeet(elevation);
+			a = lastLayerArea + 0.5 * (currentWidth+lastWidth) * (elevation - lastElevation);
+		}
 		return a;
 		//The old way: errors were found in this calculation
 //		double area = 0.0;
@@ -383,6 +385,30 @@ public class Xsect {
 		zc = zca / getAreaSqft(elevation);
 		return zc;
 	}//getZCentroidFeet
+	
+	/*
+	 * returns string listing all elevations with -dConeyance
+	 * will return empty string if none are found
+	 */
+	public String getNegativeDConveyanceReport() {
+		String returnString = "";
+		double[] elevations = getUniqueElevations();
+		
+		double[] dConveyanceArray = getDConveyanceValues();
+		boolean returnValue = false;
+		int valueIndex = 0;
+		for(int i=0; i<dConveyanceArray.length; i++) {
+			if(dConveyanceArray[i] < 0.0) {
+				if(valueIndex > 0) {
+					returnString+=",";
+				}
+				returnString += elevations[i];
+			}
+			valueIndex++;
+		}
+		
+		return returnString;
+	}//hasNegativeDConveyance
 	
 	/*
 	 * Calculates dConveyance for all layers; returns array.

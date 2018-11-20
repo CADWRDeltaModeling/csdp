@@ -609,16 +609,16 @@ public class NetworkMenu {
 	 * @author
 	 * @version $Id: NetworkMenu.java,v 1.3 2003/04/15 19:46:14 btom Exp $
 	 */
-	public class NAWDSummary implements ActionListener {
+	public class NAWDSummaryReport implements ActionListener {
 		CsdpFrame _gui;
 
-		public NAWDSummary(CsdpFrame gui) {
+		public NAWDSummaryReport(CsdpFrame gui) {
 			_gui = gui;
 		}
 
 		public void actionPerformed(ActionEvent e) {
 			_app.awdSummary(0.0f);
-			_app.awdSummary(0.292f); // MSL wrt NGVD
+//			_app.awdSummary(0.292f); // MSL wrt NGVD
 		}// actionPerformed
 	} // NAWDSummary
 
@@ -629,10 +629,10 @@ public class NetworkMenu {
 	 * @author
 	 * @version $Id: NetworkMenu.java,v 1.3 2003/04/15 19:46:14 btom Exp $
 	 */
-	public class NXSCheck implements ActionListener {
+	public class NXSCheckReport implements ActionListener {
 		CsdpFrame _gui;
 
-		public NXSCheck(CsdpFrame gui) {
+		public NXSCheckReport(CsdpFrame gui) {
 			_gui = gui;
 		}
 
@@ -640,6 +640,20 @@ public class NetworkMenu {
 			_app.xsCheck(_gui);
 		}// actionPerformed
 	} // NXSCheck
+
+	public class NDConveyanceReport implements ActionListener {
+		CsdpFrame _gui;
+		public NDConveyanceReport(CsdpFrame gui) {
+			_gui = gui;
+		}
+		@Override
+		public void actionPerformed(ActionEvent arg0) {
+			// TODO Auto-generated method stub
+			_app.dConveyanceReport(_gui);
+		}
+
+	}
+
 
 	public class NZoomToCenterline implements ActionListener {
 		CsdpFrame _gui;

@@ -882,8 +882,8 @@ public class Centerline {
 		if(getNumXsectsWithPoints()>=1) {
 			returnValue += (getLengthFeet() - lastXsect.getDistAlongCenterlineFeet()) * lastXsect.getAreaSqft(elevation);
 		}
-		System.out.println("area, length="+lastXsect.getAreaSqft(elevation)+","+getLengthFeet());
-		System.out.println("simple volume="+getLengthFeet()*lastXsect.getAreaSqft(elevation));
+//		System.out.println("area, length="+lastXsect.getAreaSqft(elevation)+","+getLengthFeet());
+//		System.out.println("simple volume="+getLengthFeet()*lastXsect.getAreaSqft(elevation));
 		return returnValue;
 	}//getChannelVolumeEstimateNoInterp
 	

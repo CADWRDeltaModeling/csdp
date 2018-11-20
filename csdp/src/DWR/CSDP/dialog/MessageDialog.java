@@ -45,7 +45,6 @@ import java.awt.Color;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -56,7 +55,7 @@ import javax.swing.JViewport;
 /**
  * a dialog box with a text field to get input from user
  */
-public class MessageDialog extends JDialog implements ActionListener {
+public class MessageDialog extends JDialog{
 	private static final boolean DEBUG = false;
 	JTextArea ta;
 	JFrame _f;
@@ -86,6 +85,7 @@ public class MessageDialog extends JDialog implements ActionListener {
 		_maxStringLength = maxStringLength;
 		_numLines = numLines;
 		configure(_editable);
+		System.out.println("Message Dialog Constructor");
 		if (DEBUG)
 			System.out.println("maxStringLength, numLines=" + _maxStringLength + "," + _numLines);
 	}
@@ -134,16 +134,20 @@ public class MessageDialog extends JDialog implements ActionListener {
 		getContentPane().add("Center", _sp);
 		// getContentPane().add("Center", ta);
 		getContentPane().add("South", _okButton);
-		ActionListener okListener = this;
-		_okButton.addActionListener(okListener);
+		
+		ActionListener closeListener = new CloseListener();
+		_okButton.addActionListener(closeListener);
 
-		System.out.println("size set to" + (int) ((float) (_maxStringLength) * (300.0f / 44.0f) + 50.0f) + ","
-				+ (int) ((float) (_numLines) * (700.0f / 44.0f) + 100.0f));
-
-		System.out.println("maxStringLength,numLines=" + _maxStringLength + "," + _numLines);
+		if(DEBUG) {
+			System.out.println("size set to" + (int) ((float) (_maxStringLength) * (300.0f / 44.0f) + 50.0f) + ","
+					+ (int) ((float) (_numLines) * (700.0f / 44.0f) + 100.0f));
+	
+			System.out.println("maxStringLength,numLines=" + _maxStringLength + "," + _numLines);
+		}
 		setSize((int) ((float) (_maxStringLength) * (300.0f / 44.0f) + 50.0f),
 				(int) ((float) (_numLines) * (700.0f / 44.0f) + 100.0f));
-		requestFocus();
+		//calling RequestFocus was causing dialog to disappear when reszing. 
+		//		requestFocus();
 	}// configure
 
 	public String getMessage() {
@@ -154,8 +158,11 @@ public class MessageDialog extends JDialog implements ActionListener {
 		return new Insets(30, 10, 10, 10);
 	}
 
-	public void actionPerformed(ActionEvent e) {
-		// setVisible(false);
-		dispose();
+	private class CloseListener implements ActionListener{
+		public void actionPerformed(ActionEvent e) {
+			dispose();
+		}
 	}
+	
+
 }// class MessageDialog
