@@ -210,7 +210,6 @@ public class XsectEditMenu {
 			this.xsectGraph = xsectGraph;
 		}
 		
-		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			Container container = xsectGraph.getContentPane();
 			BufferedImage im = new BufferedImage(container.getWidth(), container.getHeight(), BufferedImage.TYPE_4BYTE_ABGR_PRE);

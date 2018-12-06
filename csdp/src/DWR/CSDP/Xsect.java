@@ -437,6 +437,43 @@ public class Xsect {
 		return returnValues;
 	}//getDConveyanceTable
 
+	public double[] getAreaValues() {
+		double[] elevations = getUniqueElevations();
+		double[] returnValues = new double[elevations.length];
+		if(elevations.length>0) {
+			returnValues[0] = 0.0;
+			for(int i=1; i<elevations.length; i++) {
+				returnValues[i]= getAreaSqft(elevations[i]); 
+			}
+		}
+		return returnValues;
+	}//getAreaValues
+
+	public double[] getWidthValues() {
+		double[] elevations = getUniqueElevations();
+		double[] returnValues = new double[elevations.length];
+		if(elevations.length>0) {
+			returnValues[0] = 0.0;
+			for(int i=1; i<elevations.length; i++) {
+				returnValues[i]= getWidthFeet(elevations[i]); 
+			}
+		}
+		return returnValues;
+	}//getAreaValues
+
+	public double[] getWetPValues() {
+		double[] elevations = getUniqueElevations();
+		double[] returnValues = new double[elevations.length];
+		if(elevations.length>0) {
+			//set dConveyance at bottom to zero
+			returnValues[0] = 0.0;
+			for(int i=1; i<elevations.length; i++) {
+				returnValues[i]= getWettedPerimeterFeet(elevations[i]); 
+			}
+		}
+		return returnValues;
+	}//getWetPValues
+	
 	/**
 	 * returns array of all unique elevations in the cross-section
 	 */
@@ -737,39 +774,31 @@ public class Xsect {
 		 * close but the wetted perimeter calculated at each elevation is not
 		 * close, then keep both elevations. otherwise, get rid of one.
 		 */
-		double[] newArray = new double[numElements];
+		ResizableDoubleArray uniqueValuesRSA = new ResizableDoubleArray();
+		_numUniqueElevations = 0;
 		/**
 		 * This array stores the values from newArray that remain after the
 		 * operation described above is performed
 		 */
 		// double[] uniqueArray = new double[numElements];
-		int numUnique = 0;
 		if (numElements > 0) {
+			uniqueValuesRSA.put(_numUniqueElevations, array[0]);
 			_numUniqueElevations = 1;
-			newArray[0] = array[0];
 		}
 		for (int i = 1; i <= numElements - 1; i++) {
 			if (array[i] != array[i - 1]) {
-				newArray[getNumUniqueElevations()] = array[i];
+				uniqueValuesRSA.put(_numUniqueElevations, array[i]);
 				_numUniqueElevations++;
 			}
 		}
 
-		// for(int i=1; i<=numElements-1; i++){
-		// if(newArray[i]-newArray[i-1] < 1.0f){
-		// if(Math.abs(getWettedPerimeter(newArray[i])-
-		// getWettedPerimeter(newArray[i-1])) < 100.0f){ //don't keep
-		// System.out.println
-		// ("removing elevation. elevations="+newArray[i]+","+newArray[i-1]);
-		// _numUniqueElevations--;
-		// }else{//keep
-
-		// uniqueArray[i] = newArray[i];
-		// }
-		// }
-		// }
-		return newArray;
-	}
+		double[] returnArray = new double[_numUniqueElevations];
+		for(int i=0; i<_numUniqueElevations; i++) {
+			returnArray[i] = uniqueValuesRSA.get(i); 
+		}
+		
+		return returnArray;
+	}//findUnique
 
 	/**
 	 * calculate and return the contribution to the cross-section width at the

@@ -64,7 +64,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -244,6 +243,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 	JLabel _hDepthValueLabel = new JLabel();
 
 	// JLabel _dkLabel = new JLabel();
+//	JEditorPane _dConveyanceEditorPane = new JEditorPane();
 	JTextArea _dConveyanceTextArea = new JTextArea();
 	JTextArea _conveyanceCharacteristicsTextArea = new JTextArea();
 	
@@ -349,6 +349,13 @@ public class XsectGraph extends JDialog implements ActionListener {
 //		_xsPropPanel.add(_hDepthLabel);
 //		_xsPropPanel.add(_hDepthValueLabel);
 
+		//using a JEditorPane will make -dK red; but not laying out correctly yet
+//		_dConveyanceEditorPane.setEditable(false);
+//		_dConveyanceEditorPane.setContentType("text/html");
+//		_dConveyancePanel.setLayout(new BoxLayout(_dConveyancePanel, BoxLayout.Y_AXIS));
+//		_dConveyancePanel.setBorder(_lineBorder);
+//		_dConveyancePanel.add(_dConveyanceEditorPane);
+		
 		_dConveyancePanel.setLayout(new BoxLayout(_dConveyancePanel, BoxLayout.Y_AXIS));
 		_dConveyancePanel.setBorder(_lineBorder);
 		_dConveyancePanel.add(_dConveyanceTextArea);
@@ -820,7 +827,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 			double sd = (double) getPointSize();
 			double nds = (double) _numBathymetryDataSets;
 			double fi = (double) i;
-			symbolDimf = (sd / 2.0 * ((nds - fi) / 4.0f)) + 1.0;
+//			symbolDimf = (sd / 2.0 * ((nds - fi) / 4.0f)) + 1.0;
+			//reversing order: make symbol for lower values smaller.
+			symbolDimf = (sd / 2.0 * (fi / 4.0f)) + 1.0;
 			// symbolDim = (getPointSize()/2 *
 			// ((_numBathymetryDataSets-i)/4))+1;
 			symbolDim = (int) symbolDimf;
@@ -835,11 +844,13 @@ public class XsectGraph extends JDialog implements ActionListener {
 		int[] bathymetrySymbolY = { symbolDim, symbolDim, -symbolDim, -symbolDim };
 		bathymetrySymbolAttr.setIsFilled(true);
 		bathymetrySymbolAttr.setSymbol(bathymetrySymbolX, bathymetrySymbolY, 4);
+		//to reverse order of colors
+		Color bathymetryColor = _gui.getColor(_numBathymetryDataSets-(i+1));
 		if (DEBUG)
-			System.out.println("setting attributes for _bathymetryDataSetNames.get(i): color=" + _gui.getColor(i));
+			System.out.println("setting attributes for _bathymetryDataSetNames.get(i): color=" + bathymetryColor);
 
-		bathymetrySymbolAttr._foregroundColor = _gui.getColor(i);
-		c._foregroundColor = _gui.getColor(i);
+		bathymetrySymbolAttr._foregroundColor = bathymetryColor;
+		c._foregroundColor = bathymetryColor;
 		Symbol bathymetrySymbol = new Symbol(bathymetrySymbolAttr);
 		bathymetryCurve.setSymbol(bathymetrySymbol);
 	}// setBathymetryCurveAttributes
@@ -1263,8 +1274,12 @@ public class XsectGraph extends JDialog implements ActionListener {
 
 			// find name of data set(distance, year, or source)
 			if (getColorByDistanceMode()) {
-				binValue = distanceBinSize * (i);
+//				binValue = distanceBinSize * (i);
+				//reverse order of bins. This will make further away points plot first, putting closer points on top of them.
+				binValue = distanceBinSize*(numDataSets - i-1);
+				
 				dataSetName = Double.toString(binValue) + " ft from Cross-section line";
+				System.out.println("dataSetName="+dataSetName);
 			} else if (getColorBySourceMode())
 				dataSetName = _bathymetryData.getSource(i);
 			else if (getColorByYearMode())
@@ -1415,16 +1430,60 @@ public class XsectGraph extends JDialog implements ActionListener {
 	private void updateDConveyanceDisplay() {
 		if(_xsect.getNumPoints()>0) {
 			double[] dConveyanceValues = _xsect.getDConveyanceValues();
+			double[] areaValues = _xsect.getAreaValues();
+			double[] widthValues = _xsect.getWidthValues();
+			double[] wetPValues = _xsect.getWetPValues();
 			double[] elevations = _xsect.getUniqueElevations();
 			String dConveyanceString = "Elevation\tdConveyance\n"
 					+ "-----------------------------------------------\n";
 			//add dConveyance values in reverse order
 			for(int i=elevations.length-1; i>=0; i--) {
-				dConveyanceString += String.format("%.2f", elevations[i])+"\t"+String.format("%.2f", dConveyanceValues[i])+"\n";
+				dConveyanceString += String.format("%.2f", elevations[i])+
+						"\t"+String.format("%.2f", dConveyanceValues[i])+
+						"\t"+String.format("%.2f", areaValues[i])+
+						"\t"+String.format("%.2f", widthValues[i])+
+						"\t"+String.format("%.2f", wetPValues[i])+"\n";
 			}
 			_dConveyanceTextArea.setText(dConveyanceString);
 		}
 	}//updateDConveyanceDisplay
+	
+	//This will make -dK values red, but not layout out correctly yet.
+	//need to figure out how to add horizontal, but not vertical spacing between cells,
+	//and to prevent text from getting cut off by metadata panel label
+//	/*
+//	 * Recalculates the dConveyance values and updates the display
+//	 */
+//	private void updateDConveyanceDisplay() {
+//		if(_xsect.getNumPoints()>0) {
+//			double[] dConveyanceValues = _xsect.getDConveyanceValues();
+//			double[] areaValues = _xsect.getAreaValues();
+//			double[] widthValues = _xsect.getWidthValues();
+//			double[] wetPValues = _xsect.getWetPValues();
+//			double[] elevations = _xsect.getUniqueElevations();
+//			String dConveyanceString = "<html><TABLE cellspacing=\"0\" cellpadding=\"0\">"
+//					+ "<TR><TD><b><nbsp;>Elevation</b></TD><TD><b><nbsp;> dConveyance</b></TD><TD><b><nbsp;> Area</b></TD><TD><b><nbsp;> Width</b></TD><TD><b><nbsp;> WetP</b></TD></TR>";
+//			//add dConveyance values in reverse order
+//			for(int i=elevations.length-1; i>=0; i--) {
+//				double dK = dConveyanceValues[i];
+//				String dKString = null;
+//				if(dK<0) {
+//					dKString = "<font color=red>"+String.format("%.2f", dK)+"</font>";
+//				}else {
+//					dKString = String.format("%.2f", dK);
+//				}
+//				dConveyanceString+="<TR>";
+//				dConveyanceString += "<TD>"+String.format("%.2f", elevations[i])+"</TD>"+
+//					"<TD><nbsp;>"+dKString+"</TD>"+
+//					"<TD><nbsp;>"+String.format("%.2f", areaValues[i])+"</TD>"+
+//					"<TD><nbsp;>"+String.format("%.2f", widthValues[i])+"</TD>"+
+//					"<TD><nbsp;>"+String.format("%.2f", wetPValues[i])+"</TD>";
+//				dConveyanceString+="</TR>";
+//			}
+//			dConveyanceString+="</TABLE></html>\n\n";
+//			_dConveyanceEditorPane.setText(dConveyanceString);
+//		}
+//	}//updateDConveyanceDisplay
 	
 	/**
 	 * called when keep button pressed.

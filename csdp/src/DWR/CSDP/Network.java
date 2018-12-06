@@ -112,11 +112,7 @@ public class Network {
 	 * print listing of all Centerline objects
 	 */
 	public Enumeration getAllCenterlines() {
-		Enumeration e;
-		for (e = _centerlines.elements(); e.hasMoreElements();) {
-			System.out.println(e.nextElement());
-		}
-		return e;
+		return _centerlines.elements();
 	}
 
 	/**

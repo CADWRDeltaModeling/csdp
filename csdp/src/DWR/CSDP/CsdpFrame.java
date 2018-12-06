@@ -78,7 +78,8 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
-import DWR.CSDP.NetworkMenu.NDConveyanceReport;
+import DWR.CSDP.FileMenu.FConvert;
+import javafx.util.converter.FloatStringConverter;
 
 
 /**
@@ -561,6 +562,7 @@ public class CsdpFrame extends JFrame {
 		cfFile.add(fSaveAsNAVD88 = new JMenuItem("Save As NAVD88..."));
 		cfFile.add(fSaveZoomed = new JMenuItem("Save Zoomed data"));
 		cfFile.addSeparator();
+		cfFile.add(fConvert = new JMenuItem("Convert Bathymetry File(s)"));
 		// cfFile.add(fMerge = new JMenuItem("Merge"));
 		// cfFile.add(fExtract = new JMenuItem("Extract"));
 		// cfFile.addSeparator();
@@ -595,6 +597,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener fPrintPreviewListener = fileMenu.new FPrintPreview();
 		ActionListener fPrintListener = fileMenu.new FPrint();
 		ActionListener fPrintSetupListener = fileMenu.new FPrintSetup();
+		ActionListener fConvertListener = fileMenu.new FConvert(this);
 		EventListener fExitListener = fileMenu.new FExit(this);
 
 		addWindowListener((WindowListener) fExitListener);
@@ -612,6 +615,7 @@ public class CsdpFrame extends JFrame {
 		// fPrintPreview.addActionListener(fPrintPreviewListener);
 		// fPrint.addActionListener(fPrintListener);
 		// fPrintSetup.addActionListener(fPrintSetupListener);
+		fConvert.addActionListener(fConvertListener);
 		fExit.addActionListener((ActionListener) fExitListener);
 
 		_fileOpenButton.addActionListener(fOpenListener);
@@ -2426,7 +2430,7 @@ public class CsdpFrame extends JFrame {
 	private JPopupMenu cfLandmarkPopup;
 
 	private JMenuItem fNew, fOpen, fClose, fSave, fSaveAs, fSaveAsNAVD88, fSaveZoomed, fMerge, fExtract, fPrintPreview,
-			fPrint, fPrintSetup, fExit;
+			fPrint, fPrintSetup, fConvert, fExit;
 	private JMenuItem pLoad, pSave, pSaveAs;
 	private JMenuItem mSource, mYear, mZSign, mErase, mRestore, mPurge, mStatus;
 	private JMenuItem dParameters, dSource, dYear, dColorBy, dErased, oLandmark, cLandmarks, dDigitalLineGraph, clearDigitalLineGraph, 

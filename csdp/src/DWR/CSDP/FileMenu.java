@@ -53,6 +53,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 import DWR.CSDP.dialog.FileIO;
+import DWR.CSDP.dialog.MultipleFileIO;
 
 public class FileMenu {
 
@@ -60,6 +61,7 @@ public class FileMenu {
 		_app = app;
 		_fOpenFilter = new CsdpFileFilter(_openExtensions, _numOpenExtensions);
 		_fSaveFilter = new CsdpFileFilter(_saveExtensions, _numSaveExtensions);
+		_fConvertFilter = new CsdpFileFilter(_convertExtensions, _numConvertExtensions);
 	}
 
 	/**
@@ -125,6 +127,67 @@ public class FileMenu {
 
 	} // FOpenClass
 
+	public class FConvert extends MultipleFileIO implements ActionListener {
+
+		public FConvert(CsdpFrame gui) {
+			super(gui, _convertDialogMessage, _convertErrorMessage, _convertSuccessMessage, _convertFailureMessage, false, _convertExtensions, _numConvertExtensions);
+			_jfc.setDialogTitle(_convertDialogMessage);
+			_jfc.setApproveButtonText("Convert");
+			_jfc.addChoosableFileFilter(_fConvertFilter);
+			_jfc.setFileFilter(_fConvertFilter);
+		}
+
+		/**
+		 * uses dialog box to get filename from user
+		 */
+		protected String[] getFilenames() {
+			int numLines = 0;
+			String[] filenames = null;
+			int filechooserState = -Integer.MAX_VALUE;
+			if (CsdpFunctions.getBathymetryDirectory() != null) {
+				// _fd.setDirectory(CsdpFunctions.getBathymetryDirectory());
+				_jfc.setCurrentDirectory(CsdpFunctions.getBathymetryDirectory());
+			} else if (CsdpFunctions.getOpenDirectory() != null) {
+				// _fd.setDirectory(CsdpFunctions.getOpenDirectory());
+				_jfc.setCurrentDirectory(CsdpFunctions.getOpenDirectory());
+			} else
+				System.out.println();
+			// _fd.setVisible(true);
+			// filename = _fd.getFile();
+
+			filechooserState = _jfc.showOpenDialog(_gui);
+			if (filechooserState == JFileChooser.APPROVE_OPTION) {
+				File[] files = _jfc.getSelectedFiles();
+				_filenames = new String[files.length];
+				_filetypes = new String[files.length];
+				filenames = new String[files.length];
+				for(int i=0; i<files.length; i++) {
+					//// CsdpFunctions.setBathymetryDirectory(_fd.getDirectory());
+					//// CsdpFunctions.setOpenDirectory(_fd.getDirectory());
+					filenames[i]= _jfc.getName(files[i]); 
+					CsdpFunctions.setBathymetryDirectory(_jfc.getCurrentDirectory().getAbsolutePath() + File.separator);
+					CsdpFunctions.setOpenDirectory(_jfc.getCurrentDirectory().getAbsolutePath() + File.separator);
+					parseFilename(i, filenames[i]);
+					
+				}
+			} else if (filechooserState == JFileChooser.CANCEL_OPTION) {
+				_cancel = true;
+				filenames = null;
+			} else {
+				filenames = null;
+			} // else
+			return filenames;
+		}// getFilename
+
+		@Override
+		public boolean accessFile(String filename, String filetype) {
+			_app.convertPrnToCdp(_gui, CsdpFunctions.getBathymetryDirectory().getPath(), filename, filetype);
+			return true; // no need to warn user if fails
+		}
+
+	}
+
+	
 	/**
 	 * repaint when window resized
 	 */
@@ -475,6 +538,14 @@ public class FileMenu {
 	protected static final String _openSuccessMessage = "";
 	protected static final String _openFailureMessage = "ERROR: couldn't open bathymetry file";
 
+	protected static final String _convertDialogMessage = "Select bathymetry (.prn) files";
+	protected static final String _convertErrorMessage = "Only .prn extensions allowed";
+	protected static final String[] _convertExtensions = {"prn"};
+	protected static final int _numConvertExtensions = 1;
+	protected static final String _convertSuccessMessage = "Converted files";
+	protected static final String _convertFailureMessage = "Error: files not converted";
+	
 	CsdpFileFilter _fOpenFilter;
 	CsdpFileFilter _fSaveFilter;
+	CsdpFileFilter _fConvertFilter;
 }// class FileMenu

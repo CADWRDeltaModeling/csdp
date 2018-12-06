@@ -63,6 +63,39 @@ public class App {
 	public App() {
 	}
 
+	/*
+	 * Given .prn filename, create a .cdp file
+	 */
+	public void convertPrnToCdp(JFrame gui, String directory, String filename, String filetype) {
+		BathymetryInput binput = null;
+		_gui = (CsdpFrame) gui;
+		boolean bWrite = true;
+		int numLines = 0;
+		_gui.setCursor(CsdpFunctions._waitCursor);
+
+		// read bathymetry file and store in BathymetryPlot object
+
+		// if(DEBUG)
+		System.out.println("about to read file.  directory, filename, filetype=");
+		// if(DEBUG)
+		System.out.println(directory + "," + filename + "," + filetype);
+
+		binput = BathymetryInput.getInstance(_gui, directory, filename + "." + filetype);
+
+		System.out.println("binput=" + binput);
+
+		BathymetryData bathymetryData = null;
+		bathymetryData = binput.readData();
+		bathymetryData.sortYearIndices();
+		if (filetype.equals("prn"))
+			bathymetryData.sortBathymetryData();
+		System.out.println("about to write data for directory, filename, filetype, bathymetryData="+
+			directory+","+filename+","+filetype+","+bathymetryData);
+		BathymetryOutput bOutput = BathymetryOutput.getInstance(directory, filename, "cdp", bathymetryData);
+		bOutput.writeData();
+	}
+
+	
 	/**
 	 * Open ascii or binary bathymetry data file and store data in arrays
 	 */
@@ -440,13 +473,8 @@ public class App {
 	 */
 	public Network nReadStore(JFrame gui, String directory, String filename) {
 		_gui = (CsdpFrame) gui;
-		parseFilename(filename);
-		CsdpFunctions._networkFilename = _filename;
-		CsdpFunctions._networkFiletype = _filetype;
-		NetworkInput ninput = NetworkInput.getInstance(_gui, directory, _filename, _filetype);
-		_net = ninput.readData();
-		if (DEBUG)
-			System.out.println("Done reading ascii network data file");
+
+		_net = justReadNetwork(directory, filename); 
 		_gui.updateNetworkFilename(_filename + "." + _filetype);
 
 		_gui.getPlanViewCanvas(0).redoNextPaint();
@@ -454,6 +482,20 @@ public class App {
 		return _net;
 	}// nReadStore
 
+	/*
+	 * This enables other applications to just read the network file and get a Network object.
+	 */
+	public Network justReadNetwork(String directory, String filename) {
+		parseFilename(filename);
+		CsdpFunctions._networkFilename = _filename;
+		CsdpFunctions._networkFiletype = _filetype;
+		NetworkInput ninput = NetworkInput.getInstance(_gui, directory, _filename, _filetype);
+		_net = ninput.readData();
+		if (DEBUG)
+			System.out.println("Done reading ascii network data file");
+		return _net;
+	}
+	
 	/**
 	 * remove network file from memory and display
 	 */

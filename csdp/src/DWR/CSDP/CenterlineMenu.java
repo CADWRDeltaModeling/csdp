@@ -583,7 +583,6 @@ public class CenterlineMenu {
 	 */
 	public class DisplayCenterlineSummaryWindow implements ActionListener{
 
-		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			_net = _gui.getNetwork();
 			Centerline selectedCenterline = _net.getSelectedCenterline();
@@ -598,7 +597,6 @@ public class CenterlineMenu {
 
 	public class PlotAllCrossSections implements ActionListener {
 
-		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			_net = _gui.getNetwork();
 			String centerlineName = _net.getSelectedCenterlineName();
@@ -624,7 +622,6 @@ public class CenterlineMenu {
 			this.networkInteractor = ni;
 		}
 		
-		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			// TODO Auto-generated method stub
 			this.networkInteractor.addXsectsAtComputationalPoints(CsdpFunctions.DELTAX, CsdpFunctions.CROSS_SECTION_LINE_LENGTH);

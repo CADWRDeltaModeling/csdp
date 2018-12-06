@@ -295,7 +295,6 @@ public class DisplayMenu {
 	}// class DDigitalLineGraph
 
 	public class ClearDigitalLineGraph implements ActionListener {
-		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			_app.clearChannelOutlines();
 		}
