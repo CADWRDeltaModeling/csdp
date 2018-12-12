@@ -1279,7 +1279,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 				binValue = distanceBinSize*(numDataSets - i-1);
 				
 				dataSetName = Double.toString(binValue) + " ft from Cross-section line";
-				System.out.println("dataSetName="+dataSetName);
+//				System.out.println("dataSetName="+dataSetName);
 			} else if (getColorBySourceMode())
 				dataSetName = _bathymetryData.getSource(i);
 			else if (getColorByYearMode())
@@ -1450,7 +1450,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 	
 	//This will make -dK values red, but not layout out correctly yet.
 	//need to figure out how to add horizontal, but not vertical spacing between cells,
-	//and to prevent text from getting cut off by metadata panel label
+	//and to prevent text from getting cut off at the bottom
 //	/*
 //	 * Recalculates the dConveyance values and updates the display
 //	 */

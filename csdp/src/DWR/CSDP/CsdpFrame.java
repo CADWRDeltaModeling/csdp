@@ -78,10 +78,6 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
-import DWR.CSDP.FileMenu.FConvert;
-import javafx.util.converter.FloatStringConverter;
-
-
 /**
  * Display Frame
  *
