@@ -153,11 +153,11 @@ public class CenterlineSummaryWindow extends JFrame {
 //		channelSurfaceAreaLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
 		double length = centerline.getLengthFeet();
-		double volume = centerline.getChannelVolumeEstimateNoInterp(0.0);
-		double wettedArea = centerline.getChannelWettedAreaEstimateNoInterp(0.0);
-		double surfaceArea = centerline.getChannelSurfaceAreaEstimateNoInterp(0.0);
+		double volume = centerline.getChannelVolumeEstimateNoInterp(elevation);
+		double wettedArea = centerline.getChannelWettedAreaEstimateNoInterp(elevation);
+		double surfaceArea = centerline.getChannelSurfaceAreaEstimateNoInterp(elevation);
 		
-		JLabel elevValueLabel = new JLabel(String.format("%,.1f", elevation), SwingConstants.RIGHT);
+		JLabel elevValueLabel = new JLabel(String.format("%,.2f", elevation), SwingConstants.RIGHT);
 		JLabel cLengthValueLabel = new JLabel(String.format("%,.1f", length), SwingConstants.RIGHT);
 		JLabel volValueLabel = new JLabel(String.format("%,.1f", volume), SwingConstants.RIGHT);
 		JLabel wetAreaValueLabel = new JLabel(String.format("%,.1f", wettedArea), SwingConstants.RIGHT);

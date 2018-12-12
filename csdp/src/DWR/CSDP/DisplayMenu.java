@@ -50,6 +50,7 @@ import java.io.File;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 
+import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.DataFilterCheckbox;
 import DWR.CSDP.dialog.FileIO;
 import DWR.CSDP.dialog.TextFieldDialog;
@@ -112,7 +113,24 @@ public class DisplayMenu {
 			initValue[3] = oldElevation;
 			initValue[4] = oldDeltaX;
 			initValue[5] = oldCrossSectionLineLength;
+
+			int numFields = 6;
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, "Program Options", true, numFields);
+			dataEntryDialog.addFieldObjects(names[0], String.valueOf(initValue[0]), DataEntryDialog.NUMERIC_TYPE, 0, false);
+			dataEntryDialog.addFieldObjects(names[1], String.valueOf(initValue[1]), DataEntryDialog.NUMERIC_TYPE, 0, false);
+			dataEntryDialog.addFieldObjects(names[2], String.valueOf(initValue[2]), DataEntryDialog.NUMERIC_TYPE, 0, false);
+			dataEntryDialog.addFieldObjects(names[3], String.valueOf(initValue[3]), DataEntryDialog.NUMERIC_TYPE, 2, false);
+			dataEntryDialog.addFieldObjects(names[4], String.valueOf(initValue[4]), DataEntryDialog.NUMERIC_TYPE, 0, false);
+			dataEntryDialog.addFieldObjects(names[5], String.valueOf(initValue[5]), DataEntryDialog.NUMERIC_TYPE, 0, true);
+			dataEntryDialog.setVisible(true);
+			String t = dataEntryDialog.getValue(names[0]);
+			String pd = dataEntryDialog.getValue(names[1]);
+			String npd= dataEntryDialog.getValue(names[2]);
+			String newElevationString = dataEntryDialog.getValue(names[3]);
+			String newDeltaXString = dataEntryDialog.getValue(names[4]);
+			String newCrossSectionLineLengthString = dataEntryDialog.getValue(names[5]);
 			
+			/*
 			TextFieldDialog d = new TextFieldDialog(_gui, "Display Parameters", true, names, initValue);
 			d.setVisible(true);
 			String t = d._textFields.get(names[0]).getText();
@@ -121,7 +139,7 @@ public class DisplayMenu {
 			String newElevationString = d._textFields.get(names[3]).getText();
 			String newDeltaXString = d._textFields.get(names[4]).getText();
 			String newCrossSectionLineLengthString = d._textFields.get(names[5]).getText();
-			
+			*/
 			
 			int newPointSize = (int) (Double.parseDouble(pd));
 			int newNetworkSelectionPointSize = (int)Double.parseDouble(npd);
@@ -129,7 +147,7 @@ public class DisplayMenu {
 			double newElevation = Double.parseDouble(newElevationString);
 			double newDeltaX = Double.parseDouble(newDeltaXString);
 			double newCrossSectionLineLength = Double.parseDouble(newCrossSectionLineLengthString);
-					
+			
 			if (DEBUG)
 				System.out.println("thickness, point dimension=" + newThickness + "," + newPointSize);
 			if (newThickness != oldThickness) {
