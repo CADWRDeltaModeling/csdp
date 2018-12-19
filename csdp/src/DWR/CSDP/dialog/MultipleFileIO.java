@@ -46,6 +46,11 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+/**
+ * Allows selection of more than one file.
+ * @author btom
+ *
+ */
 public abstract class MultipleFileIO extends FileIO{
 
 	public MultipleFileIO(JFrame gui, String dialogMessage, String errorMessage, String successMessage, String failureMessage,

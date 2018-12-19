@@ -41,26 +41,36 @@
 package DWR.CSDP.dialog;
 
 import java.awt.BorderLayout;
-import java.awt.Button;
 import java.awt.Color;
-import java.awt.Dialog;
 import java.awt.Frame;
 import java.awt.Insets;
-import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 /**
  * a dialog box with a text field to get input from user
  */
-public class TextDialog extends Dialog implements ActionListener {
-	public TextField tf;
+public class TextDialog extends JDialog implements ActionListener {
+	public JTextField tf;
 	Frame _f;
-	Button _okButton = new Button("OK");
+	JButton _okButton = new JButton("OK");
+	private String instructions;
 
 	public TextDialog(Frame parent, String title, boolean modal) {
 		super(parent, title, modal);
 
+		_f = parent;
+		configure();
+	}
+
+	public TextDialog(Frame parent, String title, String instructions, boolean modal) {
+		super(parent, title, modal);
+		this.instructions = instructions;
 		_f = parent;
 		configure();
 	}
@@ -82,9 +92,13 @@ public class TextDialog extends Dialog implements ActionListener {
 	}
 
 	public void configure() {
-		setLayout(new BorderLayout(10, 10));
+		getContentPane().setLayout(new BorderLayout(10, 10));
 		setBackground(Color.white);
-		tf = new TextField(20);
+		if(this.instructions!=null) {
+			JTextArea instructionsTextArea = new JTextArea(this.instructions);
+			add("North", instructionsTextArea);
+		}
+		tf = new JTextField(20);
 		add("Center", tf);
 		add("South", _okButton);
 		ActionListener okListener = this;
@@ -96,7 +110,12 @@ public class TextDialog extends Dialog implements ActionListener {
 	public void configure(String s) {
 		setLayout(new BorderLayout(10, 10));
 		setBackground(Color.white);
-		tf = new TextField(s, 20);
+		
+		if(this.instructions!=null) {
+			JTextArea instructionsTextArea = new JTextArea(this.instructions);
+			add("North", instructionsTextArea);
+		}
+		tf = new JTextField(s, 20);
 		add("Center", tf);
 		add("South", _okButton);
 		ActionListener okListener = this;

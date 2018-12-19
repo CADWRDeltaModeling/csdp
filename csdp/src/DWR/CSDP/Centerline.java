@@ -945,7 +945,7 @@ public class Centerline {
 			}
 		}
 		//Add the last portion
-		if(getNumXsectsWithPoints()>1) {
+		if(getNumXsectsWithPoints()>0) {
 			returnValue += (getLengthFeet() - lastXsect.getDistAlongCenterlineFeet()) * lastXsect.getWidthFeet(elevation);
 		}
 		return returnValue;
@@ -966,8 +966,109 @@ public class Centerline {
 		double length = getLengthFeet();
 		return 3 + 2*(int)(Math.max(0.0, length-deltaX)/deltaX);
 	}
-	
 
+	/*
+	 * Returns the area of the maximum 
+	 */
+	public double getMaxAreaRatio() {
+		double minArea = Double.MAX_VALUE;
+		double maxArea = -Double.MAX_VALUE;
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			if(xsect.getNumPoints()>0) {
+				double area = xsect.getAreaSqft(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+				if(area<minArea) minArea = area;
+				if(area>maxArea) maxArea = area;
+			}
+		}
+		return maxArea/minArea;
+	}//getMaxAreaRatio
+
+	/*
+	 * Returns an array of cross-section indices of the cross-sections with min and max areas at specified elevation
+	 */
+	public int[] getMinMaxAreaXsectIndices() {
+		double minArea = Double.MAX_VALUE;
+		double maxArea = -Double.MAX_VALUE;
+		int minAreaIndex = -Integer.MAX_VALUE;
+		int maxAreaIndex = -Integer.MAX_VALUE;
+		
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			if(xsect.getNumPoints()>0) {
+				double area = xsect.getAreaSqft(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+				if(area<minArea) {
+					minArea = area;
+					minAreaIndex = i;
+				}
+				if(area>maxArea) {
+					maxArea = area;
+					maxAreaIndex = i;
+				}
+			}
+		}
+		return new int[] {minAreaIndex, maxAreaIndex};
+	}//getMinMaxAreaIndices
+
+	/*
+	 * Returns vector of xsect indices with -dk anywhere in cross-section.
+	 */
+	public Vector<Integer> getNegDKXsectIndices() {
+		Vector<Integer> returnValues = new Vector<Integer>();
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			if(xsect.getNumPoints()>0) {
+				double[] dConveyanceValues = xsect.getDConveyanceValues();
+				for(int j=0; j<dConveyanceValues.length; j++) {
+					double dk = dConveyanceValues[j];
+					if(dk<0.0) {
+						returnValues.addElement(i);
+						break;
+					}
+				}
+			}
+		}
+		return returnValues;
+	}//getNegDKXsectIndices
+
+	/*
+	 * Returns vector of xsect indices with -dk in intertidal zone.
+	 */
+	public Vector<Integer> getNegDKIntertidalXsectIndices() {
+		Vector<Integer> returnValues = new Vector<Integer>();
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			if(xsect.getNumPoints()>0) {
+				double[] dConveyanceValues = xsect.getDConveyanceValues();
+				double[] elevations = xsect.getUniqueElevations();
+				for(int j=0; j<dConveyanceValues.length; j++) {
+					double dk = dConveyanceValues[j];
+					if(dk<0.0 && elevations[j]>CsdpFunctions.INTERTIDAL_LOW_TIDE && elevations[j]<CsdpFunctions.INTERTIDAL_HIGH_TIDE) {
+						returnValues.addElement(i);
+						break;
+					}
+				}
+			}
+		}
+		return returnValues;
+	}
+	
+	/*
+	 * return vector of indices of cross-sections with no points. 
+	 */
+	public Vector<Integer> getXSWithNoPointsIndices() {
+		Vector<Integer> returnValues = new Vector<Integer>();
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			int numPoints = xsect.getNumPoints();
+			if(numPoints==0) {
+				returnValues.addElement(i);
+			}
+		}
+		return returnValues;
+	}
+
+	
 	private int _numCenterlinePoints;
 	private Vector _centerlinePoints = new Vector();
 	private Vector _xsects = new Vector();

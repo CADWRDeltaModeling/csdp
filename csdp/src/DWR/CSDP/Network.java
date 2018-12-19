@@ -537,7 +537,7 @@ public class Network {
 	/**
 	 * returns name of centerline
 	 */
-	protected String getCenterlineName(int index) {
+	public String getCenterlineName(int index) {
 		return _centerlineNames.get(index);
 	}
 

@@ -44,12 +44,13 @@ import java.io.File;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Vector;
 
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import DWR.CSDP.XsectBathymetryData;
+import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.MessageDialog;
 
 /**
@@ -165,8 +166,8 @@ public class App {
 	 */
 	public void pReadStore(JFrame gui, String directory, String filename, String filetype) {
 		parseFilename(filename);
-		CsdpFunctions._propertiesFilename = _filename;
-		CsdpFunctions._propertiesFiletype = _filetype;
+		CsdpFunctions.setPropertiesFilename(_filename);
+		CsdpFunctions.setPropertiesFiletype(_filetype);
 		_gui = (CsdpFrame) gui;
 		boolean bWrite = true;
 		int numLines = 0;
@@ -390,19 +391,19 @@ public class App {
 	public boolean pSaveAs(String directory, String filename) {
 		boolean success = false;
 		parseFilename(filename);
-		CsdpFunctions._propertiesFilename = _filename;
-		CsdpFunctions._propertiesFiletype = _filetype;
+		CsdpFunctions.setPropertiesFilename(_filename);
+		CsdpFunctions.setPropertiesFiletype(_filetype);
 
 		if (DEBUG)
-			System.out.println("propertiesFilename, propertiesFiletype=" + CsdpFunctions._propertiesFilename + ","
-					+ CsdpFunctions._propertiesFiletype);
+			System.out.println("propertiesFilename, propertiesFiletype=" + CsdpFunctions.getPropertiesFilename() + ","
+					+ CsdpFunctions.getPropertiesFiletype());
 
-		PropertiesOutput poutput = PropertiesOutput.getInstance(_gui, directory, CsdpFunctions._propertiesFilename,
-				CsdpFunctions._propertiesFiletype);
+		PropertiesOutput poutput = PropertiesOutput.getInstance(_gui, directory, CsdpFunctions.getPropertiesFilename(),
+				CsdpFunctions.getPropertiesFiletype());
 		success = poutput.writeData();
 		if (DEBUG)
-			System.out.println("Done writing properties file " + CsdpFunctions._propertiesFilename + "."
-					+ CsdpFunctions._propertiesFiletype);
+			System.out.println("Done writing properties file " + CsdpFunctions.getPropertiesFilename() + "."
+					+ CsdpFunctions.getPropertiesFiletype());
 		_gui.updatePropertiesFilename(_filename + "." + _filetype);
 		return success;
 	}// pSaveAs
@@ -414,15 +415,15 @@ public class App {
 	public boolean pSave() {
 		boolean success = false;
 		String directory = CsdpFunctions.getPropertiesDirectory().getPath();
-		if (CsdpFunctions._propertiesFilename != null) {
-			if (CsdpFunctions._propertiesFiletype == null)
-				CsdpFunctions._propertiesFiletype = PROPERTIES_TYPE;
-			PropertiesOutput poutput = PropertiesOutput.getInstance(_gui, directory, CsdpFunctions._propertiesFilename,
-					CsdpFunctions._propertiesFiletype);
+		if (CsdpFunctions.getPropertiesFilename() != null) {
+			if (CsdpFunctions.getPropertiesFiletype() == null)
+				CsdpFunctions.setPropertiesFiletype(PROPERTIES_TYPE);
+			PropertiesOutput poutput = PropertiesOutput.getInstance(_gui, directory, CsdpFunctions.getPropertiesFilename(),
+					CsdpFunctions.getPropertiesFiletype());
 			success = poutput.writeData();
 			if (DEBUG)
-				System.out.println("Done writing properties file " + CsdpFunctions._propertiesFilename + "."
-						+ CsdpFunctions._propertiesFiletype);
+				System.out.println("Done writing properties file " + CsdpFunctions.getPropertiesFilename() + "."
+						+ CsdpFunctions.getPropertiesFiletype());
 		}
 		return success;
 	}// pSave
@@ -487,8 +488,8 @@ public class App {
 	 */
 	public Network justReadNetwork(String directory, String filename) {
 		parseFilename(filename);
-		CsdpFunctions._networkFilename = _filename;
-		CsdpFunctions._networkFiletype = _filetype;
+		CsdpFunctions.setNetworkFilename(_filename);
+		CsdpFunctions.setNetworkFiletype(_filetype);
 		NetworkInput ninput = NetworkInput.getInstance(_gui, directory, _filename, _filetype);
 		_net = ninput.readData();
 		if (DEBUG)
@@ -527,8 +528,8 @@ public class App {
 	 */
 	public Landmark lCreate(String directory, String filename) {
 		parseFilename(filename);
-		CsdpFunctions._landmarkFilename = _filename;
-		CsdpFunctions._landmarkFiletype = _filetype;
+		CsdpFunctions.setLandmarkFilename(_filename);
+		CsdpFunctions.setLandmarkFiletype(_filetype);
 
 		// create landmark object
 		_landmark = new Landmark(_gui);
@@ -548,8 +549,8 @@ public class App {
 
 		System.out.println("lreadstore: filename, filetype=" + _filename + "," + _filetype);
 
-		CsdpFunctions._landmarkFilename = _filename;
-		CsdpFunctions._landmarkFiletype = _filetype;
+		CsdpFunctions.setLandmarkFilename(_filename);
+		CsdpFunctions.setLandmarkFiletype(_filetype);
 		if (_filetype.equals(LANDMARK_TYPE)) {
 			LandmarkInput linput = LandmarkInput.getInstance(_gui, directory, _filename + "." + _filetype);
 			_landmark = linput.readData();
@@ -603,8 +604,8 @@ public class App {
 	 */
 	public DSMChannels chanReadStore(String directory, String filename) {
 		parseFilename(filename);
-		CsdpFunctions._DSMChannelsFilename = _filename;
-		CsdpFunctions._DSMChannelsFiletype = _filetype;
+		CsdpFunctions.setDSMChannelsFilename(_filename);
+		CsdpFunctions.setDSMChannelsFiletype(_filetype);
 		if (_filetype.equals(DSMChannels_TYPE)) {
 			DSMChannelsInput chanInput = DSMChannelsInput.getInstance(directory, _filename + "." + _filetype);
 			_DSMChannels = chanInput.readData();
@@ -622,16 +623,16 @@ public class App {
 	public boolean nSave() {
 		boolean success = false;
 		String directory = CsdpFunctions.getNetworkDirectory().getPath();
-		if (CsdpFunctions._networkFilename != null) {
-			if (CsdpFunctions._networkFiletype == null)
-				CsdpFunctions._networkFiletype = NETWORK_TYPE;
+		if (CsdpFunctions.getNetworkFilename() != null) {
+			if (CsdpFunctions.getNetworkFiletype() == null)
+				CsdpFunctions.setNetworkFiletype(NETWORK_TYPE);
 			_net.sortCenterlineNames();
-			NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions._networkFilename,
-					CsdpFunctions._networkFiletype, _net, null);
+			NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions.getNetworkFilename(),
+					CsdpFunctions.getNetworkFiletype(), _net, null);
 			success = noutput.writeData();
 			if (DEBUG)
-				System.out.println("Done writing network file " + CsdpFunctions._networkFilename + "."
-						+ CsdpFunctions._networkFiletype);
+				System.out.println("Done writing network file " + CsdpFunctions.getNetworkFilename() + "."
+						+ CsdpFunctions.getNetworkFiletype());
 		}
 		return success;
 	}// nSave
@@ -642,20 +643,20 @@ public class App {
 	public boolean nSaveAs(String directory, String filename) {
 		boolean success = false;
 		parseFilename(filename);
-		CsdpFunctions._networkFilename = _filename;
-		CsdpFunctions._networkFiletype = _filetype;
+		CsdpFunctions.setNetworkFilename(_filename);
+		CsdpFunctions.setNetworkFiletype(_filetype);
 
 		if (DEBUG)
-			System.out.println("networkFilename, networkFiletype=" + CsdpFunctions._networkFilename + ","
-					+ CsdpFunctions._networkFiletype);
+			System.out.println("networkFilename, networkFiletype=" + CsdpFunctions.getNetworkFilename() + ","
+					+ CsdpFunctions.getNetworkFiletype());
 
 		_net.sortCenterlineNames();
-		NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions._networkFilename,
-				CsdpFunctions._networkFiletype, _net, null);
+		NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions.getNetworkFilename(),
+				CsdpFunctions.getNetworkFiletype(), _net, null);
 		success = noutput.writeData();
 		if (DEBUG)
-			System.out.println("Done writing network file " + CsdpFunctions._networkFilename + "."
-					+ CsdpFunctions._networkFiletype);
+			System.out.println("Done writing network file " + CsdpFunctions.getNetworkFilename() + "."
+					+ CsdpFunctions.getNetworkFiletype());
 		_gui.updateNetworkFilename(_filename + "." + _filetype);
 		return success;
 	}// nSaveAs
@@ -716,19 +717,19 @@ public class App {
 	public boolean nSaveSpecifiedChannelsAs(String directory, String filename, HashSet<String> channelsToSave) {
 		boolean success = false;
 		parseFilename(filename);
-		CsdpFunctions._networkFilename = _filename;
-		CsdpFunctions._networkFiletype = _filetype;
+		CsdpFunctions.setNetworkFilename(_filename);
+		CsdpFunctions.setNetworkFiletype(_filetype);
 
 		if (DEBUG)
-			System.out.println("networkFilename, networkFiletype=" + CsdpFunctions._networkFilename + ","
-					+ CsdpFunctions._networkFiletype);
+			System.out.println("networkFilename, networkFiletype=" + CsdpFunctions.getNetworkFilename() + ","
+					+ CsdpFunctions.getNetworkFiletype());
 
-		NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions._networkFilename,
-				CsdpFunctions._networkFiletype, _net, channelsToSave);
+		NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions.getNetworkFilename(),
+				CsdpFunctions.getNetworkFiletype(), _net, channelsToSave);
 		success = noutput.writeData();
 		if (DEBUG)
-			System.out.println("Done writing network file " + CsdpFunctions._networkFilename + "."
-					+ CsdpFunctions._networkFiletype);
+			System.out.println("Done writing network file " + CsdpFunctions.getNetworkFilename() + "."
+					+ CsdpFunctions.getNetworkFiletype());
 		_gui.updateNetworkFilename(_filename + "." + _filetype);
 		return success;
 	}// nSaveAs
@@ -740,20 +741,20 @@ public class App {
 
 		boolean success = false;
 		parseFilename(filename);
-		CsdpFunctions._networkFilename = _filename;
-		CsdpFunctions._networkFiletype = _filetype;
+		CsdpFunctions.setNetworkFilename(_filename);
+		CsdpFunctions.setNetworkFiletype(_filetype);
 
 		if (DEBUG)
-			System.out.println("networkFilename, networkFiletype=" + CsdpFunctions._networkFilename + ","
-					+ CsdpFunctions._networkFiletype);
+			System.out.println("networkFilename, networkFiletype=" + CsdpFunctions.getNetworkFilename() + ","
+					+ CsdpFunctions.getNetworkFiletype());
 
-		NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions._networkFilename,
-				CsdpFunctions._networkFiletype, _net, null);
+		NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions.getNetworkFilename(),
+				CsdpFunctions.getNetworkFiletype(), _net, null);
 		noutput.setChannelLengthsOnly(channelLengthsOnly);
 		success = noutput.writeData();
 		if (DEBUG)
-			System.out.println("Done writing network file in SE format" + CsdpFunctions._networkFilename + "."
-					+ CsdpFunctions._networkFiletype);
+			System.out.println("Done writing network file in SE format" + CsdpFunctions.getNetworkFilename() + "."
+					+ CsdpFunctions.getNetworkFiletype());
 		_gui.updateNetworkFilename(_filename + "." + _filetype);
 		return success;
 	}// nExportToSEFormat
@@ -764,21 +765,21 @@ public class App {
 	public boolean nExportTo3DFormat(String directory, String filename) {
 		boolean success = false;
 		parseFilename(filename);
-		CsdpFunctions._networkFilename = _filename;
-		CsdpFunctions._networkFiletype = _filetype;
+		CsdpFunctions.setNetworkFilename(_filename);
+		CsdpFunctions.setNetworkFiletype(_filetype);
 
 		if (DEBUG)
-			System.out.println("networkFilename, networkFiletype=" + CsdpFunctions._networkFilename + ","
-					+ CsdpFunctions._networkFiletype);
+			System.out.println("networkFilename, networkFiletype=" + CsdpFunctions.getNetworkFilename() + ","
+					+ CsdpFunctions.getNetworkFiletype());
 
-		NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions._networkFilename,
-				CsdpFunctions._networkFiletype, _net, null);
+		NetworkOutput noutput = NetworkOutput.getInstance(directory, CsdpFunctions.getNetworkFilename(),
+				CsdpFunctions.getNetworkFiletype(), _net, null);
 		noutput.set3DOutput(true);
 		success = noutput.writeData();
 		noutput.set3DOutput(false);
 		if (DEBUG)
-			System.out.println("Done writing network file in SE format" + CsdpFunctions._networkFilename + "."
-					+ CsdpFunctions._networkFiletype);
+			System.out.println("Done writing network file in SE format" + CsdpFunctions.getNetworkFilename() + "."
+					+ CsdpFunctions.getNetworkFiletype());
 		_gui.updateNetworkFilename(_filename + "." + _filetype);
 		return success;
 	}// nExportToSEFormat
@@ -813,7 +814,271 @@ public class App {
 	// }//for i
 	// }//for j
 	// }//nCalculate
+	
+	public DSMChannels getDSMChannels() {
+		if(_DSMChannels == null) {
+			String[] directoryFilename = CsdpFunctions.selectFilePath(_gui, "Open DSM2 channel connectivity file (channels.inp)", new String[]{"inp"});
+			_DSMChannels = chanReadStore(directoryFilename[0], directoryFilename[1]);
+			CsdpFunctions.setDSMChannelsDirectory(directoryFilename[0]);
+			CsdpFunctions.setDSMChannelsFilename(directoryFilename[1]);
+			CsdpFunctions.setOpenDirectory(directoryFilename[0]);
+		}
+		return _DSMChannels;
+	}//getInputFilePath
+	
+	/*
+	 * Create a report with summary statistics. Display in MessageDialog. User can click button on dialog to copy 
+	 * text to clipboard. 
+	 */
+	public void createNetworkSummaryReport() {
+		String title = "Create Network Summary Report";
+		String instructions = "A network summary report uses the following input files:\n\n"
+				+ "1. An existing channels.imp file\n"
+				+ "2. The currently loaded network file\n"
+				+ "3. A DSM2 output (.hof) file which was created from the network file by running DSM2-Hydro with printlevel>=5\n\n"
+				+ "To calculate, for each channel, for a given stage (usually 0.0 NAVD)\n\n"
+				+ "1. A comparison of channels lengths from the channels.inp file vs channels lengths in either the specified network file\n"
+				+ "2. Volume, wetted area, and surface area using CSDP cross-sections, assuming no inter-channel interpolation\n"
+				+ "3. Volume, wetted area, and surface area using Virtual cross-sections (which are calculated using inter-channel interpolation\n"
+				+ "4. The maximum ratio of CSDP cross-sectional areas within the channel\n"
+				+ "5. The maximum ratio of Virtual cross-sectional areas within the channel\n"
+				+ "6. The indices of the CSDP cross-sections containing no points\n"
+				+ "7. The index of the CSDP cross-section with the minimum area\n"
+				+ "8. The index of the CSDP cross-section with the maximum area\n"
+				+ "9. The indices of all CSDP cross-sections with negative dConveyance anywhere in the cross-section\n"
+				+ "10. The indices of all CSDP cross-sections with negatvie dConveyance in the intertidal zone, defined as -2.5 ft < Z < 17.5 ft (NAVD88)\n\n"
+				+ "Output will be written to a tab delimited .txt file, which can be imported into Excel\n";
 
+		String[] names = new String[] {"Channels.inp path", "DSM2 output (.hof) path", "Output file path (tab delimited .txt)"};
+		String[] defaultValues = new String[3];
+		if(CsdpFunctions.getDSMChannelsDirectory()!=null && CsdpFunctions.getDSMChannelsFilename()!=null) {
+			defaultValues[0] = CsdpFunctions.getDSMChannelsDirectory().toString()+File.separator+CsdpFunctions.getDSMChannelsFilename();
+		}
+		if(CsdpFunctions.getDSM2HofDirectory()!=null && CsdpFunctions.getDSM2HofFilename()!=null) {
+			defaultValues[1] = CsdpFunctions.getDSM2HofDirectory().toString()+File.separator+CsdpFunctions.getDSM2HofFilename();
+		}
+		defaultValues[2] = CsdpFunctions.getNetworkDirectory().toString()+File.separator+"networkSummary.txt";
+		
+		int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.FILE_SPECIFICATION_TYPE, 
+				DataEntryDialog.FILE_SPECIFICATION_TYPE};
+		int[] numDecimalPlaces = new int[] {0,0,0};
+		String[] extensions = new String[] {"inp", "hof", "txt"};
+		String[] tooltips = new String[3];
+		
+//		
+//				public DataEntryDialog(Frame parent, String title, String instructions, String[] names, 
+//						String[] defaultValues, int[] dataTypes, int[] numDecimalPlaces, String[] tooltips, boolean modal) {
+		
+//		getDSMChannels();
+//		//
+//		
+//		String[] dsm2HofFile = CsdpFunctions.selectFilePath(_gui, "Select DSM2 output file (printlevel 5)", new String[] {"hof"});
+//		String[] outputFile = CsdpFunctions.selectFilePath(_gui, "Specify output file (tab delimited .txt file)", new String[] {"txt"});
+//		CsdpFunctions.setOpenDirectory(outputFile[0]);
+//		CsdpFunctions.setOpenDirectory(dsm2HofFile[0]);
+//		CsdpFunctions.setDSM2HofDirectory(dsm2HofFile[0]);
+//		CsdpFunctions.setDSM2HofFilename(dsm2HofFile[1]);
+//		String outputPath = outputFile[0]+File.separator+outputFile[1];
+		DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names, defaultValues, dataTypes, numDecimalPlaces, 
+				extensions, tooltips, true);
+		File dsm2ChannelsDirectory = dataEntryDialog.getDirectory(names[0]);
+		String dsm2ChannelsFilename = dataEntryDialog.getFilename(names[0]);
+		CsdpFunctions.setDSMChannelsDirectory(dsm2ChannelsDirectory.toString());
+		CsdpFunctions.setDSMChannelsFilename(dsm2ChannelsFilename);
+		_DSMChannels = chanReadStore(dsm2ChannelsDirectory.toString(), dsm2ChannelsFilename);
+
+		File dsm2HofDirectory = dataEntryDialog.getDirectory(names[1]);
+		String dsm2HofFilename = dataEntryDialog.getFilename(names[1]);
+		CsdpFunctions.setDSM2HofDirectory(dsm2HofDirectory);
+		CsdpFunctions.setDSM2HofFilename(dsm2HofFilename);
+		File outputDirectory = dataEntryDialog.getDirectory(names[2]);
+		String outputFilename = dataEntryDialog.getFilename(names[2]);
+		
+		DSM2VirtualCrossSectionVolume dsm2VirtualCrossSectionVolume = new DSM2VirtualCrossSectionVolume(dsm2HofDirectory.toString(), dsm2HofFilename);
+		Hashtable<String, Double> chanToVol = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.VOLUME_RESULTS);
+		Hashtable<String, Double> chanToWettedArea = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.WETTED_AREA_RESULTS);
+		Hashtable<String, Double> chanToSurfArea = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.SURFACE_AREA_RESULTS);
+		Hashtable<String, Double> chanToMaxAreaRatio = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.MAX_AREA_RATIO_RESULTS);
+		
+		_net.sortCenterlineNames();
+
+		Vector<String> reportText = new Vector<String>(); 
+		reportText.addElement("CSDP Network Summary Report for Elevation="+CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+		reportText.addElement("");
+		reportText.addElement("Network path: "+CsdpFunctions.getNetworkDirectory()+File.separator+CsdpFunctions.getNetworkFilename()+"."+CsdpFunctions.getNetworkFiletype());
+		reportText.addElement("DSM2 channels path: "+CsdpFunctions.getDSMChannelsDirectory()+File.separator+CsdpFunctions.getDSMChannelsFilename());
+		reportText.addElement("DSM2 output path: "+CsdpFunctions.getDSM2HofDirectory()+File.separator+CsdpFunctions.getDSM2HofFilename());
+		reportText.addElement("");
+		reportText.addElement("Channels.inp length: length specified for DSM2 in the DSM2 channels file above.");
+		reportText.addElement("CSDP length: length calculated by the CSDP that will be used to replace the 'Channels.inp length'.");
+		reportText.addElement("% change: the change in length, CSDP vs Channels.inp");
+		reportText.addElement("CSDP Volume: Channel volume calculated by CSDP for specified elevation, assuming no inter-channel interpolation.");		
+		reportText.addElement("CSDP Wetted Area: Wetted area calculated by CSDP for specified elevation, assuming no inter-channel interpolation.");
+		reportText.addElement("CSDP Surface Area: Surface area calculated by CSDP for specified elevation, assuming no inter-channel interpolation.");
+		reportText.addElement("DSM2 Volume: Channel volume calculated at specified elevation using virtual cross-sections from DSM2 output file");
+		reportText.addElement("DSM2 Wetted Area: Wetted area calculated at specified elevation using virtual cross-sections from DSM2 output file");
+		reportText.addElement("DSM2 Surface Area: Surface area calculated at specified elevation using virtual cross-sections from DSM2 output file");
+		reportText.addElement("CSDP Max Area Ratio: The maximum ratio of cross-sectional areas within a channel using CSDP cross-sections");
+		reportText.addElement("DSM2 Max Area Ratio: The maximum ratio of cross-sectional areas within a channel using virtual cross-sections");
+		reportText.addElement("CSDP XS with no points: The indices of the cross-sections in the channel that have no points.");
+		reportText.addElement("CSDP XS with Min area: The index of the cross-section in the channel that has the smallest area at the specified elevation");
+		reportText.addElement("CSDP XS with Max area: The index of the cross-section in the channel that has the largest area at the specified elevation");
+		reportText.addElement("CSDP XS with -dK: The indices of the cross-sections in the channel that have negative dConveyance at any elevation.");
+		reportText.addElement("CSDP XS with -dK in intertidal zone: the indices of the cross-sections in the channel that have negative dConveyance in the intertidal zone.");
+		reportText.addElement("(intertidal zone is assumed to be limited to the range "+CsdpFunctions.INTERTIDAL_LOW_TIDE+" < Z < "+CsdpFunctions.INTERTIDAL_HIGH_TIDE+" ft, NAVD88)");
+		reportText.addElement("");
+		reportText.addElement("Channel\t"
+				+ "Channels.inp length\t"
+				+ "CSDP Length\t"
+				+ "% change\t"
+				+ "CSDP Volume\t"
+				+ "CSDP Wetted Area\t"
+				+ "CSDP Surface Area\t"
+				+ "DSM2 Volume\t"
+				+ "DSM2 Wetted Area\t"
+				+ "DSM2 Surface Area\t"
+				+ "CSDP Max Area Ratio\t"
+				+ "DSM2 Max Area Ratio\t"
+				+ "CSDP XS with no points\t"
+				+ "CSDP XS with Min area\t"
+				+ "CSDP XS with Max area\t"
+				+ "CSDP XS With -dk\t"
+				+ "CSDP XS with -dk in intertidal zone");
+
+		Vector<String> externalChannelNumbers = dsm2VirtualCrossSectionVolume.getExternalChannelNumbers(); 
+		for(int i=0; i<externalChannelNumbers.size(); i++) {
+			String chan = externalChannelNumbers.get(i);
+			Centerline centerline = null;
+			if(_net.centerlineExists(chan)) {
+				centerline = _net.getCenterline(chan);
+			}
+			double csdpChanLength = -Double.MAX_VALUE; 
+			double channelsInpLength = _DSMChannels.getLength(chan);
+			double percentChange = -Integer.MAX_VALUE;
+			double csdpVolume = -Double.MAX_VALUE;
+			double csdpWettedArea = -Double.MAX_VALUE;
+			double csdpSurfaceArea = -Double.MAX_VALUE;
+			if(centerline!=null) {
+				csdpChanLength=centerline.getLengthFeet();
+				percentChange = 100.0 * ((csdpChanLength-channelsInpLength) / channelsInpLength);
+				csdpVolume = centerline.getChannelVolumeEstimateNoInterp(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+				csdpWettedArea = centerline.getChannelWettedAreaEstimateNoInterp(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+				csdpSurfaceArea = centerline.getChannelSurfaceAreaEstimateNoInterp(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+			}
+			double dsm2Vol = chanToVol.get(chan);
+			double dsm2WetArea = chanToWettedArea.get(chan);
+			double dsm2SurfArea = chanToSurfArea.get(chan);
+			double csdpMaxAreaRatio = -Double.MAX_VALUE;
+			double dsm2MaxAreaRatio = chanToMaxAreaRatio.get(chan);
+			Vector<Integer> csdpXsWithNoPoints = null;
+			int csdpXSWithMinArea = -Integer.MAX_VALUE;
+			int csdpXSWithMaxArea = -Integer.MAX_VALUE;
+			Vector<Integer> csdpXSWithNegDK = null;
+			Vector<Integer> csdpXSWithNegDKInIntertidal = null;
+			if(centerline!=null) {
+				csdpMaxAreaRatio = centerline.getMaxAreaRatio();
+				csdpXsWithNoPoints = centerline.getXSWithNoPointsIndices();
+				int[] minMaxAreaIndices = centerline.getMinMaxAreaXsectIndices();
+				csdpXSWithMinArea = minMaxAreaIndices[0];
+				csdpXSWithMaxArea = minMaxAreaIndices[1];
+				csdpXSWithNegDK = centerline.getNegDKXsectIndices();
+				csdpXSWithNegDKInIntertidal = centerline.getNegDKIntertidalXsectIndices();
+			}
+			String na = "N/A";
+			String csdpXSWithMinAreaString = null;
+			String csdpXSWithMaxAreaString = null;
+			if(csdpXSWithMinArea>=0 && csdpXSWithMaxArea>=0) {
+				csdpXSWithMinAreaString = String.valueOf(csdpXSWithMinArea);
+				csdpXSWithMaxAreaString = String.valueOf(csdpXSWithMaxArea);
+			}else {
+				csdpXSWithMinAreaString = na;
+				csdpXSWithMaxAreaString = na;
+			}
+			
+			if(centerline!=null) {
+				reportText.addElement(chan+"\t"+channelsInpLength+"\t"+String.format("%.0f", csdpChanLength)+"\t"+
+						String.format("%.0f", percentChange)+"\t"+String.format("%.1f", csdpVolume)+"\t"+String.format("%.1f", csdpWettedArea)+"\t"+
+						String.format("%.1f", csdpSurfaceArea)+"\t"+
+						String.format("%.1f", dsm2Vol)+"\t"+String.format("%.1f", dsm2WetArea)+"\t"+String.format("%.1f", dsm2SurfArea)+"\t"+
+						String.format("%.2f", csdpMaxAreaRatio)+"\t"+String.format("%.2f", dsm2MaxAreaRatio)+"\t"+
+						vectorToString(csdpXsWithNoPoints)+"\t"+csdpXSWithMinAreaString+"\t"+
+						csdpXSWithMaxAreaString+"\t"+vectorToString(csdpXSWithNegDK)+"\t"+vectorToString(csdpXSWithNegDKInIntertidal));
+			}else {
+				reportText.addElement(chan+"\t"+channelsInpLength+"\t"+na+"\t"+na+"\t"+na+"\t"+na+"\t"+na+"\t"+
+						dsm2Vol+"\t"+dsm2WetArea+"\t"+dsm2SurfArea+"\t"+na+"\t"+dsm2MaxAreaRatio+"\t"+na+"\t"+na+"\t"+
+						na+"\t"+na+"\t"+na);
+			}
+		}//while (for each channel)
+//		String messageText = "";
+//		for(int i=0; i<reportText.size(); i++) {
+//			messageText += reportText.get(i)+"\n";
+//		}
+//		int numLines = reportText.size();
+//		MessageDialog mDialog = new MessageDialog(_gui, "Network Summary Report", messageText, false, false, 100, numLines);
+//		mDialog.setVisible(true);
+
+		String outputPath = outputDirectory.toString()+File.separator+outputFilename;
+		AsciiFileWriter asciiFileWriter = new AsciiFileWriter(outputPath);
+		for(int i=0; i<reportText.size(); i++) {
+			String line = reportText.get(i);
+			asciiFileWriter.writeLine(line);
+		}
+		asciiFileWriter.close();
+		JOptionPane.showMessageDialog(_gui, "Done writing Network Summary report", "Done", JOptionPane.INFORMATION_MESSAGE);
+		
+	}//createNetworkSummaryReport
+	
+	/*
+	 * creates a string representation of a vector of integer values 
+	 */
+	private String vectorToString(Vector<Integer> vector) {
+		String returnValue = "";
+		int index=0;
+		for(int i=0; i<vector.size(); i++) {
+			if(index>0) {
+				returnValue += ",";
+			}
+			returnValue += String.valueOf(vector.get(i));
+			index++;
+		}
+		return returnValue;
+	}
+	
+//	public DSMChannels getDSMChannels() {
+//		//First re-create CHANNEL information with CSDP channel lengths 
+//		if (_DSMChannels == null) {
+//			String channelsFilename = null;
+//			// FileDialog fd = new FileDialog(_gui, "Open DSM2 channel
+//			// connectivity file");
+//			// fd.setVisible(true);
+//			JFileChooser jfcChannelsInp = new JFileChooser();
+//			String[] channelsInpExtensions = { "inp" };
+//			int numChannelsInpExtensions = 1;
+//			CsdpFileFilter channelsInpFilter = new CsdpFileFilter(channelsInpExtensions, numChannelsInpExtensions);
+//			
+//			jfcChannelsInp.setDialogTitle("Open DSM2 channel connectivity file");
+//			jfcChannelsInp.setApproveButtonText("Open");
+//			jfcChannelsInp.addChoosableFileFilter(channelsInpFilter);
+//			jfcChannelsInp.setFileFilter(channelsInpFilter);
+//
+//			if (CsdpFunctions.getOpenDirectory() != null) {
+//				jfcChannelsInp.setCurrentDirectory(CsdpFunctions.getOpenDirectory());
+//			}
+//			int filechooserState = jfcChannelsInp.showOpenDialog(_gui);
+//			String directory = null;
+//			if (filechooserState == JFileChooser.APPROVE_OPTION) {
+//				channelsFilename = jfcChannelsInp.getName(jfcChannelsInp.getSelectedFile());
+//				directory = jfcChannelsInp.getCurrentDirectory().getAbsolutePath() + File.separator;
+//
+//				// channelsFilename = fd.getFile();
+//				// _directory = fd.getDirectory();
+//				_DSMChannels = chanReadStore(directory, channelsFilename);
+////				_gui.setDSMChannels(_DSMChannels);
+//			}
+//		} // if DSMChannels is null	
+//		return _DSMChannels;
+//	}
+	
 	/*
 	 * Create DSM2 Input file with channel and irregular cross-section information
 	 */
@@ -827,39 +1092,9 @@ public class App {
 		double length;
 		double distAlongCenterline;
 		double normalizedDist;
+
+		getDSMChannels();
 		
-		//First re-create CHANNEL information with CSDP channel lengths 
-		if (_DSMChannels == null) {
-			String channelsFilename = null;
-			// FileDialog fd = new FileDialog(_gui, "Open DSM2 channel
-			// connectivity file");
-			// fd.setVisible(true);
-			JFileChooser jfcChannelsInp = new JFileChooser();
-			String[] channelsInpExtensions = { "inp" };
-			int numChannelsInpExtensions = 1;
-			CsdpFileFilter channelsInpFilter = new CsdpFileFilter(channelsInpExtensions, numChannelsInpExtensions);
-			
-			jfcChannelsInp.setDialogTitle("Open DSM2 channel connectivity file");
-			jfcChannelsInp.setApproveButtonText("Open");
-			jfcChannelsInp.addChoosableFileFilter(channelsInpFilter);
-			jfcChannelsInp.setFileFilter(channelsInpFilter);
-
-			if (CsdpFunctions.getOpenDirectory() != null) {
-				jfcChannelsInp.setCurrentDirectory(CsdpFunctions.getOpenDirectory());
-			}
-			int filechooserState = jfcChannelsInp.showOpenDialog(_gui);
-			String directory = null;
-			if (filechooserState == JFileChooser.APPROVE_OPTION) {
-				channelsFilename = jfcChannelsInp.getName(jfcChannelsInp.getSelectedFile());
-				directory = jfcChannelsInp.getCurrentDirectory().getAbsolutePath() + File.separator;
-
-				// channelsFilename = fd.getFile();
-				// _directory = fd.getDirectory();
-				_DSMChannels = chanReadStore(directory, channelsFilename);
-//				_gui.setDSMChannels(_DSMChannels);
-			}
-		} // if DSMChannels is null		
-
 		afw.writeLine("#Created automatically by CSDP, using CSDP channel lengths");
 		afw.writeLine("CHANNEL");
 		String channelHeaderLine = 
@@ -1044,15 +1279,15 @@ public class App {
 	public boolean lSave() {
 		boolean success = false;
 		String directory = CsdpFunctions.getLandmarkDirectory().getPath();
-		if (CsdpFunctions._landmarkFilename != null) {
-			if (CsdpFunctions._landmarkFiletype == null)
-				CsdpFunctions._landmarkFiletype = LANDMARK_TYPE;
-			LandmarkOutput loutput = LandmarkOutput.getInstance(directory, CsdpFunctions._landmarkFilename,
-					CsdpFunctions._landmarkFiletype, _landmark);
+		if (CsdpFunctions.getLandmarkFilename() != null) {
+			if (CsdpFunctions.getLandmarkFiletype() == null)
+				CsdpFunctions.setLandmarkFiletype(LANDMARK_TYPE);
+			LandmarkOutput loutput = LandmarkOutput.getInstance(directory, CsdpFunctions.getLandmarkFilename(),
+					CsdpFunctions.getLandmarkFiletype(), _landmark);
 			success = loutput.writeData();
 			if (DEBUG)
-				System.out.println("Done writing landmark file " + CsdpFunctions._landmarkFilename + "."
-						+ CsdpFunctions._landmarkFiletype);
+				System.out.println("Done writing landmark file " + CsdpFunctions.getLandmarkFilename() + "."
+						+ CsdpFunctions.getLandmarkFiletype());
 		}
 		return success;
 	}// nSave
@@ -1065,19 +1300,19 @@ public class App {
 
 		boolean success = false;
 		parseFilename(filename);
-		CsdpFunctions._landmarkFilename = _filename;
-		CsdpFunctions._landmarkFiletype = _filetype;
+		CsdpFunctions.setLandmarkFilename(_filename);
+		CsdpFunctions.setLandmarkFiletype(_filetype);
 
 		if (DEBUG)
-			System.out.println("landmarkFilename, landmarkFiletype=" + CsdpFunctions._landmarkFilename + ","
-					+ CsdpFunctions._landmarkFiletype);
+			System.out.println("landmarkFilename, landmarkFiletype=" + CsdpFunctions.getLandmarkFilename() + ","
+					+ CsdpFunctions.getLandmarkFiletype());
 
-		LandmarkOutput loutput = LandmarkOutput.getInstance(directory, CsdpFunctions._landmarkFilename,
-				CsdpFunctions._landmarkFiletype, _landmark);
+		LandmarkOutput loutput = LandmarkOutput.getInstance(directory, CsdpFunctions.getLandmarkFilename(),
+				CsdpFunctions.getLandmarkFiletype(), _landmark);
 		success = loutput.writeData();
 		if (DEBUG)
-			System.out.println("Done writing landmark file " + CsdpFunctions._landmarkFilename + "."
-					+ CsdpFunctions._landmarkFiletype);
+			System.out.println("Done writing landmark file " + CsdpFunctions.getLandmarkFilename() + "."
+					+ CsdpFunctions.getLandmarkFiletype());
 		_gui.updateLandmarkFilename(_filename + "." + _filetype);
 		return success;
 	}// nSaveAs

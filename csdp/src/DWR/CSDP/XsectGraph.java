@@ -289,7 +289,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 			Network net, String centerlineName, int xsectNum, double thickness, int colorOption) {
 		super(gui, "Cross-section view", ModalityType.MODELESS);
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-
+		setXSPropElevation(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
 		_gui = gui;
 		_app = app;
 		_bathymetryData = data;
@@ -1434,8 +1434,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 			double[] widthValues = _xsect.getWidthValues();
 			double[] wetPValues = _xsect.getWetPValues();
 			double[] elevations = _xsect.getUniqueElevations();
-			String dConveyanceString = "Elevation\tdConveyance\n"
-					+ "-----------------------------------------------\n";
+			String dConveyanceString = "Elevation\tdConveyance\tarea\twidth\twet_p\n"
+					+ "--------------------------------------------------------------------------------------------------------\n";
 			//add dConveyance values in reverse order
 			for(int i=elevations.length-1; i>=0; i--) {
 				dConveyanceString += String.format("%.2f", elevations[i])+

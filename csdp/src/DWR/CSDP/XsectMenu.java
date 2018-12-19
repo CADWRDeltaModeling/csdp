@@ -95,7 +95,7 @@ public class XsectMenu {
 				JOptionPane.showMessageDialog(_gui, "You are already viewing that cross-section!", "", JOptionPane.ERROR_MESSAGE);
 				// ((XsectGraph)(_app._xsectGraph.get(centerlineName+"_"+xsectNum))).setVisible(true);
 			} else {
-				_app.viewXsect(xsect, centerlineName, xsectNum, CsdpFunctions._xsectThickness);
+				_app.viewXsect(xsect, centerlineName, xsectNum, CsdpFunctions.getXsectThickness());
 			} // if
 		}// viewXsect
 	} // class XView
@@ -154,7 +154,7 @@ public class XsectMenu {
 				System.out.println(centerlineName + "_" + xsectNum);
 			}
 			boolean success = _app.extractXsectData(_filename, _filetype, xsect, centerlineName, xsectNum,
-					CsdpFunctions._xsectThickness);
+					CsdpFunctions.getXsectThickness());
 			return success;
 		}// extractXsect
 	} // class XView

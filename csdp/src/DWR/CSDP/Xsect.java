@@ -225,6 +225,8 @@ public class Xsect {
 
 	/**
 	 * calculate cross-section area at specified elevation
+	 * Area in a cross-section should be calculated based on width, because 
+	 * width varies linearly wrt elevation, and area varies nonlinearly.
 	 */
 	public double getAreaSqft(double elevation) {
 		//the new way 10/16/2018, based on trapezoidal calculation
@@ -244,7 +246,8 @@ public class Xsect {
 			}
 		}
 		double a = 0.0;
-		if(getNumPoints()>0) {
+		//if lowest elevation in cross-section is above elevation, should return 0.0
+		if(getNumPoints() > 0 && allUniqueElevations[0] < elevation) {
 			double lastElevation = allUniqueElevations[lastLayerIndex];
 			double lastWidth = getWidthFeet(lastElevation);
 			double currentWidth = getWidthFeet(elevation);

@@ -50,6 +50,8 @@ import java.util.HashSet;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
+import DWR.CSDP.dialog.CenterlineSummaryWindow;
+import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.FileIO;
 import DWR.CSDP.dialog.FileSave;
 import DWR.CSDP.dialog.OkDialog;
@@ -388,16 +390,57 @@ public class NetworkMenu {
 			boolean saved = false;
 			if (_cancel == false) {
 				//enter channel numbers
-				OkDialog getChannelNumbers = new OkDialog(_gui, "Enter channel numbers to export", true, true);
-				String channelNumbers = getChannelNumbers.getMessage();
+//				OkDialog getChannelNumbers = new OkDialog(_gui, "Enter channel numbers to export", true, true);
+				String[] defaultValues = new String[] {"", "false"};
+				int[] types = new int[] {DataEntryDialog.STRING_TYPE, DataEntryDialog.BOOLEAN_TYPE};
+				int[] numDecimalPlaces = new int[] {0,0};
+				String instructions = "Enter a list of channel numbers separated by commas or spaces. \n"
+						+ "Leave the box unchecked if you wish to export ONLY the specified numbers.\n"
+						+ "Check the box if you wish to export all channels EXCEPT the specified numbers.";
+				String title = "Enter channel numbers to export/not to export";
+				String[] extensions = new String[2];
+				String[] tooltips = new String[] {null, "Check box if you want to export all channels EXCEPT those with the specified numbers."};
+				
+				String[] names = new String[] {"Channel Numbers", "Don't export specified channels"};
+				DataEntryDialog exportChannelsDialog = new DataEntryDialog(_gui, title, instructions, names, defaultValues, 
+						types, numDecimalPlaces, extensions, tooltips, true);
+				String channelNumbers = exportChannelsDialog.getValue(names[0]);
+				String dontExportSpecifiedChannelsString = exportChannelsDialog.getValue(names[1]);
+				boolean dontExportSpecifiedChannels = false;
+				if(dontExportSpecifiedChannelsString.equalsIgnoreCase("true")) {
+					dontExportSpecifiedChannels = true;
+				}else if(dontExportSpecifiedChannelsString.equalsIgnoreCase("false")) {
+					dontExportSpecifiedChannels = false;
+				}else {
+					dontExportSpecifiedChannels = false;
+				}
+				
+				
+//				String channelNumbers = getChannelNumbers.getMessage();
 				HashSet<String> channelNumbersHashSet = null;
 				if(channelNumbers.length() >0) {
 					channelNumbersHashSet = new HashSet<String>();
 					String[] parts = channelNumbers.split(" |,");
 					Network network = _csdpFrame.getNetwork();
-					for(int i=0; i<parts.length; i++) {
-						if(network.centerlineExists(parts[i]))
-						channelNumbersHashSet.add(parts[i]);
+					if(dontExportSpecifiedChannels) {
+						for(int i=0; i<network.getNumCenterlines(); i++) {
+							String centerlineName = network.getCenterlineName(i);
+							boolean exportCenterline = true;
+							for(int j=0; j<parts.length; j++) {
+								if(centerlineName.equals(parts[j])) {
+									exportCenterline = false;
+									break;
+								}
+							}
+							if(exportCenterline) {
+								channelNumbersHashSet.add(centerlineName);
+							}
+						}
+					}else {
+						for(int i=0; i<parts.length; i++) {
+							if(network.centerlineExists(parts[i]))
+								channelNumbersHashSet.add(parts[i]);
+						}
 					}
 				}
 				saved = _app.nSaveSpecifiedChannelsAs(CsdpFunctions.getNetworkDirectory().getPath(), _filename + "." + _filetype, channelNumbersHashSet);
@@ -543,6 +586,44 @@ public class NetworkMenu {
 	/// }
 	/// } // NClear
 
+	public class NDisplayReachSummaryWindow implements ActionListener {
+
+		private CsdpFrame gui;
+
+		public NDisplayReachSummaryWindow(CsdpFrame gui) {
+			this.gui = gui;
+		}
+		
+		public void actionPerformed(ActionEvent arg0) {
+			Network net = gui.getNetwork();
+			
+			String names[] = new String[2];
+			String initValue[] = new String[2];
+			names[0] = "Reach Name";
+			names[1] = "Channel Numbers";
+			initValue[0] = "Reach";
+			initValue[1] = "1-5,10";
+			int[] dataTypes = new int[] {DataEntryDialog.STRING_TYPE, DataEntryDialog.STRING_TYPE};
+			int[] numDecimalPlaces = new int[] {0,0};
+			String[] tooltips = new String[] {null, null};
+			String[] extensions = new String[2];
+			
+			String instructions = 
+					"Display Reach Summary\n\n"
+					+ "1. Enter a reach name. This will appear in graph and window titles.\n\n"
+					+ "2. Enter a string that identifies a range of channels that you would like to summarize. The string should only "
+					+ "consist of numbers separated by commas or hyphens. A range of channel numbers can be specified using two numbers separated "
+					+ "by a hyphen. The example below indicates channels 1 through 5, followed by channel 10. This is equivalent to '1,2,3,4,5,10'\n";
+			
+			int numFields = 2;
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(gui, "Reach Summary Information", instructions, 
+					names, initValue, dataTypes, numDecimalPlaces, extensions, tooltips, true);
+			String reachTitle = dataEntryDialog.getValue(names[0]);
+			String channelNumbersString = dataEntryDialog.getValue(names[1]);
+			new CenterlineSummaryWindow(gui, net, reachTitle, channelNumbersString);
+		}
+	}//inner class DisplayReachSummaryWindow
+	
 	/**
 	 * Calculate network file: calculate cross-section properties for all cross-
 	 * sections in network and write to individual ascii files.
@@ -622,6 +703,19 @@ public class NetworkMenu {
 		}// actionPerformed
 	} // NAWDSummary
 
+	public class NNetworkSummaryReport implements ActionListener {
+		private CsdpFrame _gui;
+		public NNetworkSummaryReport(CsdpFrame gui) {
+			_gui = gui;
+		}
+		public void actionPerformed(ActionEvent arg0) {
+			// TODO Auto-generated method stub
+			_app.createNetworkSummaryReport();
+		}
+
+	}//inner class NNetworkSummaryReport
+
+	
 	/**
 	 * Check all cross-sections for possible errors (zero area at elevation 0)
 	 * and duplicate station values

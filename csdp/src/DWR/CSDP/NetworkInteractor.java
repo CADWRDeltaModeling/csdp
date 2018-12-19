@@ -351,9 +351,11 @@ public class NetworkInteractor extends ElementInteractor {
 					String centerlineName = _net.getSelectedCenterlineName();
 					int selectedXsectNum = _net.getSelectedXsectNum();
 					String xsectName = centerlineName+"_"+selectedXsectNum;
-					int response = JOptionPane.showConfirmDialog(_gui, "Delete selected cross-section line("+xsectName+")?", 
-							"Are you sure?", JOptionPane.YES_NO_OPTION);
-					if(response==JOptionPane.YES_OPTION) {
+					//12/19/2018: remove confirmation
+
+					//					int response = JOptionPane.showConfirmDialog(_gui, "Delete selected cross-section line("+xsectName+")?", 
+//							"Are you sure?", JOptionPane.YES_NO_OPTION);
+//					if(response==JOptionPane.YES_OPTION) {
 						_net.getSelectedCenterline().removeXsect(_net.getSelectedXsectNum());
 						_gui.updateInfoPanel(_net.getSelectedCenterlineName());
 						_gui.updateInfoPanel(_net.getSelectedXsectNum());
@@ -361,8 +363,9 @@ public class NetworkInteractor extends ElementInteractor {
 						_net.setIsUpdated(true);
 						_can.redoNextPaint();
 						_can.repaint();
-					}
-					_gui.turnOffEditModes();
+//					}
+						//12/19/2018: make it sticky
+//					_gui.turnOffEditModes();
 				}
 			} // else
 		} else if (button == MouseEvent.BUTTON2_MASK) {
@@ -659,7 +662,8 @@ public class NetworkInteractor extends ElementInteractor {
 		//// the following method isn't working yet.
 		//// _app.updateXsectGraph(centerlineName, xsectNum);
 
-		_gui.setDefaultModesStates();
+		//12/19/2018: make the mode sticky
+//		_gui.setDefaultModesStates();
 
 		_app.updateXsect(centerlineName, xsectNum);
 	}// moveXsect
@@ -822,7 +826,8 @@ public class NetworkInteractor extends ElementInteractor {
 			} // if minDist < BIG_DOUBLE
 		} // if a centerline has been selected
 		_net.setIsUpdated(true);
-		_gui.setDefaultModesStates();
+		//12/19/2018: make the mode sticky
+//		_gui.setDefaultModesStates();
 	}// addXsect
 
 	

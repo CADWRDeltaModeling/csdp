@@ -757,10 +757,12 @@ public class CsdpFrame extends JFrame {
 		// cfNetwork.add(nList = new JMenuItem("List"));
 		// cfNetwork.add(nSummary = new JMenuItem("Summary"));
 		// cfNetwork.addSeparator();
+		cfNetwork.add(nDisplayReachSummary = new JMenuItem("View Reach Summary"));
 		cfNetwork.add(nCalculate = new JMenuItem("Calculate"));
 		nCalculate.setMnemonic(KeyEvent.VK_C);
 		
 		JMenu reportsMenu = new JMenu("Reports");
+		reportsMenu.add(nNetworkSummaryReport = new JMenuItem("Network Summary Report"));
 		reportsMenu.add(nAWDSummaryReport = new JMenuItem("AWD Summary"));
 		reportsMenu.add(nXSCheckReport = new JMenuItem("Cross-sections with errors"));
 		reportsMenu.add(nDConveyanceReport = new JMenuItem("Cross-sections with -dConveyance"));
@@ -786,11 +788,13 @@ public class CsdpFrame extends JFrame {
 		EventListener noChannelLengthsOnlyListener = networkMenu.new NChannelLengthsOnly();
 		//// ActionListener nListListener = networkMenu.new NList();
 		//// ActionListener nSummaryListener = networkMenu.new NSummary();
+		ActionListener nDisplayReachSummaryListener = networkMenu.new NDisplayReachSummaryWindow(this);
 		ActionListener nCalculateListener = networkMenu.new NCalculate(this);
+		ActionListener nNetworkSummaryReportListener = networkMenu.new NNetworkSummaryReport(this);
 		ActionListener nAWDSummaryReportListener = networkMenu.new NAWDSummaryReport(this);
 		ActionListener nXSCheckReportListener = networkMenu.new NXSCheckReport(this);
 		ActionListener nDConveyanceReportListener = networkMenu.new NDConveyanceReport(this);
-		
+
 		nOpen.addActionListener(nOpenListener);
 		nSave.addActionListener(_nSaveListener);
 		nSaveAs.addActionListener(_nSaveAsListener);
@@ -804,9 +808,11 @@ public class CsdpFrame extends JFrame {
 		noChannelLengthsOnly.addItemListener((ItemListener) noChannelLengthsOnlyListener);
 		//// nList.addActionListener(nListListener);
 		//// nSummary.addActionListener(nSummaryListener);
+		nDisplayReachSummary.addActionListener(nDisplayReachSummaryListener);
 		nCalculate.addActionListener(nCalculateListener);
 		nAWDSummaryReport.addActionListener(nAWDSummaryReportListener);
 		nXSCheckReport.addActionListener(nXSCheckReportListener);
+		nNetworkSummaryReport.addActionListener(nNetworkSummaryReportListener);
 		nDConveyanceReport.addActionListener(nDConveyanceReportListener);
 		_networkOpenButton.addActionListener(nOpenListener);
 		_networkSaveButton.addActionListener(_nSaveListener);
@@ -933,7 +939,7 @@ public class CsdpFrame extends JFrame {
 		_centerlineMenu = new CenterlineMenu(this);
 		ActionListener cCursorListener = _centerlineMenu.new CCursor(this);
 		ActionListener cCreateListener = _centerlineMenu.new CCreate(_app, this);
-		ActionListener cDSMCreateListener = _centerlineMenu.new CDSMCreate(_DSMChannels, _app, this);
+		ActionListener cDSMCreateListener = _centerlineMenu.new CDSMCreate(_app, this);
 		ActionListener cRemoveListener = _centerlineMenu.new CRemove(this);
 		//// ActionListener cRenameListener = _centerlineMenu.new CRename();
 		// ActionListener cRestoreListener = _centerlineMenu.new CRestore();
@@ -1209,7 +1215,7 @@ public class CsdpFrame extends JFrame {
 	 * save network file when quitting program (if user clicks "yes")
 	 */
 	public void saveNetwork() {
-		if (CsdpFunctions._networkFilename == null) {
+		if (CsdpFunctions.getNetworkFilename() == null) {
 			_nSaveAsListener.actionPerformed(_nullActionEvent);
 		} else {
 			_nSaveListener.actionPerformed(_nullActionEvent);
@@ -1240,13 +1246,13 @@ public class CsdpFrame extends JFrame {
 		_centerlineMenu.setLandmark(landmark);
 	}// setLandmark
 
-	/**
-	 * sets DSMChannels object
-	 */
-	public void setDSMChannels(DSMChannels DSMChannels) {
-		_DSMChannels = DSMChannels;
-		// _canvas1.setLandmark(landmark);
-	}// setDSMChannels
+//	/**
+//	 * sets DSMChannels object
+//	 */
+//	public void setDSMChannels(DSMChannels DSMChannels) {
+//		_DSMChannels = DSMChannels;
+//		// _canvas1.setLandmark(landmark);
+//	}// setDSMChannels
 
 	/**
 	 * returns instance of bathymetry plot object
@@ -1445,8 +1451,14 @@ public class CsdpFrame extends JFrame {
 		cDSMCreate.setEnabled(false);
 		//// cRename.setEnabled(false);
 		cDisplaySummary.setEnabled(false);
+		nDisplayReachSummary.setEnabled(false);
 		cPlotAllCrossSections.setEnabled(false);
 		cAddXSAtComputationalPoints.setEnabled(false);
+
+		nAWDSummaryReport.setEnabled(false);
+		nXSCheckReport.setEnabled(false);
+		nDConveyanceReport.setEnabled(false);
+		nNetworkSummaryReport.setEnabled(false);
 		
 		tCalcRect.setEnabled(false);
 
@@ -1552,10 +1564,16 @@ public class CsdpFrame extends JFrame {
 		// nList.setEnabled(true);nSummary.setEnabled(true);
 		nExportToSEFormat.setEnabled(true);
 		nExportTo3DFormat.setEnabled(true);
+		nDisplayReachSummary.setEnabled(true);
 		nCalculate.setEnabled(true);
 		_networkCalculateButton.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
 		tCalcRect.setEnabled(true);
+		nAWDSummaryReport.setEnabled(true);
+		nXSCheckReport.setEnabled(true);
+		nDConveyanceReport.setEnabled(true);
+		nNetworkSummaryReport.setEnabled(true);
+
 	}// enableAfterNetwork
 
 	/**
@@ -1596,9 +1614,14 @@ public class CsdpFrame extends JFrame {
 		nExportToSEFormat.setEnabled(false);
 		nExportTo3DFormat.setEnabled(false);
 		nCalculate.setEnabled(false);
+		nDisplayReachSummary.setEnabled(false);
 		_networkCalculateButton.setEnabled(false);
 		dFitByNetworkMenuItem.setEnabled(false);
 		tCalcRect.setEnabled(false);
+		nAWDSummaryReport.setEnabled(false);
+		nXSCheckReport.setEnabled(false);
+		nDConveyanceReport.setEnabled(false);
+		nNetworkSummaryReport.setEnabled(false);
 	}
 
 	/**
@@ -1614,9 +1637,15 @@ public class CsdpFrame extends JFrame {
 		nExportToSEFormat.setEnabled(true);
 		nExportTo3DFormat.setEnabled(true);
 		nCalculate.setEnabled(true);
+		nDisplayReachSummary.setEnabled(true);
 		_networkCalculateButton.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
 		tCalcRect.setEnabled(true);
+		nAWDSummaryReport.setEnabled(true);
+		nXSCheckReport.setEnabled(true);
+		nDConveyanceReport.setEnabled(true);
+		nNetworkSummaryReport.setEnabled(true);
+
 	}
 
 	/**
@@ -1642,6 +1671,7 @@ public class CsdpFrame extends JFrame {
 		_deleteButton.setEnabled(true);
 		_addXsectButton.setEnabled(true);
 		cDisplaySummary.setEnabled(true);
+		nDisplayReachSummary.setEnabled(true);
 		cPlotAllCrossSections.setEnabled(true);
 		cAddXSAtComputationalPoints.setEnabled(true);;
 
@@ -2001,6 +2031,17 @@ public class CsdpFrame extends JFrame {
 		setDefaultColors(_colorsVector.size());
 	}
 
+
+	public Color[] generateColors(int n)
+	{
+	    Color[] cols = new Color[n];
+	    for(int i = 0; i < n; i++)
+	    {
+	        cols[i] = Color.getHSBColor((float) i / (float) n, 0.85f, 1.0f);
+	    }
+	    return cols;
+	}
+
 	private void setDefaultColors(int numColors) {
 		// to make rainbow, use HSB colors. Set S to 100, B to 100, and vary H
 		// from 1 to 280
@@ -2016,6 +2057,12 @@ public class CsdpFrame extends JFrame {
 			_colorsVector.addElement(new Color(rgb));
 			System.out.println("adding color " + hue + "," + s + "," + b + "," + rgb);
 		}
+
+		//this might do a better job, but colors can be hard to distinguish
+		//	 * Copied from https://stackoverflow.com/questions/223971/generating-spectrum-color-palettes
+//		for(int i = 0; i < numColors; i++){
+//	        _colorsVector.addElement(Color.getHSBColor((float) i / (float) numColors, 0.85f, 1.0f));
+//	    }
 		// go through user set colors if any, and put them into color palette
 		for (Enumeration<Integer> e = _userSetColors.keys(); e.hasMoreElements();) {
 			Integer indexObject = e.nextElement();
@@ -2418,7 +2465,7 @@ public class CsdpFrame extends JFrame {
 
 	private Landmark _landmark;
 	private DigitalLineGraph _dDigitalLineGraph;
-	private DSMChannels _DSMChannels;
+//	private DSMChannels _DSMChannels;
 	private JMenuBar menubar;
 
 	private JMenu cfFile, cfProperties, cfModify, cfDisplay, cfTools, cfNetwork, cfLandmark, cfCenterline, cfXsect,
@@ -2440,14 +2487,16 @@ public class CsdpFrame extends JFrame {
 			oUseToeDrainRestriction, oEchoToeDrainInput;
 	private JMenu tOpenWaterOptionsMenu, nExportOptions;
 	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc;
-	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nZoomToCenterline, nZoomToNode, nList, nSummary, nClearNetwork, nCalculate, nExportToSEFormat,
-			nExportTo3DFormat, nAWDSummaryReport, nXSCheckReport, nDConveyanceReport;
+	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nZoomToCenterline, 
+		nZoomToNode, nList, nSummary, nClearNetwork, nDisplayReachSummary, nCalculate, nExportToSEFormat, 
+		nExportTo3DFormat, nAWDSummaryReport, nXSCheckReport, nDConveyanceReport, nNetworkSummaryReport;
 	private JMenuItem lSave, lSaveAs, lExportToWKT, lAdd, lMove, lEdit, lDelete, lHelp;
 
 	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;
 
 	private JCheckBoxMenuItem noChannelLengthsOnly;
-	private JMenuItem cCursor, cCreate, cDSMCreate, cRemove, cDisplaySummary, cPlotAllCrossSections, cAddXSAtComputationalPoints;
+	private JMenuItem cCursor, cCreate, cDSMCreate, cRemove, cDisplaySummary, cPlotAllCrossSections, 
+		cAddXSAtComputationalPoints;
 	// JMenuItem cRemove;
 	//// JMenuItem cRename;
 	// JMenuItem cMovePoint, cAddPoint, cDelPoint,

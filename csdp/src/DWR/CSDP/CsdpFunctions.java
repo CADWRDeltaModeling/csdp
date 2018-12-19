@@ -53,6 +53,8 @@ import java.nio.channels.FileChannel;
 import java.util.Vector;
 
 import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 
 import DWR.CSDP.semmscon.UseSemmscon;
 
@@ -569,7 +571,7 @@ public class CsdpFunctions {
 	/**
 	 * swap two double values in array. used by quicksort
 	 */
-	protected static void swap(double[] array, int i, int j) {
+	private static void swap(double[] array, int i, int j) {
 		double t = array[i];
 		array[i] = array[j];
 		array[j] = t;
@@ -604,7 +606,7 @@ public class CsdpFunctions {
 	/**
 	 * swap two double values in array. used by quicksort
 	 */
-	protected static void swap(Vector array, int i, int j) {
+	private static void swap(Vector array, int i, int j) {
 		Xsect t = (Xsect) (array.elementAt(i));
 		array.setElementAt(array.elementAt(j), i);
 		array.setElementAt(t, j);
@@ -681,7 +683,7 @@ public class CsdpFunctions {
 	/**
 	 * swap two Strings in array. used by quicksort
 	 */
-	protected static void swap(ResizableStringArray array, int i, int j) {
+	private static void swap(ResizableStringArray array, int i, int j) {
 		String t = array.get(i);
 		// array.get(i) = array.get(j);
 		// array.get(j) = t;
@@ -873,6 +875,42 @@ public class CsdpFunctions {
 		_bathymetryDirectory = d;
 	}
 
+	public static void setDSMChannelsDirectory(String d) {
+		_dsmChannelsDirectory = new File(d);
+	}
+
+	public static File getDSMChannelsDirectory() {
+		return _dsmChannelsDirectory;
+	}
+	
+	public static void setDSMChannelsFilename(String filename) {
+		_dsmChannelsFilename = filename;
+	}
+	
+	public static void setDSMChannelsFiletype(String filetype) {
+		_DSMChannelsFiletype = filetype;
+	}
+	
+	public static String getDSMChannelsFilename() {
+		return _dsmChannelsFilename;
+	}
+	
+	public static void setDSM2HofDirectory(File d) {
+		_dsm2HofDirectory = d;
+	}
+
+	public static void setDSM2HofFilename(String f) {
+		_dsm2HofFilename = f;
+	}
+	
+	public static File getDSM2HofDirectory() {
+		return _dsm2HofDirectory;
+	}
+	
+	public static String getDSM2HofFilename() {
+		return _dsm2HofFilename;
+	}
+	
 	/**
 	 * store name of current digital line graph directory.
 	 * _digitalLineGraphDirectory store the name of the last directory accessed.
@@ -1025,7 +1063,7 @@ public class CsdpFunctions {
 	public static String getNetworkFiletype() {
 		return _networkFiletype;
 	}
-
+	
 	public static String getLandmarkFilename() {
 		return _landmarkFilename;
 	}
@@ -1133,7 +1171,7 @@ public class CsdpFunctions {
 	/**
 	 * swap two int values in array
 	 */
-	protected static void swap(ResizableIntArray a, int i, int j) {
+	private static void swap(ResizableIntArray a, int i, int j) {
 		int t = a.get(i);
 		a.put(i, a.get(j));
 		a.put(j, t);
@@ -1142,7 +1180,7 @@ public class CsdpFunctions {
 	/**
 	 * swap two short values in array
 	 */
-	protected static void swap(ResizableShortArray a, int i, int j) {
+	private static void swap(ResizableShortArray a, int i, int j) {
 		short t = a.get(i);
 		a.put(i, a.get(j));
 		a.put(j, t);
@@ -1403,7 +1441,40 @@ public class CsdpFunctions {
 
 		return returnString;
 	}
+	
+	public static double getXsectThickness() {return _xsectThickness;}
+	public static void setXsectThickness(double thickness) {_xsectThickness = thickness;}
 
+	/*
+	 * Use file chooser to get directory and filename, given a list of acceptable file extensions
+	 * This is ok to use when you don't need to remember the directory for a given filetype
+	 */
+	public static String[] selectFilePath(JFrame gui, String dialogTitle, String[] extensions) {
+		String filename = null;
+		String directory = null;
+		JFileChooser jfcChannelsInp = new JFileChooser();
+		int numChannelsInpExtensions = extensions.length;
+		CsdpFileFilter csdpFileFilter = new CsdpFileFilter(extensions, numChannelsInpExtensions);
+		
+		jfcChannelsInp.setDialogTitle(dialogTitle);
+		jfcChannelsInp.setApproveButtonText("Open");
+		jfcChannelsInp.addChoosableFileFilter(csdpFileFilter);
+		jfcChannelsInp.setFileFilter(csdpFileFilter);
+
+		if (CsdpFunctions.getOpenDirectory() != null) {
+			jfcChannelsInp.setCurrentDirectory(CsdpFunctions.getOpenDirectory());
+		}
+		int filechooserState = jfcChannelsInp.showOpenDialog(gui);
+		if (filechooserState == JFileChooser.APPROVE_OPTION) {
+			filename = jfcChannelsInp.getName(jfcChannelsInp.getSelectedFile());
+			directory = jfcChannelsInp.getCurrentDirectory().getAbsolutePath() + File.separator;
+		}
+		CsdpFunctions.setOpenDirectory(jfcChannelsInp.getCurrentDirectory());
+		return new String[] {directory, filename};
+	}//getFilePath	
+	
+
+	
 	/**
 	 * debugging statements printed if true
 	 */
@@ -1412,7 +1483,7 @@ public class CsdpFunctions {
 	 * defines region which contains bathymetry points to be displayed in xsect
 	 * view
 	 */
-	protected static Polygon _polygon = new Polygon();
+	private static Polygon _polygon = new Polygon();
 	/**
 	 * index of x coordinate of first point-used when storing coordinates for 2
 	 * points
@@ -1465,53 +1536,57 @@ public class CsdpFunctions {
 	/**
 	 * name of directory accessed when opening bathymetry file. used for saving
 	 */
-	protected static File _bathymetryDirectory = null;
+	private static File _bathymetryDirectory = null;
 	/**
 	 * name of directory accessed when opening network file. used for saving
 	 */
-	protected static File _networkDirectory = null;
+	private static File _networkDirectory = null;
 	/**
 	 * name of directory accessed when exporting network file. used for saving
 	 */
-	protected static File _networkExportDirectory = null;
+	private static File _networkExportDirectory = null;
 	/**
 	 * name of directory accessed when opening landmark file. used for saving
 	 */
-	protected static File _landmarkDirectory = null;
+	private static File _landmarkDirectory = null;
 	/**
 	 * name of directory accessed when opening DigitalLineGraphFile.
 	 */
-	protected static File _DLGDirectory = null;
+	private static File _DLGDirectory = null;
 	/**
 	 * name of directory accessed when opening properties file. used for saving
 	 */
-	protected static File _propertiesDirectory = null;
+	private static File _propertiesDirectory = null;
 	/**
 	 * name of directory accessed when opening file containing information to be
 	 * used for open water area calculations.
 	 */
-	protected static File _openWaterAreaDirectory = null;
+	private static File _openWaterAreaDirectory = null;
 	/**
 	 * name of directory accessed when opening file of any type. default
 	 * directory for next open command
 	 */
-	protected static File _openDirectory = null;
+	private static File _openDirectory = null;
 
+	private static File _dsmChannelsDirectory = null;
+	private static File _dsm2HofDirectory = null;
+	private static String _dsm2HofFilename = null;
+	
 	/**
 	 *
 	 */
-	protected static File _digitalLineGraphDirectory = null;
+	private static File _digitalLineGraphDirectory = null;
 
 	/**
 	 * default value of cross-section thickness (perpendicualar to screen in
 	 * cross- section view). determines amount of data to be displayed in xsect
 	 * view.
 	 */
-	protected static double _xsectThickness = 1000.0;
+	private static double _xsectThickness = 1000.0;
 	/**
 	 * number of pixels between bathymetry data and canvas edges
 	 */
-	protected static double BORDER_THICKNESS = 1000.0;
+	public static final double BORDER_THICKNESS = 1000.0;
 
 	/*
 	 * For CenterlineSummaryWindow class. the elevation used to calculate volume, wetted area, and surface area 
@@ -1538,23 +1613,24 @@ public class CsdpFunctions {
 		_warnZoom = b;
 	}
 
-	protected static String _digitalLineGraphFilename = null;
-	protected static String _digitalLineGraphFiletype = null;
-	protected static String _landmarkFilename = null;
-	protected static String _landmarkFiletype = null;
-	protected static String _DSMChannelsFilename = null;
-	protected static String _DSMChannelsFiletype = null;
-	protected static String _networkFilename = null;
-	protected static String _networkFiletype = null;
+	private static String _digitalLineGraphFilename = null;
+	private static String _digitalLineGraphFiletype = null;
+	private static String _landmarkFilename = null;
+	private static String _landmarkFiletype = null;
+	private static String _dsmChannelsFilename = null;
+	private static String _DSMChannelsFiletype = null;
+	private static String _networkFilename = null;
+	private static String _networkFiletype = null;
 
-	protected static String _propertiesFilename = null;
-	protected static String _propertiesFiletype = null;
-	protected static String _openWaterAreaFilename = null;
-	protected static String _openWaterAreaFiletype = null;
+	private static String _propertiesFilename = null;
+	private static String _propertiesFiletype = null;
+	private static String _openWaterAreaFilename = null;
+	private static String _openWaterAreaFiletype = null;
+	
 	public static double CHARACTER_TO_PIXELS = 300.0f / 44.0;
 	// private static Vector _buttons = new Vector();
-	// protected static int NUM_BUTTONS = 0;
-	// protected static Vector _colors = new Vector();
+	// private static int NUM_BUTTONS = 0;
+	// private static Vector _colors = new Vector();
 	private static boolean _echoTimeSeriesInput = true;
 	private static boolean _echoXsectInput = false;
 	private static boolean _printXsectResults = false;
@@ -1703,6 +1779,14 @@ public class CsdpFunctions {
 	 */
 	public static int BITNESS;
 	/*
+	 * Negative dConveyance should be eliminated above the intertidal low and below the intertidal high 
+	 */
+	public static final double INTERTIDAL_LOW_TIDE = -2.5;
+	/*
+	 * Negative dConveyance should be eliminated above the intertidal low and below the intertidal high 
+	 */
+	public static final double INTERTIDAL_HIGH_TIDE = 17.5;
+	/*
 	 * Indicates that the 32 bit JRE is being used.
 	 */
 	public static final int BIT_32 = 10;
@@ -1738,8 +1822,7 @@ public class CsdpFunctions {
 			}
 		}
 		return success;
-
-	}
+	}//backupFile
 
 	public static boolean backupFile(String directory, String filename) {
 		boolean success = backupFile(directory + filename);
@@ -1762,10 +1845,12 @@ public class CsdpFunctions {
 		return new ImageIcon((new ImageIcon(imageUrl)).getImage().getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH));
 	}
 
+	public static final float DIALOG_FONT_SIZE = 16.0f;
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "2.6_20181212";
+	private static final String _version = "2.6_20181219";
+
 
 
 }// class CsdpFunctions

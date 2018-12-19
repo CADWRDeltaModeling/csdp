@@ -41,14 +41,12 @@
 package DWR.CSDP;
 
 import java.awt.Cursor;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 
-import javax.management.relation.InvalidRelationTypeException;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
@@ -193,8 +191,8 @@ public class CenterlineMenu {
 		/**
 		 * assign instances of application and gui classes to class variables
 		 */
-		public CDSMCreate(DSMChannels DSMChannels, App app, CsdpFrame gui) {
-			_DSMChannels = DSMChannels;
+		public CDSMCreate(App app, CsdpFrame gui) {
+			
 			_app = app;
 			_gui = gui;
 			_jfcChannelsInp = new JFileChooser();
@@ -202,6 +200,7 @@ public class CenterlineMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
+			_DSMChannels = _app.getDSMChannels();
 			_gui.setDefaultModesStates();
 			_net = _gui.getNetwork();
 			if (_net == null) {
@@ -262,7 +261,7 @@ public class CenterlineMenu {
 						// _directory = fd.getDirectory();
 						_gui.setCursor(_waitCursor);
 						_DSMChannels = _app.chanReadStore(_directory, channelsFilename);
-						_gui.setDSMChannels(_DSMChannels);
+//						_gui.setDSMChannels(_DSMChannels);
 						_gui.setCursor(_defaultCursor);
 					} else {
 						loadAnotherChannelsInpFile = false;
@@ -588,7 +587,7 @@ public class CenterlineMenu {
 			Centerline selectedCenterline = _net.getSelectedCenterline();
 			int numXsectsWithPoints = selectedCenterline.getNumXsectsWithPoints();
 			if(numXsectsWithPoints>0) {
-				new CenterlineSummaryWindow(_net);
+				new CenterlineSummaryWindow(_gui, _net);
 			}else {
 				JOptionPane.showMessageDialog(_gui, "Selected centerline has no user-created cross-sections", "Nothing to plot", JOptionPane.OK_OPTION);
 			}

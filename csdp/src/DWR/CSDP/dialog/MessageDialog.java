@@ -43,6 +43,9 @@ package DWR.CSDP.dialog;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
@@ -51,6 +54,8 @@ import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JViewport;
+
+import DWR.CSDP.CsdpFunctions;
 
 /**
  * a dialog box with a text field to get input from user
@@ -109,6 +114,12 @@ public class MessageDialog extends JDialog{
 		getContentPane().setLayout(new BorderLayout(10, 10));
 		setBackground(Color.white);
 
+		JButton copyToClipboardButton = new JButton("Copy to clipboard");
+		copyToClipboardButton.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE);
+		ActionListener copyToClipboardListener = new CopyToClipboardListener(_stringMessage);
+		copyToClipboardButton.addActionListener(copyToClipboardListener);
+		getContentPane().add(copyToClipboardButton, BorderLayout.NORTH);
+		
 		ta = new JTextArea();
 		ta.setEditable(editable);
 		String line = " ";
@@ -163,6 +174,20 @@ public class MessageDialog extends JDialog{
 			dispose();
 		}
 	}
-	
 
+	/**
+	 * will copy displayed text to clipboard for pasting into other applications
+	 */
+	private class CopyToClipboardListener implements ActionListener{
+		private String messageText;
+		public CopyToClipboardListener(String messageText) {
+			this.messageText = messageText;
+		}
+		public void actionPerformed(ActionEvent arg0) {
+			StringSelection stringSelection = new StringSelection(this.messageText);
+			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+			clipboard.setContents(stringSelection, null);
+		}
+	}//CopyToClipboardListener
+	
 }// class MessageDialog

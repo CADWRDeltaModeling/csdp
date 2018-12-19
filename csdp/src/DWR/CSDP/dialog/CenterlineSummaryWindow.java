@@ -43,10 +43,13 @@ package DWR.CSDP.dialog;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.util.Vector;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
@@ -55,145 +58,285 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import DWR.CSDP.Centerline;
+import DWR.CSDP.CsdpFrame;
 import DWR.CSDP.CsdpFunctions;
 import DWR.CSDP.Network;
 import DWR.CSDP.Xsect;
 
+/**
+ * Displays scatter plots of area, width, wetted perimeter, and bottom elevation.
+ * On right side, displays volume, wetted area, and surface area.
+ * Will work for selected centerline or for specified range of centerlines.
+ * @author btom
+ *
+ */
 public class CenterlineSummaryWindow extends JFrame {
 	private Network network;
-	private String chanNum;
-
-	public CenterlineSummaryWindow(Network network) {
+//	private String chanNum;
+	private Vector<String> chanNumbersVector = new Vector<String>();
+	private String reachName;
+	private CsdpFrame csdpFrame;
+	private String centerlineNames;
+	
+	public CenterlineSummaryWindow(CsdpFrame csdpFrame, Network network) {
 		super("Summary Data for Channel "+network.getSelectedCenterlineName());
-		this.chanNum = network.getSelectedCenterlineName();
+		this.chanNumbersVector.addElement(network.getSelectedCenterlineName());
+		this.csdpFrame = csdpFrame;
 		this.network = network;
 		addContent();
 	}
 	
+	/*
+	 * Constructor for creating a window for multiple centerlines, which will be specified as a string in one of the following formats:
+	 * 1-21,23,385
+	 */
+	public CenterlineSummaryWindow(CsdpFrame csdpFrame, Network network, String reachName, String centerlineNames) {
+		super("Summary Data for Channels "+reachName);
+		this.csdpFrame = csdpFrame;
+		this.reachName = reachName;
+		this.centerlineNames = centerlineNames;
+		this.network = network;
+		String[] parts = centerlineNames.split(",");
+//		try {
+			chanNumbersVector = new Vector<String>();
+			for(int i=0; i<parts.length; i++) {
+				if(parts[i].indexOf("-")>=0) {
+					String[] rangeParts = parts[i].split("-");
+					System.out.println("about to parse values: "+rangeParts[0]+","+rangeParts[1]);
+					int firstNum = Integer.parseInt(rangeParts[0]);
+					int lastNum = Integer.parseInt(rangeParts[1]);
+					for(int k=firstNum; k<=lastNum; k++) {
+						chanNumbersVector.addElement(String.valueOf(k));
+					}
+				}else {
+					chanNumbersVector.addElement(parts[i]);
+				}
+			}//for
+
+			this.network = network;
+			addContent();
+//		}catch(Exception e) {
+//			JOptionPane.showMessageDialog(gui, "Unable to parse numeric centerline names string: "+centerlineNames, "Error", JOptionPane.ERROR_MESSAGE);
+//		}
+	}//CenterlineSummaryWindow
+	
 	private void addContent(){
     	String xLabel = "Distance from Upstream End, ft";
-    	String titleArea = "Area Profile for Channel " + this.chanNum;
-    	String titleWetP = "Wetted Perimeter Profile for Channel "+this.chanNum;
-    	String titleWidth = "Width Profile for Channel "+this.chanNum;
-    	String titleBottomElevation = "Bottom Elevation Profile for Channel "+this.chanNum;
+
+    	String titleArea = null;
+    	String titleWetP = null;
+    	String titleWidth = null;
+    	String titleBottomElevation = null;
+    	
+    	boolean singlePlot = true;
+    	if(this.chanNumbersVector.size()==1) {
+    		singlePlot=true;
+    	}else if(this.chanNumbersVector.size()>1) {
+    		singlePlot = false;
+    	}else {
+    		//this shouldn't ever happen
+    		singlePlot = true;
+    	}
+    	
+    	if(singlePlot) {
+    		String chanNum = this.chanNumbersVector.get(0);
+	    	titleArea = "Area Profile for Channel " + chanNum;
+	    	titleWetP = "Wetted Perimeter Profile for Channel "+chanNum;
+	    	titleWidth = "Width Profile for Channel "+chanNum;
+	    	titleBottomElevation = "Bottom Elevation Profile for Channel "+chanNum;
+    	}else{
+	    	titleArea = "Area Profile for "+this.reachName;
+	    	titleWetP = "Wetted Perimeter Profile for "+this.reachName;
+	    	titleWidth = "Width Profile for "+this.reachName;
+	    	titleBottomElevation = "Bottom Elevation Profile for "+this.reachName;
+    	}
+	    	
     	String yLabelArea = "Area, ft2";
     	String yLabelWetP = "WetP, ft2";
     	String yLabelWidth = "Width, ft2";
     	String yLabelBottomElevation = "Bottom Elevation, ft";
 		
-		//			Xsect xsect = _net.getSelectedXsect();
-		String centerlineName = this.network.getSelectedCenterlineName();
-//		int xsectNum = _net.getSelectedXsectNum();
-		Centerline centerline = this.network.getSelectedCenterline();
-		int numXsects = centerline.getNumXsects();
-    	XYSeries areaSeries = new XYSeries("Area");
-    	XYSeries wetPSeries = new XYSeries("Wetted Perimeter");
-    	XYSeries widthSeries = new XYSeries("Width");
-    	XYSeries bottomElevationSeries = new XYSeries("Botton Elevation");
-		for(int i=0; i<numXsects; i++){
-			Xsect currentXsect = centerline.getXsect(i);
-			if(currentXsect.getNumPoints()>0) {
-				double distanceAlong = currentXsect.getDistAlongCenterlineFeet();
-				double e = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
-				double area = currentXsect.getAreaSqft(e);
-				double wetP = currentXsect.getWettedPerimeterFeet(e);
-				double width = currentXsect.getWettedPerimeterFeet(e);
-				double botElev = currentXsect.getMinimumElevationFeet();
-				areaSeries.add(area, distanceAlong);
-				wetPSeries.add(wetP, distanceAlong);
-				widthSeries.add(width, distanceAlong);
-				bottomElevationSeries.add(botElev, distanceAlong);
+    	XYDataset[] areaDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
+    	XYDataset[] widthDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
+    	XYDataset[] wetPDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
+    	XYDataset[] bottomElevationDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
+    	boolean allCenterlinesExist = true;
+    	for(int i=0; i<this.chanNumbersVector.size(); i++) {
+    		String centerlineName = this.chanNumbersVector.get(i);
+    		if(!this.network.centerlineExists(centerlineName)) {
+    			allCenterlinesExist = false;
+    			JOptionPane.showMessageDialog(this, "Your channel specification contains one or more non-existent centerlines.", "Error", JOptionPane.ERROR_MESSAGE);
+    		}
+    	}
+
+    	if(allCenterlinesExist) {
+    		double lengthIncrement = 0.0;
+    		for(int i=0; i<this.chanNumbersVector.size(); i++) {
+	    		String centerlineName = this.chanNumbersVector.get(i);
+	    		Centerline centerline = this.network.getCenterline(centerlineName);
+	    		int numXsects = centerline.getNumXsects();
+		    	XYSeries areaSeries = new XYSeries("Area", false);
+		    	XYSeries wetPSeries = new XYSeries("Wetted Perimeter", false);
+		    	XYSeries widthSeries = new XYSeries("Width", false);
+		    	XYSeries bottomElevationSeries = new XYSeries("Botton Elevation", false);
+				for(int j=0; j<numXsects; j++){
+					Xsect currentXsect = centerline.getXsect(j);
+					if(currentXsect.getNumPoints()>0) {
+						double distanceAlong = lengthIncrement + currentXsect.getDistAlongCenterlineFeet();
+						double e = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
+						double area = currentXsect.getAreaSqft(e);
+						double wetP = currentXsect.getWettedPerimeterFeet(e);
+						double width = currentXsect.getWettedPerimeterFeet(e);
+						double botElev = currentXsect.getMinimumElevationFeet();
+						areaSeries.add(area, distanceAlong);
+						wetPSeries.add(wetP, distanceAlong);
+						widthSeries.add(width, distanceAlong);
+						bottomElevationSeries.add(botElev, distanceAlong);
+					}
+				}
+				lengthIncrement += centerline.getLengthFeet();
+		        areaDatasetArray[i] = new XYSeriesCollection(areaSeries);
+		        wetPDatasetArray[i] = new XYSeriesCollection(wetPSeries);
+		        widthDatasetArray[i] = new XYSeriesCollection(widthSeries);
+		        bottomElevationDatasetArray[i] = new XYSeriesCollection(bottomElevationSeries);
+	    	}
+	        JFreeChart areaChart = createChartWithScatterPlot(titleArea, xLabel, yLabelArea, areaDatasetArray);
+	        JFreeChart wetPChart = createChartWithScatterPlot(titleWetP,xLabel, yLabelWetP, wetPDatasetArray);
+	        JFreeChart widthChart = createChartWithScatterPlot(titleWidth, xLabel, yLabelWidth, widthDatasetArray);
+	        JFreeChart bottomElevationChart = createChartWithScatterPlot(titleBottomElevation, xLabel, yLabelBottomElevation, bottomElevationDatasetArray);
+	    	  	
+	        ChartPanel areaChartPanel = new ChartPanel(areaChart);
+	        ChartPanel wetPChartPanel = new ChartPanel(wetPChart);
+	        ChartPanel widthChartPanel = new ChartPanel(widthChart);
+	        ChartPanel bottomElevationChartPanel = new ChartPanel(bottomElevationChart);
+			setSize(800, 800);
+			
+			JPanel chartsPanel = new JPanel(new GridLayout(0,1));
+			chartsPanel.add(areaChartPanel);
+			chartsPanel.add(wetPChartPanel);
+			chartsPanel.add(widthChartPanel);
+			chartsPanel.add(bottomElevationChartPanel);
+	
+			//////////////////////////////////////////////////////////////////////////////////////
+			// now add conveyance characteristics for the channel or group of channels (reach)  //
+			//////////////////////////////////////////////////////////////////////////////////////
+			
+			JPanel conveyanceCharacteristicsPanel = new JPanel(new GridLayout(0,2,2,2));
+			conveyanceCharacteristicsPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+			
+			double elevation = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
+			String summaryTitle = "Centerline";
+			if(this.chanNumbersVector.size()>1) {
+				summaryTitle = "Reach";
 			}
-		}
+			JTextArea centerlineOrReachSummaryLabel = new JTextArea(summaryTitle + " Summary\n\n"
+					+ "Volume, Wetted Area, and Surface area are estimates\n"
+					+ "assuming no intepolation from adjacent channels,\n"
+					+ "an elevation of " + elevation + " in the current datum, and \n"
+					+ "linear variation between cross-sections.\n");
+			centerlineOrReachSummaryLabel.setBackground(Color.LIGHT_GRAY);
+			JLabel elevationLabel = new JLabel("Elevation, ft");
+			JLabel centerlineLengthLabel = new JLabel("Centerline Length, ft");
+			JLabel channelVolumeLabel = new JLabel("Channel Volume, ft3");
+			JLabel channelWettedAreaLabel = new JLabel("Channel Wetted Area, ft2");
+			JLabel channelSurfaceAreaLabel = new JLabel("Channel Surface Area, ft2");
+	
+			double length = 0.0;
+			double volume = 0.0;
+			double wettedArea = 0.0;
+			double surfaceArea = 0.0;
+			for(int i=0; i<this.chanNumbersVector.size(); i++) {
+				String centerlineName = this.chanNumbersVector.get(i);
+				Centerline centerline = this.network.getCenterline(centerlineName);
+				length += centerline.getLengthFeet();
+				volume += centerline.getChannelVolumeEstimateNoInterp(elevation);
+				wettedArea += centerline.getChannelWettedAreaEstimateNoInterp(elevation);
+				surfaceArea += centerline.getChannelSurfaceAreaEstimateNoInterp(elevation);
+			}		
+			JLabel elevValueLabel = new JLabel(String.format("%,.2f", elevation), SwingConstants.RIGHT);
+			JLabel cLengthValueLabel = new JLabel(String.format("%,.1f", length), SwingConstants.RIGHT);
+			JLabel volValueLabel = new JLabel(String.format("%,.1f", volume), SwingConstants.RIGHT);
+			JLabel wetAreaValueLabel = new JLabel(String.format("%,.1f", wettedArea), SwingConstants.RIGHT);
+			JLabel surfAreaValueLabel = new JLabel(String.format("%,.1f",surfaceArea), SwingConstants.RIGHT);
 
-        XYDataset areaDataset = new XYSeriesCollection(areaSeries);
-        XYDataset wetPDataset = new XYSeriesCollection(wetPSeries);
-        XYDataset widthDataset = new XYSeriesCollection(widthSeries);
-        XYDataset bottomElevationDataset = new XYSeriesCollection(bottomElevationSeries);
-        JFreeChart areaChart = createChart(titleArea, xLabel, yLabelArea, areaDataset);
-        JFreeChart wetPChart = createChart(titleWetP,xLabel, yLabelWetP, wetPDataset);
-        JFreeChart widthChart = createChart(titleWidth, xLabel, yLabelWidth, widthDataset);
-        JFreeChart bottomElevationChart = createChart(titleBottomElevation, xLabel, yLabelBottomElevation, bottomElevationDataset);
-    	  	
-        ChartPanel areaChartPanel = new ChartPanel(areaChart);
-        ChartPanel wetPChartPanel = new ChartPanel(wetPChart);
-        ChartPanel widthChartPanel = new ChartPanel(widthChart);
-        ChartPanel bottomElevationChartPanel = new ChartPanel(bottomElevationChart);
-		setSize(800, 800);
-		
-		JPanel chartsPanel = new JPanel(new GridLayout(0,1));
-		chartsPanel.add(areaChartPanel);
-		chartsPanel.add(wetPChartPanel);
-		chartsPanel.add(widthChartPanel);
-		chartsPanel.add(bottomElevationChartPanel);
-
-		JPanel conveyanceCharacteristicsPanel = new JPanel(new GridLayout(0,2,2,2));
-		conveyanceCharacteristicsPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-		
-		double elevation = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
-		JTextArea centerlineOrReachSummaryLabel = new JTextArea("Centerline or Reach Summary\n\n"
-				+ "Volume, Wetted Area, and Surface area are estimates\n"
-				+ "assuming no intepolation from adjacent channels,\n"
-				+ "an elevation of " + elevation + " in the current datum, and \n"
-				+ "linear variation between cross-sections.\n");
-		centerlineOrReachSummaryLabel.setBackground(Color.LIGHT_GRAY);
-		JLabel elevationLabel = new JLabel("Elevation, ft");
-		JLabel centerlineLengthLabel = new JLabel("Centerline Length, ft");
-		JLabel channelVolumeLabel = new JLabel("Channel Volume, ft3");
-		JLabel channelWettedAreaLabel = new JLabel("Channel Wetted Area, ft2");
-		JLabel channelSurfaceAreaLabel = new JLabel("Channel Surface Area, ft2");
-//		centerlineLengthLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-//		channelVolumeLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-//		channelWettedAreaLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-//		channelSurfaceAreaLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-
-		double length = centerline.getLengthFeet();
-		double volume = centerline.getChannelVolumeEstimateNoInterp(elevation);
-		double wettedArea = centerline.getChannelWettedAreaEstimateNoInterp(elevation);
-		double surfaceArea = centerline.getChannelSurfaceAreaEstimateNoInterp(elevation);
-		
-		JLabel elevValueLabel = new JLabel(String.format("%,.2f", elevation), SwingConstants.RIGHT);
-		JLabel cLengthValueLabel = new JLabel(String.format("%,.1f", length), SwingConstants.RIGHT);
-		JLabel volValueLabel = new JLabel(String.format("%,.1f", volume), SwingConstants.RIGHT);
-		JLabel wetAreaValueLabel = new JLabel(String.format("%,.1f", wettedArea), SwingConstants.RIGHT);
-		JLabel surfAreaValueLabel = new JLabel(String.format("%,.1f",surfaceArea), SwingConstants.RIGHT);
-//		cLengthLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-//		volLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-//		wetAreaLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-//		surfAreaLabel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-		conveyanceCharacteristicsPanel.add(elevationLabel);
-		conveyanceCharacteristicsPanel.add(elevValueLabel);
-		conveyanceCharacteristicsPanel.add(centerlineLengthLabel);
-		conveyanceCharacteristicsPanel.add(cLengthValueLabel);
-		conveyanceCharacteristicsPanel.add(channelVolumeLabel);
-		conveyanceCharacteristicsPanel.add(volValueLabel);
-		conveyanceCharacteristicsPanel.add(channelWettedAreaLabel);
-		conveyanceCharacteristicsPanel.add(wetAreaValueLabel);
-		conveyanceCharacteristicsPanel.add(channelSurfaceAreaLabel);
-		conveyanceCharacteristicsPanel.add(surfAreaValueLabel);
-		
-		JPanel ccPanel2 = new JPanel(new GridLayout(0,1,5,5));
-		ccPanel2.add(centerlineOrReachSummaryLabel);
-		ccPanel2.add(conveyanceCharacteristicsPanel);
-		
-		JPanel centerlineInfoPanel = new JPanel(new BorderLayout());
-		centerlineInfoPanel.add(ccPanel2, BorderLayout.NORTH);
-		
-		getContentPane().setLayout(new BorderLayout());
-    	getContentPane().add(chartsPanel, BorderLayout.CENTER);
-    	getContentPane().add(centerlineInfoPanel, BorderLayout.EAST);
-    	setVisible(true);
+			conveyanceCharacteristicsPanel.add(elevationLabel);
+			conveyanceCharacteristicsPanel.add(elevValueLabel);
+			conveyanceCharacteristicsPanel.add(centerlineLengthLabel);
+			conveyanceCharacteristicsPanel.add(cLengthValueLabel);
+			conveyanceCharacteristicsPanel.add(channelVolumeLabel);
+			conveyanceCharacteristicsPanel.add(volValueLabel);
+			conveyanceCharacteristicsPanel.add(channelWettedAreaLabel);
+			conveyanceCharacteristicsPanel.add(wetAreaValueLabel);
+			conveyanceCharacteristicsPanel.add(channelSurfaceAreaLabel);
+			conveyanceCharacteristicsPanel.add(surfAreaValueLabel);
+			
+			JPanel valuesPanel = new JPanel(new GridLayout(0,1,5,5));
+			valuesPanel.add(centerlineOrReachSummaryLabel);
+			valuesPanel.add(conveyanceCharacteristicsPanel);
+			
+			
+			
+			if(this.chanNumbersVector.size()>1) {
+				JPanel legendPanel = new JPanel(new BorderLayout());
+				legendPanel.add(new JLabel("Legend"), BorderLayout.NORTH);
+				JPanel legendDataPanel = new JPanel(new GridLayout(0, 2));
+				for(int i=0; i<chanNumbersVector.size(); i++) {
+					JButton colorLabel = new JButton("  ");
+					colorLabel.setBackground(this.csdpFrame.getColor(i));
+					colorLabel.setForeground(this.csdpFrame.getColor(i));
+					legendDataPanel.add(colorLabel);
+					legendDataPanel.add(new JLabel(this.chanNumbersVector.get(i)));
+				}
+				legendPanel.add(legendDataPanel, BorderLayout.CENTER);
+				//for some reason the colors used in the plots doesn't match the colors here, so fix before adding legend.
+				//				valuesPanel.add(legendPanel, BorderLayout.SOUTH);
+				valuesPanel.add(new JLabel(this.centerlineNames), BorderLayout.SOUTH);
+			}
+			
+			JPanel centerlineOrReachInfoPanel = new JPanel(new BorderLayout());
+			centerlineOrReachInfoPanel.add(valuesPanel, BorderLayout.NORTH);
+				
+			getContentPane().setLayout(new BorderLayout());
+	    	getContentPane().add(chartsPanel, BorderLayout.CENTER);
+	    	getContentPane().add(centerlineOrReachInfoPanel, BorderLayout.EAST);
+	    	setVisible(true);
+    	}
 	}//addContent
 
-	private JFreeChart createChart(String title, String xLabel, String yLabel, XYDataset dataset) {
-	//  return ChartFactory.createScatterPlot(title, xLabel, yLabel, dataset);
-		//The class is developed differently from the api: with this many args, it wants them in a different order.
-	  return ChartFactory.createScatterPlot(title, yLabel, xLabel, dataset, PlotOrientation.HORIZONTAL, false, true, true);
+//	/*
+//	 * Create chart for one time series
+//	 */
+//	private JFreeChart createChartWithScatterPlot(String title, String xLabel, String yLabel, XYDataset dataset) {
+//	//  return ChartFactory.createScatterPlot(title, xLabel, yLabel, dataset);
+//		//The class is developed differently from the api: with this many args, it wants them in a different order.
+//	  return ChartFactory.createScatterPlot(title, yLabel, xLabel, dataset, PlotOrientation.HORIZONTAL, false, true, true);
+//	}
+	
+	/*
+	 * Create chart for multiple time series
+	 */
+	private JFreeChart createChartWithScatterPlot(String title, String xLabel, String yLabel, XYDataset[] datasets) {
+		JFreeChart jFreeChart = ChartFactory.createScatterPlot(title, yLabel, xLabel, datasets[0], PlotOrientation.HORIZONTAL, false, true, true);
+		XYPlot plot = jFreeChart.getXYPlot();
+		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, true);
+		renderer.setSeriesPaint(0, this.csdpFrame.getColor(0));
+		plot.setRenderer(0, renderer);
+		for(int i=1; i<datasets.length; i++) {
+
+			plot.setDataset(i, datasets[i]);
+			renderer = new XYLineAndShapeRenderer(false, true);
+			renderer.setSeriesPaint(i, this.csdpFrame.getColor(i));
+			plot.setRenderer(i, renderer);
+//			plot.getRenderer().setSeriesPaint(i, this.csdpFrame.getColor(i)); 
+		}
+		return jFreeChart;
 	}
 
 }//class CenterlineSumamryWindow

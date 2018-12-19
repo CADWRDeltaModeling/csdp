@@ -53,6 +53,7 @@ import java.util.Hashtable;
 
 /**
  * dialog with multiple labels and text fields
+ * Use DataEntryDialog instead
  *
  * @author
  * @version $Id: TextFieldDialog.java,v 1.1 2002/06/12 18:48:38 btom Exp $
