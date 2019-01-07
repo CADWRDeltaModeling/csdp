@@ -750,9 +750,6 @@ public class CsdpFrame extends JFrame {
 		cfNetwork.add(nZoomToCenterline = new JMenuItem("Zoom to centerline"));
 		cfNetwork.add(nZoomToNode = new JMenuItem("Zoom to node"));
 		cfNetwork.add(nClearNetwork = new JMenuItem("Clear Network"));
-		cfNetwork.add(nExportToSEFormat = new JMenuItem("Export to Station/Elevation format"));
-		cfNetwork.add(nExportTo3DFormat = new JMenuItem("Export to 3D format"));
-		cfNetwork.add(nExportOptions = new JMenu("Network export options"));
 		cfNetwork.addSeparator();
 		// cfNetwork.add(nList = new JMenuItem("List"));
 		// cfNetwork.add(nSummary = new JMenuItem("Summary"));
@@ -760,12 +757,18 @@ public class CsdpFrame extends JFrame {
 		cfNetwork.add(nDisplayReachSummary = new JMenuItem("View Reach Summary"));
 		cfNetwork.add(nCalculate = new JMenuItem("Calculate"));
 		nCalculate.setMnemonic(KeyEvent.VK_C);
+
+		cfNetwork.add(nExport = new JMenu("Export"));
+		nExport.add(nExportToSEFormat = new JMenuItem("Export to Station/Elevation format"));
+		nExport.add(nExportTo3DFormat = new JMenuItem("Export to 3D format"));
+		nExport.add(nExportOptions = new JMenu("Network export options"));
 		
 		JMenu reportsMenu = new JMenu("Reports");
 		reportsMenu.add(nNetworkSummaryReport = new JMenuItem("Network Summary Report"));
-		reportsMenu.add(nAWDSummaryReport = new JMenuItem("AWD Summary"));
-		reportsMenu.add(nXSCheckReport = new JMenuItem("Cross-sections with errors"));
-		reportsMenu.add(nDConveyanceReport = new JMenuItem("Cross-sections with -dConveyance"));
+//		reportsMenu.add(nAWDSummaryReport = new JMenuItem("AWD Summary"));
+		//now obsolete--this info is in the Network Summary Report
+//		reportsMenu.add(nXSCheckReport = new JMenuItem("Cross-sections with errors"));
+//		reportsMenu.add(nDConveyanceReport = new JMenuItem("Cross-sections with -dConveyance"));
 		cfNetwork.add(reportsMenu);
 		if (_addNetworkMenu)
 			menubar.add(cfNetwork);
@@ -791,9 +794,9 @@ public class CsdpFrame extends JFrame {
 		ActionListener nDisplayReachSummaryListener = networkMenu.new NDisplayReachSummaryWindow(this);
 		ActionListener nCalculateListener = networkMenu.new NCalculate(this);
 		ActionListener nNetworkSummaryReportListener = networkMenu.new NNetworkSummaryReport(this);
-		ActionListener nAWDSummaryReportListener = networkMenu.new NAWDSummaryReport(this);
+//		ActionListener nAWDSummaryReportListener = networkMenu.new NAWDSummaryReport(this);
 		ActionListener nXSCheckReportListener = networkMenu.new NXSCheckReport(this);
-		ActionListener nDConveyanceReportListener = networkMenu.new NDConveyanceReport(this);
+//		ActionListener nDConveyanceReportListener = networkMenu.new NDConveyanceReport(this);
 
 		nOpen.addActionListener(nOpenListener);
 		nSave.addActionListener(_nSaveListener);
@@ -810,10 +813,10 @@ public class CsdpFrame extends JFrame {
 		//// nSummary.addActionListener(nSummaryListener);
 		nDisplayReachSummary.addActionListener(nDisplayReachSummaryListener);
 		nCalculate.addActionListener(nCalculateListener);
-		nAWDSummaryReport.addActionListener(nAWDSummaryReportListener);
-		nXSCheckReport.addActionListener(nXSCheckReportListener);
+//		nAWDSummaryReport.addActionListener(nAWDSummaryReportListener);
+//		nXSCheckReport.addActionListener(nXSCheckReportListener);
 		nNetworkSummaryReport.addActionListener(nNetworkSummaryReportListener);
-		nDConveyanceReport.addActionListener(nDConveyanceReportListener);
+//		nDConveyanceReport.addActionListener(nDConveyanceReportListener);
 		_networkOpenButton.addActionListener(nOpenListener);
 		_networkSaveButton.addActionListener(_nSaveListener);
 		_networkCalculateButton.addActionListener(nCalculateListener);
@@ -1455,9 +1458,9 @@ public class CsdpFrame extends JFrame {
 		cPlotAllCrossSections.setEnabled(false);
 		cAddXSAtComputationalPoints.setEnabled(false);
 
-		nAWDSummaryReport.setEnabled(false);
-		nXSCheckReport.setEnabled(false);
-		nDConveyanceReport.setEnabled(false);
+//		nAWDSummaryReport.setEnabled(false);
+//		nXSCheckReport.setEnabled(false);
+//		nDConveyanceReport.setEnabled(false);
 		nNetworkSummaryReport.setEnabled(false);
 		
 		tCalcRect.setEnabled(false);
@@ -1569,9 +1572,9 @@ public class CsdpFrame extends JFrame {
 		_networkCalculateButton.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
 		tCalcRect.setEnabled(true);
-		nAWDSummaryReport.setEnabled(true);
-		nXSCheckReport.setEnabled(true);
-		nDConveyanceReport.setEnabled(true);
+//		nAWDSummaryReport.setEnabled(true);
+//		nXSCheckReport.setEnabled(true);
+//		nDConveyanceReport.setEnabled(true);
 		nNetworkSummaryReport.setEnabled(true);
 
 	}// enableAfterNetwork
@@ -1618,9 +1621,9 @@ public class CsdpFrame extends JFrame {
 		_networkCalculateButton.setEnabled(false);
 		dFitByNetworkMenuItem.setEnabled(false);
 		tCalcRect.setEnabled(false);
-		nAWDSummaryReport.setEnabled(false);
-		nXSCheckReport.setEnabled(false);
-		nDConveyanceReport.setEnabled(false);
+//		nAWDSummaryReport.setEnabled(false);
+//		nXSCheckReport.setEnabled(false);
+//		nDConveyanceReport.setEnabled(false);
 		nNetworkSummaryReport.setEnabled(false);
 	}
 
@@ -1641,9 +1644,9 @@ public class CsdpFrame extends JFrame {
 		_networkCalculateButton.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
 		tCalcRect.setEnabled(true);
-		nAWDSummaryReport.setEnabled(true);
-		nXSCheckReport.setEnabled(true);
-		nDConveyanceReport.setEnabled(true);
+//		nAWDSummaryReport.setEnabled(true);
+//		nXSCheckReport.setEnabled(true);
+//		nDConveyanceReport.setEnabled(true);
 		nNetworkSummaryReport.setEnabled(true);
 
 	}
@@ -2485,8 +2488,9 @@ public class CsdpFrame extends JFrame {
 
 	private JCheckBoxMenuItem oEchoTimeSeriesInput, oEchoXsectInput, oPrintXsectResults, oUseFremontWeir,
 			oUseToeDrainRestriction, oEchoToeDrainInput;
-	private JMenu tOpenWaterOptionsMenu, nExportOptions;
+	private JMenu tOpenWaterOptionsMenu, nExport, nExportOptions;
 	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc;
+	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
 	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nZoomToCenterline, 
 		nZoomToNode, nList, nSummary, nClearNetwork, nDisplayReachSummary, nCalculate, nExportToSEFormat, 
 		nExportTo3DFormat, nAWDSummaryReport, nXSCheckReport, nDConveyanceReport, nNetworkSummaryReport;

@@ -48,6 +48,7 @@ import java.io.File;
 import java.util.HashSet;
 
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import DWR.CSDP.dialog.CenterlineSummaryWindow;
@@ -344,68 +345,40 @@ public class NetworkMenu {
 	 * @author
 	 * @version $Id: NetworkMenu.java,v 1.3 2003/04/15 19:46:14 btom Exp $
 	 */
-	public class NSaveSpecifiedChannelsAs extends FileIO implements ActionListener {
+	public class NSaveSpecifiedChannelsAs implements ActionListener {
 		CsdpFrame _csdpFrame;
 		
 		public NSaveSpecifiedChannelsAs(CsdpFrame gui) {
-			super(gui, _saveDialogMessage, _saveErrorMessage, _saveSuccessMessage, _saveFailureMessage, true,
-					_saveExtensions, _numSaveExtensions);
 			_csdpFrame = gui;
-			_jfc.setDialogTitle(_saveDialogMessage);
-			_jfc.setApproveButtonText("Save");
-			_jfc.addChoosableFileFilter(_nSaveFilter);
-			_jfc.setFileFilter(_nSaveFilter);
 		}
 
-		/**
-		 * uses a dialog box to get filename from user
-		 */
-		protected String getFilename() {
-			int numLines = 0;
-			String filename = null;
-			if (CsdpFunctions.getNetworkDirectory() != null) {
-				_jfc.setCurrentDirectory(CsdpFunctions.getNetworkDirectory());
-			}
+		public void actionPerformed(ActionEvent e) {
+			//enter channel numbers
+			String[] defaultValues = new String[] {"", "", "false"};
+			int[] types = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.STRING_TYPE, DataEntryDialog.BOOLEAN_TYPE};
+			String instructions = "<HTML><BODY><B>Save Specified Channels</B><BR><BR>"
+					+ "Click the button below to specify a <B>network file name</B> for writing results. If file exists, it will be overwritten.<BR>"
+					+ "Enter a <B>list of channel numbers</B> separated by commas, spaces, or tabs. <BR>"
+					+ "Leave the <B>box</B> unchecked if you wish to export ONLY the specified numbers.<BR>"
+					+ "Check the <B>box</B> if you wish to export all channels EXCEPT the specified numbers.</BODY></HTML>";
+			String title = "Write specified centerlines to a network file.";
+			String[] tooltips = new String[] {"Specify a network filename for output. If file exists, will overwrite.", 
+					"Enter a list of channel numbers. Can be space, tab, or comma delimited", 
+					"Check box if you want to export all channels EXCEPT those with the specified numbers."};
+			boolean[] disableIfNull = new boolean[] {true, true, false};
+			String[] extensions = new String[]{"cdn", null, null};
+			String[] names = new String[] {"New Network Filename", "Channel Numbers", "Don't export specified channels"};
 
-			_filechooserState = _jfc.showSaveDialog(_gui);
-			if (_filechooserState == JFileChooser.APPROVE_OPTION) {
-				filename = _jfc.getName(_jfc.getSelectedFile());
-				CsdpFunctions.setNetworkDirectory(_jfc.getCurrentDirectory().getAbsolutePath() + File.separator);
-				parseFilename(filename);
-				_cancel = false;
-				CsdpFunctions._cancelSaveNetwork = false;
-			} else if (_filechooserState == JFileChooser.CANCEL_OPTION) {
-				_cancel = true;
-				CsdpFunctions._cancelSaveNetwork = true;
-				filename = null;
-			} else {
-				_cancel = true;
-				CsdpFunctions._cancelSaveNetwork = true;
-				filename = null;
-			} // if
-			return filename;
-		}// getFilename
+			DataEntryDialog exportChannelsDialog = new DataEntryDialog(_csdpFrame, title, instructions, names, defaultValues, 
+					types, disableIfNull, extensions, tooltips, true);
 
-		public boolean accessFile() {
-			boolean saved = false;
-			if (_cancel == false) {
-				//enter channel numbers
-//				OkDialog getChannelNumbers = new OkDialog(_gui, "Enter channel numbers to export", true, true);
-				String[] defaultValues = new String[] {"", "false"};
-				int[] types = new int[] {DataEntryDialog.STRING_TYPE, DataEntryDialog.BOOLEAN_TYPE};
-				int[] numDecimalPlaces = new int[] {0,0};
-				String instructions = "Enter a list of channel numbers separated by commas or spaces. \n"
-						+ "Leave the box unchecked if you wish to export ONLY the specified numbers.\n"
-						+ "Check the box if you wish to export all channels EXCEPT the specified numbers.";
-				String title = "Enter channel numbers to export/not to export";
-				String[] extensions = new String[2];
-				String[] tooltips = new String[] {null, "Check box if you want to export all channels EXCEPT those with the specified numbers."};
+			int response=exportChannelsDialog.getResponse();
+			if(response==DataEntryDialog.OK) {
+				File newNetworkDirectory = exportChannelsDialog.getDirectory(names[0]);
+				String newNetworkFilename = exportChannelsDialog.getFilename(names[0]);
 				
-				String[] names = new String[] {"Channel Numbers", "Don't export specified channels"};
-				DataEntryDialog exportChannelsDialog = new DataEntryDialog(_gui, title, instructions, names, defaultValues, 
-						types, numDecimalPlaces, extensions, tooltips, true);
-				String channelNumbers = exportChannelsDialog.getValue(names[0]);
-				String dontExportSpecifiedChannelsString = exportChannelsDialog.getValue(names[1]);
+				String channelNumbers = exportChannelsDialog.getValue(names[1]);
+				String dontExportSpecifiedChannelsString = exportChannelsDialog.getValue(names[2]);
 				boolean dontExportSpecifiedChannels = false;
 				if(dontExportSpecifiedChannelsString.equalsIgnoreCase("true")) {
 					dontExportSpecifiedChannels = true;
@@ -415,12 +388,11 @@ public class NetworkMenu {
 					dontExportSpecifiedChannels = false;
 				}
 				
-				
-//				String channelNumbers = getChannelNumbers.getMessage();
 				HashSet<String> channelNumbersHashSet = null;
+				System.out.println("Channel numbers="+channelNumbers);
 				if(channelNumbers.length() >0) {
 					channelNumbersHashSet = new HashSet<String>();
-					String[] parts = channelNumbers.split(" |,");
+					String[] parts = channelNumbers.split(" |,|\t");
 					Network network = _csdpFrame.getNetwork();
 					if(dontExportSpecifiedChannels) {
 						for(int i=0; i<network.getNumCenterlines(); i++) {
@@ -442,15 +414,11 @@ public class NetworkMenu {
 								channelNumbersHashSet.add(parts[i]);
 						}
 					}
+					_app.nSaveSpecifiedChannelsAs(newNetworkDirectory.toString(), newNetworkFilename, channelNumbersHashSet);
+					_csdpFrame.enableAfterNetwork();
 				}
-				saved = _app.nSaveSpecifiedChannelsAs(CsdpFunctions.getNetworkDirectory().getPath(), _filename + "." + _filetype, channelNumbersHashSet);
-				((CsdpFrame) _gui).enableAfterNetwork();
-			} else {
-				saved = false;
 			}
-			return saved;
 		}
-
 	} // NSaveAs
 
 	/**
@@ -602,25 +570,28 @@ public class NetworkMenu {
 			names[0] = "Reach Name";
 			names[1] = "Channel Numbers";
 			initValue[0] = "Reach";
-			initValue[1] = "1-5,10";
+			initValue[1] = "17,1-5";
 			int[] dataTypes = new int[] {DataEntryDialog.STRING_TYPE, DataEntryDialog.STRING_TYPE};
-			int[] numDecimalPlaces = new int[] {0,0};
 			String[] tooltips = new String[] {null, null};
-			String[] extensions = new String[2];
-			
+			boolean[] disableIfNull = new boolean[] {true, true};
+
 			String instructions = 
-					"Display Reach Summary\n\n"
-					+ "1. Enter a reach name. This will appear in graph and window titles.\n\n"
-					+ "2. Enter a string that identifies a range of channels that you would like to summarize. The string should only "
-					+ "consist of numbers separated by commas or hyphens. A range of channel numbers can be specified using two numbers separated "
-					+ "by a hyphen. The example below indicates channels 1 through 5, followed by channel 10. This is equivalent to '1,2,3,4,5,10'\n";
+					"<HTML><BODY><B>Display Reach Summary</B><BR>"
+					+ "1. Enter a <B>reach name</B>. This will appear in graph and window titles.<BR><BR>"
+					+ "2. Enter a string that identifies a <B>range of channels</B> that you would like to summarize. The string should only<BR> "
+					+ "consist of numbers separated by commas or hyphens. A range of channel numbers can be specified using two numbers separated <BR>"
+					+ "by a hyphen. Hyphen-separated values can be speficied in reverse order, to reverse the order of display. <BR>"
+					+ "The example below indicates channels 1 through 5, followed by channel 10. This is equivalent to '1,2,3,4,5,10'<BR></font></BODY></HTML>";
 			
 			int numFields = 2;
 			DataEntryDialog dataEntryDialog = new DataEntryDialog(gui, "Reach Summary Information", instructions, 
-					names, initValue, dataTypes, numDecimalPlaces, extensions, tooltips, true);
-			String reachTitle = dataEntryDialog.getValue(names[0]);
-			String channelNumbersString = dataEntryDialog.getValue(names[1]);
-			new CenterlineSummaryWindow(gui, net, reachTitle, channelNumbersString);
+					names, initValue, dataTypes, disableIfNull, tooltips, true);
+			int response=dataEntryDialog.getResponse();
+			if(response==DataEntryDialog.OK) {
+				String reachTitle = dataEntryDialog.getValue(names[0]);
+				String channelNumbersString = dataEntryDialog.getValue(names[1]);
+				new CenterlineSummaryWindow(gui, net, reachTitle, channelNumbersString);
+			}
 		}
 	}//inner class DisplayReachSummaryWindow
 	

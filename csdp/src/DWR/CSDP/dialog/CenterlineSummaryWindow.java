@@ -47,11 +47,11 @@ import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 
 import org.jfree.chart.ChartFactory;
@@ -86,7 +86,7 @@ public class CenterlineSummaryWindow extends JFrame {
 	private String centerlineNames;
 	
 	public CenterlineSummaryWindow(CsdpFrame csdpFrame, Network network) {
-		super("Summary Data for Channel "+network.getSelectedCenterlineName());
+		super("Summary for Channel "+network.getSelectedCenterlineName());
 		this.chanNumbersVector.addElement(network.getSelectedCenterlineName());
 		this.csdpFrame = csdpFrame;
 		this.network = network;
@@ -98,7 +98,7 @@ public class CenterlineSummaryWindow extends JFrame {
 	 * 1-21,23,385
 	 */
 	public CenterlineSummaryWindow(CsdpFrame csdpFrame, Network network, String reachName, String centerlineNames) {
-		super("Summary Data for Channels "+reachName);
+		super("Reach Summary for "+reachName);
 		this.csdpFrame = csdpFrame;
 		this.reachName = reachName;
 		this.centerlineNames = centerlineNames;
@@ -112,8 +112,16 @@ public class CenterlineSummaryWindow extends JFrame {
 					System.out.println("about to parse values: "+rangeParts[0]+","+rangeParts[1]);
 					int firstNum = Integer.parseInt(rangeParts[0]);
 					int lastNum = Integer.parseInt(rangeParts[1]);
-					for(int k=firstNum; k<=lastNum; k++) {
-						chanNumbersVector.addElement(String.valueOf(k));
+					if(firstNum<lastNum) {
+						for(int k=firstNum; k<=lastNum; k++) {
+							chanNumbersVector.addElement(String.valueOf(k));
+						}
+					}else if(firstNum>lastNum) {
+						for(int k=firstNum; k>=lastNum; k--) {
+							chanNumbersVector.addElement(String.valueOf(k));
+						}
+					}else if(firstNum==lastNum) {
+						chanNumbersVector.addElement(String.valueOf(firstNum));
 					}
 				}else {
 					chanNumbersVector.addElement(parts[i]);
@@ -218,29 +226,54 @@ public class CenterlineSummaryWindow extends JFrame {
 	        ChartPanel bottomElevationChartPanel = new ChartPanel(bottomElevationChart);
 			setSize(800, 800);
 			
-			JPanel chartsPanel = new JPanel(new GridLayout(0,1));
+			JPanel chartsPanel = new JPanel(new GridLayout(0,1,5,5));
 			chartsPanel.add(areaChartPanel);
 			chartsPanel.add(wetPChartPanel);
 			chartsPanel.add(widthChartPanel);
 			chartsPanel.add(bottomElevationChartPanel);
-	
+
+			//Right Column
+			JPanel valuesPanel = new JPanel(new BorderLayout());
+			valuesPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+			if(this.chanNumbersVector.size()>1) {
+				Color[] legendColors = new Color[chanNumbersVector.size()];
+				String[] legendText = new String[chanNumbersVector.size()];
+				for(int i=0; i<chanNumbersVector.size(); i++) {
+					legendColors[i] = this.csdpFrame.getColor(i);
+					legendText[i] = this.chanNumbersVector.get(i);
+				}
+				String title = "Legend"; 
+				JPanel legendPanel = DialogLegendFactory.createLegendPanel(title, legendColors, legendText);
+				//for some reason the colors used in the plots doesn't match the colors here, so fix before adding legend.
+				JPanel channelsAndLegendPanel = new JPanel(new BorderLayout());
+
+				JLabel requestedChanJLabel = new JLabel("<HTML><B>Requested channels:</B> <BR>"+this.centerlineNames+"<BR></HTML>");
+				channelsAndLegendPanel.add(requestedChanJLabel, BorderLayout.NORTH);
+				channelsAndLegendPanel.add(legendPanel, BorderLayout.SOUTH);
+				valuesPanel.add(channelsAndLegendPanel, BorderLayout.NORTH);
+				//Displays the string entered by user. Shouldn't be necessary with legend.
+				//				valuesPanel.add(new JLabel(this.centerlineNames), BorderLayout.SOUTH);
+			}
+
 			//////////////////////////////////////////////////////////////////////////////////////
 			// now add conveyance characteristics for the channel or group of channels (reach)  //
 			//////////////////////////////////////////////////////////////////////////////////////
 			
-			JPanel conveyanceCharacteristicsPanel = new JPanel(new GridLayout(0,2,2,2));
-			conveyanceCharacteristicsPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+			JPanel conveyanceCharacteristicsPanel = new JPanel(new GridLayout(0,2));
+			conveyanceCharacteristicsPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
 			
 			double elevation = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
 			String summaryTitle = "Centerline";
 			if(this.chanNumbersVector.size()>1) {
 				summaryTitle = "Reach";
 			}
-			JTextArea centerlineOrReachSummaryLabel = new JTextArea(summaryTitle + " Summary\n\n"
-					+ "Volume, Wetted Area, and Surface area are estimates\n"
-					+ "assuming no intepolation from adjacent channels,\n"
-					+ "an elevation of " + elevation + " in the current datum, and \n"
-					+ "linear variation between cross-sections.\n");
+			JLabel centerlineOrReachSummaryLabel = new JLabel("<html><h3>"+summaryTitle + " Summary</h3><BR>"
+					+ "Volume, Wetted Area, and Surface area are estimates<BR>"
+					+ "assuming no intepolation from adjacent channels,<BR>"
+					+ "an elevation of " + elevation + " in the current datum, and <BR>"
+					+ "linear variation between cross-sections.</html>");
+			centerlineOrReachSummaryLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 			centerlineOrReachSummaryLabel.setBackground(Color.LIGHT_GRAY);
 			JLabel elevationLabel = new JLabel("Elevation, ft");
 			JLabel centerlineLengthLabel = new JLabel("Centerline Length, ft");
@@ -277,28 +310,13 @@ public class CenterlineSummaryWindow extends JFrame {
 			conveyanceCharacteristicsPanel.add(channelSurfaceAreaLabel);
 			conveyanceCharacteristicsPanel.add(surfAreaValueLabel);
 			
-			JPanel valuesPanel = new JPanel(new GridLayout(0,1,5,5));
-			valuesPanel.add(centerlineOrReachSummaryLabel);
-			valuesPanel.add(conveyanceCharacteristicsPanel);
+			JPanel topValuesPanel = new JPanel(new GridLayout(0,1,5,5));
+			topValuesPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+			topValuesPanel.add(centerlineOrReachSummaryLabel);
+			topValuesPanel.add(conveyanceCharacteristicsPanel);
 			
+			valuesPanel.add(topValuesPanel, BorderLayout.SOUTH);
 			
-			
-			if(this.chanNumbersVector.size()>1) {
-				JPanel legendPanel = new JPanel(new BorderLayout());
-				legendPanel.add(new JLabel("Legend"), BorderLayout.NORTH);
-				JPanel legendDataPanel = new JPanel(new GridLayout(0, 2));
-				for(int i=0; i<chanNumbersVector.size(); i++) {
-					JButton colorLabel = new JButton("  ");
-					colorLabel.setBackground(this.csdpFrame.getColor(i));
-					colorLabel.setForeground(this.csdpFrame.getColor(i));
-					legendDataPanel.add(colorLabel);
-					legendDataPanel.add(new JLabel(this.chanNumbersVector.get(i)));
-				}
-				legendPanel.add(legendDataPanel, BorderLayout.CENTER);
-				//for some reason the colors used in the plots doesn't match the colors here, so fix before adding legend.
-				//				valuesPanel.add(legendPanel, BorderLayout.SOUTH);
-				valuesPanel.add(new JLabel(this.centerlineNames), BorderLayout.SOUTH);
-			}
 			
 			JPanel centerlineOrReachInfoPanel = new JPanel(new BorderLayout());
 			centerlineOrReachInfoPanel.add(valuesPanel, BorderLayout.NORTH);
@@ -325,15 +343,19 @@ public class CenterlineSummaryWindow extends JFrame {
 	private JFreeChart createChartWithScatterPlot(String title, String xLabel, String yLabel, XYDataset[] datasets) {
 		JFreeChart jFreeChart = ChartFactory.createScatterPlot(title, yLabel, xLabel, datasets[0], PlotOrientation.HORIZONTAL, false, true, true);
 		XYPlot plot = jFreeChart.getXYPlot();
-		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(false, true);
-		renderer.setSeriesPaint(0, this.csdpFrame.getColor(0));
-		plot.setRenderer(0, renderer);
+		XYLineAndShapeRenderer[] renderers = new XYLineAndShapeRenderer[datasets.length];
+		renderers[0] = new XYLineAndShapeRenderer(false, true);
+		renderers[0].setSeriesPaint(0, this.csdpFrame.getColor(0));
+		plot.setRenderer(0, renderers[0]);
 		for(int i=1; i<datasets.length; i++) {
 
 			plot.setDataset(i, datasets[i]);
-			renderer = new XYLineAndShapeRenderer(false, true);
-			renderer.setSeriesPaint(i, this.csdpFrame.getColor(i));
-			plot.setRenderer(i, renderer);
+			renderers[i] = new XYLineAndShapeRenderer(false, true);
+//			renderers[i].setSeriesPaint(i, this.csdpFrame.getColor(i));
+			//this may be deprecated, but setSeriesPaint doesn't work properly--it changes the color.
+			renderers[i].setPaint(this.csdpFrame.getColor(i));
+//			plot.getRendererForDataset(plot.getDataset(i)).setSeriesPaint(i, this.csdpFrame.getColor(i));
+			plot.setRenderer(i, renderers[i]);
 //			plot.getRenderer().setSeriesPaint(i, this.csdpFrame.getColor(i)); 
 		}
 		return jFreeChart;

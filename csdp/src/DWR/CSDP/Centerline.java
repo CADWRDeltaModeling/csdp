@@ -1011,6 +1011,21 @@ public class Centerline {
 	}//getMinMaxAreaIndices
 
 	/*
+	 * Returns vector of xsect indices with duplicate station values. The most likely cause of this error
+	 * is an old bug which changed all of the station values in all of the cross-section drawings to zero.
+	 */
+	public Vector<Integer> getDuplicateStationsXsectIndices(){
+		Vector<Integer> returnValues = new Vector<Integer>(); 
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			if(!xsect.allUniqueStations()) {
+				returnValues.addElement(i);
+			}
+		}
+		return returnValues;
+	}//getDuplicateStationsXsectIndices
+	
+	/*
 	 * Returns vector of xsect indices with -dk anywhere in cross-section.
 	 */
 	public Vector<Integer> getNegDKXsectIndices() {

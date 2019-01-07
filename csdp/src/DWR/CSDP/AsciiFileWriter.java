@@ -2,6 +2,10 @@ package DWR.CSDP;
 import java.io.*;
 import java.util.Vector;
 
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
 /**
  *
  */
@@ -10,16 +14,22 @@ public class AsciiFileWriter{
 	BufferedWriter _asciiOut = null;
 	String _filename;
 	Vector _allLines = null;
+	private JFrame parent;
+	boolean writeExceptionMessageShown = false;
 
-	public AsciiFileWriter(String filename){
+	public AsciiFileWriter(JFrame parent, String filename){
+		this.parent = parent;
 		_allLines = new Vector();
 		_filename=filename;
+		this.writeExceptionMessageShown = false;
 		open();
 	}//constructor
 
-	public AsciiFileWriter(String filename, boolean append){
+	public AsciiFileWriter(JFrame parent, String filename, boolean append){
+		this.parent = parent;
 		_allLines = new Vector();
 		_filename=filename;
+		this.writeExceptionMessageShown = false;
 		if(append){
 			openAppend();
 		}else{
@@ -32,7 +42,9 @@ public class AsciiFileWriter{
 			_aOutFile = new FileWriter(_filename,true);
 			_asciiOut = new BufferedWriter(_aOutFile);
 		}catch(IOException e){
-			System.out.println("error occurred while opening file "+_filename + e.getMessage());
+			JOptionPane.showMessageDialog(parent, "Error occurred while opening file "+_filename+"\n\n"
+					+ "Is the file locked for writing?", "Error", JOptionPane.ERROR_MESSAGE);
+//			System.out.println("error occurred while opening file "+_filename + e.getMessage());
 		}
 
 	}
@@ -42,7 +54,9 @@ public class AsciiFileWriter{
 			_aOutFile = new FileWriter(_filename);
 			_asciiOut = new BufferedWriter(_aOutFile);
 		}catch(IOException e){
-			System.out.println("error occurred while opening file "+_filename + e.getMessage());
+			JOptionPane.showMessageDialog(parent, "Error occurred while opening file "+_filename+"\n\n"
+					+ "Is the file locked for writing?", "Error", JOptionPane.ERROR_MESSAGE);
+//			System.out.println("error occurred while opening file "+_filename + e.getMessage());
 		}
 	}//open
 
@@ -51,8 +65,13 @@ public class AsciiFileWriter{
 			_asciiOut.write(line);
 			_asciiOut.newLine();
 		}catch(Exception e){
-			System.out.println("exception caught in AsciiFileWriter.write while reading ");
-			System.out.println("file "+_filename+e.getMessage());
+			if(!this.writeExceptionMessageShown) {
+				JOptionPane.showMessageDialog(parent, "Error occurred while trying to write to file "+_filename+"\n"
+						+ "Is the file locked for writing?", "Error", JOptionPane.ERROR_MESSAGE);
+				this.writeExceptionMessageShown = true;
+			}
+//			System.out.println("exception caught in AsciiFileWriter.write while writing ");
+//			System.out.println("file "+_filename+e.getMessage());
 		}
 	}//writeLine
 
@@ -60,8 +79,9 @@ public class AsciiFileWriter{
 		try{
 			_asciiOut.close();
 		}catch(java.io.IOException e){
-			System.out.println("exception caught while trying to close file: "+
-					_filename+e.getMessage());
+			JOptionPane.showMessageDialog(parent, "Error occurred while trying to close file "+_filename, "Error", JOptionPane.ERROR_MESSAGE);
+//			System.out.println("exception caught while trying to close file: "+
+//					_filename+e.getMessage());
 		}
 	}//close
 
