@@ -55,6 +55,7 @@ import java.util.Vector;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 import DWR.CSDP.semmscon.UseSemmscon;
 
@@ -878,7 +879,13 @@ public class CsdpFunctions {
 	public static void setDSMChannelsDirectory(String d) {
 		_dsmChannelsDirectory = new File(d);
 	}
-
+	public static void setNetworkCalculateDirectory(File directory) {
+		_networkCalculateDirectory = directory;
+	}
+	public static File getNetworkCalculateDirectory() {
+		return _networkCalculateDirectory;
+	}
+	
 	public static File getDSMChannelsDirectory() {
 		return _dsmChannelsDirectory;
 	}
@@ -1473,7 +1480,25 @@ public class CsdpFunctions {
 		return new String[] {directory, filename};
 	}//getFilePath	
 	
+	public static String selectDirectory(JFrame gui, String dialogTitle) {
+		String directory = null;
+		JFileChooser jfcChannelsInp = new JFileChooser();
+		
+		jfcChannelsInp.setDialogTitle(dialogTitle);
+		jfcChannelsInp.setApproveButtonText("Open");
+		jfcChannelsInp.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		if (CsdpFunctions.getOpenDirectory() != null) {
+			jfcChannelsInp.setCurrentDirectory(CsdpFunctions.getOpenDirectory());
+		}
+		int filechooserState = jfcChannelsInp.showOpenDialog(gui);
+		if (filechooserState == JFileChooser.APPROVE_OPTION) {
+			directory = jfcChannelsInp.getCurrentDirectory().getAbsolutePath() + File.separator;
+			directory += jfcChannelsInp.getName(jfcChannelsInp.getSelectedFile()) + File.separator;
 
+		}
+		CsdpFunctions.setOpenDirectory(jfcChannelsInp.getCurrentDirectory());
+		return directory;
+	}
 	
 	/**
 	 * debugging statements printed if true
@@ -1568,6 +1593,7 @@ public class CsdpFunctions {
 	 */
 	private static File _openDirectory = null;
 
+	private static File _networkCalculateDirectory = null;
 	private static File _dsmChannelsDirectory = null;
 	private static File _dsm2HofDirectory = null;
 	private static String _dsm2HofFilename = null;
@@ -1587,6 +1613,10 @@ public class CsdpFunctions {
 	 * number of pixels between bathymetry data and canvas edges
 	 */
 	public static final double BORDER_THICKNESS = 1000.0;
+	/*
+	 * if cross-sections are spaced closer than this, a warning will be added to network summary report
+	 */
+	public static final double MAXIMUM_SUGGESTED_XS_SPACING = 500.0;
 
 	/*
 	 * For CenterlineSummaryWindow class. the elevation used to calculate volume, wetted area, and surface area 
@@ -1781,11 +1811,26 @@ public class CsdpFunctions {
 	/*
 	 * Negative dConveyance should be eliminated above the intertidal low and below the intertidal high 
 	 */
-	public static final double INTERTIDAL_LOW_TIDE = -2.5;
+	public static double INTERTIDAL_LOW_TIDE = -2.5;
 	/*
 	 * Negative dConveyance should be eliminated above the intertidal low and below the intertidal high 
 	 */
-	public static final double INTERTIDAL_HIGH_TIDE = 17.5;
+	public static double INTERTIDAL_HIGH_TIDE = 17.5;
+
+	/*
+	 * If true, network elements (centerlines and cross-section lines) will be colored to identify the following issues:
+	 * no points
+	 * negative dConveyance in intertidal zone
+	 * duplicate station values in a cross-section
+	 * area ratio in centerline exceeds maximum recommended value 
+	 */
+	public static boolean NETWORK_COLORING = true;
+	
+	/*
+	 * The maximum recommended ratio of largest to smallest cross-sectional areas in a channel, evaluated at 
+	 * ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS, which is usually zero wrt the current datum
+	 */
+	public static final double MAX_AREA_RATIO = 2.0;
 	/*
 	 * Indicates that the 32 bit JRE is being used.
 	 */

@@ -44,6 +44,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 
+
 /**
  * Plot Network Data on screen
  *
@@ -52,6 +53,60 @@ import java.awt.Rectangle;
  */
 public class NetworkPlot extends PlanViewPlot {
 
+	//	protected static final int NETWORK_SELECTION_POINT_DIMENSION = 1;// size of displayed data point
+		// (square)
+	protected double _x1Pixels; // coordinates of centerline points converted to
+	// pixels
+	protected double _y1Pixels;
+	protected double _x2Pixels;
+	protected double _y2Pixels;
+	Network _net = null;
+	protected static int NETWORK_SELECTION_POINT_DIMENSION = 4;
+	protected static final boolean DEBUG = false;
+	/*
+	 * (Dark Grey) Color to use to identify a centerline or cross-section line with no points
+	 */
+	public static final Color NO_POINTS_COLOR = new Color(102,102,102);
+	/*
+	 * (Red) Color to use to identify a centerline or cross-section line with negative dConveyance in the intertidal range.
+	 */
+	public static final Color NEG_DK_IN_INTERTIDAL_COLOR = new Color(255, 0, 0);
+	/*
+	 * (Brown) Color used to identify a cross-section line with duplicate station values 
+	 */
+	public static final Color DUPLICATE_STATIONS_COLOR = new Color(204, 102, 0);
+	/*
+	 * (Blue) Color used to identify a centerline that exceeds the maximum area ratio 
+	 * (largest xs area > 2.0 * smallest xs area)
+	 */
+	public static final Color EXCEEDS_MAX_AREA_RATIO_COLOR = new Color(40, 63, 255);
+	/*
+	 * (Orange) Color used to identify centerline and cross-section line with duplicate station values
+	 * and negative dConveyance in the intertidal zone
+	 */
+	public static final Color DUP_STN_AND_NEG_DK_IN_INTERTIDAL_COLOR = new Color(255, 134, 0);
+	/*
+	 * (Purple) Color used to identify centerline that exceeds the max area ratio and has negative dConveyance in intertidal zone.
+	 */
+	public static final Color EXCEEDS_MAX_AREA_RATIO_AND_NEG_DK_IN_INTERTIDAL_COLOR = new Color(162, 0, 255);
+	/*
+	 * (Green) Color used to identify centerlines with duplicate station values and that exceeds the max area ratio
+	 */
+	public static final Color DUP_STN_AND_EXCEEDS_MAX_AREA_RATIO_COLOR = new Color(0, 138, 0);
+	
+	/*
+	 * (Magenta) Color used to identify centerlines with duplicate station values and that exceeds the max area ratio and 
+	 * have negative dConveyance in the intertidal zone.
+	 */
+	public static final Color DUP_STN_AND_EXCEEDS_MAX_AREA_RATIO_COLOR_AND_NEG_DK_IN_INTERTIDAL_COLOR = new Color(255,0,255);
+	
+	/*
+	 * (Black) Color used to identify centerlines with no issues
+	 */
+	public static final Color NO_ISSUES_COLOR = Color.black;
+	/*
+	 * Constructor
+	 */
 	public NetworkPlot(CsdpFrame gui, BathymetryData data, App app) {
 		super(gui, data, app);
 	}
@@ -73,6 +128,60 @@ public class NetworkPlot extends PlanViewPlot {
 		_net = net;
 	}
 
+	/*
+	 * Returns a color to use for centerline segments and points based on status of its cross-sections
+	 */
+	private Color getCenterlineColor(Centerline centerline) {
+		boolean allXSHaveNoPoints = centerline.allXSHaveNoPoints();
+		boolean anyXSHasNegDkInIntertidal = centerline.anyXSHaveNegDKInIntertidal();
+		boolean anyXSHasDuplicateStations = centerline.anyXSHaveDuplicateStations();
+		boolean exceedsMaxRatio = centerline.getMaxAreaRatio() >= CsdpFunctions.MAX_AREA_RATIO;
+		Color returnColor = null;
+		if(!anyXSHasNegDkInIntertidal && !anyXSHasDuplicateStations && exceedsMaxRatio) {
+			returnColor = EXCEEDS_MAX_AREA_RATIO_COLOR;
+		}else if(!anyXSHasNegDkInIntertidal && anyXSHasDuplicateStations && !exceedsMaxRatio) {
+			returnColor = DUPLICATE_STATIONS_COLOR;
+		}else if(!anyXSHasNegDkInIntertidal && anyXSHasDuplicateStations && exceedsMaxRatio) {
+			returnColor = DUP_STN_AND_EXCEEDS_MAX_AREA_RATIO_COLOR;
+		}else if(anyXSHasNegDkInIntertidal && !anyXSHasDuplicateStations && !exceedsMaxRatio) {
+			returnColor = NEG_DK_IN_INTERTIDAL_COLOR;
+		}else if(anyXSHasNegDkInIntertidal && !anyXSHasDuplicateStations && exceedsMaxRatio) {
+			returnColor = EXCEEDS_MAX_AREA_RATIO_AND_NEG_DK_IN_INTERTIDAL_COLOR;
+		}else if(anyXSHasNegDkInIntertidal && anyXSHasDuplicateStations && !exceedsMaxRatio) {
+			returnColor = DUP_STN_AND_NEG_DK_IN_INTERTIDAL_COLOR;
+		}else if(anyXSHasNegDkInIntertidal && anyXSHasDuplicateStations && exceedsMaxRatio) {
+			returnColor = DUP_STN_AND_EXCEEDS_MAX_AREA_RATIO_COLOR_AND_NEG_DK_IN_INTERTIDAL_COLOR;
+		}else if(allXSHaveNoPoints) {
+			returnColor = NO_POINTS_COLOR;
+		}else {
+			returnColor = NO_ISSUES_COLOR;
+		}
+		return returnColor;
+	}//getCenterlineColor
+
+	/*
+	 * returns a color to use for xsect line.
+	 */
+	private Color getXsectColor(Xsect xsect) {
+		boolean hasNoPoints = xsect.hasNoPoints();
+		boolean negDkInIntertidal = xsect.hasNegDConveyanceInIntertidalZone();
+		boolean duplicateStations = !xsect.allUniqueStations();
+		
+		Color returnColor = null;
+		if(hasNoPoints) {
+			returnColor = NO_POINTS_COLOR;
+		}else if(negDkInIntertidal && ! duplicateStations) {
+			returnColor = NEG_DK_IN_INTERTIDAL_COLOR;
+		}else if(!negDkInIntertidal && duplicateStations) {
+			returnColor = DUPLICATE_STATIONS_COLOR;
+		}else if(negDkInIntertidal && duplicateStations) {
+			returnColor = DUP_STN_AND_NEG_DK_IN_INTERTIDAL_COLOR;
+		}else {
+			returnColor = NO_ISSUES_COLOR;
+		}
+		return returnColor;
+	}//getXsectColor
+	
 	/**
 	 * Plot network data, top view.
 	 */
@@ -108,6 +217,11 @@ public class NetworkPlot extends PlanViewPlot {
 				System.out.println("networkplot: numcenterlines=" + _net.getNumCenterlines());
 			centerlineName = _net.getCenterlineName(c);
 			centerline = _net.getCenterline(centerlineName);
+
+			if(CsdpFunctions.NETWORK_COLORING) {
+				Color centerlineColor = getCenterlineColor(centerline);
+				g.setColor(centerlineColor);
+			}			
 			// plot centerline
 			if (DEBUG)
 				System.out.println("centerlineName, centerline object=" + centerlineName + "," + centerline);
@@ -156,7 +270,6 @@ public class NetworkPlot extends PlanViewPlot {
 				if (DEBUG)
 					System.out.println("centerline: x1,y1,x2,y2(pixels)=" + _x1Pixels + "," + _y1Pixels + " "
 							+ _x2Pixels + "," + _y2Pixels);
-
 				g.drawLine((int) _x1Pixels, (int) _y1Pixels, (int) _x2Pixels, (int) _y2Pixels);
 			} // for p
 				// draw squares on points if centerline is selected
@@ -200,6 +313,10 @@ public class NetworkPlot extends PlanViewPlot {
 				// plot xsect line
 			for (int xs = 0; xs <= centerline.getNumXsects() - 1; xs++) {
 				xsect = centerline.getXsect(xs);
+				if(CsdpFunctions.NETWORK_COLORING) {
+					Color xsColor = getXsectColor(xsect);
+					g.setColor(xsColor);
+				}
 				// xy=findXsectLineCoord(centerline, xsect, xs);
 				if (DEBUG)
 					System.out.println("number of xsect = " + centerline.getNumXsects());
@@ -255,14 +372,4 @@ public class NetworkPlot extends PlanViewPlot {
 		} // for c
 	}// plot
 
-//	protected static final int NETWORK_SELECTION_POINT_DIMENSION = 1;// size of displayed data point
-												// (square)
-	protected double _x1Pixels; // coordinates of centerline points converted to
-								// pixels
-	protected double _y1Pixels;
-	protected double _x2Pixels;
-	protected double _y2Pixels;
-	Network _net = null;
-	protected static int NETWORK_SELECTION_POINT_DIMENSION = 4;
-	protected static final boolean DEBUG = false;
 } // class NetworkPlot

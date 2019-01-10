@@ -2,7 +2,6 @@ package DWR.CSDP;
 import java.io.*;
 import java.util.Vector;
 
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 

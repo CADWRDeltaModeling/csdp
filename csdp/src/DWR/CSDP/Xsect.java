@@ -230,7 +230,7 @@ public class Xsect {
 	 */
 	public double getAreaSqft(double elevation) {
 		//the new way 10/16/2018, based on trapezoidal calculation
-		double[] allUniqueElevations = getUniqueElevations();
+		double[] allUniqueElevations = getSortedUniqueElevations();
 		//find index of highest layer that is below elevation
 		int lastLayerIndex = 0;
 		double lastLayerArea = 0.0;
@@ -395,7 +395,7 @@ public class Xsect {
 	 */
 	public String getNegativeDConveyanceReport() {
 		String returnString = "";
-		double[] elevations = getUniqueElevations();
+		double[] elevations = getSortedUniqueElevations();
 		
 		double[] dConveyanceArray = getDConveyanceValues();
 		boolean returnValue = false;
@@ -417,7 +417,7 @@ public class Xsect {
 	 * Calculates dConveyance for all layers; returns array.
 	 */
 	public double[] getDConveyanceValues() {
-		double[] elevations = getUniqueElevations();
+		double[] elevations = getSortedUniqueElevations();
 		double[] returnValues = new double[elevations.length];
 		if(elevations.length>0) {
 			//set dConveyance at bottom to zero
@@ -440,8 +440,35 @@ public class Xsect {
 		return returnValues;
 	}//getDConveyanceTable
 
+	public boolean hasNoPoints() {
+		boolean returnValue = false;
+		if(getNumPoints()<=0) {
+			returnValue = true;
+		}
+		return returnValue;
+	}
+	
+	/*
+	 * returns true if any layer has negative dConveyance and is in the specified intertidal zone
+	 */
+	public boolean hasNegDConveyanceInIntertidalZone() {
+		boolean returnValue = false;
+		if(getNumPoints()>0) {
+			double[] dConveyanceValues = getDConveyanceValues();
+			double[] elevations = getSortedUniqueElevations();
+			for(int j=0; j<dConveyanceValues.length; j++) {
+				double dk = dConveyanceValues[j];
+				if(dk<0.0 && elevations[j]>=CsdpFunctions.INTERTIDAL_LOW_TIDE && elevations[j]<=CsdpFunctions.INTERTIDAL_HIGH_TIDE) {
+					returnValue = true;
+					break;
+				}
+			}
+		}
+		return returnValue;
+	}//hasNegDConveyanceInIntertidalZone
+	
 	public double[] getAreaValues() {
-		double[] elevations = getUniqueElevations();
+		double[] elevations = getSortedUniqueElevations();
 		double[] returnValues = new double[elevations.length];
 		if(elevations.length>0) {
 			returnValues[0] = 0.0;
@@ -453,7 +480,7 @@ public class Xsect {
 	}//getAreaValues
 
 	public double[] getWidthValues() {
-		double[] elevations = getUniqueElevations();
+		double[] elevations = getSortedUniqueElevations();
 		double[] returnValues = new double[elevations.length];
 		if(elevations.length>0) {
 			returnValues[0] = 0.0;
@@ -465,7 +492,7 @@ public class Xsect {
 	}//getAreaValues
 
 	public double[] getWetPValues() {
-		double[] elevations = getUniqueElevations();
+		double[] elevations = getSortedUniqueElevations();
 		double[] returnValues = new double[elevations.length];
 		if(elevations.length>0) {
 			//set dConveyance at bottom to zero
@@ -477,10 +504,20 @@ public class Xsect {
 		return returnValues;
 	}//getWetPValues
 	
-	/**
-	 * returns array of all unique elevations in the cross-section
+	/*
+	 * Returns an elevation at a specified percentage from the bottom
 	 */
-	public double[] getUniqueElevations() {
+	public double getElevationAtFraction(double fractionFromBottom) {
+		double[] allElevations = getSortedUniqueElevations();
+		double minElev = allElevations[0];
+		double maxElev = allElevations[allElevations.length-1];
+		return minElev + fractionFromBottom * (maxElev-minElev);
+	}
+	
+	/**
+	 * returns sorted array of all unique elevations in the cross-section
+	 */
+	public double[] getSortedUniqueElevations() {
 		double elev = 0.0;
 		double[] ue = new double[getNumPoints()];
 		double leftElevation = Double.MAX_VALUE;

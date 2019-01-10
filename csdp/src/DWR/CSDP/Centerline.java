@@ -41,6 +41,7 @@
 package DWR.CSDP;
 
 import java.awt.Rectangle;
+import java.util.HashSet;
 import java.util.Vector;
 
 /**
@@ -985,6 +986,19 @@ public class Centerline {
 	}//getMaxAreaRatio
 
 	/*
+	 * Return the highest bottom elevation of all the cross-sections in the channel.
+	 */
+	public double getHighestBottomElevation() {
+		double returnValue = -Double.MAX_VALUE;
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			double minElev = xsect.getMinimumElevationFeet();
+			returnValue = Math.max(returnValue, minElev);
+		}
+		return returnValue;
+	}
+	
+	/*
 	 * Returns an array of cross-section indices of the cross-sections with min and max areas at specified elevation
 	 */
 	public int[] getMinMaxAreaXsectIndices() {
@@ -1053,16 +1067,8 @@ public class Centerline {
 		Vector<Integer> returnValues = new Vector<Integer>();
 		for(int i=0; i<getNumXsects(); i++) {
 			Xsect xsect = getXsect(i);
-			if(xsect.getNumPoints()>0) {
-				double[] dConveyanceValues = xsect.getDConveyanceValues();
-				double[] elevations = xsect.getUniqueElevations();
-				for(int j=0; j<dConveyanceValues.length; j++) {
-					double dk = dConveyanceValues[j];
-					if(dk<0.0 && elevations[j]>CsdpFunctions.INTERTIDAL_LOW_TIDE && elevations[j]<CsdpFunctions.INTERTIDAL_HIGH_TIDE) {
-						returnValues.addElement(i);
-						break;
-					}
-				}
+			if(xsect.hasNegDConveyanceInIntertidalZone()) {
+				returnValues.addElement(i);
 			}
 		}
 		return returnValues;
@@ -1075,15 +1081,75 @@ public class Centerline {
 		Vector<Integer> returnValues = new Vector<Integer>();
 		for(int i=0; i<getNumXsects(); i++) {
 			Xsect xsect = getXsect(i);
-			int numPoints = xsect.getNumPoints();
-			if(numPoints==0) {
+			if(xsect.hasNoPoints()) {
 				returnValues.addElement(i);
 			}
 		}
 		return returnValues;
 	}
 
+	/*
+	 * Returns vector containing indices of all cross-sections that are within specified distance of another cross-section.
+	 */
+	public HashSet<Integer> getXSWithinSpecifiedDistanceIndices(double specifiedDistance) {
+		HashSet<Integer> returnValues = new HashSet<Integer>(); 
+		double[] distances = new double[getNumXsects()];
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			double distanceAlong = xsect.getDistAlongCenterlineFeet();
+			distances[i] = distanceAlong;  
+		}
+
+		for(int i=0; i<distances.length-1; i++) {
+			double distanceToNext = distances[i+1]-distances[i];
+			if(distanceToNext<specifiedDistance) {
+				returnValues.add(i);
+				returnValues.add(i+1);
+			}
+		}
+		return returnValues;
+	}//getXSWithinSpecifiedDistanceIndices
+
 	
+	/*
+	 * Returns true if all xs have no points
+	 */
+	public boolean allXSHaveNoPoints() {
+		boolean returnValue = true;
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			if(!xsect.hasNoPoints()) {
+				returnValue = false;
+				break;
+			}
+		}
+		return returnValue;
+	}//allXSHaveNoPoints
+
+	public boolean anyXSHaveNegDKInIntertidal() {
+		boolean returnValue = false;
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			if(xsect.hasNegDConveyanceInIntertidalZone()) {
+				returnValue = true;
+				break;
+			}
+		}
+		return returnValue;
+	}
+	
+	public boolean anyXSHaveDuplicateStations() {
+		boolean returnValue = false;
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			if(!xsect.allUniqueStations()) {
+				returnValue = true;
+				break;
+			}
+		}
+		return returnValue;
+	}
+
 	private int _numCenterlinePoints;
 	private Vector _centerlinePoints = new Vector();
 	private Vector _xsects = new Vector();

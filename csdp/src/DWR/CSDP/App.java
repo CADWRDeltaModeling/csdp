@@ -41,14 +41,19 @@
 package DWR.CSDP;
 
 import java.io.File;
+import java.util.AbstractCollection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import org.python.modules.math;
+
+import COM.objectspace.jgl.InputIterator;
 import DWR.CSDP.XsectBathymetryData;
 import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.MessageDialog;
@@ -666,6 +671,9 @@ public class App {
 		return success;
 	}// nSaveAs
 
+	/*
+	 * Export network to WKT format for importing into GIS 
+	 */
 	public boolean nExportToWKT(Network net, String directory, String filename) {
 		AsciiFileWriter afw = new AsciiFileWriter(_csdpFrame, directory+File.separator+filename);
 		afw.writeLine("id;wkt");
@@ -695,6 +703,9 @@ public class App {
 		return success;
 	}//nExportToWKT
 
+	/*
+	 * Export landmark to WKT format for importing into GIS 
+	 */
 	public boolean lExportToWKT(Landmark landmark, String directory, String filename) {
 		AsciiFileWriter afw = new AsciiFileWriter(_csdpFrame, directory+File.separator+filename);
 		afw.writeLine("id;wkt");
@@ -820,6 +831,24 @@ public class App {
 	// }//for j
 	// }//nCalculate
 	
+	public void setDSMChannels(String directory, String filename) {
+		boolean updateDsmChannels = false;
+		if(CsdpFunctions.getDSMChannelsDirectory() != null && CsdpFunctions.getDSMChannelsFilename()!=null) { 
+			if(!CsdpFunctions.getDSMChannelsDirectory().equals(directory) || 
+					!CsdpFunctions.getDSMChannelsFilename().equals(filename)) {
+				updateDsmChannels = true;
+			}
+		}else {
+			updateDsmChannels = true;
+		}
+		if(updateDsmChannels) {
+			_DSMChannels = chanReadStore(directory, filename);
+			CsdpFunctions.setDSMChannelsDirectory(directory);
+			CsdpFunctions.setDSMChannelsFilename(filename);
+			
+		}
+	}
+	
 	public DSMChannels getDSMChannels() {
 		if(_DSMChannels == null) {
 			String[] directoryFilename = CsdpFunctions.selectFilePath(_csdpFrame, "Open DSM2 channel connectivity file (channels.inp)", new String[]{"inp"});
@@ -852,14 +881,18 @@ public class App {
 				+ "3. (If hof file specified) Volume, wetted area, and surface area using Virtual cross-sections (which are calculated using inter-channel interpolation<BR>"
 				+ "4. The maximum ratio of CSDP cross-sectional areas within the channel<BR>"
 				+ "5. (If hof file specified) The maximum ratio of Virtual cross-sectional areas within the channel<BR>"
-				+ "6. The indices of the CSDP cross-sections containing no points<BR>"
-				+ "7. The index of the CSDP cross-section with the minimum area<BR>"
-				+ "8. The index of the CSDP cross-section with the maximum area<BR>"
-				+ "9. The indices of all CSDP cross-sections with duplicate station values<BR>"
-				+ "10. The indices of all CSDP cross-sections with negative dConveyance anywhere in the cross-section<BR>"
-				+ "11. The indices of all CSDP cross-sections with negatvie dConveyance in the intertidal zone, defined as -2.5 ft < Z < 17.5 ft (NAVD88)</font><BR><BR>"
+				+ "6. Highest bottom elevation in the channel<BR>"
+				+ "7. The indices of the CSDP cross-sections containing no points<BR>"
+				+ "8. The indices of the CSDP cross-sections that are within "+CsdpFunctions.MAXIMUM_SUGGESTED_XS_SPACING+
+				" feet of each other<BR>"
+				+ "9. The index of the CSDP cross-section with the minimum area<BR>"
+				+ "10. The index of the CSDP cross-section with the maximum area<BR>"
+				+ "11. The indices of all CSDP cross-sections with duplicate station values<BR>"
+				+ "12. The indices of all CSDP cross-sections with negative dConveyance anywhere in the cross-section<BR>"
+				+ "13. The indices of all CSDP cross-sections with negative dConveyance in the intertidal zone, defined as -2.5 ft < Z < 17.5 ft (NAVD88)</font><BR><BR>"
 				+ "<H2>Output will be written to a tab delimited .txt file, which can be imported into Excel<H2><BR></BODY></HTML>";
 
+		//Create dialog to get input from user.
 		String[] names = new String[] {"Channels.inp file", "DSM2 output (.hof) file", "Output file (tab delimited .txt)"};
 		String[] defaultValues = new String[3];
 		if(CsdpFunctions.getDSMChannelsDirectory()!=null && CsdpFunctions.getDSMChannelsFilename()!=null) {
@@ -880,6 +913,7 @@ public class App {
 		DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, title, instructions, names, defaultValues, dataTypes, disableIfNull, 
 				extensions, tooltips, true);
 		int response = dataEntryDialog.getResponse();
+		//done creating dialog. Now get input from the dialog and create report.
 		if(response==DataEntryDialog.OK) {
 			File dsm2ChannelsDirectory = dataEntryDialog.getDirectory(names[0]);
 			String dsm2ChannelsFilename = dataEntryDialog.getFilename(names[0]);
@@ -927,10 +961,10 @@ public class App {
 			reportText.addElement("");
 			reportText.addElement("Channels.inp length: length specified for DSM2 in the DSM2 channels file above.");
 			reportText.addElement("CSDP length: length calculated by the CSDP that will be used to replace the 'Channels.inp length'.");
-			reportText.addElement("% change: the change in length, CSDP vs Channels.inp");
-			reportText.addElement("CSDP Volume: Channel volume calculated by CSDP for specified elevation, assuming no inter-channel interpolation.");		
-			reportText.addElement("CSDP Wetted Area: Wetted area calculated by CSDP for specified elevation, assuming no inter-channel interpolation.");
-			reportText.addElement("CSDP Surface Area: Surface area calculated by CSDP for specified elevation, assuming no inter-channel interpolation.");
+			reportText.addElement("% change: the change in length CSDP vs Channels.inp");
+			reportText.addElement("CSDP Volume: Channel volume calculated by CSDP for specified elevation assuming no inter-channel interpolation.");		
+			reportText.addElement("CSDP Wetted Area: Wetted area calculated by CSDP for specified elevation assuming no inter-channel interpolation.");
+			reportText.addElement("CSDP Surface Area: Surface area calculated by CSDP for specified elevation assuming no inter-channel interpolation.");
 			if(dsm2HofFileSpecified) {
 				reportText.addElement("DSM2 Volume: Channel volume calculated at specified elevation using virtual cross-sections from DSM2 output file");
 				reportText.addElement("DSM2 Wetted Area: Wetted area calculated at specified elevation using virtual cross-sections from DSM2 output file");
@@ -940,13 +974,17 @@ public class App {
 			if(dsm2HofFileSpecified) {
 				reportText.addElement("DSM2 Max Area Ratio: The maximum ratio of cross-sectional areas within a channel using virtual cross-sections");
 			}
+			reportText.addElement("CSDP highest bottom elevation: The highest bottom elevation of all the cross-sections within the chanenl.");
 			reportText.addElement("CSDP XS with no points: The indices of the cross-sections in the channel that have no points.");
+			reportText.addElement("CSDP XS within "+CsdpFunctions.MAXIMUM_SUGGESTED_XS_SPACING+
+					" feet: The indices of the cross-sections in the channel that are within "+
+					CsdpFunctions.MAXIMUM_SUGGESTED_XS_SPACING+" feet of each other.");
 			reportText.addElement("CSDP XS with Min area: The index of the cross-section in the channel that has the smallest area at the specified elevation");
 			reportText.addElement("CSDP XS with Max area: The index of the cross-section in the channel that has the largest area at the specified elevation");
 			reportText.addElement("CSDP XS with duplicate stations: The indices of the cross-sections in the channel that have duplicate station values.");
 			reportText.addElement("CSDP XS with -dK: The indices of the cross-sections in the channel that have negative dConveyance at any elevation.");
 			reportText.addElement("CSDP XS with -dK in intertidal zone: the indices of the cross-sections in the channel that have negative dConveyance in the intertidal zone.");
-			reportText.addElement("(intertidal zone is assumed to be limited to the range "+CsdpFunctions.INTERTIDAL_LOW_TIDE+" < Z < "+CsdpFunctions.INTERTIDAL_HIGH_TIDE+" ft, NAVD88)");
+			reportText.addElement("(intertidal zone is assumed to be limited to the range "+CsdpFunctions.INTERTIDAL_LOW_TIDE+" < Z < "+CsdpFunctions.INTERTIDAL_HIGH_TIDE+" ft NAVD88)");
 			reportText.addElement("");
 
 			if(dsm2HofFileSpecified) {
@@ -962,7 +1000,9 @@ public class App {
 						+ "DSM2 Surface Area\t"
 						+ "CSDP Max Area Ratio\t"
 						+ "DSM2 Max Area Ratio\t"
+						+ "CSDP Highest Bottom Elevation\t"
 						+ "CSDP XS with no points\t"
+						+ "CSDP XS within "+CsdpFunctions.MAXIMUM_SUGGESTED_XS_SPACING+" feet\t"
 						+ "CSDP XS with Min area\t"
 						+ "CSDP XS with Max area\t"
 						+ "CSDP XS with duplicate stations\t"
@@ -977,7 +1017,9 @@ public class App {
 						+ "CSDP Wetted Area\t"
 						+ "CSDP Surface Area\t"
 						+ "CSDP Max Area Ratio\t"
+						+ "CSDP Highest Bottom Elevation\t"
 						+ "CSDP XS with no points\t"
+						+ "CSDP XS within "+CsdpFunctions.MAXIMUM_SUGGESTED_XS_SPACING+" feet\t"
 						+ "CSDP XS with Min area\t"
 						+ "CSDP XS with Max area\t"
 						+ "CSDP XS with duplicate stations\t"
@@ -1018,7 +1060,9 @@ public class App {
 					dsm2MaxAreaRatio = chanToMaxAreaRatio.get(chan);
 				}
 				double csdpMaxAreaRatio = -Double.MAX_VALUE;
+				double csdpHighestBottomElev = -Double.MAX_VALUE;
 				Vector<Integer> csdpXsWithNoPoints = null;
+				HashSet<Integer> csdpXsWithinSpecifiedDistanceHashSet = null;
 				int csdpXSWithMinArea = -Integer.MAX_VALUE;
 				int csdpXSWithMaxArea = -Integer.MAX_VALUE;
 				Vector<Integer> csdpXsWithDuplicateStations = null;
@@ -1026,7 +1070,9 @@ public class App {
 				Vector<Integer> csdpXSWithNegDKInIntertidal = null;
 				if(centerline!=null) {
 					csdpMaxAreaRatio = centerline.getMaxAreaRatio();
+					csdpHighestBottomElev = centerline.getHighestBottomElevation();
 					csdpXsWithNoPoints = centerline.getXSWithNoPointsIndices();
+					csdpXsWithinSpecifiedDistanceHashSet = centerline.getXSWithinSpecifiedDistanceIndices(CsdpFunctions.MAXIMUM_SUGGESTED_XS_SPACING);
 					int[] minMaxAreaIndices = centerline.getMinMaxAreaXsectIndices();
 					csdpXSWithMinArea = minMaxAreaIndices[0];
 					csdpXSWithMaxArea = minMaxAreaIndices[1];
@@ -1055,10 +1101,12 @@ public class App {
 				String dsm2SurfAreaString = String.format("%.1f", dsm2SurfArea);
 				String csdpMaxAreaRatioString = String.format("%.2f", csdpMaxAreaRatio);
 				String dsm2MaxAreaRatioString = String.format("%.2f", dsm2MaxAreaRatio);
-				String csdpXsWithNoPointsString = vectorToString(csdpXsWithNoPoints);
-				String csdpXsWithDuplicateStationsString = vectorToString(csdpXsWithDuplicateStations);
-				String csdpXsWithNegDKString = vectorToString(csdpXSWithNegDK);
-				String csdpXsWithNegDKInIntertidalString = vectorToString(csdpXSWithNegDKInIntertidal);
+				String csdpHighestBottomElevString = String.format("%.2f", csdpHighestBottomElev);
+				String csdpXsWithNoPointsString = abstractCollectionToString(csdpXsWithNoPoints);
+				String csdpXsWithinSpecifiedDistanceString = abstractCollectionToString(csdpXsWithinSpecifiedDistanceHashSet);
+				String csdpXsWithDuplicateStationsString = abstractCollectionToString(csdpXsWithDuplicateStations);
+				String csdpXsWithNegDKString = abstractCollectionToString(csdpXSWithNegDK);
+				String csdpXsWithNegDKInIntertidalString = abstractCollectionToString(csdpXSWithNegDKInIntertidal);
 				
 				if(dsm2HofFileSpecified) {
 					if(centerline==null) {
@@ -1069,7 +1117,9 @@ public class App {
 						csdpSurfaceAreaString = na;
 
 						csdpMaxAreaRatioString = na;
+						csdpHighestBottomElevString = na;
 						csdpXsWithNoPointsString = na;
+						csdpXsWithinSpecifiedDistanceString = na;
 						csdpXSWithMinAreaString = na;
 						csdpXSWithMaxAreaString = na;
 						csdpXsWithDuplicateStationsString = na;
@@ -1079,8 +1129,8 @@ public class App {
 					reportText.addElement(chan+"\t"+channelsInpLength+"\t"+csdpChanLengthString+"\t"+
 							percentLengthChangeString+"\t"+csdpVolumeString+"\t"+csdpWettedAreaString+"\t"+
 							csdpSurfaceAreaString+"\t"+dsm2VolString+"\t"+dsm2WetAreaString+"\t"+dsm2SurfAreaString+"\t"+
-							csdpMaxAreaRatioString+"\t"+dsm2MaxAreaRatioString+"\t"+
-							csdpXsWithNoPointsString+"\t"+csdpXSWithMinAreaString+"\t"+
+							csdpMaxAreaRatioString+"\t"+dsm2MaxAreaRatioString+"\t"+csdpHighestBottomElevString+"\t"+
+							csdpXsWithNoPointsString+"\t"+csdpXsWithinSpecifiedDistanceString+"\t"+csdpXSWithMinAreaString+"\t"+
 							csdpXSWithMaxAreaString+"\t"+csdpXsWithDuplicateStationsString+"\t"+
 							csdpXsWithNegDKString+"\t"+csdpXsWithNegDKInIntertidalString);
 				}else {
@@ -1093,7 +1143,9 @@ public class App {
 						csdpSurfaceAreaString = na;
 
 						csdpMaxAreaRatioString = na;
+						csdpHighestBottomElevString = na;
 						csdpXsWithNoPointsString = na;
+						csdpXsWithinSpecifiedDistanceString = na;
 						csdpXSWithMinAreaString = na;
 						csdpXSWithMaxAreaString = na;
 						csdpXsWithDuplicateStationsString = na;
@@ -1104,8 +1156,8 @@ public class App {
 					reportText.addElement(chan+"\t"+channelsInpLength+"\t"+csdpChanLengthString+"\t"+
 							percentLengthChangeString+"\t"+csdpVolumeString+"\t"+csdpWettedAreaString+"\t"+
 							csdpSurfaceAreaString+"\t"+
-							csdpMaxAreaRatioString+"\t"+
-							csdpXsWithNoPointsString+"\t"+csdpXSWithMinAreaString+"\t"+
+							csdpMaxAreaRatioString+"\t"+csdpHighestBottomElevString+"\t"+
+							csdpXsWithNoPointsString+"\t"+csdpXsWithinSpecifiedDistanceString+"\t"+csdpXSWithMinAreaString+"\t"+
 							csdpXSWithMaxAreaString+"\t"+csdpXsWithDuplicateStationsString+"\t"+
 							csdpXsWithNegDKString+"\t"+csdpXsWithNegDKInIntertidalString);
 					
@@ -1124,17 +1176,21 @@ public class App {
 	}//createNetworkSummaryReport
 	
 	/*
-	 * creates a string representation of a vector of integer values 
+	 * creates a string representation of a Vector or HashSet of integer values 
+	 * i.e. 1-2-56
 	 */
-	private String vectorToString(Vector<Integer> vector) {
+	private String abstractCollectionToString(AbstractCollection<Integer> vector) {
 		String returnValue = "";
 		int index=0;
 		if(vector!=null && vector.size()>0) {
-			for(int i=0; i<vector.size(); i++) {
+			Iterator<Integer> iterator = vector.iterator(); 
+			while(iterator.hasNext()) {
+			//			for(int i=0; i<vector.size(); i++) {
 				if(index>0) {
 					returnValue += ",";
 				}
-				returnValue += String.valueOf(vector.get(i));
+//				returnValue += String.valueOf(vector.get(i));
+				returnValue += String.valueOf(iterator.next());
 				index++;
 			}
 		}
@@ -1178,9 +1234,11 @@ public class App {
 	
 	/*
 	 * Create DSM2 Input file with channel and irregular cross-section information
+	 * optionally replace manning's n with constant value--perhaps useful for geometry updates.
 	 */
-	public void nCalculateDSM2V8Format(String fullPath) {
-		AsciiFileWriter afw = new AsciiFileWriter(_csdpFrame, fullPath);
+	public void nCalculateDSM2V8Format(String channelsInputDirectory, String channelsInputFilename, 
+			String outputChannelsPath, boolean replaceManningsN, double manningsNReplacementValue) {
+		AsciiFileWriter afw = new AsciiFileWriter(_csdpFrame, outputChannelsPath);
 		
 		String filename = null;
 		String centerlineName = null;
@@ -1190,7 +1248,7 @@ public class App {
 		double distAlongCenterline;
 		double normalizedDist;
 
-		getDSMChannels();
+		setDSMChannels(channelsInputDirectory, channelsInputFilename);
 		
 		afw.writeLine("#Created automatically by CSDP, using CSDP channel lengths");
 		afw.writeLine("CHANNEL");
@@ -1206,10 +1264,16 @@ public class App {
 			centerlineName = _net.getCenterlineName(i);
 			centerline = _net.getCenterline(centerlineName);
 			length = centerline.getLengthFeet();
+			String manning = null;
+			if(replaceManningsN) {
+				manning = String.format("%-10s", manningsNReplacementValue);
+			}else {
+				manning = String.format("%-10s", _DSMChannels.getManning(centerlineName)); 
+			}
 			String lineToWrite = 
 					String.format("%-9s", centerlineName) + 
 					String.format("%-8.0f", length) + 
-					String.format("%-10s", _DSMChannels.getManning(centerlineName)) + 
+					manning + 
 					String.format("%-12s", _DSMChannels.getDispersion(centerlineName)) +
 					String.format("%-8d", _DSMChannels.getUpnode(centerlineName))+
 					String.format("%-8d", _DSMChannels.getDownnode(centerlineName));
@@ -1224,10 +1288,17 @@ public class App {
 			}
 			String chan = _DSMChannels.getChanNum(i);
 			if(!_net.centerlineExists(chan)) {
+				String manning = null;
+				if(replaceManningsN) {
+					manning = String.format("%-10s", manningsNReplacementValue);
+				}else {
+					manning = String.format("%-10s", _DSMChannels.getManning(chan)); 
+				}
+
 				String channelDataLine = 
 					String.format("%-9s", chan) + 
 					String.format("%-8d", _DSMChannels.getLength(chan)) + 
-					String.format("%-10s", _DSMChannels.getManning(chan)) + 
+					manning + 
 					String.format("%-12s", _DSMChannels.getDispersion(chan)) +
 					String.format("%-8d", _DSMChannels.getUpnode(chan))+
 					String.format("%-8d", _DSMChannels.getDownnode(chan));
@@ -1251,7 +1322,7 @@ public class App {
 				if(xsect.getNumPoints()>0) {
 					distAlongCenterline = xsect.getDistAlongCenterlineFeet();
 					normalizedDist = distAlongCenterline / length;
-					double[] elevations = xsect.getUniqueElevations();
+					double[] elevations = xsect.getSortedUniqueElevations();
 					//remove elevations if within .01 feet of another layer
 					double[] goodElevations = removeCloseElevations(elevations);
 
@@ -1286,7 +1357,7 @@ public class App {
 			String xsectLayerID = _DSMChannels.getXsectLayerID(i);
 			String[] xliParts = xsectLayerID.split("_");
 			String chan = xliParts[0];
-			System.out.println("xsectLayerID, chan="+xsectLayerID+","+chan);
+//			System.out.println("xsectLayerID, chan="+xsectLayerID+","+chan);
 			//if the network does not contain a centerline with the given name AND there are no cross-sections with points.
 			if(!_net.centerlineExists(chan) || _net.getCenterline(chan).getNumXsectsWithPoints()<=0) {
 				String xsectDataLine = 
@@ -1491,6 +1562,11 @@ public class App {
 		}
 	}// viewXsect
 
+	public void repaintNetwork() {
+		_csdpFrame.getPlanViewCanvas(0).setUpdateCanvas(true);
+		_csdpFrame.getPlanViewCanvas(0).repaint();
+	}
+	
 	/**
 	 * If name exists in XsectGraph array, then rename...store first...
 	 */

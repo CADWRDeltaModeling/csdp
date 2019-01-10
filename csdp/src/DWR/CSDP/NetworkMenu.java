@@ -37,9 +37,16 @@
     chung@water.ca.gov
 
     or see our home page: http://wwwdelmod.water.ca.gov/
-*/
+ */
 package DWR.CSDP;
 
+import static org.junit.Assert.assertNotNull;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -50,12 +57,16 @@ import java.util.HashSet;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
+
+import org.jfree.ui.LengthAdjustmentType;
 
 import DWR.CSDP.dialog.CenterlineSummaryWindow;
 import DWR.CSDP.dialog.DataEntryDialog;
+import DWR.CSDP.dialog.DialogLegendFactory;
 import DWR.CSDP.dialog.FileIO;
 import DWR.CSDP.dialog.FileSave;
-import DWR.CSDP.dialog.OkDialog;
 
 public class NetworkMenu {
 
@@ -337,8 +348,8 @@ public class NetworkMenu {
 		}// getFilename
 	}//class NExportToWKTFormat
 
-	
-	
+
+
 	/**
 	 * Save network file As
 	 *
@@ -347,7 +358,7 @@ public class NetworkMenu {
 	 */
 	public class NSaveSpecifiedChannelsAs implements ActionListener {
 		CsdpFrame _csdpFrame;
-		
+
 		public NSaveSpecifiedChannelsAs(CsdpFrame gui) {
 			_csdpFrame = gui;
 		}
@@ -364,7 +375,7 @@ public class NetworkMenu {
 			String title = "Write specified centerlines to a network file.";
 			String[] tooltips = new String[] {"Specify a network filename for output. If file exists, will overwrite.", 
 					"Enter a list of channel numbers. Can be space, tab, or comma delimited", 
-					"Check box if you want to export all channels EXCEPT those with the specified numbers."};
+			"Check box if you want to export all channels EXCEPT those with the specified numbers."};
 			boolean[] disableIfNull = new boolean[] {true, true, false};
 			String[] extensions = new String[]{"cdn", null, null};
 			String[] names = new String[] {"New Network Filename", "Channel Numbers", "Don't export specified channels"};
@@ -376,7 +387,7 @@ public class NetworkMenu {
 			if(response==DataEntryDialog.OK) {
 				File newNetworkDirectory = exportChannelsDialog.getDirectory(names[0]);
 				String newNetworkFilename = exportChannelsDialog.getFilename(names[0]);
-				
+
 				String channelNumbers = exportChannelsDialog.getValue(names[1]);
 				String dontExportSpecifiedChannelsString = exportChannelsDialog.getValue(names[2]);
 				boolean dontExportSpecifiedChannels = false;
@@ -387,7 +398,7 @@ public class NetworkMenu {
 				}else {
 					dontExportSpecifiedChannels = false;
 				}
-				
+
 				HashSet<String> channelNumbersHashSet = null;
 				System.out.println("Channel numbers="+channelNumbers);
 				if(channelNumbers.length() >0) {
@@ -554,6 +565,39 @@ public class NetworkMenu {
 	/// }
 	/// } // NClear
 
+	public class NShowNetworkColorLegend implements ActionListener{
+
+		public void actionPerformed(ActionEvent arg0) {
+			Color[] colors = new Color[] {
+					NetworkPlot.NO_POINTS_COLOR, 
+					NetworkPlot.NEG_DK_IN_INTERTIDAL_COLOR,
+					NetworkPlot.DUPLICATE_STATIONS_COLOR, 
+					NetworkPlot.EXCEEDS_MAX_AREA_RATIO_COLOR, 
+					NetworkPlot.DUP_STN_AND_NEG_DK_IN_INTERTIDAL_COLOR, 
+					NetworkPlot.EXCEEDS_MAX_AREA_RATIO_AND_NEG_DK_IN_INTERTIDAL_COLOR, 
+					NetworkPlot.DUP_STN_AND_EXCEEDS_MAX_AREA_RATIO_COLOR,
+					NetworkPlot.DUP_STN_AND_EXCEEDS_MAX_AREA_RATIO_COLOR_AND_NEG_DK_IN_INTERTIDAL_COLOR};
+			String[] text = new String[] {
+					"No Points",
+					"-dK in Intertidal Zone",
+					"Duplicate Station Values",
+					"Exceeds Max Area Ratio",
+					"Duplicate Station Values and -dK in Intertidal Zone",
+					"Exceeds Max Area Ratio & -dK in Intertidal Zone",
+					"Duplicate Station Values & Exceeds Max Area Ratio",
+					"Duplicate Station Values & Exceeds Max Area Ratio & -dK in Intertidal Zone"
+			};
+			String title = "Network Color Legend";
+			JPanel legendPanel = DialogLegendFactory.createLegendPanel(title, colors, text);
+			JFrame legendFrame = new JFrame(title);
+			legendFrame.setLayout(new BorderLayout());
+			legendFrame.getContentPane().add(legendPanel, BorderLayout.NORTH);
+			legendFrame.pack();
+			legendFrame.validate();
+			legendFrame.setVisible(true);
+		}
+	}//class NShowNetworkColorLegend
+
 	public class NDisplayReachSummaryWindow implements ActionListener {
 
 		private CsdpFrame gui;
@@ -561,10 +605,10 @@ public class NetworkMenu {
 		public NDisplayReachSummaryWindow(CsdpFrame gui) {
 			this.gui = gui;
 		}
-		
+
 		public void actionPerformed(ActionEvent arg0) {
 			Network net = gui.getNetwork();
-			
+
 			String names[] = new String[2];
 			String initValue[] = new String[2];
 			names[0] = "Reach Name";
@@ -577,12 +621,12 @@ public class NetworkMenu {
 
 			String instructions = 
 					"<HTML><BODY><B>Display Reach Summary</B><BR>"
-					+ "1. Enter a <B>reach name</B>. This will appear in graph and window titles.<BR><BR>"
-					+ "2. Enter a string that identifies a <B>range of channels</B> that you would like to summarize. The string should only<BR> "
-					+ "consist of numbers separated by commas or hyphens. A range of channel numbers can be specified using two numbers separated <BR>"
-					+ "by a hyphen. Hyphen-separated values can be speficied in reverse order, to reverse the order of display. <BR>"
-					+ "The example below indicates channels 1 through 5, followed by channel 10. This is equivalent to '1,2,3,4,5,10'<BR></font></BODY></HTML>";
-			
+							+ "1. Enter a <B>reach name</B>. This will appear in graph and window titles.<BR><BR>"
+							+ "2. Enter a string that identifies a <B>range of channels</B> that you would like to summarize. The string should only<BR> "
+							+ "consist of numbers separated by commas or hyphens. A range of channel numbers can be specified using two numbers separated <BR>"
+							+ "by a hyphen. Hyphen-separated values can be speficied in reverse order, to reverse the order of display. <BR>"
+							+ "The example below indicates channels 1 through 5, followed by channel 10. This is equivalent to '1,2,3,4,5,10'<BR></font></BODY></HTML>";
+
 			int numFields = 2;
 			DataEntryDialog dataEntryDialog = new DataEntryDialog(gui, "Reach Summary Information", instructions, 
 					names, initValue, dataTypes, disableIfNull, tooltips, true);
@@ -594,7 +638,7 @@ public class NetworkMenu {
 			}
 		}
 	}//inner class DisplayReachSummaryWindow
-	
+
 	/**
 	 * Calculate network file: calculate cross-section properties for all cross-
 	 * sections in network and write to individual ascii files.
@@ -603,42 +647,94 @@ public class NetworkMenu {
 	 * @version $Id: NetworkMenu.java,v 1.3 2003/04/15 19:46:14 btom Exp $
 	 */
 	public class NCalculate implements ActionListener {
-		// FileDialog _fdCalculate;
-		JFileChooser _xsectDirectoryChooser = new JFileChooser();
-		CsdpFrame _gui;
+		CsdpFrame _gui; 
 
 		public NCalculate(CsdpFrame gui) {
 			_gui = gui;
-			// _fdCalculate =
-			// new FileDialog(gui,"Calculate network: select directory for
-			// output files");
-			_xsectDirectoryChooser.setDialogTitle("Calculate network: select directory for output files");
-			_xsectDirectoryChooser.setApproveButtonText("Use this directory");
-			_xsectDirectoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			String filename = null;
-			// _fdCalculate.setVisible(true);
+			String instructions = "<HTML><BODY>"
+					+ "Calculating the network means creating DSM2 input files using the currently loaded network file.<BR><BR>"
+					+ "You must also specify a <B>DSM2 channels file</B> (i.e. 'channel_std_delta_grid_NAVD_20150129.inp'),<BR>"
+					+ "and an <B>directory</B> in which you would like the DSM2 geometry files to be written<BR>"
+					+ "Entering a value for Manning's n will replace all Manning's n values with the specfied value<BR>"
+					+ "You may also create DSM2 geometry files in the pre-DSM2 v8 format. <BR>"
+					+ "You may also create a CSDP landmark file called xsects.cdl, which labels all of the cross-section lines<BR>"
+					+ "in the network<BR>"
+					+ "A landmark file called xsects.cdl, which labels all cross-sections, will also be created in the <BR>"
+					+ "specified output directory."
+					+ "</BODY></HTML>";
+			String[] names = new String[] {"DSM2 Channels File", "Output Directory", "Manning's n replacement", 
+					"Create pre-DSM2 v8 files", "Create xsects.cdl file"};
 
-			String calculateDirectory = null;
-			int filechooserState = -Integer.MAX_VALUE;
+			String defaultChannelsInp = "";
+			File defaultDSMChannelsDirectoryFile = CsdpFunctions.getDSMChannelsDirectory();
+			String defaultDSMChannelsDirectoryString = "";
+			if(defaultDSMChannelsDirectoryFile!=null) {
+				defaultDSMChannelsDirectoryString = defaultDSMChannelsDirectoryFile.toString();
+			}
+			String defaultDSMChannelsFilename = CsdpFunctions.getDSMChannelsFilename();
+			if(defaultDSMChannelsDirectoryFile!=null && defaultDSMChannelsDirectoryString.length()>0 &&
+					defaultDSMChannelsFilename!=null && defaultDSMChannelsFilename.length()>0) {
+				defaultChannelsInp = defaultDSMChannelsDirectoryFile.toString()+File.separator+defaultDSMChannelsFilename;
+			}
+			String defaultNetworkCalculateDirectory = "";
+			if(CsdpFunctions.getNetworkCalculateDirectory()!=null && 
+					CsdpFunctions.getNetworkCalculateDirectory().toString().length()>0) {
+				defaultNetworkCalculateDirectory=CsdpFunctions.getNetworkCalculateDirectory().toString();
+			}
 
-			filechooserState = _xsectDirectoryChooser.showOpenDialog(_gui);
-			if (filechooserState == JFileChooser.APPROVE_OPTION) {
-
-				calculateDirectory = _xsectDirectoryChooser.getCurrentDirectory().getAbsolutePath() + File.separator;
-				calculateDirectory += _xsectDirectoryChooser.getName(_xsectDirectoryChooser.getSelectedFile())
-						+ File.separator;
-
-				System.out.println("calculateDirectory=" + calculateDirectory);
-				_app.nCalculateDSM2V8Format(calculateDirectory+File.separator+"channel_std_delta_grid_from_CSDP_NAVD.inp");
-				// The old calculations. Uncomment these lines to create files in the old format.
-				 _app.nCalculate(calculateDirectory);
-				_app.writeIrregularXsectsInp(calculateDirectory);
-				_app.writeXsectLandmark(calculateDirectory);
-				JOptionPane.showMessageDialog(_gui, "DSM2 input files and xsects.cdl file written.", "Done", JOptionPane.INFORMATION_MESSAGE);
+			String[] defaultValues = new String[] {defaultChannelsInp, defaultNetworkCalculateDirectory, "", "false", "false"};
+			int[] dataTypes = new int[] {
+					DataEntryDialog.FILE_SPECIFICATION_TYPE, 
+					DataEntryDialog.DIRECTORY_SPECIFICATION_TYPE, 
+					DataEntryDialog.NUMERIC_TYPE,
+					DataEntryDialog.BOOLEAN_TYPE,
+					DataEntryDialog.BOOLEAN_TYPE};
+			boolean[] disableIfNull = new boolean[] {true, true, false, true, true};
+			String[] extensions = new String[] {"inp", null, null, null, null};
+			String[] tooltips = new String[] {
+					"A DSM2 channels file, i.e. 'channel_std_delta_grid_NAVD_20150129.inp'",
+					"The directory where you would like the DSM2 geometry files should be written",
+					"Enter a value here if you would like to replace all Manning's n values with the specified value",
+					"Create DSM2 geometry files in the pre-DSM2 v8 format",
+					"Create a CSDP landmark file (xsects.cdl) which labels all of the cross-section lines in the network"
+					};
+			boolean modal = true;
+			int[] numDecimalPlaces = new int[] {0,0,4,0,0};
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, "Calculate Network", instructions, names, 
+					defaultValues, dataTypes, disableIfNull, numDecimalPlaces, 
+					extensions, tooltips, modal);
+			int response = dataEntryDialog.getResponse();
+			if(response==DataEntryDialog.OK) {
+				String channelsDirectory = dataEntryDialog.getDirectory(names[0]).toString();
+				String channelsFilename = dataEntryDialog.getFilename(names[0]);
+				String calculateDirectory = dataEntryDialog.getDirectory(names[1]).toString();
+				calculateDirectory+=File.separator+dataEntryDialog.getFilename(names[1]);
+				CsdpFunctions.setNetworkCalculateDirectory(new File(calculateDirectory));
+				String manningsReplacementString = dataEntryDialog.getValue(names[2]);
+				double manningsReplacementValue = -Double.MAX_VALUE;
+				boolean replaceMannings = false;
+				if(manningsReplacementString!=null && manningsReplacementString.length()>0) {
+					manningsReplacementValue = Double.parseDouble(manningsReplacementString);
+					replaceMannings = true;
+				}
+				boolean calculatePreDsm2V8Files = Boolean.valueOf(dataEntryDialog.getValue(names[3]));
+				boolean createCrossSectionLandmarkFile = Boolean.valueOf(dataEntryDialog.getValue(names[4]));
 				
+				_app.nCalculateDSM2V8Format(channelsDirectory, channelsFilename, calculateDirectory+
+						File.separator+"channel_std_delta_grid_from_CSDP_NAVD.inp", replaceMannings, 
+						manningsReplacementValue);
+				// The old calculations. Uncomment these lines to create files in the old format.
+				if(calculatePreDsm2V8Files) {
+					_app.nCalculate(calculateDirectory);
+					_app.writeIrregularXsectsInp(calculateDirectory);
+				}
+				if(createCrossSectionLandmarkFile) {
+					_app.writeXsectLandmark(calculateDirectory);
+				}
+				JOptionPane.showMessageDialog(_gui, "DSM2 input has been created", "Done", JOptionPane.INFORMATION_MESSAGE);
 			}
 		}// actionPerformed
 	} // NCalculate
@@ -670,7 +766,7 @@ public class NetworkMenu {
 
 		public void actionPerformed(ActionEvent e) {
 			_app.awdSummary(0.0f);
-//			_app.awdSummary(0.292f); // MSL wrt NGVD
+			//			_app.awdSummary(0.292f); // MSL wrt NGVD
 		}// actionPerformed
 	} // NAWDSummary
 
@@ -686,7 +782,7 @@ public class NetworkMenu {
 
 	}//inner class NNetworkSummaryReport
 
-	
+
 	/**
 	 * Check all cross-sections for possible errors (zero area at elevation 0)
 	 * and duplicate station values
@@ -724,7 +820,7 @@ public class NetworkMenu {
 		public NZoomToCenterline(CsdpFrame gui) {
 			_gui = gui;
 		}
-		
+
 		public void actionPerformed(ActionEvent arg0) {
 			// TODO Auto-generated method stub
 			String response = JOptionPane.showInputDialog(_gui, "Enter centerline name", "Zoom to centerline", JOptionPane.OK_CANCEL_OPTION);
@@ -739,7 +835,7 @@ public class NetworkMenu {
 		public NZoomToNode(CsdpFrame gui) {
 			_gui = gui;
 		}
-		
+
 		public void actionPerformed(ActionEvent arg0) {
 			// TODO Auto-generated method stub
 			String response = JOptionPane.showInputDialog(_gui, "Enter node name", "Zoom to node", JOptionPane.OK_CANCEL_OPTION);
@@ -751,7 +847,7 @@ public class NetworkMenu {
 	}
 
 
-	
+
 	//// KEEP THIS CLASS--IT MIGHT BE NEEDED SOMEDAY
 	// // public class NetworkFilenameFilter implements FilenameFilter{
 	// // public boolean accept(File dir, String name){
@@ -785,7 +881,7 @@ public class NetworkMenu {
 	protected static final String _exportWKTFailureMessage = "Failed to export to .wkt!";
 	protected static final String[] _wktExtensions = {"wkt"};
 	protected static final int _numWKTExtensions = 1;
-	
+
 	protected static final String _saveSuccessMessage = "Saved network file";
 	protected static final String _saveFailureMessage = "ERROR:  NETWORK FILE NOT SAVED!";
 	protected static final String _openSuccessMessage = "";
@@ -814,4 +910,5 @@ public class NetworkMenu {
 	CsdpFileFilter _3dNExportFilter;
 
 	int _filechooserState = -Integer.MAX_VALUE;
+
 } // class NetworkMenu

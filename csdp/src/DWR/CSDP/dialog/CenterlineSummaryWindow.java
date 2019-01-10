@@ -43,11 +43,11 @@ package DWR.CSDP.dialog;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.util.DuplicateFormatFlagsException;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComponent;
+import javax.swing.DefaultDesktopManager;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -63,6 +63,7 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.jzy3d.bridge.IFrame;
 
 import DWR.CSDP.Centerline;
 import DWR.CSDP.CsdpFrame;
@@ -85,6 +86,9 @@ public class CenterlineSummaryWindow extends JFrame {
 	private CsdpFrame csdpFrame;
 	private String centerlineNames;
 	
+	/*
+	 * Constructor for single centerline summary window
+	 */
 	public CenterlineSummaryWindow(CsdpFrame csdpFrame, Network network) {
 		super("Summary for Channel "+network.getSelectedCenterlineName());
 		this.chanNumbersVector.addElement(network.getSelectedCenterlineName());
@@ -175,16 +179,22 @@ public class CenterlineSummaryWindow extends JFrame {
     	XYDataset[] widthDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
     	XYDataset[] wetPDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
     	XYDataset[] bottomElevationDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
-    	boolean allCenterlinesExist = true;
+    	boolean displayWindow = true;
     	for(int i=0; i<this.chanNumbersVector.size(); i++) {
     		String centerlineName = this.chanNumbersVector.get(i);
     		if(!this.network.centerlineExists(centerlineName)) {
-    			allCenterlinesExist = false;
-    			JOptionPane.showMessageDialog(this, "Your channel specification contains one or more non-existent centerlines.", "Error", JOptionPane.ERROR_MESSAGE);
+    			this.chanNumbersVector.remove(i);
+    			int response = JOptionPane.showConfirmDialog(this, "Your channel specification contains one or more non-existent centerlines. "
+    					+ "Continue?", "Continue?", JOptionPane.YES_NO_OPTION);
+    			if(response==JOptionPane.YES_OPTION) {
+    				displayWindow = true;
+    			}else {
+    				displayWindow = false;
+    			}
     		}
     	}
 
-    	if(allCenterlinesExist) {
+    	if(displayWindow) {
     		double lengthIncrement = 0.0;
     		for(int i=0; i<this.chanNumbersVector.size(); i++) {
 	    		String centerlineName = this.chanNumbersVector.get(i);
@@ -232,7 +242,7 @@ public class CenterlineSummaryWindow extends JFrame {
 			chartsPanel.add(widthChartPanel);
 			chartsPanel.add(bottomElevationChartPanel);
 
-			//Right Column
+			//Right Column: legend and dconveyance panel
 			JPanel valuesPanel = new JPanel(new BorderLayout());
 			valuesPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
@@ -272,7 +282,8 @@ public class CenterlineSummaryWindow extends JFrame {
 					+ "Volume, Wetted Area, and Surface area are estimates<BR>"
 					+ "assuming no intepolation from adjacent channels,<BR>"
 					+ "an elevation of " + elevation + " in the current datum, and <BR>"
-					+ "linear variation between cross-sections.</html>");
+					+ "linear variation between cross-sections.<BR>"
+					+ "Intertidal Zone: <B>"+CsdpFunctions.INTERTIDAL_LOW_TIDE+"&lt;=Z&lt;="+CsdpFunctions.INTERTIDAL_HIGH_TIDE+"</B></html>");
 			centerlineOrReachSummaryLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 			centerlineOrReachSummaryLabel.setBackground(Color.LIGHT_GRAY);
 			JLabel elevationLabel = new JLabel("Elevation, ft");
@@ -280,11 +291,12 @@ public class CenterlineSummaryWindow extends JFrame {
 			JLabel channelVolumeLabel = new JLabel("Channel Volume, ft3");
 			JLabel channelWettedAreaLabel = new JLabel("Channel Wetted Area, ft2");
 			JLabel channelSurfaceAreaLabel = new JLabel("Channel Surface Area, ft2");
-	
+
 			double length = 0.0;
 			double volume = 0.0;
 			double wettedArea = 0.0;
 			double surfaceArea = 0.0;
+			
 			for(int i=0; i<this.chanNumbersVector.size(); i++) {
 				String centerlineName = this.chanNumbersVector.get(i);
 				Centerline centerline = this.network.getCenterline(centerlineName);
@@ -298,7 +310,7 @@ public class CenterlineSummaryWindow extends JFrame {
 			JLabel volValueLabel = new JLabel(String.format("%,.1f", volume), SwingConstants.RIGHT);
 			JLabel wetAreaValueLabel = new JLabel(String.format("%,.1f", wettedArea), SwingConstants.RIGHT);
 			JLabel surfAreaValueLabel = new JLabel(String.format("%,.1f",surfaceArea), SwingConstants.RIGHT);
-
+			
 			conveyanceCharacteristicsPanel.add(elevationLabel);
 			conveyanceCharacteristicsPanel.add(elevValueLabel);
 			conveyanceCharacteristicsPanel.add(centerlineLengthLabel);

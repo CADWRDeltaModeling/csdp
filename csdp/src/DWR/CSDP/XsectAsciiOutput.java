@@ -118,7 +118,7 @@ public class XsectAsciiOutput extends XsectOutput {
 		} finally {
 		} // catch()
 
-		uniqueElevations = _xsect.getUniqueElevations();
+		uniqueElevations = _xsect.getSortedUniqueElevations();
 		numUnique = _xsect.getNumUniqueElevations();
 
 		// use alternate equation for area--based on lower layer's area and

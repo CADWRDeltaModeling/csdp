@@ -40,11 +40,9 @@ or see our home page: http://wwwdelmod.water.ca.gov/
  */
 package DWR.CSDP.dialog;
 
-import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -81,13 +79,12 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 
-import org.apache.commons.io.filefilter.AndFileFilter;
-
 import DWR.CSDP.CsdpFunctions;
 
 /**
  * dialog with multiple labels and text fields
  * After instantiating, call getResponse to determine which button was clicked.
+ * Instructions panel will help determine dialog width if it contains html tags.
  *
  * @author
  * @version $Id: TextFieldDialog.java,v 1.1 2002/06/12 18:48:38 btom Exp $
@@ -110,6 +107,11 @@ public class DataEntryDialog extends JDialog {
 	 * a text field and a button which will bring up a file selector dialog
 	 */
 	public static final int FILE_SPECIFICATION_TYPE = 40;
+	/*
+	 * Identifies the type of one of the fields in the dialog as directory specification, which will create
+	 * a text field and a button which will bring up a file selector dialog that will only select a directory
+	 */
+	public static final int DIRECTORY_SPECIFICATION_TYPE = 50;
 	/*
 	 * The identifier of the button that was clicked. Will be compared to values above (NUMERIC_TYPE, STRING_TYPE, etc.) to 
 	 * determine which button was clicked to close the dialog
@@ -199,8 +201,10 @@ public class DataEntryDialog extends JDialog {
 				extensions, tooltips, modal);
 	}//constructor
 	
+	
+	
 	/*
-	 * Constructor for String, numeric, and file selectors
+	 * Constructor for String, numeric, boolean, and file selectors
 	 */
 	public DataEntryDialog(JFrame parent, String title, String instructions, String[] names, 
 			String[] defaultValues, int[] dataTypes, boolean[] disableIfNull, int[] numDecimalPlaces, 
@@ -223,24 +227,28 @@ public class DataEntryDialog extends JDialog {
 			String[] extensions, String[] tooltips, boolean modal) {
 		_frame = parent;
 		GridBagLayout layout = new GridBagLayout();
+		GridBagConstraints mainWindowGridBagConstraints = new GridBagConstraints();
+		mainWindowGridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
 		this.disableIfNullHashtable = new Hashtable<String, Boolean>();
 		for(int i=0; i<names.length; i++) {
 			this.disableIfNullHashtable.put(names[i], disableIfNull[i]);
 		}
 		
-		getContentPane().setLayout(new BorderLayout());
-		this.dataEntryPanel = new JPanel(layout);
+		getContentPane().setLayout(layout);
+		
+		GridBagLayout dataEntryPanelLayout = new GridBagLayout();
+		this.dataEntryPanel = new JPanel(dataEntryPanelLayout);
 		this.dataEntryPanel.setBorder(this.blackLineBorder);
-		add(this.dataEntryPanel, BorderLayout.CENTER);
-		int dataEntryPanelHeightPixels = names.length * 75;
-		int dataEntryPanelPreferredWidth = 1000;
-		for(int i=0; i<dataTypes.length; i++) {
-			if(dataTypes[i]==DataEntryDialog.FILE_SPECIFICATION_TYPE) {
-				dataEntryPanelPreferredWidth=1500;
-				break;
-			}
-		}
-		this.dataEntryPanel.setPreferredSize(new Dimension(dataEntryPanelPreferredWidth, dataEntryPanelHeightPixels));
+
+//		int dataEntryPanelHeightPixels = names.length * 75;
+//		int dataEntryPanelPreferredWidth = 1000;
+//		for(int i=0; i<dataTypes.length; i++) {
+//			if(dataTypes[i]==DataEntryDialog.FILE_SPECIFICATION_TYPE) {
+//				dataEntryPanelPreferredWidth=1500;
+//				break;
+//			}
+//		}
+//		this.dataEntryPanel.setPreferredSize(new Dimension(dataEntryPanelPreferredWidth, dataEntryPanelHeightPixels));
 
 		//Add a JTextArea or a JEditorPane (for HTML) displaying instructions
 		JTextComponent instructionsJTC = null;
@@ -286,13 +294,22 @@ public class DataEntryDialog extends JDialog {
 		instructionsAndLegendGridBagConstraints.anchor=GridBagConstraints.PAGE_END;
 		instructionsAndLegendPanel.add(legendPanel, instructionsAndLegendGridBagConstraints);
 		
-		add(instructionsAndLegendPanel, BorderLayout.NORTH);
+//		add(instructionsAndLegendPanel, BorderLayout.NORTH);
+		
+		mainWindowGridBagConstraints.gridx=0;
+		mainWindowGridBagConstraints.gridy=0;
+		getContentPane().add(instructionsAndLegendPanel,  mainWindowGridBagConstraints);
+		mainWindowGridBagConstraints.gridx=0;
+		mainWindowGridBagConstraints.gridy=1;
+		getContentPane().add(this.dataEntryPanel, mainWindowGridBagConstraints);
+
 		
 		//Add the data entry components to the dataEntryPanel
 		for(int i=0; i<names.length; i++) {
 			int numDecimalPlacesInt = -Integer.MAX_VALUE;
 			String extension = null;
 			String tooltip = null;
+			boolean directoryOnly = false;
 			if(numDecimalPlaces!=null) numDecimalPlacesInt = numDecimalPlaces[i];
 			if(extensions!=null) extension = extensions[i];
 			if(tooltips!=null) tooltip = tooltips[i];
@@ -312,7 +329,11 @@ public class DataEntryDialog extends JDialog {
 		cancelButton.addActionListener(cancelListener);
 		bottomButtonPanel.add(cancelButton);
 		addWindowListener(cancelListener);
-		add(bottomButtonPanel, BorderLayout.SOUTH);
+//		add(bottomButtonPanel, BorderLayout.SOUTH);
+
+		mainWindowGridBagConstraints.gridx=0;
+		mainWindowGridBagConstraints.gridy=2;
+		getContentPane().add(bottomButtonPanel, mainWindowGridBagConstraints);
 		validate();
 		pack();
 		doLayout();
@@ -333,7 +354,8 @@ public class DataEntryDialog extends JDialog {
 	 * If boolean, jComponent will be a JCheckbox
 	 * If file specification, jComponent will be a JTextField and a JButton, which will open up a file selector dialog.
 	 */
-	private void addFieldObjects(int index, String name, String defaultValue, int dataType, int numDecimalPlaces, String extension, String tooltip) {
+	private void addFieldObjects(int index, String name, String defaultValue, int dataType, int numDecimalPlaces, String extension, 
+			String tooltip) {
 		if(_allComponents.containsKey(name)) {
 			JOptionPane.showMessageDialog(_frame, "Error in DataEntryDialog.addFieldObjects: you are trying to add a field, "
 					+ "but you have already added a field with the same name: "+name, "ERROR", JOptionPane.ERROR_MESSAGE);
@@ -361,6 +383,7 @@ public class DataEntryDialog extends JDialog {
 					numberFormat = NumberFormat.getIntegerInstance();
 				}else {
 					numberFormat = NumberFormat.getNumberInstance();
+					numberFormat.setMinimumFractionDigits(0);
 					numberFormat.setMaximumFractionDigits(numDecimalPlaces);
 				}
 				numberFormat.setGroupingUsed(false);
@@ -390,7 +413,7 @@ public class DataEntryDialog extends JDialog {
 				}
 				jComponent = new JCheckBox(name, initVal);
 				((JCheckBox)jComponent).setSelected(initVal);
-			}else if(dataType==FILE_SPECIFICATION_TYPE) {
+			}else if(dataType==FILE_SPECIFICATION_TYPE || dataType==DIRECTORY_SPECIFICATION_TYPE) {
 				jComponent = new JPanel(new GridBagLayout());
 				JTextField jTextField = new JTextField();
 				if(defaultValue!=null && defaultValue.length()>0) {
@@ -400,8 +423,13 @@ public class DataEntryDialog extends JDialog {
 				jTextField.getDocument().addDocumentListener(new ValidateListener(this));
 				jTextField.setFont(jTextField.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
 				jTextField.setEditable(false);
-				JButton selectFileButton = new JButton("Select File");
-				selectFileButton.setFont(selectFileButton.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
+				JButton selectFileOrDirectoryButton = null;
+				if(dataType==DIRECTORY_SPECIFICATION_TYPE) {
+					selectFileOrDirectoryButton = new JButton("Select Directory");
+				}else {
+					selectFileOrDirectoryButton = new JButton("Select File");
+				}
+				selectFileOrDirectoryButton.setFont(selectFileOrDirectoryButton.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
 				JButton clearSelectionButton = new JButton("Clear");
 				clearSelectionButton.setFont(clearSelectionButton.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
 
@@ -410,21 +438,25 @@ public class DataEntryDialog extends JDialog {
 				//natural height, maximum width
 				fileSpecGridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
 				fileSpecGridBagConstraints.weightx=1.0;
-				fileSpecGridBagConstraints.gridwidth=2;
+				fileSpecGridBagConstraints.gridwidth=3;
 				fileSpecGridBagConstraints.gridx=0;
 				fileSpecGridBagConstraints.gridy=0;
 				jComponent.add(jTextField, fileSpecGridBagConstraints);
 				
 				fileSpecGridBagConstraints.weightx=0.0;
 				fileSpecGridBagConstraints.gridwidth=1;
-				fileSpecGridBagConstraints.gridx=2;
-				fileSpecGridBagConstraints.gridy=0;
-				jComponent.add(selectFileButton, fileSpecGridBagConstraints);
-				
 				fileSpecGridBagConstraints.gridx=3;
 				fileSpecGridBagConstraints.gridy=0;
+				jComponent.add(selectFileOrDirectoryButton, fileSpecGridBagConstraints);
+				
+				fileSpecGridBagConstraints.gridx=4;
+				fileSpecGridBagConstraints.gridy=0;
 				jComponent.add(clearSelectionButton, fileSpecGridBagConstraints);
-				selectFileButton.addActionListener(new GetFile(_frame, this, "Specify "+name, extension, jTextField));
+				if(dataType==DIRECTORY_SPECIFICATION_TYPE) {
+					selectFileOrDirectoryButton.addActionListener(new GetDirectory(_frame, "Specify "+name, jTextField));
+				}else {
+					selectFileOrDirectoryButton.addActionListener(new GetFile(_frame, "Specify "+name, extension, jTextField));
+				}
 				clearSelectionButton.addActionListener(new ClearSelection(jTextField));
 			}
 
@@ -558,7 +590,7 @@ public class DataEntryDialog extends JDialog {
 		File returnFile = null;
 		if(fullPath!=null && fullPath.length()>0) {
 			int lastIndex = fullPath.lastIndexOf(File.separatorChar);
-			returnFile = new File(fullPath.substring(0, lastIndex));
+			returnFile = new File(fullPath.substring(0, lastIndex+1));
 		}
 		return returnFile;
 	}
@@ -573,7 +605,7 @@ public class DataEntryDialog extends JDialog {
 		String returnString = null;
 		if(fullPath!=null && fullPath.length()>0) {
 			int lastIndex = fullPath.lastIndexOf(File.separatorChar);
-			returnString = fullPath.substring(lastIndex, fullPath.length());
+			returnString = fullPath.substring(lastIndex+1, fullPath.length());
 		}
 		return returnString;
 	}
@@ -647,6 +679,26 @@ public class DataEntryDialog extends JDialog {
 		return returnValue;
 	}//okToEnableOkButton
 
+	private class GetDirectory implements ActionListener{
+		private JFrame csdpFrame;
+		private String dialogTitle;
+		private JTextField pathTextField;
+
+		public GetDirectory(JFrame csdpFrame, String dialogTitle, JTextField pathTextField){
+			this.csdpFrame = csdpFrame;
+			this.dialogTitle = dialogTitle;
+			this.pathTextField = pathTextField;
+		}
+
+		public void actionPerformed(ActionEvent arg0) {
+			String directory = CsdpFunctions.selectDirectory(csdpFrame, dialogTitle);
+			if(directory!=null && directory.length()>0) {
+				pathTextField.setText(directory);
+//				pathTextField.setPreferredSize(pathTextField.getPreferredSize());
+			}
+		}
+	}
+	
 	/*
 	 * Allows user to select a file using a file selector dialog, then puts the result into the JTextField object
 	 */
@@ -656,11 +708,9 @@ public class DataEntryDialog extends JDialog {
 		private String dialogTitle;
 		private String extension;
 		private JTextField pathTextField;
-		private DataEntryDialog dataEntryDialog;
 
-		public GetFile(JFrame csdpFrame, DataEntryDialog dataEntryDialog, String dialogTitle, String extension, JTextField pathTextField){
+		public GetFile(JFrame csdpFrame, String dialogTitle, String extension, JTextField pathTextField){
 			this.csdpFrame = csdpFrame;
-			this.dataEntryDialog = dataEntryDialog;
 			this.dialogTitle = dialogTitle;
 			this.extension = extension;
 			this.pathTextField = pathTextField;
@@ -668,8 +718,20 @@ public class DataEntryDialog extends JDialog {
 
 		public void actionPerformed(ActionEvent arg0) {
 			String[] filePath = CsdpFunctions.selectFilePath(csdpFrame, dialogTitle, new String[] {extension});
-			pathTextField.setText(filePath[0]+File.separator+filePath[1]);
-			pathTextField.setPreferredSize(pathTextField.getPreferredSize());
+			boolean updateText = true;
+			if(filePath!=null) {
+				for(int i=0; i<filePath.length; i++) {
+					String string = filePath[i];
+					if(string==null || string.length()<=0) {
+						updateText=false;
+						break;
+					}
+				}
+			}
+			if(updateText) {
+				pathTextField.setText(filePath[0]+File.separator+filePath[1]);
+//				pathTextField.setPreferredSize(pathTextField.getPreferredSize());
+			}
 		}
 	}//inner class GetFile
 

@@ -78,6 +78,9 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
+import DWR.CSDP.dialog.DialogLegendFactory;
+import vista.graph.Legend;
+
 /**
  * Display Frame
  *
@@ -545,7 +548,6 @@ public class CsdpFrame extends JFrame {
 		jp.add("North", btnPanel);
 		jp.add("East", _legendPanel);
 		jp.add("South", _infoPanel);
-
 		/*
 		 * File menu
 		 */
@@ -747,6 +749,7 @@ public class CsdpFrame extends JFrame {
 		nSaveAs.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, ActionEvent.CTRL_MASK));
 		nSaveAs.setMnemonic(KeyEvent.VK_A);
 
+		cfNetwork.add(nNetworkColorLegend = new JMenuItem("Show Network Color Legend"));
 		cfNetwork.add(nZoomToCenterline = new JMenuItem("Zoom to centerline"));
 		cfNetwork.add(nZoomToNode = new JMenuItem("Zoom to node"));
 		cfNetwork.add(nClearNetwork = new JMenuItem("Clear Network"));
@@ -765,7 +768,7 @@ public class CsdpFrame extends JFrame {
 		
 		JMenu reportsMenu = new JMenu("Reports");
 		reportsMenu.add(nNetworkSummaryReport = new JMenuItem("Network Summary Report"));
-//		reportsMenu.add(nAWDSummaryReport = new JMenuItem("AWD Summary"));
+		//		reportsMenu.add(nAWDSummaryReport = new JMenuItem("AWD Summary"));
 		//now obsolete--this info is in the Network Summary Report
 //		reportsMenu.add(nXSCheckReport = new JMenuItem("Cross-sections with errors"));
 //		reportsMenu.add(nDConveyanceReport = new JMenuItem("Cross-sections with -dConveyance"));
@@ -794,6 +797,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener nDisplayReachSummaryListener = networkMenu.new NDisplayReachSummaryWindow(this);
 		ActionListener nCalculateListener = networkMenu.new NCalculate(this);
 		ActionListener nNetworkSummaryReportListener = networkMenu.new NNetworkSummaryReport(this);
+		ActionListener nShowNetworkColorLegendListener = networkMenu.new NShowNetworkColorLegend();
 //		ActionListener nAWDSummaryReportListener = networkMenu.new NAWDSummaryReport(this);
 		ActionListener nXSCheckReportListener = networkMenu.new NXSCheckReport(this);
 //		ActionListener nDConveyanceReportListener = networkMenu.new NDConveyanceReport(this);
@@ -804,6 +808,7 @@ public class CsdpFrame extends JFrame {
 		nSaveSpecifiedChannelsAs.addActionListener(_nSaveSpeficiedChannelsAsListener);
 		nExportToWKT.addActionListener(nExportToWKTListener);
 		nClearNetwork.addActionListener(nClearNetworkListener);
+		nNetworkColorLegend.addActionListener(nShowNetworkColorLegendListener);
 		nZoomToCenterline.addActionListener(nZoomToCenterlineListener);
 		nZoomToNode.addActionListener(nZoomToNodeListener);
 		nExportToSEFormat.addActionListener(nExportToSEFormatListener);
@@ -2493,7 +2498,7 @@ public class CsdpFrame extends JFrame {
 	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
 	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nZoomToCenterline, 
 		nZoomToNode, nList, nSummary, nClearNetwork, nDisplayReachSummary, nCalculate, nExportToSEFormat, 
-		nExportTo3DFormat, nAWDSummaryReport, nXSCheckReport, nDConveyanceReport, nNetworkSummaryReport;
+		nExportTo3DFormat, nAWDSummaryReport, nXSCheckReport, nDConveyanceReport, nNetworkSummaryReport, nNetworkColorLegend;
 	private JMenuItem lSave, lSaveAs, lExportToWKT, lAdd, lMove, lEdit, lDelete, lHelp;
 
 	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;

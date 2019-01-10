@@ -43,23 +43,17 @@ package DWR.CSDP;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.WindowListener;
 import java.net.URL;
 import java.util.Date;
-import java.util.EventListener;
 import java.util.Hashtable;
 
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -75,10 +69,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
-import javax.swing.event.DocumentListener;
 
 import vista.app.CurveFactory;
 import vista.app.GraphBuilderInfo;
@@ -107,7 +99,6 @@ import vista.graph.TextLine;
 import vista.graph.TextLineAttr;
 import vista.graph.TickGenerator;
 import vista.set.DataReference;
-import vista.set.DataReferenceMath;
 import vista.set.DataRetrievalException;
 import vista.set.DataSet;
 import vista.set.DefaultReference;
@@ -392,7 +383,6 @@ public class MultipleXsectGraph extends JDialog implements ActionListener {
 //			ncurves++;
 //		}
 		ncurves += _numNetworkDataSets;
-
 		_graph.setInsets(new java.awt.Insets(5, 20, 10, 25));
 		Font legendFont = new Font("Arial", Font.PLAIN, 14);
 		Legend legend = _factory.createLegend();
@@ -405,7 +395,7 @@ public class MultipleXsectGraph extends JDialog implements ActionListener {
 		//the _refs array contains DefaultReference objects, each containing a bathymetry data set, with the last being a network data set
 		//the network data set will always be black points connected by black lines, and will be editable.
 		_refs = new DataReference[ncurves];
-		for (int i = 0; i <= _numNetworkDataSets - 1; i++) {
+		for (int i = 0; i < _numNetworkDataSets; i++) {
 			_refs[i] = new DefaultReference((NetworkDataSet) _networkDataSets.get(_networkDataSetNames.get(i)));
 		}
 
@@ -591,7 +581,7 @@ public class MultipleXsectGraph extends JDialog implements ActionListener {
 	// }//setLegendTextBlack
 
 	/**
-	 * sets attributes for plotting bathymetry
+	 * sets attributes for plotting cross-section drawings
 	 */
 	protected void setNetworkCurveAttributes(int i) {
 		NetworkDataSet dataSet = _networkDataSets.get(_networkDataSetNames.get(i));
@@ -960,13 +950,11 @@ public class MultipleXsectGraph extends JDialog implements ActionListener {
 		Centerline centerline = _net.getCenterline(_centerlineName);
 		int numDataSets = centerline.getNumXsects();
 		
-		
 //		double[] point = new double[2];
 		int dataSetPointIndex = 0;
 		String dataSetName = null;
 		_numNetworkDataSets = 0;
 		
-
 		for (int i = 0; i <= numDataSets - 1; i++) {
 			double binValue = 0.0;
 			Xsect xsect = centerline.getXsect(i);
@@ -979,10 +967,16 @@ public class MultipleXsectGraph extends JDialog implements ActionListener {
 	
 				// beginning of new dataSet, so set index to zero.
 				dataSetPointIndex = 0;
-				double xCentroid = xsect.getXCentroidFeet(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+				//get the centroid 3/4 of the way up from the bottom.
+				//this way, cross-sections with high bottoms will still work for this plot.
+				double xCentroid = xsect.getXCentroidFeet(xsect.getElevationAtFraction(.75));
 				for (int j = 0; j <= numXsectPoints - 1; j++) {
 					XsectPoint xp = xsect.getXsectPoint(j);
-					station[dataSetPointIndex] = xp.getStationFeet() - xCentroid;
+					if(Double.isNaN(xCentroid)) {
+						station[dataSetPointIndex] = xp.getStationFeet();
+					}else {
+						station[dataSetPointIndex] = xp.getStationFeet() - xCentroid;
+					}
 					elevation[dataSetPointIndex] = xp.getElevationFeet();
 					dataSetPointIndex++;
 				} // for j: looping through all enclosed bathymetry points

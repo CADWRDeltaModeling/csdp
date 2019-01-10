@@ -46,6 +46,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -64,6 +66,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -73,11 +76,16 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentListener;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
 
 import DWR.CSDP.XsectBathymetryData;
 import vista.app.CurveFactory;
@@ -244,7 +252,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 
 	// JLabel _dkLabel = new JLabel();
 //	JEditorPane _dConveyanceEditorPane = new JEditorPane();
-	JTextArea _dConveyanceTextArea = new JTextArea();
+//	JTextArea _dConveyanceTextArea = new JTextArea();
+	JTextPane _dConveyanceTextPane = new JTextPane();
 	JTextArea _conveyanceCharacteristicsTextArea = new JTextArea();
 	
 	// JCheckBoxMenuItem _bColorByDistance, _bColorBySource, _bColorByYear;
@@ -356,9 +365,19 @@ public class XsectGraph extends JDialog implements ActionListener {
 //		_dConveyancePanel.setBorder(_lineBorder);
 //		_dConveyancePanel.add(_dConveyanceEditorPane);
 		
+//		GridBagLayout dConveyancePanelLayout = new GridBagLayout();
+//		GridBagConstraints dConveyancePanelGridBagConstraints = new GridBagConstraints();
+//		dConveyancePanelGridBagConstraints.gridx=0;
+//		dConveyancePanelGridBagConstraints.gridy=0;
+//		dConveyancePanelGridBagConstraints.fill=GridBagConstraints.VERTICAL;
 		_dConveyancePanel.setLayout(new BoxLayout(_dConveyancePanel, BoxLayout.Y_AXIS));
-		_dConveyancePanel.setBorder(_lineBorder);
-		_dConveyancePanel.add(_dConveyanceTextArea);
+//		_dConveyancePanel.setLayout(dConveyancePanelLayout);
+//		_dConveyancePanel.setBorder(_lineBorder);
+
+		JScrollPane dConveyanceScrollpane = new JScrollPane(_dConveyanceTextPane,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, 
+				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		_dConveyancePanel.add(dConveyanceScrollpane);
+//		_dConveyancePanel.add(_dConveyanceEditorPane, dConveyancePanelGridBagConstraints);
 		
 		// _xsPropPanel.add(_dkLabel);
 
@@ -1433,20 +1452,83 @@ public class XsectGraph extends JDialog implements ActionListener {
 			double[] areaValues = _xsect.getAreaValues();
 			double[] widthValues = _xsect.getWidthValues();
 			double[] wetPValues = _xsect.getWetPValues();
-			double[] elevations = _xsect.getUniqueElevations();
-			String dConveyanceString = "Elevation\tdConveyance\tarea\twidth\twet_p\n"
-					+ "--------------------------------------------------------------------------------------------------------\n";
+			double[] elevations = _xsect.getSortedUniqueElevations();
+			_dConveyanceTextPane.setText("");
+
+			appendToPane(_dConveyanceTextPane, 
+					String.format("%10s", "Elevation") +
+					String.format("%20s", "dConveyance") +
+					String.format("%15s", "area")+
+					String.format("%10s", "width")+
+					String.format("%10s", "wet_p")+
+					"\n------------------------------------------------------------------------\n", 
+					Color.BLACK, Color.WHITE);
 			//add dConveyance values in reverse order
+			Color intertidalBackgroundColor = Color.YELLOW;
+			Color nonIntertidalBackgroundColor = Color.white;
 			for(int i=elevations.length-1; i>=0; i--) {
-				dConveyanceString += String.format("%.2f", elevations[i])+
-						"\t"+String.format("%.2f", dConveyanceValues[i])+
-						"\t"+String.format("%.2f", areaValues[i])+
-						"\t"+String.format("%.2f", widthValues[i])+
-						"\t"+String.format("%.2f", wetPValues[i])+"\n";
+				Color backgroundColor = null;
+				if(elevations[i]>=CsdpFunctions.INTERTIDAL_LOW_TIDE && elevations[i]<=CsdpFunctions.INTERTIDAL_HIGH_TIDE) {
+					backgroundColor = intertidalBackgroundColor;
+				}else {
+					backgroundColor = nonIntertidalBackgroundColor;
+				}
+				appendToPane(_dConveyanceTextPane, String.format("%10.2f", elevations[i])+"\t", Color.black, backgroundColor);
+				if(dConveyanceValues[i]<0.0) {
+					appendToPane(_dConveyanceTextPane, String.format("%20.2f", dConveyanceValues[i])+"\t", Color.red, backgroundColor);
+				}else {
+					appendToPane(_dConveyanceTextPane, String.format("%20.2f", dConveyanceValues[i])+"\t", Color.black, backgroundColor);
+				}
+				appendToPane(_dConveyanceTextPane, String.format("%15.2f", areaValues[i])+"\t", Color.black, backgroundColor);
+				appendToPane(_dConveyanceTextPane, String.format("%10.2f", widthValues[i])+"\t", Color.BLACK, backgroundColor);
+				appendToPane(_dConveyanceTextPane, String.format("%10.2f", wetPValues[i])+"\t", Color.black, backgroundColor);
+				appendToPane(_dConveyanceTextPane, "\n", Color.black, Color.white);
 			}
-			_dConveyanceTextArea.setText(dConveyanceString);
+			appendToPane(_dConveyanceTextPane, "\n", Color.black, Color.white);
 		}
 	}//updateDConveyanceDisplay
+
+	/*
+	 * Copied from https://stackoverflow.com/questions/9650992/how-to-change-text-color-in-the-jtextarea
+	 */
+    private void appendToPane(JTextPane tp, String msg, Color foregroundColor, Color backgroundColor)
+    {
+        StyleContext sc = StyleContext.getDefaultStyleContext();
+        AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, foregroundColor);
+        aset = sc.addAttribute(aset, StyleConstants.Background, backgroundColor);
+        aset = sc.addAttribute(aset, StyleConstants.FontFamily, "Lucida Console");
+        aset = sc.addAttribute(aset, StyleConstants.Alignment, StyleConstants.ALIGN_JUSTIFIED);
+
+        int len = tp.getDocument().getLength();
+        tp.setCaretPosition(len);
+        tp.setCharacterAttributes(aset, false);
+        tp.replaceSelection(msg);
+    }
+
+	
+	//	/*
+//	 * Recalculates the dConveyance values and updates the display
+//	 */
+//	private void updateDConveyanceDisplay() {
+//		if(_xsect.getNumPoints()>0) {
+//			double[] dConveyanceValues = _xsect.getDConveyanceValues();
+//			double[] areaValues = _xsect.getAreaValues();
+//			double[] widthValues = _xsect.getWidthValues();
+//			double[] wetPValues = _xsect.getWetPValues();
+//			double[] elevations = _xsect.getSortedUniqueElevations();
+//			String dConveyanceString = "Elevation\tdConveyance\tarea\twidth\twet_p\n"
+//					+ "--------------------------------------------------------------------------------------------------------\n";
+//			//add dConveyance values in reverse order
+//			for(int i=elevations.length-1; i>=0; i--) {
+//				dConveyanceString += String.format("%.2f", elevations[i])+
+//						"\t"+String.format("%.2f", dConveyanceValues[i])+
+//						"\t"+String.format("%.2f", areaValues[i])+
+//						"\t"+String.format("%.2f", widthValues[i])+
+//						"\t"+String.format("%.2f", wetPValues[i])+"\n";
+//			}
+//			_dConveyanceTextArea.setText(dConveyanceString);
+//		}
+//	}//updateDConveyanceDisplay
 	
 	//This will make -dK values red, but not layout out correctly yet.
 	//need to figure out how to add horizontal, but not vertical spacing between cells,
@@ -1460,9 +1542,13 @@ public class XsectGraph extends JDialog implements ActionListener {
 //			double[] areaValues = _xsect.getAreaValues();
 //			double[] widthValues = _xsect.getWidthValues();
 //			double[] wetPValues = _xsect.getWetPValues();
-//			double[] elevations = _xsect.getUniqueElevations();
-//			String dConveyanceString = "<html><TABLE cellspacing=\"0\" cellpadding=\"0\">"
-//					+ "<TR><TD><b><nbsp;>Elevation</b></TD><TD><b><nbsp;> dConveyance</b></TD><TD><b><nbsp;> Area</b></TD><TD><b><nbsp;> Width</b></TD><TD><b><nbsp;> WetP</b></TD></TR>";
+//			double[] elevations = _xsect.getSortedUniqueElevations();
+//			String dConveyanceString = "<html><BODY><TABLE cellspacing=\"0\" cellpadding=\"0\">"
+//					+ "<TR><TD><b>Elevation</b></TD>"
+//					+ "<TD><b>dConveyance</b></TD>"
+//					+ "<TD><b>Area</b></TD>"
+//					+ "<TD><b>Width</b></TD>"
+//					+ "<TD><b>WetP</b></TD></TR>";
 //			//add dConveyance values in reverse order
 //			for(int i=elevations.length-1; i>=0; i--) {
 //				double dK = dConveyanceValues[i];
@@ -1474,13 +1560,13 @@ public class XsectGraph extends JDialog implements ActionListener {
 //				}
 //				dConveyanceString+="<TR>";
 //				dConveyanceString += "<TD>"+String.format("%.2f", elevations[i])+"</TD>"+
-//					"<TD><nbsp;>"+dKString+"</TD>"+
-//					"<TD><nbsp;>"+String.format("%.2f", areaValues[i])+"</TD>"+
-//					"<TD><nbsp;>"+String.format("%.2f", widthValues[i])+"</TD>"+
-//					"<TD><nbsp;>"+String.format("%.2f", wetPValues[i])+"</TD>";
+//					"<TD>"+dKString+"</TD>"+
+//					"<TD>"+String.format("%.2f", areaValues[i])+"</TD>"+
+//					"<TD>"+String.format("%.2f", widthValues[i])+"</TD>"+
+//					"<TD>"+String.format("%.2f", wetPValues[i])+"</TD>";
 //				dConveyanceString+="</TR>";
 //			}
-//			dConveyanceString+="</TABLE></html>\n\n";
+//			dConveyanceString+="</TABLE></BODY></html>\n\n";
 //			_dConveyanceEditorPane.setText(dConveyanceString);
 //		}
 //	}//updateDConveyanceDisplay
