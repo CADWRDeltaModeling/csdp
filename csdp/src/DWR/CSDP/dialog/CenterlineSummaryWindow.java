@@ -43,11 +43,9 @@ package DWR.CSDP.dialog;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
-import java.util.DuplicateFormatFlagsException;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultDesktopManager;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -63,7 +61,6 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.jzy3d.bridge.IFrame;
 
 import DWR.CSDP.Centerline;
 import DWR.CSDP.CsdpFrame;

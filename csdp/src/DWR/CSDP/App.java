@@ -51,9 +51,6 @@ import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-import org.python.modules.math;
-
-import COM.objectspace.jgl.InputIterator;
 import DWR.CSDP.XsectBathymetryData;
 import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.MessageDialog;

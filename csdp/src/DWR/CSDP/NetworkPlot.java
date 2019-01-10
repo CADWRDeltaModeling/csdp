@@ -44,7 +44,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 
-
 /**
  * Plot Network Data on screen
  *

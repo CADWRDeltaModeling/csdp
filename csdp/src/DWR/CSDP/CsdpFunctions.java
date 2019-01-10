@@ -55,7 +55,6 @@ import java.util.Vector;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 
 import DWR.CSDP.semmscon.UseSemmscon;
 
@@ -1894,7 +1893,7 @@ public class CsdpFunctions {
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "2.6_20190107";
+	private static final String _version = "2.6_20190110";
 
 
 

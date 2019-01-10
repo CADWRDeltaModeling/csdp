@@ -40,13 +40,8 @@
  */
 package DWR.CSDP;
 
-import static org.junit.Assert.assertNotNull;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Graphics;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -58,9 +53,6 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.border.Border;
-
-import org.jfree.ui.LengthAdjustmentType;
 
 import DWR.CSDP.dialog.CenterlineSummaryWindow;
 import DWR.CSDP.dialog.DataEntryDialog;
@@ -348,8 +340,6 @@ public class NetworkMenu {
 		}// getFilename
 	}//class NExportToWKTFormat
 
-
-
 	/**
 	 * Save network file As
 	 *
@@ -358,7 +348,6 @@ public class NetworkMenu {
 	 */
 	public class NSaveSpecifiedChannelsAs implements ActionListener {
 		CsdpFrame _csdpFrame;
-
 		public NSaveSpecifiedChannelsAs(CsdpFrame gui) {
 			_csdpFrame = gui;
 		}

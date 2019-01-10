@@ -360,7 +360,7 @@ public class DataEntryDialog extends JDialog {
 			JOptionPane.showMessageDialog(_frame, "Error in DataEntryDialog.addFieldObjects: you are trying to add a field, "
 					+ "but you have already added a field with the same name: "+name, "ERROR", JOptionPane.ERROR_MESSAGE);
 		}else {
-			JLabel nameLabel = new JLabel(name);
+			JLabel nameLabel = new JLabel(name, JLabel.RIGHT);
 			nameLabel.setFont(nameLabel.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
 			if(disableIfNullHashtable.get(name)) {
 				nameLabel.setForeground(REQUIRED_COLOR );

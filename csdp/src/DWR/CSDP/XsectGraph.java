@@ -46,8 +46,6 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
@@ -88,6 +86,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 
 import DWR.CSDP.XsectBathymetryData;
+import net.miginfocom.examples.Example01;
 import vista.app.CurveFactory;
 import vista.app.GraphBuilderInfo;
 import vista.app.MainProperties;
@@ -1464,6 +1463,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 					"\n------------------------------------------------------------------------\n", 
 					Color.BLACK, Color.WHITE);
 			//add dConveyance values in reverse order
+			//set background color to yellow if elevation in in intertidal zone or if part of space between the adjacent layer
+			//is within intertidal zone.
 			Color intertidalBackgroundColor = Color.YELLOW;
 			Color nonIntertidalBackgroundColor = Color.white;
 			for(int i=elevations.length-1; i>=0; i--) {
@@ -1471,7 +1472,21 @@ public class XsectGraph extends JDialog implements ActionListener {
 				if(elevations[i]>=CsdpFunctions.INTERTIDAL_LOW_TIDE && elevations[i]<=CsdpFunctions.INTERTIDAL_HIGH_TIDE) {
 					backgroundColor = intertidalBackgroundColor;
 				}else {
-					backgroundColor = nonIntertidalBackgroundColor;
+					if(elevations[i]<CsdpFunctions.INTERTIDAL_LOW_TIDE) {
+						if(i<elevations.length-1 && elevations[i+1]>CsdpFunctions.INTERTIDAL_LOW_TIDE) {
+							backgroundColor = intertidalBackgroundColor;
+						}else {
+							backgroundColor = nonIntertidalBackgroundColor;
+						}
+					}else if(elevations[i]>CsdpFunctions.INTERTIDAL_HIGH_TIDE) {
+						if(i>0 && elevations[i-1]<CsdpFunctions.INTERTIDAL_HIGH_TIDE) {
+							backgroundColor = intertidalBackgroundColor;
+						}else {
+							backgroundColor = nonIntertidalBackgroundColor;
+						}
+					}else {
+						backgroundColor = nonIntertidalBackgroundColor;
+					}
 				}
 				appendToPane(_dConveyanceTextPane, String.format("%10.2f", elevations[i])+"\t", Color.black, backgroundColor);
 				if(dConveyanceValues[i]<0.0) {
