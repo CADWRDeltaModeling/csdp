@@ -744,6 +744,7 @@ public class App {
 			System.out.println("Done writing network file " + CsdpFunctions.getNetworkFilename() + "."
 					+ CsdpFunctions.getNetworkFiletype());
 		_csdpFrame.updateNetworkFilename(_filename + "." + _filetype);
+		JOptionPane.showMessageDialog(_csdpFrame, "Saved Specified Channels to network file","Saved",JOptionPane.INFORMATION_MESSAGE);
 		return success;
 	}// nSaveAs
 

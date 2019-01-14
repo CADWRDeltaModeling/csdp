@@ -643,6 +643,7 @@ public class NetworkMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
+			_gui.pressArrowButton();
 			String instructions = "<HTML><BODY>"
 					+ "Calculating the network means creating DSM2 input files using the currently loaded network file.<BR><BR>"
 					+ "You must also specify a <B>DSM2 channels file</B> (i.e. 'channel_std_delta_grid_NAVD_20150129.inp'),<BR>"
@@ -754,6 +755,7 @@ public class NetworkMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
+			_gui.pressArrowButton();
 			_app.awdSummary(0.0f);
 			//			_app.awdSummary(0.292f); // MSL wrt NGVD
 		}// actionPerformed
@@ -765,7 +767,7 @@ public class NetworkMenu {
 			_gui = gui;
 		}
 		public void actionPerformed(ActionEvent arg0) {
-			// TODO Auto-generated method stub
+			_gui.pressArrowButton();
 			_app.createNetworkSummaryReport();
 		}
 
@@ -787,6 +789,7 @@ public class NetworkMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
+			_gui.pressArrowButton();
 			_app.xsCheck(_gui);
 		}// actionPerformed
 	} // NXSCheck
@@ -797,7 +800,7 @@ public class NetworkMenu {
 			_gui = gui;
 		}
 		public void actionPerformed(ActionEvent arg0) {
-			// TODO Auto-generated method stub
+			_gui.pressArrowButton();
 			_app.dConveyanceReport(_gui);
 		}
 
@@ -811,7 +814,7 @@ public class NetworkMenu {
 		}
 
 		public void actionPerformed(ActionEvent arg0) {
-			// TODO Auto-generated method stub
+			_gui.pressArrowButton();
 			String response = JOptionPane.showInputDialog(_gui, "Enter centerline name", "Zoom to centerline", JOptionPane.OK_CANCEL_OPTION);
 			if(response!=null && response.length()>0) {
 				NetworkInteractor networkInteractor = _gui.getNetworkInteractor();
@@ -826,7 +829,7 @@ public class NetworkMenu {
 		}
 
 		public void actionPerformed(ActionEvent arg0) {
-			// TODO Auto-generated method stub
+			_gui.pressArrowButton();
 			String response = JOptionPane.showInputDialog(_gui, "Enter node name", "Zoom to node", JOptionPane.OK_CANCEL_OPTION);
 			if(response!=null && response.length()>0) {
 				NetworkInteractor networkInteractor = _gui.getNetworkInteractor();

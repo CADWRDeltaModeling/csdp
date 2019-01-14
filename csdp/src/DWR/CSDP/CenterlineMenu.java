@@ -97,6 +97,7 @@ public class CenterlineMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
+			_gui.pressArrowButton();
 			_net = _gui.getNetwork();
 			if (_net == null) {
 				System.out.println("ERROR in CenterlineMenu.CRemove.actionPerformed: network is null!");
@@ -136,6 +137,7 @@ public class CenterlineMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
+			_gui.pressArrowButton();
 			_net = _gui.getNetwork();
 			if (_net == null) {
 				_net = new Network("delta", _gui);
@@ -200,6 +202,7 @@ public class CenterlineMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
+			_gui.pressArrowButton();
 			_DSMChannels = _app.getDSMChannels();
 			_gui.setDefaultModesStates();
 			_net = _gui.getNetwork();
@@ -259,10 +262,17 @@ public class CenterlineMenu {
 
 						// channelsFilename = fd.getFile();
 						// _directory = fd.getDirectory();
+						
 						_gui.setCursor(_waitCursor);
-						_DSMChannels = _app.chanReadStore(_directory, channelsFilename);
-//						_gui.setDSMChannels(_DSMChannels);
-						_gui.setCursor(_defaultCursor);
+						try {
+							_DSMChannels = _app.chanReadStore(_directory, channelsFilename);
+//							_gui.setDSMChannels(_DSMChannels);
+						}catch(Exception e1) {
+							JOptionPane.showMessageDialog(_gui, "Error creating DSM2 channel", "Error", JOptionPane.ERROR_MESSAGE);
+						}finally {
+							_gui.setCursor(_defaultCursor);
+							
+						}
 					} else {
 						loadAnotherChannelsInpFile = false;
 					}

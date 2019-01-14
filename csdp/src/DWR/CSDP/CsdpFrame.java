@@ -748,6 +748,7 @@ public class CsdpFrame extends JFrame {
 
 		cfNetwork.add(nNetworkColorLegend = new JMenuItem("Show Network Color Legend"));
 		cfNetwork.add(nZoomToCenterline = new JMenuItem("Zoom to centerline"));
+		nZoomToCenterline.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
 		cfNetwork.add(nZoomToNode = new JMenuItem("Zoom to node"));
 		cfNetwork.add(nClearNetwork = new JMenuItem("Clear Network"));
 		cfNetwork.addSeparator();
@@ -1364,6 +1365,10 @@ public class CsdpFrame extends JFrame {
 	public void pressCursorButton() {
 		_cursorButton.doClick();
 	}
+	
+	public void pressArrowButton() {
+		_cursorButton.doClick();
+	}
 
 	/**
 	 * turns off all edit modes
@@ -1841,6 +1846,9 @@ public class CsdpFrame extends JFrame {
 		lDeletePopup.setEnabled(true);
 	}
 
+	/*
+	 * is this different from pressArrowButton?
+	 */
 	public void setDefaultModesStates() {
 		_cursorButton.setSelected(true);
 		////////// _centerlineLandmarkEditButtonGroup.setSelected(_cursorButton,true);

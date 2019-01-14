@@ -1500,6 +1500,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 				appendToPane(_dConveyanceTextPane, "\n", Color.black, Color.white);
 			}
 			appendToPane(_dConveyanceTextPane, "\n", Color.black, Color.white);
+			//scroll to top
+			_dConveyanceTextPane.setCaretPosition(0);
 		}
 	}//updateDConveyanceDisplay
 
