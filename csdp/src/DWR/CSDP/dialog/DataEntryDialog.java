@@ -42,6 +42,7 @@ package DWR.CSDP.dialog;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -79,12 +80,30 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 
+import DWR.CSDP.CsdpFrame;
 import DWR.CSDP.CsdpFunctions;
 
 /**
  * dialog with multiple labels and text fields
  * After instantiating, call getResponse to determine which button was clicked.
  * Instructions panel will help determine dialog width if it contains html tags.
+ * Usage:
+ * With no centerline selection:
+ *  Set modal to true;
+ * 	DataEntryDialog dataEntryDialog = new DataEntryDialog(<your arguments>);
+ *  int reponse=dataEntryDialog.getResponse();
+ *
+ * With centerline selection:
+ * 
+ * 					final DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names,
+ *							defaultValues, dataTypes, disableIfNull, tooltips, modal);
+ *					//this is necessary because the dialog is set to invisible while centerline selection is made.
+ *					dataEntryDialog.addWindowListener(new WindowListener() {
+ *							(Add your code here)
+ *						}//windowClosed
+ *						
+ *						public void windowActivated(WindowEvent arg0) {}
+ *					}); 
  *
  * @author
  * @version $Id: TextFieldDialog.java,v 1.1 2002/06/12 18:48:38 btom Exp $
@@ -112,6 +131,9 @@ public class DataEntryDialog extends JDialog {
 	 * a text field and a button which will bring up a file selector dialog that will only select a directory
 	 */
 	public static final int DIRECTORY_SPECIFICATION_TYPE = 50;
+	
+	public static final int CENTERLINE_SELECTION_TYPE = 60;
+	
 	/*
 	 * The identifier of the button that was clicked. Will be compared to values above (NUMERIC_TYPE, STRING_TYPE, etc.) to 
 	 * determine which button was clicked to close the dialog
@@ -156,6 +178,7 @@ public class DataEntryDialog extends JDialog {
 	 * (such as a required entry and a text field is blank), the ok button will be disabled)
 	 */
 	private Hashtable<String, Boolean> disableIfNullHashtable;
+	private JTextField currentJTextField;
 	/*
 	 * Color to use for JLabels if required field
 	 */
@@ -166,7 +189,7 @@ public class DataEntryDialog extends JDialog {
 	public static final Color OPTIONAL_COLOR = new Color(0, 153, 51);
 
 	/*
-	 * Constructor for only String or boolean values
+	 * Constructor for only String, boolean, or centerline selector values
 	 */
 	public DataEntryDialog(JFrame parent, String title, String instructions, String[] names,
 			String[] defaultValues, int[] dataTypes, boolean[] disableIfNull, String[] tooltips, boolean modal) {
@@ -200,8 +223,6 @@ public class DataEntryDialog extends JDialog {
 		createDialog(parent, title,instructions, names, defaultValues, dataTypes, disableIfNull, numDecimalPlaces, 
 				extensions, tooltips, modal);
 	}//constructor
-	
-	
 	
 	/*
 	 * Constructor for String, numeric, boolean, and file selectors
@@ -326,7 +347,7 @@ public class DataEntryDialog extends JDialog {
 		JButton cancelButton = new JButton("Cancel");
 		cancelButton.setFont(cancelButton.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
 		CancelListener cancelListener = new CancelListener();
-		cancelButton.addActionListener(cancelListener);
+		cancelButton.addMouseListener(cancelListener);
 		bottomButtonPanel.add(cancelButton);
 		addWindowListener(cancelListener);
 //		add(bottomButtonPanel, BorderLayout.SOUTH);
@@ -338,7 +359,7 @@ public class DataEntryDialog extends JDialog {
 		pack();
 		doLayout();
 		OkListener okButtonListener = new OkListener(this);
-		this.okButton.addActionListener(okButtonListener);
+//		this.okButton.addActionListener(okButtonListener);
 		//adding a MouseListener means that when the button loses focus, one click will activate it rather than 2 
 		this.okButton.addMouseListener(okButtonListener);
 		setVisible(true);
@@ -413,7 +434,8 @@ public class DataEntryDialog extends JDialog {
 				}
 				jComponent = new JCheckBox(name, initVal);
 				((JCheckBox)jComponent).setSelected(initVal);
-			}else if(dataType==FILE_SPECIFICATION_TYPE || dataType==DIRECTORY_SPECIFICATION_TYPE) {
+			}else if(dataType==FILE_SPECIFICATION_TYPE || dataType==DIRECTORY_SPECIFICATION_TYPE || 
+					dataType==CENTERLINE_SELECTION_TYPE) {
 				jComponent = new JPanel(new GridBagLayout());
 				JTextField jTextField = new JTextField();
 				if(defaultValue!=null && defaultValue.length()>0) {
@@ -426,7 +448,9 @@ public class DataEntryDialog extends JDialog {
 				JButton selectFileOrDirectoryButton = null;
 				if(dataType==DIRECTORY_SPECIFICATION_TYPE) {
 					selectFileOrDirectoryButton = new JButton("Select Directory");
-				}else {
+				}else if(dataType==CENTERLINE_SELECTION_TYPE) {
+					selectFileOrDirectoryButton = new JButton("Select Centerline");
+				} else {
 					selectFileOrDirectoryButton = new JButton("Select File");
 				}
 				selectFileOrDirectoryButton.setFont(selectFileOrDirectoryButton.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
@@ -454,6 +478,8 @@ public class DataEntryDialog extends JDialog {
 				jComponent.add(clearSelectionButton, fileSpecGridBagConstraints);
 				if(dataType==DIRECTORY_SPECIFICATION_TYPE) {
 					selectFileOrDirectoryButton.addActionListener(new GetDirectory(_frame, "Specify "+name, jTextField));
+				}else if(dataType==CENTERLINE_SELECTION_TYPE){
+					selectFileOrDirectoryButton.addActionListener(new SelectCenterline(this, jTextField));
 				}else {
 					selectFileOrDirectoryButton.addActionListener(new GetFile(_frame, "Specify "+name, extension, jTextField));
 				}
@@ -511,16 +537,16 @@ public class DataEntryDialog extends JDialog {
 	 * Listener for the Ok button. Needs to be a MouseListener because otherwise
 	 * if user is editing text in a text field, ok button will require 2 clicks
 	 */
-	private class OkListener implements ActionListener, MouseListener{
+	private class OkListener implements MouseListener{
 		private DataEntryDialog dataEntryDialog;
 
 		public OkListener(DataEntryDialog dataEntryDialog) {
 			this.dataEntryDialog = dataEntryDialog;
 		}
-		public void actionPerformed(ActionEvent e) {
-			_response = OK;
-			dispose();
-		}
+//		public void actionPerformed(ActionEvent e) {
+//			_response = OK;
+//			dispose();
+//		}
 
 		public void mouseClicked(MouseEvent arg0) {}
 		public void mouseEntered(MouseEvent arg0) {}
@@ -541,21 +567,38 @@ public class DataEntryDialog extends JDialog {
 	/*
 	 * Listener for Cancel button
 	 */
-	public class CancelListener extends WindowAdapter implements ActionListener {
+	public class CancelListener extends WindowAdapter implements MouseListener {
 		public void windowClosing(WindowEvent e) {
 			cancel();
 		}
 
-		public void actionPerformed(ActionEvent e) {
-			cancel();
-		}// actionPerformed
+//		public void actionPerformed(ActionEvent e) {
+//			cancel();
+//		}// actionPerformed
 
 		private void cancel() {
 			_response = CANCEL;
 			dispose();
 		}
+
+		public void mouseClicked(MouseEvent arg0) {}
+
+		public void mouseEntered(MouseEvent arg0) {}
+
+		public void mouseExited(MouseEvent arg0) {}
+
+		public void mousePressed(MouseEvent arg0) {
+			cancel();
+		}
+
+		public void mouseReleased(MouseEvent arg0) {}
 	}// class CancelListener
 
+	public void disposeDialog() {
+		_response = CANCEL;
+		dispose();
+	}
+	
 	/*
 	 * returns a numeric value or String entry entered by user in any component.
 	 * Components are identified by name in this dialog. The names of each component are specified to the constructor.
@@ -735,6 +778,50 @@ public class DataEntryDialog extends JDialog {
 		}
 	}//inner class GetFile
 
+	/**
+	 * Turns on centerline selection mode.
+	 * @author btom
+	 *
+	 */
+	private class SelectCenterline implements ActionListener{
+
+		private DataEntryDialog dataEntryDialog;
+		private JTextField jTextField;
+		public SelectCenterline(DataEntryDialog dataEntryDialog, JTextField jTextField) {
+			this.dataEntryDialog = dataEntryDialog;
+			this.jTextField = jTextField;
+		}
+		public void actionPerformed(ActionEvent arg0) {
+			this.dataEntryDialog.setVisible(false);
+			CsdpFrame csdpFrame = ((CsdpFrame)_frame);
+			csdpFrame.disableButtonsAndMenuItems();
+			csdpFrame.pressSelectCenterlineForDataEntryDialogButton();
+			
+			
+			csdpFrame.setCenterlineSelectionDialog(this.dataEntryDialog);
+//			this.dataEntryDialog.setVisible(true);
+			setCurrentJTextField(this.jTextField);
+		}
+	}//inner class SelectCenterline
+	
+	/*
+	 * Sets the text in whatever the current jTextField is (determined by which button was clicked)
+	 * to the centerlineName that was selected.
+	 */
+	public void setSelectedCenterlineName(String centerlineName) {
+		this.currentJTextField.setText(centerlineName);
+		CsdpFrame csdpFrame = ((CsdpFrame)_frame);
+		csdpFrame.pressArrowButton();
+	}
+	
+	/*
+	 * When a select centerline button is clicked, this method set the current jTextArea instance to the jTextArea
+	 * corresponding to the button that was clicked. 
+	 */
+	private void setCurrentJTextField(JTextField jTextField){
+		this.currentJTextField = jTextField;
+	}
+	
 	private class ClearSelection implements ActionListener{
 		private JTextField jTextField;
 		public ClearSelection(JTextField jTextField) {

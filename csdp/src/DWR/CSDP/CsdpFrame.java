@@ -78,6 +78,8 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
+import DWR.CSDP.dialog.DataEntryDialog;
+
 /**
  * Display Frame
  *
@@ -85,6 +87,243 @@ import javax.swing.border.Border;
  * @version $Id: CsdpFrame.java,v 1.7 2005/04/08 03:12:40 btom Exp $
  */
 public class CsdpFrame extends JFrame {
+	
+	Border _raisedBevel = BorderFactory.createRaisedBevelBorder();
+
+	JRadioButton _zoomBoxButton;
+	JRadioButton _zoomPanButton;
+	JRadioButton _deleteCenterlinePointsInBoxButton;
+	JRadioButton _deleteCenterlinePointsOutsideBoxButton;
+	JButton _zoomFitButton;
+	JButton _zoomUndoButton;
+
+	ImageIcon _fileOpenIcon, _networkOpenIcon, _networkSaveIcon, _cursorIcon, _insertIcon, _movePointIcon, _addIcon,
+			_deleteIcon, _addXsectIcon, _removeXsectIcon, _moveXsectIcon;
+
+	ImageIcon _viewIcon, _colorUniformIcon, _colorElevIcon, _colorSourceIcon, _colorYearIcon;
+	ImageIcon _networkCalculateIcon, _cursorIconSelected, _insertIconSelected, _movePointIconSelected, _addIconSelected,
+			_deleteIconSelected, _addXsectIconSelected, _removeXsectIconSelected, _moveXsectIconSelected;
+
+	// ImageIcon _landmarkAddIcon, _landmarkEditIcon, _landmarkDeleteIcon,
+	// _landmarkMoveIcon,
+	// _landmarkAddSelectedIcon, _landmarkEditSelectedIcon,
+	// _landmarkMoveSelectedIcon, _landmarkDeleteSelectedIcon;
+
+	ImageIcon _colorUniformIconSelected, _colorElevIconSelected, _colorSourceIconSelected, _colorYearIconSelected,
+			_filterYearIcon, _filterSourceIcon, _filterLabelIcon, _propOpenIcon, _zoomBoxIcon, _zoomBoxIconSelected,
+			_zoomPanIcon, _zoomPanIconSelected, _zoomFitIcon, _zoomFitIconRollover, _zoomUndoIcon;
+
+	JButton _fileOpenButton, _networkOpenButton, _networkSaveButton, _networkCalculateButton, _propOpenButton,
+			_filterYearButton, _filterSourceButton;
+	JLabel _filterLabel;
+
+	JRadioButton _colorUniformButton, _colorByElevButton, _colorBySourceButton, _colorByYearButton;
+
+	/**
+	 * turns all centerline edit modes off
+	 */
+	JRadioButton _cursorButton;
+	/**
+	 * turns insert centerline point mode on
+	 */
+	JRadioButton _insertButton;
+	/**
+	 * turns move centerline point mode on
+	 */
+	JRadioButton _moveButton;
+	/**
+	 * turns add centerline point mode on
+	 */
+	JRadioButton _addButton;
+	/**
+	 * turns delete centerline point mode on
+	 */
+	JRadioButton _deleteButton;
+	/**
+	 * turns add xsect mode on
+	 */
+	JRadioButton _addXsectButton;
+	/**
+	 * turns remove xsect mode on
+	 */
+	JRadioButton _removeXsectButton;
+	/**
+	 * turns move xsect mode on
+	 */
+	JRadioButton _moveXsectButton;
+	/**
+	 * turns all other modes off
+	 */
+	// JRadioButton _invisibleRadioButton = new JRadioButton();
+	/**
+	 * view selected cross-section
+	 */
+	JRadioButton _viewXsectButton;
+	
+	/*
+	 * This mode only used to selected a centerline to fill in a value in a DataEntryDialog
+	 */
+	JRadioButton _selectCenterlineForDataEntryDialogButton;
+
+	// JRadioButton _landmarkOpenButton, _landmarkSaveButton,
+	// _landmarkAddButton,
+	// _landmarkEditButton, _landmarkMoveButton, _landmarkDeleteButton,
+	// _landmarkAddSelectedButton, _landmarkEditSelectedButton,
+	// _landmarkMoveSelectedButton, _landmarkDeleteSelectedButton;
+	JButton _landmarkOpenButton, _landmarkSaveButton, _landmarkAddButton, _landmarkEditButton, _landmarkMoveButton,
+			_landmarkDeleteButton, _landmarkAddSelectedButton, _landmarkEditSelectedButton, _landmarkMoveSelectedButton,
+			_landmarkDeleteSelectedButton;
+
+//	private static final Dimension _iconSize = new Dimension(25, 25);
+//	private static final Dimension _wideIconSize = new Dimension(35, 25);
+//	public static final Dimension _colorByIconSize = new Dimension(40, 15);
+	private static final int ICON_WIDTH = 38;
+	private static final int ICON_HEIGHT = 38;
+	private static final int COLOR_BY_ICON_WIDTH = 53;
+	private static final int COLOR_BY_ICON_HEIGHT = 20;
+	private static final int WIDE_ICON_WIDTH = 53;
+	private static final int WIDE_ICON_HEIGHT = 38;
+	// JButton _restoreButton = new JButton("Restore");
+	// JButton _keepButton = new JButton("Keep");
+	// protected JRadioButtonMenuItem _cMovePointMenuItem, _cAddPointMenuItem,
+	// _cInsertPointMenuItem, _cDeletePointMenuItem, _cAddXsectMenuItem,
+	// _cRemoveXsectMenuItem, _cMoveXsectMenuItem;
+
+	private Landmark _landmark;
+	private DigitalLineGraph _dDigitalLineGraph;
+//	private DSMChannels _DSMChannels;
+	private JMenuBar menubar;
+
+	private JMenu cfFile, cfProperties, cfModify, cfDisplay, cfTools, cfNetwork, cfLandmark, cfCenterline, cfXsect,
+			cfZoom, cfWindow, cfHelp;
+	private JPopupMenu cfLandmarkPopup;
+
+	private JMenuItem fNew, fOpen, fClose, fSave, fSaveAs, fSaveAsNAVD88, fSaveZoomed, fMerge, fExtract, fPrintPreview,
+			fPrint, fPrintSetup, fConvert, fExit;
+	private JMenuItem pLoad, pSave, pSaveAs;
+	private JMenuItem mSource, mYear, mZSign, mErase, mRestore, mPurge, mStatus;
+	private JMenuItem dParameters, dSource, dYear, dColorBy, dErased, oLandmark, cLandmarks, dDigitalLineGraph, clearDigitalLineGraph, 
+			dCopyToClipboard, dElevBins;
+	// JRadioButtonMenuItem dColorUniformRadioButton, dColorByDepthRadioButton,
+	// dColorBySourceRadioButton, dColorByYearRadioButton;
+	private JRadioButtonMenuItem dFitByBathymetryMenuItem, dFitByNetworkMenuItem, dFitByLandmarkMenuItem;
+	private ButtonGroup _colorByButtonGroup, _fitByButtonGroup, _centerlineLandmarkEditButtonGroup;
+
+	private JCheckBoxMenuItem oEchoTimeSeriesInput, oEchoXsectInput, oPrintXsectResults, oUseFremontWeir,
+			oUseToeDrainRestriction, oEchoToeDrainInput;
+	private JMenu tOpenWaterOptionsMenu, nExport, nExportOptions;
+	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc;
+	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
+	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nZoomToCenterline, 
+		nZoomToNode, nList, nSummary, nClearNetwork, nDisplayReachSummary, nCalculate, nExportToSEFormat, 
+		nExportTo3DFormat, nAWDSummaryReport, nXSCheckReport, nDConveyanceReport, nNetworkSummaryReport, nNetworkColorLegend;
+	private JMenuItem lSave, lSaveAs, lExportToWKT, lAdd, lMove, lEdit, lDelete, lHelp;
+
+	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;
+
+	private JCheckBoxMenuItem noChannelLengthsOnly;
+	private JMenuItem cCursor, cCreate, cDSMCreate, cRemove, cDisplaySummary, cPlotAllCrossSections, cDeletePointsInWindow,
+		cDeletePointsOutsideWindow, cAddXSAtComputationalPoints;
+	/*
+	 * For adjusting centerlines that are actually representations of polygons used to estimate channel volume
+	 * Will move points to a given centerline, which is actually representing a leveee
+	 */
+	private JMenuItem cMovePolygonCenterlinePointsToLeveeCenterline;
+	// JMenuItem cRemove;
+	//// JMenuItem cRename;
+	// JMenuItem cMovePoint, cAddPoint, cDelPoint,
+	private JMenuItem cRestore, cKeep, cSplit, cJoin, cView, cInfo, cList, cSummary;
+	private JMenuItem xAutoGen, xCreate, xRemove, xMove, xPosition, xView, xInfo;
+	private JMenuItem xSummary, xAdjustLength, xExtractData;
+	private JMenuItem zPan, zFit, zFactor, zBox, zUndo;
+	private JMenuItem wCascade, wTile, wArrangeIcons, wCloseAll, wRepaint;
+	private JMenuItem hContents, hUsingHelp, hAbout;
+
+	private ActionListener _oLandmarkListener = null;
+	private ActionListener _nSaveListener = null;
+	private ActionListener _nSaveAsListener = null;
+	private ActionListener _nSaveSpeficiedChannelsAsListener = null;
+	private ActionEvent _nullActionEvent = new ActionEvent(this, 0, null);
+
+	private static final int COLOR_BY_DEPTH = 0;
+	private static final int COLOR_BY_SOURCE = 1;
+	private static final int COLOR_BY_YEAR = 2;
+	private JToolBar _legendPanel;
+	private String _depthLegendTitle = "Elevation";
+	private String _sourceLegendTitle = "Source";
+	private String _yearLegendTitle = "Year";
+	private JPanel _infoPanel;
+	private JLabel _horDatumLabel = new JLabel("Horizontal Datum:");
+	private JLabel _horDatumUnitsLabel = new JLabel("Hor. Datum Units:");
+	private JLabel _verDatumLabel = new JLabel("Vertical Datum:");
+	private JLabel _verDatumUnitsLabel = new JLabel("Ver. Datum Units:");
+
+	private JLabel _centerlineLabel = new JLabel("Selected Centerline:");
+	private JLabel _centerlineLengthLabel = new JLabel("Centerline length:");
+	private JLabel _xsectLabel = new JLabel("Selected Xsect:");
+	private JLabel _mouseXLabel = new JLabel("X coordinate (UTM):");
+	private JLabel _mouseYLabel = new JLabel("Y coordinate (UTM):");
+	private JLabel _areaLabel = new JLabel("Xsect Area:");
+	private JLabel _wetPLabel = new JLabel("Wetted Perimeter:");
+	private JLabel _widthLabel = new JLabel("Top Width:");
+	private JLabel _hydraulicDepthLabel = new JLabel("Hydraulic Depth:");
+	private JLabel _bathymetryFileLabel = new JLabel("Bathymetry Filename:");
+	private JLabel _networkFileLabel = new JLabel("Network Filename:");
+	private JLabel _landmarkFileLabel = new JLabel("Landmark Filename:");
+	private JLabel _propertiesFileLabel = new JLabel("Properties Filename:");
+	private JLabel _dlgFileLabel = new JLabel("DLG Filename:");
+
+	private static Vector _colorsVector = new Vector();
+	private final int _initialWidth = 1200;
+	private final int _initialHeight = 800;
+
+	// default values
+	private double _minElevBin = -40.0;
+	private double _maxElevBin = 10.0;
+	private int _numElevBins = 11;
+
+	// for ngvd29 to navd88 corrections
+	// private double _minElevBin = 1.95f;
+	// private double _maxElevBin = 2.70f;
+	// private int _numElevBins = 11;
+	/**
+	 * true if a centerline selected.
+	 */
+	private boolean _centerlineSelected = false;
+	/**
+	 * true if a xsect selected.
+	 */
+	private boolean _xsectSelected = false;
+
+	private DataEntryDialog parentDialog;
+
+
+	/**
+	 * stores values for coloring bathymetry data in color by elevation mode
+	 */
+	private static double _elevationBins[];
+
+	/**
+	 * These are only for turning menus off.
+	 */
+	private static final boolean _addFileMenu = true;
+	private static final boolean _addPropertiesMenu = true;
+	private static final boolean _addDisplayMenu = true;
+	private static final boolean _addNetworkMenu = true;
+	private static final boolean _addLandmarkMenu = true;
+	private static final boolean _addCenterlineMenu = true;
+	private static final boolean _addXsectMenu = true;
+	private static final boolean _addZoomMenu = true;
+	private static final boolean _addToolsMenu = true;
+	private static final boolean _addHelpMenu = true;
+
+	private static final boolean _addZoomWindowOption = true;
+	private static final boolean _addCompareNetworkOption = false;
+	private static final boolean _addRectXSOption = true;
+	private static final boolean _addOWACalcOption = true;
+	private double[] _cursorPosition = new double[2];
+	private final boolean DEBUG = false;
+	private Hashtable<Integer, Color> _userSetColors = new Hashtable<Integer, Color>();
 
 	public CsdpFrame(App app) {
 		makeIconButtons();
@@ -274,6 +513,9 @@ public class CsdpFrame extends JFrame {
 		_zoomPanButton = new JRadioButton(_zoomPanIcon);
 		_zoomFitButton = new JButton(_zoomFitIcon);
 		_zoomUndoButton = new JButton(_zoomUndoIcon);
+		_deleteCenterlinePointsInBoxButton = new JRadioButton("Delete Centerline Points in Box");
+		_deleteCenterlinePointsOutsideBoxButton = new JRadioButton("Delete Centerline Points outside box");
+		_selectCenterlineForDataEntryDialogButton = new JRadioButton("Select Centerline for DataEntryDialog button");
 
 		// _landmarkOpenButton = new JButton("Open Landmark File");
 		// _landmarkSaveButton = new JButton("Save Landmark File");
@@ -418,6 +660,9 @@ public class CsdpFrame extends JFrame {
 		_centerlineLandmarkEditButtonGroup.add(_removeXsectButton);
 		_centerlineLandmarkEditButtonGroup.add(_zoomBoxButton);
 		_centerlineLandmarkEditButtonGroup.add(_zoomPanButton);
+		_centerlineLandmarkEditButtonGroup.add(_deleteCenterlinePointsInBoxButton);
+		_centerlineLandmarkEditButtonGroup.add(_deleteCenterlinePointsOutsideBoxButton);
+		_centerlineLandmarkEditButtonGroup.add(_selectCenterlineForDataEntryDialogButton);
 
 		btnPanel.add(_zoomUndoButton);
 		btnPanel.add(_zoomFitButton);
@@ -935,8 +1180,11 @@ public class CsdpFrame extends JFrame {
 		// cfCenterline.add(cSummary = new JMenuItem("Summary"));
 		cfCenterline.add(cDisplaySummary = new JMenuItem("View Centerline Summary"));
 		cfCenterline.add(cPlotAllCrossSections = new JMenuItem("Multiple Cross-Section Graph"));
+		cfCenterline.add(cDeletePointsInWindow = new JMenuItem("Delete Centerline Points In Window"));
+		cfCenterline.add(cDeletePointsOutsideWindow = new JMenuItem("Delete Centerline Points Outside of Window"));
 		cfCenterline.add(cAddXSAtComputationalPoints = new JMenuItem("Add cross-sections at Computational Pts"));
-		
+		cfCenterline.add(cMovePolygonCenterlinePointsToLeveeCenterline = 
+				new JMenuItem("Move Polygon centerline points to levee centerline."));
 		cfCenterline.setMnemonic(KeyEvent.VK_C);
 
 		if (_addCenterlineMenu)
@@ -959,7 +1207,11 @@ public class CsdpFrame extends JFrame {
 		ActionListener cMoveXsectListener = _centerlineMenu.new CMoveXsect();
 		ActionListener cDisplaySummaryListener = _centerlineMenu.new DisplayCenterlineSummaryWindow();
 		ActionListener cPlotAllCrossSectionsListener = _centerlineMenu.new PlotAllCrossSections();
+		ActionListener cDeletePointsInWindowListener = _centerlineMenu.new DeleteCenterlinePointsInWindow();
+		ActionListener cDeletePointsOutsideOfWindowListener = _centerlineMenu.new DeleteCenterlinePointsOutsideOfWindow();
 		ActionListener cAddXSAtComputationalPointsListener = _centerlineMenu.new AddXSAtComputationalPoints(_networkInteractor);
+		ActionListener cMovePolygonCenterlinePointsToLeveeCenterlineListener = 
+				_centerlineMenu.new MovePolygonCenterlinePointsToLeveeCenterline();
 		
 		cCursor.addActionListener(cCursorListener);
 		cCreate.addActionListener(cCreateListener);
@@ -970,8 +1222,11 @@ public class CsdpFrame extends JFrame {
 		// cKeep.addActionListener(cKeepListener);
 		cDisplaySummary.addActionListener(cDisplaySummaryListener);
 		cPlotAllCrossSections.addActionListener(cPlotAllCrossSectionsListener);
+		cDeletePointsInWindow.addActionListener(cDeletePointsInWindowListener);
+		cDeletePointsOutsideWindow.addActionListener(cDeletePointsOutsideOfWindowListener);
 		cAddXSAtComputationalPoints.addActionListener(cAddXSAtComputationalPointsListener);
-				
+		cMovePolygonCenterlinePointsToLeveeCenterline.addActionListener(cMovePolygonCenterlinePointsToLeveeCenterlineListener);		
+		
 		_cursorButton.addActionListener(cCursorListener);
 		_moveButton.addActionListener(cMovePointListener);
 		_insertButton.addActionListener(cInsertPointListener);
@@ -1305,6 +1560,8 @@ public class CsdpFrame extends JFrame {
 			_removeXsectButton.setEnabled(true);
 			cDisplaySummary.setEnabled(true);
 			cPlotAllCrossSections.setEnabled(true);
+			cDeletePointsInWindow.setEnabled(true);
+			cDeletePointsOutsideWindow.setEnabled(true);
 			cAddXSAtComputationalPoints.setEnabled(true);
 			if (getXsectSelected()) {
 				_moveXsectButton.setEnabled(true);
@@ -1332,6 +1589,8 @@ public class CsdpFrame extends JFrame {
 			lDeletePopup.setEnabled(false);
 			cDisplaySummary.setEnabled(false);
 			cPlotAllCrossSections.setEnabled(false);
+			cDeletePointsInWindow.setEnabled(false);
+			cDeletePointsOutsideWindow.setEnabled(false);
 			cAddXSAtComputationalPoints.setEnabled(false);
 		}
 	}// setStopEditingMode
@@ -1354,6 +1613,10 @@ public class CsdpFrame extends JFrame {
 		_zoomBoxButton.doClick();
 	}
 
+	public void pressDeleteCenterlinePointsInBoxButton() {
+		_deleteCenterlinePointsInBoxButton.doClick();
+	}
+	
 	/**
 	 * toggles zoom pan mode when button is not clicked by user. Allows another
 	 * event to toggle mode.
@@ -1370,6 +1633,11 @@ public class CsdpFrame extends JFrame {
 		_cursorButton.doClick();
 	}
 
+	public void pressSelectCenterlineForDataEntryDialogButton() {
+		_selectCenterlineForDataEntryDialogButton.doClick();
+	}
+	
+	
 	/**
 	 * turns off all edit modes
 	 */
@@ -1384,7 +1652,7 @@ public class CsdpFrame extends JFrame {
 	 * disable buttons and menu items which should not be enabled until
 	 * bathymetry loaded
 	 */
-	protected void disableButtonsAndMenuItems() {
+	public void disableButtonsAndMenuItems() {
 		_cursorButton.setEnabled(false);
 		_propOpenButton.setEnabled(false);
 		_networkOpenButton.setEnabled(false);
@@ -1463,8 +1731,11 @@ public class CsdpFrame extends JFrame {
 		cDisplaySummary.setEnabled(false);
 		nDisplayReachSummary.setEnabled(false);
 		cPlotAllCrossSections.setEnabled(false);
+		cDeletePointsInWindow.setEnabled(false);
+		cDeletePointsOutsideWindow.setEnabled(false);
 		cAddXSAtComputationalPoints.setEnabled(false);
-
+		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(false);
+		
 //		nAWDSummaryReport.setEnabled(false);
 //		nXSCheckReport.setEnabled(false);
 //		nDConveyanceReport.setEnabled(false);
@@ -1532,8 +1803,9 @@ public class CsdpFrame extends JFrame {
 		cCreate.setEnabled(true);
 		cDSMCreate.setEnabled(true);
 		cDisplaySummary.setEnabled(false);
-		cPlotAllCrossSections.setEnabled(false);
+//		cPlotAllCrossSections.setEnabled(false);
 		cAddXSAtComputationalPoints.setEnabled(false);
+
 		// xMove.setEnabled(true);
 		// xInfo.setEnabled(true);xSummary.setEnabled(true);
 		zPan.setEnabled(_addZoomWindowOption);
@@ -1579,6 +1851,7 @@ public class CsdpFrame extends JFrame {
 		_networkCalculateButton.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
 		tCalcRect.setEnabled(true);
+		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 //		nAWDSummaryReport.setEnabled(true);
 //		nXSCheckReport.setEnabled(true);
 //		nDConveyanceReport.setEnabled(true);
@@ -1631,6 +1904,7 @@ public class CsdpFrame extends JFrame {
 //		nAWDSummaryReport.setEnabled(false);
 //		nXSCheckReport.setEnabled(false);
 //		nDConveyanceReport.setEnabled(false);
+		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(false);
 		nNetworkSummaryReport.setEnabled(false);
 	}
 
@@ -1651,6 +1925,7 @@ public class CsdpFrame extends JFrame {
 		_networkCalculateButton.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
 		tCalcRect.setEnabled(true);
+		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 //		nAWDSummaryReport.setEnabled(true);
 //		nXSCheckReport.setEnabled(true);
 //		nDConveyanceReport.setEnabled(true);
@@ -1683,7 +1958,10 @@ public class CsdpFrame extends JFrame {
 		cDisplaySummary.setEnabled(true);
 		nDisplayReachSummary.setEnabled(true);
 		cPlotAllCrossSections.setEnabled(true);
-		cAddXSAtComputationalPoints.setEnabled(true);;
+		cDeletePointsInWindow.setEnabled(true);
+		cDeletePointsOutsideWindow.setEnabled(true);
+		cAddXSAtComputationalPoints.setEnabled(true);
+		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 
 		if (getXsectSelected()) {
 			_removeXsectButton.setEnabled(true);
@@ -2272,6 +2550,23 @@ public class CsdpFrame extends JFrame {
 		return _zoomBoxButton.isSelected();
 	}
 
+	public boolean getDeleteCenterlinePointsInBoxMode() {
+		return _deleteCenterlinePointsInBoxButton.isSelected();
+	}
+	
+	public boolean getDeleteCenterlinePointsOutsideBoxMode() {
+		return _deleteCenterlinePointsOutsideBoxButton.isSelected();
+	}
+	
+	public void pressDeleteCenterlinePointsOutsideBoxButton() {
+		_deleteCenterlinePointsOutsideBoxButton.doClick();
+	}
+
+	public boolean getSelectCenterlineForDataEntryDialogMode() {
+		return _selectCenterlineForDataEntryDialogButton.isSelected();
+	}
+	
+	
 	public boolean getZoomPanMode() {
 		return _zoomPanButton.isSelected();
 	}
@@ -2321,14 +2616,6 @@ public class CsdpFrame extends JFrame {
 		return _colorByYearButton.isSelected();
 	}
 
-	/**
-	 * true if a centerline selected.
-	 */
-	private boolean _centerlineSelected = false;
-	/**
-	 * true if a xsect selected.
-	 */
-	private boolean _xsectSelected = false;
 
 	private void setCenterlineSelected(boolean b) {
 		_centerlineSelected = b;
@@ -2382,219 +2669,15 @@ public class CsdpFrame extends JFrame {
 		}
 	}//updateElevBinValues
 
-	Border _raisedBevel = BorderFactory.createRaisedBevelBorder();
+	public void setCenterlineSelectionDialog(DataEntryDialog parentDialog) {
+		this.parentDialog = parentDialog;
+	}
 
-	JRadioButton _zoomBoxButton;
-	JRadioButton _zoomPanButton;
-	JButton _zoomFitButton;
-	JButton _zoomUndoButton;
-
-	ImageIcon _fileOpenIcon, _networkOpenIcon, _networkSaveIcon, _cursorIcon, _insertIcon, _movePointIcon, _addIcon,
-			_deleteIcon, _addXsectIcon, _removeXsectIcon, _moveXsectIcon;
-
-	ImageIcon _viewIcon, _colorUniformIcon, _colorElevIcon, _colorSourceIcon, _colorYearIcon;
-	ImageIcon _networkCalculateIcon, _cursorIconSelected, _insertIconSelected, _movePointIconSelected, _addIconSelected,
-			_deleteIconSelected, _addXsectIconSelected, _removeXsectIconSelected, _moveXsectIconSelected;
-
-	// ImageIcon _landmarkAddIcon, _landmarkEditIcon, _landmarkDeleteIcon,
-	// _landmarkMoveIcon,
-	// _landmarkAddSelectedIcon, _landmarkEditSelectedIcon,
-	// _landmarkMoveSelectedIcon, _landmarkDeleteSelectedIcon;
-
-	ImageIcon _colorUniformIconSelected, _colorElevIconSelected, _colorSourceIconSelected, _colorYearIconSelected,
-			_filterYearIcon, _filterSourceIcon, _filterLabelIcon, _propOpenIcon, _zoomBoxIcon, _zoomBoxIconSelected,
-			_zoomPanIcon, _zoomPanIconSelected, _zoomFitIcon, _zoomFitIconRollover, _zoomUndoIcon;
-
-	JButton _fileOpenButton, _networkOpenButton, _networkSaveButton, _networkCalculateButton, _propOpenButton,
-			_filterYearButton, _filterSourceButton;
-	JLabel _filterLabel;
-
-	JRadioButton _colorUniformButton, _colorByElevButton, _colorBySourceButton, _colorByYearButton;
-
-	/**
-	 * turns all centerline edit modes off
-	 */
-	JRadioButton _cursorButton;
-	/**
-	 * turns insert centerline point mode on
-	 */
-	JRadioButton _insertButton;
-	/**
-	 * turns move centerline point mode on
-	 */
-	JRadioButton _moveButton;
-	/**
-	 * turns add centerline point mode on
-	 */
-	JRadioButton _addButton;
-	/**
-	 * turns delete centerline point mode on
-	 */
-	JRadioButton _deleteButton;
-	/**
-	 * turns add xsect mode on
-	 */
-	JRadioButton _addXsectButton;
-	/**
-	 * turns remove xsect mode on
-	 */
-	JRadioButton _removeXsectButton;
-	/**
-	 * turns move xsect mode on
-	 */
-	JRadioButton _moveXsectButton;
-	/**
-	 * turns all other modes off
-	 */
-	// JRadioButton _invisibleRadioButton = new JRadioButton();
-	/**
-	 * view selected cross-section
-	 */
-	JRadioButton _viewXsectButton;
-
-	// JRadioButton _landmarkOpenButton, _landmarkSaveButton,
-	// _landmarkAddButton,
-	// _landmarkEditButton, _landmarkMoveButton, _landmarkDeleteButton,
-	// _landmarkAddSelectedButton, _landmarkEditSelectedButton,
-	// _landmarkMoveSelectedButton, _landmarkDeleteSelectedButton;
-	JButton _landmarkOpenButton, _landmarkSaveButton, _landmarkAddButton, _landmarkEditButton, _landmarkMoveButton,
-			_landmarkDeleteButton, _landmarkAddSelectedButton, _landmarkEditSelectedButton, _landmarkMoveSelectedButton,
-			_landmarkDeleteSelectedButton;
-
-//	private static final Dimension _iconSize = new Dimension(25, 25);
-//	private static final Dimension _wideIconSize = new Dimension(35, 25);
-//	public static final Dimension _colorByIconSize = new Dimension(40, 15);
-	private static final int ICON_WIDTH = 38;
-	private static final int ICON_HEIGHT = 38;
-	private static final int COLOR_BY_ICON_WIDTH = 53;
-	private static final int COLOR_BY_ICON_HEIGHT = 20;
-	private static final int WIDE_ICON_WIDTH = 53;
-	private static final int WIDE_ICON_HEIGHT = 38;
-	// JButton _restoreButton = new JButton("Restore");
-	// JButton _keepButton = new JButton("Keep");
-	// protected JRadioButtonMenuItem _cMovePointMenuItem, _cAddPointMenuItem,
-	// _cInsertPointMenuItem, _cDeletePointMenuItem, _cAddXsectMenuItem,
-	// _cRemoveXsectMenuItem, _cMoveXsectMenuItem;
-
-	private Landmark _landmark;
-	private DigitalLineGraph _dDigitalLineGraph;
-//	private DSMChannels _DSMChannels;
-	private JMenuBar menubar;
-
-	private JMenu cfFile, cfProperties, cfModify, cfDisplay, cfTools, cfNetwork, cfLandmark, cfCenterline, cfXsect,
-			cfZoom, cfWindow, cfHelp;
-	private JPopupMenu cfLandmarkPopup;
-
-	private JMenuItem fNew, fOpen, fClose, fSave, fSaveAs, fSaveAsNAVD88, fSaveZoomed, fMerge, fExtract, fPrintPreview,
-			fPrint, fPrintSetup, fConvert, fExit;
-	private JMenuItem pLoad, pSave, pSaveAs;
-	private JMenuItem mSource, mYear, mZSign, mErase, mRestore, mPurge, mStatus;
-	private JMenuItem dParameters, dSource, dYear, dColorBy, dErased, oLandmark, cLandmarks, dDigitalLineGraph, clearDigitalLineGraph, 
-			dCopyToClipboard, dElevBins;
-	// JRadioButtonMenuItem dColorUniformRadioButton, dColorByDepthRadioButton,
-	// dColorBySourceRadioButton, dColorByYearRadioButton;
-	private JRadioButtonMenuItem dFitByBathymetryMenuItem, dFitByNetworkMenuItem, dFitByLandmarkMenuItem;
-	private ButtonGroup _colorByButtonGroup, _fitByButtonGroup, _centerlineLandmarkEditButtonGroup;
-
-	private JCheckBoxMenuItem oEchoTimeSeriesInput, oEchoXsectInput, oPrintXsectResults, oUseFremontWeir,
-			oUseToeDrainRestriction, oEchoToeDrainInput;
-	private JMenu tOpenWaterOptionsMenu, nExport, nExportOptions;
-	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc;
-	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
-	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nZoomToCenterline, 
-		nZoomToNode, nList, nSummary, nClearNetwork, nDisplayReachSummary, nCalculate, nExportToSEFormat, 
-		nExportTo3DFormat, nAWDSummaryReport, nXSCheckReport, nDConveyanceReport, nNetworkSummaryReport, nNetworkColorLegend;
-	private JMenuItem lSave, lSaveAs, lExportToWKT, lAdd, lMove, lEdit, lDelete, lHelp;
-
-	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;
-
-	private JCheckBoxMenuItem noChannelLengthsOnly;
-	private JMenuItem cCursor, cCreate, cDSMCreate, cRemove, cDisplaySummary, cPlotAllCrossSections, 
-		cAddXSAtComputationalPoints;
-	// JMenuItem cRemove;
-	//// JMenuItem cRename;
-	// JMenuItem cMovePoint, cAddPoint, cDelPoint,
-	private JMenuItem cRestore, cKeep, cSplit, cJoin, cView, cInfo, cList, cSummary;
-	private JMenuItem xAutoGen, xCreate, xRemove, xMove, xPosition, xView, xInfo;
-	private JMenuItem xSummary, xAdjustLength, xExtractData;
-	private JMenuItem zPan, zFit, zFactor, zBox, zUndo;
-	private JMenuItem wCascade, wTile, wArrangeIcons, wCloseAll, wRepaint;
-	private JMenuItem hContents, hUsingHelp, hAbout;
-
-	private ActionListener _oLandmarkListener = null;
-	private ActionListener _nSaveListener = null;
-	private ActionListener _nSaveAsListener = null;
-	private ActionListener _nSaveSpeficiedChannelsAsListener = null;
-	private ActionEvent _nullActionEvent = new ActionEvent(this, 0, null);
-
-	private static final int COLOR_BY_DEPTH = 0;
-	private static final int COLOR_BY_SOURCE = 1;
-	private static final int COLOR_BY_YEAR = 2;
-	private JToolBar _legendPanel;
-	private String _depthLegendTitle = "Elevation";
-	private String _sourceLegendTitle = "Source";
-	private String _yearLegendTitle = "Year";
-	private JPanel _infoPanel;
-	private JLabel _horDatumLabel = new JLabel("Horizontal Datum:");
-	private JLabel _horDatumUnitsLabel = new JLabel("Hor. Datum Units:");
-	private JLabel _verDatumLabel = new JLabel("Vertical Datum:");
-	private JLabel _verDatumUnitsLabel = new JLabel("Ver. Datum Units:");
-
-	private JLabel _centerlineLabel = new JLabel("Selected Centerline:");
-	private JLabel _centerlineLengthLabel = new JLabel("Centerline length:");
-	private JLabel _xsectLabel = new JLabel("Selected Xsect:");
-	private JLabel _mouseXLabel = new JLabel("X coordinate (UTM):");
-	private JLabel _mouseYLabel = new JLabel("Y coordinate (UTM):");
-	private JLabel _areaLabel = new JLabel("Xsect Area:");
-	private JLabel _wetPLabel = new JLabel("Wetted Perimeter:");
-	private JLabel _widthLabel = new JLabel("Top Width:");
-	private JLabel _hydraulicDepthLabel = new JLabel("Hydraulic Depth:");
-	private JLabel _bathymetryFileLabel = new JLabel("Bathymetry Filename:");
-	private JLabel _networkFileLabel = new JLabel("Network Filename:");
-	private JLabel _landmarkFileLabel = new JLabel("Landmark Filename:");
-	private JLabel _propertiesFileLabel = new JLabel("Properties Filename:");
-	private JLabel _dlgFileLabel = new JLabel("DLG Filename:");
-
-	private static Vector _colorsVector = new Vector();
-	private final int _initialWidth = 1200;
-	private final int _initialHeight = 800;
-
-	// default values
-	private double _minElevBin = -40.0;
-	private double _maxElevBin = 10.0;
-	private int _numElevBins = 11;
-
-	// for ngvd29 to navd88 corrections
-	// private double _minElevBin = 1.95f;
-	// private double _maxElevBin = 2.70f;
-	// private int _numElevBins = 11;
+	public void sendSelectedCenterlineNameToDataEntryDialog(String centerlineName) {
+		this.parentDialog.setSelectedCenterlineName(centerlineName);
+		this.parentDialog.setVisible(true);
+	}
 
 
-	/**
-	 * stores values for coloring bathymetry data in color by elevation mode
-	 */
-	private static double _elevationBins[];
 
-	/**
-	 * These are only for turning menus off.
-	 */
-	private static final boolean _addFileMenu = true;
-	private static final boolean _addPropertiesMenu = true;
-	private static final boolean _addDisplayMenu = true;
-	private static final boolean _addNetworkMenu = true;
-	private static final boolean _addLandmarkMenu = true;
-	private static final boolean _addCenterlineMenu = true;
-	private static final boolean _addXsectMenu = true;
-	private static final boolean _addZoomMenu = true;
-	private static final boolean _addToolsMenu = true;
-	private static final boolean _addHelpMenu = true;
-
-	private static final boolean _addZoomWindowOption = true;
-	private static final boolean _addCompareNetworkOption = false;
-	private static final boolean _addRectXSOption = true;
-	private static final boolean _addOWACalcOption = true;
-	private double[] _cursorPosition = new double[2];
-	private final boolean DEBUG = false;
-	private Hashtable<Integer, Color> _userSetColors = new Hashtable<Integer, Color>();
-	
 }//class CSDPFrame

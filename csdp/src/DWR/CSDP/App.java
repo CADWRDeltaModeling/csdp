@@ -63,6 +63,39 @@ import DWR.CSDP.dialog.MessageDialog;
  */
 public class App {
 
+	CsdpFrame _csdpFrame = null;
+	BathymetryData _bathymetryData = null;
+	Network _net;
+	Landmark _landmark;
+	DSMChannels _DSMChannels;
+	BathymetryPlot _bathymetryPlot = null;
+	NetworkPlot _nPlot = null;
+	LandmarkPlot _lPlot = null;
+	DigitalLineGraph _dlg;
+	DigitalLineGraphPlot _dlgPlot = null;
+	// XsectGraph _xsectGraph;
+	Hashtable _xsectGraph = new Hashtable();
+
+	protected String _filename = null;
+	protected String _filetype = null;
+	protected static final String PROPERTIES_TYPE = "prp";
+	protected static final String ASCII_TYPE = "prn";
+	protected static final String BINARY_TYPE = "cdp";
+	protected static final String NETWORK_TYPE = "cdn";
+	protected static final String LANDMARK_TYPE = "cdl";
+	protected static final String XSECT_TYPE = "txt";
+	protected static final String DLG_TYPE = "cdo";
+	protected static final String DSMChannels_TYPE = "inp";
+	// BathymetryInput _binput = null;
+	PropertiesInput _pinput = null;
+	protected static boolean DEBUG = false;
+	public int _xsectColorOption = 0;
+	public static int _squareDimension = 4;
+	/**
+	 * used for JOptionPane
+	 */
+	private Object[] _options = { "OK" };
+
 	public App() {
 	}
 
@@ -687,7 +720,7 @@ public class App {
 						lineToWrite += ",";
 					}
 					CenterlinePoint cp = centerline.getCenterlinePoint(j);
-					lineToWrite+=cp._x+" "+cp._y;
+					lineToWrite+=CsdpFunctions.feetToMeters(cp.getXFeet())+" "+CsdpFunctions.feetToMeters(cp.getYFeet());
 				}
 				lineToWrite += ")"; 
 				afw.writeLine(lineToWrite);
@@ -948,6 +981,7 @@ public class App {
 				chanToSurfArea = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.SURFACE_AREA_RESULTS);
 				chanToMaxAreaRatio = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.MAX_AREA_RATIO_RESULTS);
 			}			
+			
 			_net.sortCenterlineNames();
 	
 			Vector<String> reportText = new Vector<String>(); 
@@ -1052,6 +1086,12 @@ public class App {
 				double dsm2SurfArea = -Double.MAX_VALUE;
 				double dsm2MaxAreaRatio = -Double.MAX_VALUE;
 				if(dsm2HofFileSpecified) {
+					if(!chanToVol.contains(chan) || !chanToWettedArea.contains(chan) || !chanToSurfArea.contains(chan) ||
+							chanToMaxAreaRatio.contains(chan)) {
+						JOptionPane.showMessageDialog(_csdpFrame, "Error in App.createNetworkSummaryReport: a .hof file \n"
+								+ "was specified, but the .hof file is missing \n"
+								+ "information for channel "+chan, "Error", JOptionPane.ERROR_MESSAGE);
+					}
 					dsm2Vol = chanToVol.get(chan);
 					dsm2WetArea = chanToWettedArea.get(chan);
 					dsm2SurfArea = chanToSurfArea.get(chan);
@@ -1887,116 +1927,88 @@ public class App {
 		md.setVisible(true);
 	}//awdSummary
 
-	// /*
-	// * Print a table of area, width, and depth for the given elevation
-	// * Then estimate volume
-	// */
-	// public void areaSummary(){
-	// String centerlineName = null;
-	// Centerline centerline = null;
-	// float length;
-	// Xsect xsect = null;
-	// float distAlongCenterline;
-	// float normalizedDist;
-	// String line = "";
-
-	// float[] distAlong;
-	// float[][] area;
-
-	// System.out.println("====================================================================");
-	// System.out.println("cross-section,area for elevation");
-	// System.out.println("====================================================================");
-
-	// //get min, max elevations
-	// float minElevation = Float.MAX_VALUE;
-	// float maxElevation = -Float.MAX_VALUE;
-	// for(int i=0; i<_net.getNumCenterlines(); i++){
-	// centerlineName = _net.getCenterlineName(i);
-	// centerline = _net.getCenterline(centerlineName);
-	// length = centerline.getLengthFeet();
-	// for(int j=0; j<centerline.getNumXsects(); j++){
-	// xsect = centerline.getXsect(j);
-	// distAlong[j] = xsect.getDistAlongCenterlineFeet();
-	// minElevation = xsect.getMinimumElevationFeet();
-	// }
-	// System.out.println(centerlineName+","+length+","+volume);
-	// }
-
-	// for(int i=0; i<_net.getNumCenterlines(); i++){
-	// centerlineName = _net.getCenterlineName(i);
-	// centerline = _net.getCenterline(centerlineName);
-	// length = centerline.getLengthFeet();
-	// float lastDistAlongCenterline = -Float.MAX_VALUE;
-	// float lastArea = -Float.MAX_VALUE;
-	// for(int j=0; j<centerline.getNumXsects(); j++){
-	// xsect = centerline.getXsect(j);
-	// distAlongCenterline = xsect.getDistAlongCenterlineFeet();
-	// float area = xsect.getAreaSqft(elevation);
-	// lastDistAlongCenterline = distAlongCenterline;
-	// lastArea = area;
-	// }
-	// System.out.println(centerlineName+","+length+","+volume);
-	// }
-	// System.out.println("====================================================================\n");
-
-	// System.out.println("====================================================================");
-	// System.out.println("cross-section, Area, Width, Depth, Hydraulic Depth,
-	// for elevation "+elevation);
-	// System.out.println("====================================================================");
-
-	// for(int i=0; i<_net.getNumCenterlines(); i++){
-	// centerlineName = _net.getCenterlineName(i);
-	// centerline = _net.getCenterline(centerlineName);
-	// length = centerline.getLengthFeet();
-	// for(int j=0; j<centerline.getNumXsects(); j++){
-	// line="";
-	// xsect = centerline.getXsect(j);
-	// distAlongCenterline = xsect.getDistAlongCenterlineFeet();
-	// normalizedDist = distAlongCenterline/length;
-	// String s = Float.toString(normalizedDist);
-	// line += centerlineName+"_"+s.substring(0,7);
-	// float area = xsect.getAreaSqft(elevation);
-	// float width = xsect.getWidthFeet(elevation);
-	// float depth = elevation - xsect.getMinimumElevationFeet();
-	// float hydraulicDepth = xsect.getHydraulicDepthFeet(elevation);
-	// line += ","+area+","+width+","+depth+","+hydraulicDepth;
-	// System.out.println(line);
-	// }
-	// }
-	// System.out.println("====================================================================");
-	// }
-
-	CsdpFrame _csdpFrame = null;
-	BathymetryData _bathymetryData = null;
-	Network _net;
-	Landmark _landmark;
-	DSMChannels _DSMChannels;
-	BathymetryPlot _bathymetryPlot = null;
-	NetworkPlot _nPlot = null;
-	LandmarkPlot _lPlot = null;
-	DigitalLineGraph _dlg;
-	DigitalLineGraphPlot _dlgPlot = null;
-	// XsectGraph _xsectGraph;
-	Hashtable _xsectGraph = new Hashtable();
-
-	protected String _filename = null;
-	protected String _filetype = null;
-	protected static final String PROPERTIES_TYPE = "prp";
-	protected static final String ASCII_TYPE = "prn";
-	protected static final String BINARY_TYPE = "cdp";
-	protected static final String NETWORK_TYPE = "cdn";
-	protected static final String LANDMARK_TYPE = "cdl";
-	protected static final String XSECT_TYPE = "txt";
-	protected static final String DLG_TYPE = "cdo";
-	protected static final String DSMChannels_TYPE = "inp";
-	// BathymetryInput _binput = null;
-	PropertiesInput _pinput = null;
-	protected static boolean DEBUG = false;
-	public int _xsectColorOption = 0;
-	public static int _squareDimension = 4;
-	/**
-	 * used for JOptionPane
+	/*
+	 * Given 3 centerlines:
+	 * 1. The channel centerline
+	 * 2. A Centerline representing a polygon used to estimate GIS conveyance characteristics for the centerline
+	 * 3. A centerline representing a levee
+	 * 
+	 * Move all the points that are on the levee side of the centerline (determined using the channel centerline) to the
+	 * nearest point on the levee centerline
 	 */
-	private Object[] _options = { "OK" };
+	public void movePolygonCenterlinePointsToLeveeCenterline(String polygonCenterlineName, 
+			String channelCenterlineName, String leveeCenterlineName) {
+		if(DEBUG) System.out.println("movePolygonCenterlinePointsToLeveeCenterline: polygonCenterlineName, "
+				+ "channelCenterlineName, leveeCenterlineName="+polygonCenterlineName+","+channelCenterlineName+","+leveeCenterlineName);
+		Centerline polygonCenterline = _net.getCenterline(polygonCenterlineName);
+		Centerline channelCenterline = _net.getCenterline(channelCenterlineName);
+		Centerline leveeCenterline = _net.getCenterline(leveeCenterlineName);
+
+		//if the perpendicular distance from the channel polygon point to the levee is greater than this 
+		//value, point will not be moved 
+		double maxAllowableDist = 100000.;
+		//identify which line segment has the shortest dist.
+		for(int i=0; i<polygonCenterline.getNumCenterlinePoints(); i++) {
+			CenterlinePoint polygonCenterlinePoint = polygonCenterline.getCenterlinePoint(i);
+			double x3 = polygonCenterlinePoint.getXFeet();
+			double y3 = polygonCenterlinePoint.getYFeet();
+			double shortestDistToLevee = Double.MAX_VALUE;
+			int shortestDistLeveeSegmentIndex = -Integer.MAX_VALUE;
+			double shortestDistXIntersection = -Double.MAX_VALUE;
+			double shortestDistYIntersection = -Double.MAX_VALUE;
+			for(int j=1; j<leveeCenterline.getNumCenterlinePoints(); j++) {
+				CenterlinePoint lastLeveeCenterlinePoint = leveeCenterline.getCenterlinePoint(j-1);
+				CenterlinePoint currentLeveeCenterlinePoint = leveeCenterline.getCenterlinePoint(j);
+				double x1 = lastLeveeCenterlinePoint.getXFeet();
+				double y1 = lastLeveeCenterlinePoint.getYFeet();
+				double x2 = currentLeveeCenterlinePoint.getXFeet();
+				double y2 = currentLeveeCenterlinePoint.getYFeet();
+
+				double distToLevee = CsdpFunctions.shortestDistLineSegment(x1, x2, x3, y1, y2, y3, maxAllowableDist);
+				//now see if any centerline point is closer. This will be necessary if the polygon point is not 
+				//contained within any of the rectangles created for each levee line segment, which can occur if the levee
+				//centerline is convex
+				double distToLastLeveePoint = Math.sqrt((x1-x3)*(x1-x3)+ (y1-y3)*(y1-y3));
+				double distToCurrentLeveePoint = Math.sqrt((x2-x3)*(x2-x3)+ (y2-y3)*(y2-y3));
+				
+				if(distToLevee<shortestDistToLevee) {
+					shortestDistToLevee = distToLevee;
+					shortestDistLeveeSegmentIndex = j;
+					shortestDistXIntersection = CsdpFunctions.findXIntersection(x1,x2,x3,y1,y2,y3);
+					shortestDistYIntersection = CsdpFunctions.findYIntersection(x1,x2,x3,y1,y2,y3);
+					if(DEBUG) {
+						System.out.println("MovePolygonCenterlinePointsToLeveeCenterline: found point: "
+								+ "shortestDistToLevee, shortestDistLeveeSegmentIndex, shortestDistXIntersection, "
+								+ "shortestDistYIntersection="+
+								shortestDistToLevee+","+shortestDistLeveeSegmentIndex+","+shortestDistXIntersection+","+
+								shortestDistYIntersection);
+					}
+				}
+				if(distToLastLeveePoint<shortestDistToLevee) {
+					shortestDistToLevee = distToLastLeveePoint;
+					shortestDistLeveeSegmentIndex = j;
+					shortestDistXIntersection = x1;
+					shortestDistYIntersection = y1;
+				}
+				if(distToCurrentLeveePoint<shortestDistToLevee) {
+					shortestDistToLevee = distToCurrentLeveePoint;
+					shortestDistLeveeSegmentIndex = j;
+					shortestDistXIntersection = x2;
+					shortestDistYIntersection = y2;
+				}
+			}//for
+			if(shortestDistToLevee < Double.MAX_VALUE && shortestDistLeveeSegmentIndex>0 &&
+					shortestDistXIntersection>0.0 && shortestDistYIntersection>0.0) {
+				if(!channelCenterline.intersectsLine(shortestDistXIntersection, x3, shortestDistYIntersection, y3)) {
+					//move the point
+					polygonCenterlinePoint.putXFeet(shortestDistXIntersection);
+					polygonCenterlinePoint.putYFeet(shortestDistYIntersection);
+				}
+			}//if
+		}//for
+		_csdpFrame.getPlanViewCanvas(0).setUpdateNetwork(true);
+		_csdpFrame.getPlanViewCanvas(0).redoNextPaint();
+		_csdpFrame.getPlanViewCanvas(0).repaint();
+	}//movePolygonCenterlinePointsToLeveeCenterline
 
 }// class App

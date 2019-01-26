@@ -37,12 +37,16 @@
     chung@water.ca.gov
 
     or see our home page: http://wwwdelmod.water.ca.gov/
-*/
+ */
 package DWR.CSDP;
 
 import java.awt.Rectangle;
+import java.awt.geom.Line2D;
 import java.util.HashSet;
 import java.util.Vector;
+
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 /**
  * A centerline contains centerline points and cross-sections. Centerline points
@@ -52,6 +56,41 @@ import java.util.Vector;
  * @version
  */
 public class Centerline {
+	
+	private int _numCenterlinePoints;
+	private Vector _centerlinePoints = new Vector();
+	private Vector _xsects = new Vector();
+	private String _centerlineName = null;
+	private double _maxX = -Double.MAX_VALUE;
+	private double _minX = Double.MAX_VALUE;
+	private double _maxY = -Double.MAX_VALUE;
+	private double _minY = Double.MAX_VALUE;
+	private boolean _maxMinCalled = false;
+	private static final boolean DEBUG = false;
+
+	/**
+	 * number of irregular xsects
+	 */
+	private int _numXsects = 0;
+	private int _numRectXsects = 0;
+	private Vector _rectXsects = new Vector();
+	private Vector _copiedXsects = new Vector();
+	private int _numCopiedXsects = 0;
+
+	Rectangle _r;
+	private int _numCombinedXsects = 0;
+	private Vector _allXsects = new Vector();
+
+	/*
+	 * To specify deleting points inside a window drawn by user
+	 */
+	public static final int DELETE_INSIDE_WINDOW = 10;
+	/*
+	 * To specify deleting points outside a window drawn by user
+	 */
+	public static final int DELETE_OUTSIDE_WINDOW = 20;
+
+	
 	public Centerline(String name) {
 		_centerlineName = name;
 	}
@@ -82,7 +121,7 @@ public class Centerline {
 		}
 		return new double[] {minX, maxX, minY, maxY};
 	}
-	
+
 	/**
 	 * Returns the normalized distance, which is the distance from the upstream
 	 * end of the centerline to the cross-section divided by the total length of
@@ -175,6 +214,37 @@ public class Centerline {
 		_centerlinePoints.insertElementAt(newPoint, minDistIndex + 1);
 		_numCenterlinePoints++;
 	}// insertCenterlinePointFeet
+
+	/*
+	 * Delete all points that are inside or outside a box drawn by user.
+	 */
+	public void deleteCenterlinePointsInBox(JFrame parent, int option, double xi, double yi, double xf, double yf) {
+		Vector<Integer> pointIndicesToDelete = new Vector<Integer>();
+		for(int i=0; i<_centerlinePoints.size(); i++) {
+			CenterlinePoint centerlinePoint = getCenterlinePoint(i);
+			double x = centerlinePoint.getXFeet();
+			double y = centerlinePoint.getYFeet();
+			if(option==DELETE_INSIDE_WINDOW) {
+				if( ((x>=xi && x<=xf) || (x<=xi && x>=xf)) && ((y>=yi && y<=yf) || (y<=yi && y>=yf)) ) {
+					pointIndicesToDelete.addElement(i);
+				}
+			}else if(option==DELETE_OUTSIDE_WINDOW) {
+				if( (x<xi && x<xf) || (x>xi && x>xf) || (y<yi && y<yf) || (y>yi && y>yf) ) {
+					pointIndicesToDelete.addElement(i);
+				}
+			}else {
+				JOptionPane.showMessageDialog(parent, "Centerline.deleteCenterlinePointsInBox: invalid option specified", 
+						"Error", JOptionPane.ERROR_MESSAGE);
+			}
+		}
+		Integer[] pointIndicesToDeleteArray = pointIndicesToDelete.toArray(new Integer[pointIndicesToDelete.size()]);
+		pointIndicesToDeleteArray = CsdpFunctions.qsort(pointIndicesToDeleteArray, 0, pointIndicesToDeleteArray.length-1);
+		for(int i=pointIndicesToDeleteArray.length-1; i>0; i--) {
+			_centerlinePoints.removeElementAt(pointIndicesToDeleteArray[i]);
+			_numCenterlinePoints--;
+		}
+
+	}//deleteCenterlinePointsInBox
 
 	/**
 	 * delete CenterlinePoint
@@ -481,8 +551,8 @@ public class Centerline {
 					averageArea += Math.abs((area2 + area1) * 0.5f * (normalizedDistance2 - normalizedDistance1));
 				} // for j
 			} // if 2 or more cross-sections
-				// estimate volume of downstream portion of channel
-				// (between last cross-section and downstream node).
+			// estimate volume of downstream portion of channel
+			// (between last cross-section and downstream node).
 
 			xsect2 = (Xsect) (_allXsects.elementAt(_numCombinedXsects - 1));
 
@@ -560,8 +630,8 @@ public class Centerline {
 
 				}
 			} // if 2 or more cross-sections
-				// estimate volume of downstream portion of channel
-				// (between last cross-section and downstream node).
+			// estimate volume of downstream portion of channel
+			// (between last cross-section and downstream node).
 			xsect2 = (Xsect) (_allXsects.elementAt(_numCombinedXsects - 1));
 			normalizedDistLast = getNormalizedDist(xsect2);
 			if (Double.isNaN(normalizedDistLast) || normalizedDistLast < 0.0f
@@ -640,8 +710,8 @@ public class Centerline {
 
 				}
 			} // if 2 or more cross-sections
-				// estimate volume of downstream portion of channel
-				// (between last cross-section and downstream node).
+			// estimate volume of downstream portion of channel
+			// (between last cross-section and downstream node).
 			xsect2 = (Xsect) (_allXsects.elementAt(_numCombinedXsects - 1));
 
 			normalizedDistLast = getNormalizedDist(xsect2);
@@ -883,11 +953,11 @@ public class Centerline {
 		if(getNumXsectsWithPoints()>=1) {
 			returnValue += (getLengthFeet() - lastXsect.getDistAlongCenterlineFeet()) * lastXsect.getAreaSqft(elevation);
 		}
-//		System.out.println("area, length="+lastXsect.getAreaSqft(elevation)+","+getLengthFeet());
-//		System.out.println("simple volume="+getLengthFeet()*lastXsect.getAreaSqft(elevation));
+		//		System.out.println("area, length="+lastXsect.getAreaSqft(elevation)+","+getLengthFeet());
+		//		System.out.println("simple volume="+getLengthFeet()*lastXsect.getAreaSqft(elevation));
 		return returnValue;
 	}//getChannelVolumeEstimateNoInterp
-	
+
 	/*
 	 * Returns estimated wettedArea for selected centerline. Assumptions:
 	 * 1. no interpolation from adjacent channels
@@ -951,7 +1021,7 @@ public class Centerline {
 		}
 		return returnValue;
 	}//getChannelVolumeEstimateNoInterp
-	
+
 	/*
 	 * Returns the number of computational reaches based on delta x and centerline length
 	 */
@@ -959,7 +1029,7 @@ public class Centerline {
 		double length = getLengthFeet();
 		return 1+(int)(Math.max(0.0, length-deltaX)/deltaX);
 	}
-	
+
 	/*
 	 * Returns the number of computational points based on delta x and centerline length
 	 */
@@ -997,7 +1067,7 @@ public class Centerline {
 		}
 		return returnValue;
 	}
-	
+
 	/*
 	 * Returns an array of cross-section indices of the cross-sections with min and max areas at specified elevation
 	 */
@@ -1006,7 +1076,7 @@ public class Centerline {
 		double maxArea = -Double.MAX_VALUE;
 		int minAreaIndex = -Integer.MAX_VALUE;
 		int maxAreaIndex = -Integer.MAX_VALUE;
-		
+
 		for(int i=0; i<getNumXsects(); i++) {
 			Xsect xsect = getXsect(i);
 			if(xsect.getNumPoints()>0) {
@@ -1038,7 +1108,7 @@ public class Centerline {
 		}
 		return returnValues;
 	}//getDuplicateStationsXsectIndices
-	
+
 	/*
 	 * Returns vector of xsect indices with -dk anywhere in cross-section.
 	 */
@@ -1073,7 +1143,7 @@ public class Centerline {
 		}
 		return returnValues;
 	}
-	
+
 	/*
 	 * return vector of indices of cross-sections with no points. 
 	 */
@@ -1110,7 +1180,7 @@ public class Centerline {
 		return returnValues;
 	}//getXSWithinSpecifiedDistanceIndices
 
-	
+
 	/*
 	 * Returns true if all xs have no points
 	 */
@@ -1137,7 +1207,7 @@ public class Centerline {
 		}
 		return returnValue;
 	}
-	
+
 	public boolean anyXSHaveDuplicateStations() {
 		boolean returnValue = false;
 		for(int i=0; i<getNumXsects(); i++) {
@@ -1150,27 +1220,47 @@ public class Centerline {
 		return returnValue;
 	}
 
-	private int _numCenterlinePoints;
-	private Vector _centerlinePoints = new Vector();
-	private Vector _xsects = new Vector();
-	private String _centerlineName = null;
-	private double _maxX = -Double.MAX_VALUE;
-	private double _minX = Double.MAX_VALUE;
-	private double _maxY = -Double.MAX_VALUE;
-	private double _minY = Double.MAX_VALUE;
-	private boolean _maxMinCalled = false;
-	private static final boolean DEBUG = false;
-
-	/**
-	 * number of irregular xsects
+	/*
+	 * Given two points that define a line segment, return true if the line segment intersects any 
+	 * centerline segment
 	 */
-	private int _numXsects = 0;
-	private int _numRectXsects = 0;
-	private Vector _rectXsects = new Vector();
-	private Vector _copiedXsects = new Vector();
-	private int _numCopiedXsects = 0;
+	public boolean intersectsLine(double x1, double x2, double y1, double y2) {
+		boolean intersects = false;
+		for(int i=1; i<getNumCenterlinePoints(); i++) {
+			CenterlinePoint lastCenterlinePoint = getCenterlinePoint(i-1);
+			CenterlinePoint currentCenterlinePoint = getCenterlinePoint(i);
+			double x3 = lastCenterlinePoint.getXFeet();
+			double y3 = lastCenterlinePoint.getYFeet();
+			double x4 = currentCenterlinePoint.getXFeet();
+			double y4 = currentCenterlinePoint.getYFeet();
+			if(Line2D.Double.linesIntersect(x1, y1, x2, y2, x3, y3, x4, y4)) {
+				intersects = true;
+				break;
+			}
+		}
+		return intersects;
+	}//intersectsLine 
 
-	Rectangle _r;
-	private int _numCombinedXsects = 0;
-	private Vector _allXsects = new Vector();
+//	/*
+//	 * Given a point on another centerline, find the closest point on the centerline to the given point.
+//	 * The result could be a point on one of the centerline's line segments or one of the vertices (centerline points)
+//	 */
+//	public double[] closestPointOnCenterlineToPoint(CenterlinePoint centerlinePoint) {
+//		double[] returnValues = new double[2];
+//		double minDist = Double.MAX_VALUE;
+//		//first look through centerline points and find closest point
+//		for(int i=0; i<getNumCenterlinePoints(); i++) {
+//			CenterlinePoint centerlinePoint2 = getCenterlinePoint(i);
+//			double dist = Math.sqrt(math.pow(centerlinePoint.getXFeet()-centerlinePoint2.getXFeet(),2) + 
+//					Math.pow(centerlinePoint.getYFeet()-centerlinePoint2.getYFeet(), 2));
+//			if(dist<minDist) {
+//				minDist = dist;
+//				returnValues[0] = centerlinePoint2.getXFeet();
+//				returnValues[1] = centerlinePoint2.getYFeet();
+//			}
+//		}
+//		//now find the 
+//	}
+	
+
 }// class Centerline

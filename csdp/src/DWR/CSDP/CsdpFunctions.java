@@ -178,7 +178,7 @@ public class CsdpFunctions {
 		double yIntersect = findYIntersection(x1, x2, x3, y1, y2, y3);
 		return (double) (Math.sqrt(Math.pow((xIntersect - x3), 2) + Math.pow((yIntersect - y3), 2)));
 	}// shortestDistLine
-
+	
 	/**
 	 * Find the shortest distance between a line segment (finite length) and a
 	 * point. Return maximum value if angle between line segment and line
@@ -228,8 +228,7 @@ public class CsdpFunctions {
 		double dist = 0.0;
 		double xIntersect = findXIntersection(x1, x2, x3, y1, y2, y3);
 		double yIntersect = findYIntersection(x1, x2, x3, y1, y2, y3);
-		double theta = getTheta(x1, x2, y1, y2);
-
+//		double theta = getTheta(x1, x2, y1, y2);
 		if (DEBUG)
 			System.out.println("shortestDistLineSegment x1x2x3y1y2y3=" + x1 + "," + x2 + "," + x3 + "," + y1 + "," + y2
 					+ "," + y3);
@@ -238,9 +237,10 @@ public class CsdpFunctions {
 		// length
 		// of the centerline segment
 		Polygon p = findPolygon(x1, x2, y1, y2, width);
-		for (int i = 0; i <= 3; i++) {
-			if (DEBUG)
+		if (DEBUG) {
+			for (int i = 0; i <= 3; i++) {
 				System.out.println("polygon coordinates: point " + i + ": x,y=" + p.xpoints[i] + "," + p.ypoints[i]);
+			}
 		}
 		if (p.contains((int) x3, (int) y3)) {
 			dist = (double) (Math.sqrt(Math.pow((xIntersect - x3), 2) + Math.pow((yIntersect - y3), 2)));
@@ -573,6 +573,39 @@ public class CsdpFunctions {
 	 */
 	private static void swap(double[] array, int i, int j) {
 		double t = array[i];
+		array[i] = array[j];
+		array[j] = t;
+	}
+
+	/**
+	 * quicksort. left is the index of the first element in the array; right is
+	 * the index of the last
+	 */
+	public static Integer[] qsort(Integer[] array, int left, int right) {
+		int last = 0;
+		double ran = 0.0;
+		if (left < right) {
+			ran = Math.random();
+			swap(array, left, left + (int) ((right - left + 1) * ran));
+			last = left;
+			for (int i = left + 1; i <= right; i++) {
+				if (array[i].intValue() < array[left].intValue()) {
+					last++;
+					swap(array, last, i);
+				} // if
+			} // for i
+			swap(array, left, last);
+			qsort(array, left, last - 1);
+			qsort(array, last + 1, right);
+		} // if
+		return array;
+	}// qsort
+
+	/**
+	 * swap two double values in array. used by quicksort
+	 */
+	private static void swap(Integer[] array, int i, int j) {
+		Integer t = array[i];
 		array[i] = array[j];
 		array[j] = t;
 	}
@@ -1839,6 +1872,11 @@ public class CsdpFunctions {
 	 */
 	public static final int BIT_64 = 20;
 
+	/*
+	 * If true, a dialog is already open, and don't allow another to be open.
+	 */
+	private static boolean MOVE_POLYGON_CENTERLINE_POINTS_TO_LEVEE_CENTERLINE_DIALOG_OPEN;
+
 	public static boolean backupFile(String fullPath) {
 		String inputPath = fullPath;
 		String outputPath = inputPath + ".bak";
@@ -1894,6 +1932,14 @@ public class CsdpFunctions {
 	 * version number-displayed at top of frame
 	 */
 	private static final String _version = "2.6_20190114";
+
+	public static boolean movePolygonCenterlinePointsToLeveeCenterlineDialogOpen() {
+		return MOVE_POLYGON_CENTERLINE_POINTS_TO_LEVEE_CENTERLINE_DIALOG_OPEN;
+	}
+
+	public static void setPolygonCenterlinePointsToLeveeCenterlineDialogOpen(boolean b) {
+		MOVE_POLYGON_CENTERLINE_POINTS_TO_LEVEE_CENTERLINE_DIALOG_OPEN = b;		
+	}
 
 
 

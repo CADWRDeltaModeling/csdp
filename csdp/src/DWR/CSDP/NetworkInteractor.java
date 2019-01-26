@@ -125,7 +125,8 @@ public class NetworkInteractor extends ElementInteractor {
 				addXsect();
 			else if (_gui.getMoveXsectMode())
 				moveXsect();
-			else if (_gui.getZoomBoxMode() || _gui.getZoomPanMode()) {
+			else if (_gui.getZoomBoxMode() || _gui.getZoomPanMode() || _gui.getDeleteCenterlinePointsInBoxMode() ||
+					_gui.getDeleteCenterlinePointsOutsideBoxMode()) {
 				_drawDragRect = true;
 				_previouslyDoubleBuffered = _can.isDoubleBuffered();
 				if (!_previouslyDoubleBuffered)
@@ -317,8 +318,8 @@ public class NetworkInteractor extends ElementInteractor {
 							// removed for conversion to swing
 							_can.redoNextPaint();
 							_can.repaint();
-						} // if xsect found
-						else {
+						} else {
+							// if xsect found
 							_gui.updateInfoPanel(-Integer.MAX_VALUE);
 							_gui.updateInfoPanel(-Integer.MAX_VALUE, -Integer.MAX_VALUE, -Integer.MAX_VALUE,
 									-Integer.MAX_VALUE);
@@ -326,23 +327,28 @@ public class NetworkInteractor extends ElementInteractor {
 						//// }//if it's the same centerline
 						// added for conversion to swing
 						_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
-					} // if found > 0 centerlines
-					else {
-						_net.setSelectedCenterlineName(null);
-						_net.setSelectedCenterline(null);
-						_net.setSelectedXsectNum(-Integer.MAX_VALUE);
-						_net.setSelectedXsect(null);
-						_gui.disableIfNoCenterlineSelected();
-						_gui.disableIfNoXsectSelected();
-						_gui.updateInfoPanel("");
-						_gui.updateInfoPanel(-Integer.MAX_VALUE);
-						_gui.updateInfoPanel(-Integer.MAX_VALUE, -Integer.MAX_VALUE, -Integer.MAX_VALUE,
-								-Integer.MAX_VALUE);
-						_net.setNewCenterlineName(cFoundName.get(selectIndex));
-
-						// removed for conversion to swing
-						_can.redoNextPaint();
-						_can.repaint();
+						if(_gui.getSelectCenterlineForDataEntryDialogMode()) {
+							_gui.sendSelectedCenterlineNameToDataEntryDialog(centerline.getCenterlineName());
+						}
+					}else {
+						if(!_gui.getSelectCenterlineForDataEntryDialogMode()) {
+							 // if found > 0 centerlines
+							_net.setSelectedCenterlineName(null);
+							_net.setSelectedCenterline(null);
+							_net.setSelectedXsectNum(-Integer.MAX_VALUE);
+							_net.setSelectedXsect(null);
+							_gui.disableIfNoCenterlineSelected();
+							_gui.disableIfNoXsectSelected();
+							_gui.updateInfoPanel("");
+							_gui.updateInfoPanel(-Integer.MAX_VALUE);
+							_gui.updateInfoPanel(-Integer.MAX_VALUE, -Integer.MAX_VALUE, -Integer.MAX_VALUE,
+									-Integer.MAX_VALUE);
+							_net.setNewCenterlineName(cFoundName.get(selectIndex));
+	
+							// removed for conversion to swing
+							_can.redoNextPaint();
+							_can.repaint();
+						}
 					} // else select no centerline or xsect
 
 					_net._oldCenterlineName = _net._newCenterlineName;
@@ -578,6 +584,50 @@ public class NetworkInteractor extends ElementInteractor {
 			// yDataCoord = length[1]-_centerY;
 			// }
 			centerline.deleteCenterlinePoint(xDataCoord, yDataCoord);
+			if (centerline.getNumCenterlinePoints() <= 0) {
+				_net.removeCenterline(_net.getSelectedCenterlineName());
+				_gui.disableIfNoCenterlineSelected();
+			}
+			for (int i = centerline.getNumXsects() - 1; i > 0; i--) {
+				xsect = centerline.getXsect(i);
+				if (xsect.getDistAlongCenterlineFeet() > centerline.getLengthFeet()
+						|| xsect.getDistAlongCenterlineFeet() < 0) {
+					centerline.removeXsect(i);
+				}
+			}
+			_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+			// removed for conversion to swing
+			_gui.getPlanViewCanvas(0).redoNextPaint();
+			_gui.getPlanViewCanvas(0).repaint();
+		} // if centerlineName not null
+		_net.setIsUpdated(true);
+	}
+
+	/**
+	 * delete point in centerline
+	 */
+	protected void deletePointsInOrOutsideBox(int option) {
+		double xDataCoordI;
+		double yDataCoordI;
+		double xDataCoordF;
+		double yDataCoordF;
+		Centerline centerline;
+		Xsect xsect;
+		_nPlotter = _can._networkPlotter;
+		ZoomState zs = _bathymetryPlot.getCurrentZoomState();
+		CoordConv cc = zs.getCoordConv();
+		if (_net.getSelectedCenterlineName() != null) {
+			if (DEBUG)
+				System.out.println("deleting centerline point");
+			centerline = _net.getCenterline(_net.getSelectedCenterlineName());
+			cc.pixelsToLength(_xi, _yi, _minX, _minY, _lengthI);
+			// if(_gui.getPlanViewCanvas(0)._useZoomBox){
+			xDataCoordI = _lengthI[0];
+			yDataCoordI = _lengthI[1];
+			cc.pixelsToLength(_xf, _yf, _minX, _minY, _lengthI);
+			xDataCoordF = _lengthI[0];
+			yDataCoordF = _lengthI[1];
+			centerline.deleteCenterlinePointsInBox(_gui, option, xDataCoordI, yDataCoordI, xDataCoordF, yDataCoordF);
 			if (centerline.getNumCenterlinePoints() <= 0) {
 				_net.removeCenterline(_net.getSelectedCenterlineName());
 				_gui.disableIfNoCenterlineSelected();
@@ -970,6 +1020,14 @@ public class NetworkInteractor extends ElementInteractor {
 					_can.zoomPan(_xi, _yi, _xf, _yf);
 				}
 			}
+			if(_gui.getDeleteCenterlinePointsInBoxMode()) {
+				_drawDragRect = false;
+				deletePointsInOrOutsideBox(Centerline.DELETE_INSIDE_WINDOW);
+			}
+			if(_gui.getDeleteCenterlinePointsOutsideBoxMode()) {
+				_drawDragRect = false;
+				deletePointsInOrOutsideBox(Centerline.DELETE_OUTSIDE_WINDOW);
+			}
 		}
 		_mouseDragged = false;
 	}// mouseReleased
@@ -1208,7 +1266,7 @@ public class NetworkInteractor extends ElementInteractor {
 	public void mouseDragged(MouseEvent e) {
 		if (_drawDragRect)
 			_mouseDragged = true;
-		if (_gui.getZoomBoxMode()) {
+		if (_gui.getZoomBoxMode() || _gui.getDeleteCenterlinePointsInBoxMode() || _gui.getDeleteCenterlinePointsOutsideBoxMode()) {
 			Graphics g = _gCImage.getGraphics();
 			Rectangle bounds = _can.getBounds();
 			bounds.x = 0;
