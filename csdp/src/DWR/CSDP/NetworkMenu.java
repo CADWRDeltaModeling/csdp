@@ -48,11 +48,14 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+
 
 import DWR.CSDP.dialog.CenterlineSummaryWindow;
 import DWR.CSDP.dialog.DataEntryDialog;
@@ -285,59 +288,85 @@ public class NetworkMenu {
 
 	} // NSaveAs
 
-	public class NExportToWKTFormat extends FileIO implements ActionListener {
+	public class NExportToWKTFormat implements ActionListener {
 		private CsdpFrame gui;
 
 		public NExportToWKTFormat(CsdpFrame gui) {
-			super(gui, _exportWKTDialogMessage, _saveErrorMessage, _exportWKTSuccessMessage, _exportWKTFailureMessage, true,
-					_wktExtensions, _numWKTExtensions);
-			_jfc.setDialogTitle(_exportWKTDialogMessage);
-			_jfc.setApproveButtonText("Export to WKT Format");
-			_jfc.addChoosableFileFilter(_nExportToWKTFilter);
-			_jfc.setFileFilter(_nExportToWKTFilter);
 			this.gui = gui;
 		}
 
-		@Override
-		public boolean accessFile() {
+		public void actionPerformed(ActionEvent arg0) {
 			boolean saved = false;
-			if(_cancel==false) {
+			
+			String title = "Export Network to WKT for importing into GIS";
+			String instructions = "<HTML><BODY>1. Specify a *.wkt filename.<BR>"
+					+ "2. Check the box if you want the results to be identified as POLYGON objects. Default is LINESTRING.<BR><BR>"
+					+ "</BODY></HTML>";
+			String[] names = new String[] {"WKT filename", "Create POLYGON objects?"};
+			String[] defaultValues = new String[]{"", "true"};
+			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.BOOLEAN_TYPE};
+			boolean[] disableIfNull = new boolean[] {true, false};
+			int[] numDecimalPlaces = new int[] {0,0};
+			String[] extensions = new String[] {"wkt", ""};
+			String[] tooltips = new String[] {"The full path to the .wkt file to be created", 
+					"if selected, create POLYGON objects. If not, create LINESTRING objects"};
+			boolean modal = true;
+			
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(this.gui, title, instructions, names, 
+					defaultValues, dataTypes, disableIfNull, numDecimalPlaces, 
+					extensions, tooltips, modal);
+			int response = dataEntryDialog.getResponse();
+			if(response==DataEntryDialog.OK) {
+				System.out.println("ok clicked");
 				Network net = gui.getNetwork();
-				saved = _app.nExportToWKT(net, CsdpFunctions.getNetworkDirectory().getPath(), _filename+"."+_filetype);
+				String wktPath = dataEntryDialog.getDirectory(names[0])+File.separator+dataEntryDialog.getFilename(names[0]);
+				String createPolygonObjectsString = dataEntryDialog.getValue(names[1]);
+				boolean createPolygonObjects = true;
+				if(createPolygonObjectsString.equalsIgnoreCase("true")) {
+					createPolygonObjects = true;
+				}else {
+					createPolygonObjects = false;
+				}
+				boolean success = _app.nExportToWKT(net, wktPath, createPolygonObjects);
+				if(success) {
+					JOptionPane.showMessageDialog(gui, "Export to wkt complete.", "Success", JOptionPane.OK_OPTION);
+				}else {
+					JOptionPane.showMessageDialog(gui, "Export to wkt failed.", "Failure", JOptionPane.ERROR_MESSAGE);
+				}
 			}else {
-				saved=false;
+				System.out.println("export to wkt canceled.");
 			}
-			return saved;
+			
 		}
 
-		/**
-		 * uses a dialog box to get filename from user
-		 */
-		protected String getFilename() {
-			int numLines = 0;
-			String filename = null;
-			if (CsdpFunctions.getNetworkDirectory() != null) {
-				_jfc.setCurrentDirectory(CsdpFunctions.getNetworkDirectory());
-			}
-
-			_filechooserState = _jfc.showSaveDialog(_gui);
-			if (_filechooserState == JFileChooser.APPROVE_OPTION) {
-				filename = _jfc.getName(_jfc.getSelectedFile());
-				CsdpFunctions.setNetworkDirectory(_jfc.getCurrentDirectory().getAbsolutePath() + File.separator);
-				parseFilename(filename);
-				_cancel = false;
-				CsdpFunctions._cancelSaveNetwork = false;
-			} else if (_filechooserState == JFileChooser.CANCEL_OPTION) {
-				_cancel = true;
-				CsdpFunctions._cancelSaveNetwork = true;
-				filename = null;
-			} else {
-				_cancel = true;
-				CsdpFunctions._cancelSaveNetwork = true;
-				filename = null;
-			} // if
-			return filename;
-		}// getFilename
+//		/**
+//		 * uses a dialog box to get filename from user
+//		 */
+//		protected String getFilename() {
+//			int numLines = 0;
+//			String filename = null;
+//			if (CsdpFunctions.getNetworkDirectory() != null) {
+//				_jfc.setCurrentDirectory(CsdpFunctions.getNetworkDirectory());
+//			}
+//
+//			_filechooserState = _jfc.showSaveDialog(_gui);
+//			if (_filechooserState == JFileChooser.APPROVE_OPTION) {
+//				filename = _jfc.getName(_jfc.getSelectedFile());
+//				CsdpFunctions.setNetworkDirectory(_jfc.getCurrentDirectory().getAbsolutePath() + File.separator);
+//				parseFilename(filename);
+//				_cancel = false;
+//				CsdpFunctions._cancelSaveNetwork = false;
+//			} else if (_filechooserState == JFileChooser.CANCEL_OPTION) {
+//				_cancel = true;
+//				CsdpFunctions._cancelSaveNetwork = true;
+//				filename = null;
+//			} else {
+//				_cancel = true;
+//				CsdpFunctions._cancelSaveNetwork = true;
+//				filename = null;
+//			} // if
+//			return filename;
+//		}// getFilename
 	}//class NExportToWKTFormat
 
 	/**
@@ -358,7 +387,8 @@ public class NetworkMenu {
 			int[] types = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.STRING_TYPE, DataEntryDialog.BOOLEAN_TYPE};
 			String instructions = "<HTML><BODY><B>Save Specified Channels</B><BR><BR>"
 					+ "Click the button below to specify a <B>network file name</B> for writing results. If file exists, it will be overwritten.<BR>"
-					+ "Enter a <B>list of channel numbers</B> separated by commas, spaces, or tabs. <BR>"
+					+ "Enter a <B>list of channel numbers</B> separated by commas, spaces, or tabs. To export all polygon"
+					+ "centerlines (for GIS volume calculation), you may use an asterisk preceded by a '.' as a wildcard. Example: '.*_chanpoly'<BR>"
 					+ "Leave the <B>box</B> unchecked if you wish to export ONLY the specified numbers.<BR>"
 					+ "Check the <B>box</B> if you wish to export all channels EXCEPT the specified numbers.</BODY></HTML>";
 			String title = "Write specified centerlines to a network file.";
@@ -410,8 +440,21 @@ public class NetworkMenu {
 						}
 					}else {
 						for(int i=0; i<parts.length; i++) {
-							if(network.centerlineExists(parts[i]))
-								channelNumbersHashSet.add(parts[i]);
+							//if user enters something like .*_chanpoly
+							if(parts[i].indexOf("*")>=0) {
+								Pattern pattern = Pattern.compile(parts[i]);
+								for(int j=0; j<network.getNumCenterlines(); j++) {
+									String centerlineName = network.getCenterlineName(j);
+									Matcher matcher = pattern.matcher(centerlineName);
+									if(matcher.matches()) {
+										channelNumbersHashSet.add(centerlineName);
+									}
+								}
+							}else {
+								if(network.centerlineExists(parts[i])) {
+									channelNumbersHashSet.add(parts[i]);
+								}
+							}
 						}
 					}
 					_app.nSaveSpecifiedChannelsAs(newNetworkDirectory.toString(), newNetworkFilename, channelNumbersHashSet);

@@ -98,9 +98,29 @@ public class Network {
 	 * returns Centerline object
 	 */
 	public Centerline getCenterline(String name) {
-		return (Centerline) _centerlines.get(name);
+		return _centerlines.get(name);
 	}
 
+	/*
+	 * This is for centerlines whose name begins with an index (number) followed by an underscore
+	 */
+	public Centerline getCenterlineByNameOrIndex(String name) {
+		Centerline returnValue = null;
+		if(_centerlines.containsKey(name)) {
+			returnValue = _centerlines.get(name);
+		}else {
+			//find a centerline name that has the specified "name" at the beginning
+			for(int i=0; i<_centerlineNames.getSize(); i++) {
+				String centerlineName = _centerlineNames.get(i);
+				if(centerlineName.indexOf(name)==0) {
+					returnValue = getCenterline(centerlineName);
+					break;
+				}
+			}
+		}
+		return returnValue;
+	}
+	
 	/**
 	 * sort centerline names lexicographically
 	 */
@@ -963,7 +983,7 @@ public class Network {
 	/**
 	 * stores all Centerline objects
 	 */
-	protected Hashtable _centerlines = new Hashtable();
+	protected Hashtable<String, Centerline> _centerlines = new Hashtable<String, Centerline>();
 	/**
 	 * stores all centerline names
 	 */

@@ -90,6 +90,16 @@ public class Centerline {
 	 */
 	public static final int DELETE_OUTSIDE_WINDOW = 20;
 
+	/*
+	 * Indicates that when creating a centerline from multiple centerlines, 
+	 * points should be added starting from the upstream end.
+	 */
+	public static final int UPSTREAM_TO_DOWNSTREAM = 10; 
+	/*
+	 * Indicates that when creating a centerline from multiple centerlines, 
+	 * points should be added starting from the downstreasm end.
+	 */
+	public static final int DOWNSTREAM_TO_UPSTREAM = 20;
 	
 	public Centerline(String name) {
 		_centerlineName = name;
@@ -1241,6 +1251,47 @@ public class Centerline {
 		return intersects;
 	}//intersectsLine 
 
+	/*
+	 * For creating a centerline from multiple centerlines. Given another centerline, return 
+	 * UPSTREAM_TO_DOWNSTREAM if the points from this centerline (not "adjacentCenterline") should
+	 * be added starting from the upstream end. Otherwise, return DOWNSTREAM_TO_UPSTREAM.
+	 */
+	public int getPointOrderingForContinuousCenterline(Centerline adjacentCenterline, 
+			boolean lastCenterline) {
+		//determine the minimum distance between the endpoints of each centerline. 
+		CenterlinePoint thisUpstreamPoint = getCenterlinePoint(0);
+		CenterlinePoint thisDownstreamPoint = getCenterlinePoint(getNumCenterlinePoints()-1);
+		CenterlinePoint adjacentUpstreamPoint = getCenterlinePoint(0);
+		CenterlinePoint adjacentDownstreamPoint = 
+				adjacentCenterline.getCenterlinePoint(adjacentCenterline.getNumCenterlinePoints()-1);
+		double upstreamUpstreamDist = getDistanceBetweenCenterlinePoints(thisUpstreamPoint, adjacentUpstreamPoint);
+		double upstreamDownstreamDist = getDistanceBetweenCenterlinePoints(thisUpstreamPoint, adjacentDownstreamPoint);
+		double downstreamUpstreamDist = getDistanceBetweenCenterlinePoints(thisDownstreamPoint, adjacentUpstreamPoint);
+		double downstreamDownstreamDist = getDistanceBetweenCenterlinePoints(thisDownstreamPoint, adjacentDownstreamPoint);
+		double minUpstreamDist = Math.min(upstreamUpstreamDist, upstreamDownstreamDist);
+		double minDownstreamDist = Math.min(downstreamUpstreamDist, downstreamDownstreamDist);
+		if(!lastCenterline) {
+			if(minUpstreamDist>=minDownstreamDist) {
+				return UPSTREAM_TO_DOWNSTREAM;
+			}else {
+				return DOWNSTREAM_TO_UPSTREAM;
+			}
+		}else {
+			if(minUpstreamDist>=minDownstreamDist) {
+				return DOWNSTREAM_TO_UPSTREAM;
+			}else {
+				return UPSTREAM_TO_DOWNSTREAM;
+			}
+		}
+	}//getPointOrderingForContinuousCenterline
+
+	public double getDistanceBetweenCenterlinePoints(CenterlinePoint cp1, CenterlinePoint cp2) {
+		double x1 = cp1.getXFeet();
+		double y1 = cp1.getYFeet();
+		double x2 = cp2.getXFeet();
+		double y2 = cp2.getYFeet();
+		return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+	}
 //	/*
 //	 * Given a point on another centerline, find the closest point on the centerline to the given point.
 //	 * The result could be a point on one of the centerline's line segments or one of the vertices (centerline points)

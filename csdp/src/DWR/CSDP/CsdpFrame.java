@@ -212,7 +212,7 @@ public class CsdpFrame extends JFrame {
 	private JCheckBoxMenuItem oEchoTimeSeriesInput, oEchoXsectInput, oPrintXsectResults, oUseFremontWeir,
 			oUseToeDrainRestriction, oEchoToeDrainInput;
 	private JMenu tOpenWaterOptionsMenu, nExport, nExportOptions;
-	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc;
+	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc, tCreateDSM2ChanPolygons;
 	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
 	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nZoomToCenterline, 
 		nZoomToNode, nList, nSummary, nClearNetwork, nDisplayReachSummary, nCalculate, nExportToSEFormat, 
@@ -228,7 +228,7 @@ public class CsdpFrame extends JFrame {
 	 * For adjusting centerlines that are actually representations of polygons used to estimate channel volume
 	 * Will move points to a given centerline, which is actually representing a leveee
 	 */
-	private JMenuItem cMovePolygonCenterlinePointsToLeveeCenterline;
+	private JMenu cMovePolygonCenterlinePointsToLeveeCenterline;
 	// JMenuItem cRemove;
 	//// JMenuItem cRename;
 	// JMenuItem cMovePoint, cAddPoint, cDelPoint,
@@ -980,7 +980,6 @@ public class CsdpFrame extends JFrame {
 		cfNetwork.add(nOpen = new JMenuItem("Open"));
 		cfNetwork.add(nSave = new JMenuItem("Save"));
 		cfNetwork.add(nSaveAs = new JMenuItem("Save As"));
-		cfNetwork.add(nExportToWKT = new JMenuItem("Export to WKT format for GIS"));
 		cfNetwork.add(nSaveSpecifiedChannelsAs = new JMenuItem("Save Specified Channels"));
 		
 		cfNetwork.setMnemonic(KeyEvent.VK_N);
@@ -1007,6 +1006,7 @@ public class CsdpFrame extends JFrame {
 		cfNetwork.add(nExport = new JMenu("Export"));
 		nExport.add(nExportToSEFormat = new JMenuItem("Export to Station/Elevation format"));
 		nExport.add(nExportTo3DFormat = new JMenuItem("Export to 3D format"));
+		nExport.add(nExportToWKT = new JMenuItem("Export to WKT format for GIS"));
 		nExport.add(nExportOptions = new JMenu("Network export options"));
 		
 		JMenu reportsMenu = new JMenu("Reports");
@@ -1183,8 +1183,8 @@ public class CsdpFrame extends JFrame {
 		cfCenterline.add(cDeletePointsInWindow = new JMenuItem("Delete Centerline Points In Window"));
 		cfCenterline.add(cDeletePointsOutsideWindow = new JMenuItem("Delete Centerline Points Outside of Window"));
 		cfCenterline.add(cAddXSAtComputationalPoints = new JMenuItem("Add cross-sections at Computational Pts"));
-		cfCenterline.add(cMovePolygonCenterlinePointsToLeveeCenterline = 
-				new JMenuItem("Move Polygon centerline points to levee centerline."));
+		
+		
 		cfCenterline.setMnemonic(KeyEvent.VK_C);
 
 		if (_addCenterlineMenu)
@@ -1210,9 +1210,6 @@ public class CsdpFrame extends JFrame {
 		ActionListener cDeletePointsInWindowListener = _centerlineMenu.new DeleteCenterlinePointsInWindow();
 		ActionListener cDeletePointsOutsideOfWindowListener = _centerlineMenu.new DeleteCenterlinePointsOutsideOfWindow();
 		ActionListener cAddXSAtComputationalPointsListener = _centerlineMenu.new AddXSAtComputationalPoints(_networkInteractor);
-		ActionListener cMovePolygonCenterlinePointsToLeveeCenterlineListener = 
-				_centerlineMenu.new MovePolygonCenterlinePointsToLeveeCenterline();
-		
 		cCursor.addActionListener(cCursorListener);
 		cCreate.addActionListener(cCreateListener);
 		cDSMCreate.addActionListener(cDSMCreateListener);
@@ -1225,8 +1222,8 @@ public class CsdpFrame extends JFrame {
 		cDeletePointsInWindow.addActionListener(cDeletePointsInWindowListener);
 		cDeletePointsOutsideWindow.addActionListener(cDeletePointsOutsideOfWindowListener);
 		cAddXSAtComputationalPoints.addActionListener(cAddXSAtComputationalPointsListener);
-		cMovePolygonCenterlinePointsToLeveeCenterline.addActionListener(cMovePolygonCenterlinePointsToLeveeCenterlineListener);		
-		
+
+
 		_cursorButton.addActionListener(cCursorListener);
 		_moveButton.addActionListener(cMovePointListener);
 		_insertButton.addActionListener(cInsertPointListener);
@@ -1326,9 +1323,16 @@ public class CsdpFrame extends JFrame {
 		// files"));
 		cfTools.add(tCalcRect = new JMenuItem("Calculate Equivalent Rectangular cross-sections"));
 		cfTools.add(tOpenWaterCalc = new JMenuItem("Open Water Area Calculations"));
+//		cfTools.add(tCreateDSM2ChanPolygons = new JMenuItem("Create DSM2 channel polygons"));
 		if (_addToolsMenu)
 			menubar.add(cfTools);
-
+		cfTools.add(cMovePolygonCenterlinePointsToLeveeCenterline = 
+				new JMenu("Snap Polygon points to levee centerline."));
+		JMenuItem enterCenterlineNames = new JMenuItem("Enter Centerline Coord");
+		JMenuItem readCenterlineNamesFromFile = new JMenuItem("Read Centerline Coord From File");
+		cMovePolygonCenterlinePointsToLeveeCenterline.add(enterCenterlineNames);
+		cMovePolygonCenterlinePointsToLeveeCenterline.add(readCenterlineNamesFromFile);
+		
 		tCalcRect.setEnabled(false);
 
 		cfTools.setMnemonic(KeyEvent.VK_T);
@@ -1367,6 +1371,7 @@ public class CsdpFrame extends JFrame {
 		// TCompareNetwork(this);
 		ActionListener tCalcRectListener = _toolsMenu.new TCalcRect(this);
 		ActionListener tOpenWaterCalcListener = _toolsMenu.new TOpenWaterCalc(this);
+		ActionListener tCreateDSM2ChanPolygonsListener = _toolsMenu.new TCreateDSM2ChanPolygons();
 		// removed temporarily(?) options now appear in dialog
 		// EventListener oEchoTimeSeriesInputListener = _toolsMenu.new
 		// TEchoTimeSeriesInput();
@@ -1389,7 +1394,15 @@ public class CsdpFrame extends JFrame {
 		// tCompareNetwork.addActionListener(tCompareNetworkListener);
 		tCalcRect.addActionListener(tCalcRectListener);
 		tOpenWaterCalc.addActionListener(tOpenWaterCalcListener);
+		ActionListener tMovePolygonCenterlinePointsToLeveeCenterlineEnterCoordListener = 
+				_toolsMenu.new MovePolygonCenterlinePointsToLeveeCenterline(ToolsMenu.ENTER_CENTERLINE_NAMES);
+		ActionListener tMovePolygonCenterlinePointsToLeveeCenterlineReadFileListener = 
+				_toolsMenu.new MovePolygonCenterlinePointsToLeveeCenterline(ToolsMenu.READ_CENTERLINE_NAMES_FROM_FILE);
 
+		enterCenterlineNames.addActionListener(tMovePolygonCenterlinePointsToLeveeCenterlineEnterCoordListener);		
+		readCenterlineNamesFromFile.addActionListener(tMovePolygonCenterlinePointsToLeveeCenterlineReadFileListener);
+//		tCreateDSM2ChanPolygons.addActionListener(tCreateDSM2ChanPolygonsListener);
+		
 		// tCompareNetwork.setEnabled(_addCompareNetworkOption);
 
 		/*

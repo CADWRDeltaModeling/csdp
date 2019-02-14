@@ -1931,7 +1931,7 @@ public class CsdpFunctions {
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "2.6_20190125";
+	private static final String _version = "2.6_20190214";
 
 	public static boolean movePolygonCenterlinePointsToLeveeCenterlineDialogOpen() {
 		return MOVE_POLYGON_CENTERLINE_POINTS_TO_LEVEE_CENTERLINE_DIALOG_OPEN;

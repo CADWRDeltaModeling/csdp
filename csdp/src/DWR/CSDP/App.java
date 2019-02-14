@@ -704,8 +704,9 @@ public class App {
 	/*
 	 * Export network to WKT format for importing into GIS 
 	 */
-	public boolean nExportToWKT(Network net, String directory, String filename) {
-		AsciiFileWriter afw = new AsciiFileWriter(_csdpFrame, directory+File.separator+filename);
+	public boolean nExportToWKT(Network net, String wktPath, boolean createPolygonObjects) {
+		System.out.println("wktPath="+wktPath);
+		AsciiFileWriter afw = new AsciiFileWriter(_csdpFrame, wktPath);
 		afw.writeLine("id;wkt");
 		boolean success = true;
 		try{
@@ -713,7 +714,13 @@ public class App {
 			for(int i=0; i<numCenterlines; i++) {
 				String centerlineName = net.getCenterlineName(i);
 				Centerline centerline = (Centerline) net.getCenterline(centerlineName);
-				String lineToWrite = centerlineName+";LINESTRING(";
+				String lineToWrite = null;
+				if(createPolygonObjects) {
+					lineToWrite = centerlineName+";POLYGON((";
+				}else {
+					lineToWrite = centerlineName+";LINESTRING(";
+				}
+
 				int numPoints = centerline.getNumCenterlinePoints();
 				for(int j=0; j<numPoints; j++) {
 					if(j>0) {
@@ -723,6 +730,9 @@ public class App {
 					lineToWrite+=CsdpFunctions.feetToMeters(cp.getXFeet())+" "+CsdpFunctions.feetToMeters(cp.getYFeet());
 				}
 				lineToWrite += ")"; 
+				if(createPolygonObjects) {
+					lineToWrite += ")";
+				}
 				afw.writeLine(lineToWrite);
 			}
 			afw.close();
@@ -1931,22 +1941,67 @@ public class App {
 	 * Given 3 centerlines:
 	 * 1. The channel centerline
 	 * 2. A Centerline representing a polygon used to estimate GIS conveyance characteristics for the centerline
-	 * 3. A centerline representing a levee
+	 * 3. One or more centerlines representing a levee. Levee centerlines can be specified as an index, which is typically a  
+	 * 		number, and is the portion of the centerline name that occurs before the first underscore in the centerline name. 
 	 * 
 	 * Move all the points that are on the levee side of the centerline (determined using the channel centerline) to the
 	 * nearest point on the levee centerline
 	 */
-	public void movePolygonCenterlinePointsToLeveeCenterline(String polygonCenterlineName, 
-			String channelCenterlineName, String leveeCenterlineName) {
+	public void snapPolygonCenterlinePointsToLeveeCenterline(String polygonCenterlineName, 
+			String[] leveeCenterlineNamesOrIndices) {
 		if(DEBUG) System.out.println("movePolygonCenterlinePointsToLeveeCenterline: polygonCenterlineName, "
-				+ "channelCenterlineName, leveeCenterlineName="+polygonCenterlineName+","+channelCenterlineName+","+leveeCenterlineName);
+				+ "leveeCenterlineName="+polygonCenterlineName+","+leveeCenterlineNamesOrIndices);
+
 		Centerline polygonCenterline = _net.getCenterline(polygonCenterlineName);
-		Centerline channelCenterline = _net.getCenterline(channelCenterlineName);
-		Centerline leveeCenterline = _net.getCenterline(leveeCenterlineName);
+//		Centerline channelCenterline = _net.getCenterline(channelCenterlineName);
+
+		Centerline leveeCenterline = null;
+		if(leveeCenterlineNamesOrIndices.length==1) {
+			leveeCenterline = _net.getCenterlineByNameOrIndex(leveeCenterlineNamesOrIndices[0]);
+		}else {
+			String newCenterlineName = "";
+			Centerline[] centerlines = new Centerline[leveeCenterlineNamesOrIndices.length];
+			for(int i=0; i<leveeCenterlineNamesOrIndices.length; i++) {
+				centerlines[i] = _net.getCenterlineByNameOrIndex(leveeCenterlineNamesOrIndices[i]);
+				newCenterlineName += leveeCenterlineNamesOrIndices[i]+"_";
+			}
+			leveeCenterline = new Centerline(newCenterlineName);
+			//the values in this array determine which order to add points--UPSTREAM_TO_DOWNSTREAM 
+			//or DOWNSTREAM_TO_UPSTREAM
+			int[] pointOrder = new int[centerlines.length]; 
+			for(int i=0; i<centerlines.length; i++) {
+				if(i==centerlines.length-1) {
+					Centerline lastCenterline = centerlines[i-1];
+					Centerline currentCenterline = centerlines[i];
+					pointOrder[i]= currentCenterline.getPointOrderingForContinuousCenterline(lastCenterline, true); 
+				}else {
+					Centerline currentCenterline = centerlines[i];
+					Centerline nextCenterline = centerlines[i+1];
+					pointOrder[i] = currentCenterline.getPointOrderingForContinuousCenterline(nextCenterline, false);
+				}
+			}
+			
+			for(int i=0; i<centerlines.length; i++) {
+				Centerline c = centerlines[i];
+				if(pointOrder[i]==Centerline.UPSTREAM_TO_DOWNSTREAM) {
+					for(int j=0; j<c.getNumCenterlinePoints(); j++) {
+						double xFeet = c.getCenterlinePoint(j).getXFeet();
+						double yFeet = c.getCenterlinePoint(j).getYFeet();
+						leveeCenterline.addCenterlinePointFeet(xFeet, yFeet);
+					}
+				}else if(pointOrder[i]==Centerline.DOWNSTREAM_TO_UPSTREAM) {
+					for(int j=c.getNumCenterlinePoints()-1; j>0; j--) {
+						double xFeet = c.getCenterlinePoint(j).getXFeet();
+						double yFeet = c.getCenterlinePoint(j).getYFeet();
+						leveeCenterline.addCenterlinePointFeet(xFeet, yFeet);
+					}
+				}
+			}
+		}//if leveeCenterlineNamesOrIndices has 1 or more centerlines
 
 		//if the perpendicular distance from the channel polygon point to the levee is greater than this 
 		//value, point will not be moved 
-		double maxAllowableDist = 100000.;
+		double maxAllowableDist = 1000.;
 		//identify which line segment has the shortest dist.
 		for(int i=0; i<polygonCenterline.getNumCenterlinePoints(); i++) {
 			CenterlinePoint polygonCenterlinePoint = polygonCenterline.getCenterlinePoint(i);
@@ -1954,8 +2009,8 @@ public class App {
 			double y3 = polygonCenterlinePoint.getYFeet();
 			double shortestDistToLevee = Double.MAX_VALUE;
 			int shortestDistLeveeSegmentIndex = -Integer.MAX_VALUE;
-			double shortestDistXIntersection = -Double.MAX_VALUE;
-			double shortestDistYIntersection = -Double.MAX_VALUE;
+			double closestLeveePointX = -Double.MAX_VALUE;
+			double closestLeveePointY = -Double.MAX_VALUE;
 			for(int j=1; j<leveeCenterline.getNumCenterlinePoints(); j++) {
 				CenterlinePoint lastLeveeCenterlinePoint = leveeCenterline.getCenterlinePoint(j-1);
 				CenterlinePoint currentLeveeCenterlinePoint = leveeCenterline.getCenterlinePoint(j);
@@ -1974,36 +2029,55 @@ public class App {
 				if(distToLevee<shortestDistToLevee) {
 					shortestDistToLevee = distToLevee;
 					shortestDistLeveeSegmentIndex = j;
-					shortestDistXIntersection = CsdpFunctions.findXIntersection(x1,x2,x3,y1,y2,y3);
-					shortestDistYIntersection = CsdpFunctions.findYIntersection(x1,x2,x3,y1,y2,y3);
+					closestLeveePointX = CsdpFunctions.findXIntersection(x1,x2,x3,y1,y2,y3);
+					closestLeveePointY = CsdpFunctions.findYIntersection(x1,x2,x3,y1,y2,y3);
 					if(DEBUG) {
 						System.out.println("MovePolygonCenterlinePointsToLeveeCenterline: found point: "
 								+ "shortestDistToLevee, shortestDistLeveeSegmentIndex, shortestDistXIntersection, "
 								+ "shortestDistYIntersection="+
-								shortestDistToLevee+","+shortestDistLeveeSegmentIndex+","+shortestDistXIntersection+","+
-								shortestDistYIntersection);
+								shortestDistToLevee+","+shortestDistLeveeSegmentIndex+","+closestLeveePointX+","+
+								closestLeveePointY);
 					}
 				}
 				if(distToLastLeveePoint<shortestDistToLevee) {
 					shortestDistToLevee = distToLastLeveePoint;
 					shortestDistLeveeSegmentIndex = j;
-					shortestDistXIntersection = x1;
-					shortestDistYIntersection = y1;
+					closestLeveePointX = x1;
+					closestLeveePointY = y1;
 				}
 				if(distToCurrentLeveePoint<shortestDistToLevee) {
 					shortestDistToLevee = distToCurrentLeveePoint;
 					shortestDistLeveeSegmentIndex = j;
-					shortestDistXIntersection = x2;
-					shortestDistYIntersection = y2;
+					closestLeveePointX = x2;
+					closestLeveePointY = y2;
 				}
 			}//for
 			if(shortestDistToLevee < Double.MAX_VALUE && shortestDistLeveeSegmentIndex>0 &&
-					shortestDistXIntersection>0.0 && shortestDistYIntersection>0.0) {
-				if(!channelCenterline.intersectsLine(shortestDistXIntersection, x3, shortestDistYIntersection, y3)) {
+					closestLeveePointX>0.0 && closestLeveePointY>0.0) {
+				//don't move the point if a line connecting the point and the closest levee point intersects the 
+				//channel centerline. NOT a good idea...because channel centerline is sometimes in the wrong place.
+//				if(!channelCenterline.intersectsLine(closestLeveePointX, x3, closestLeveePointY, y3)) {
+//					//move the point
+//					polygonCenterlinePoint.putXFeet(closestLeveePointX);
+//					polygonCenterlinePoint.putYFeet(closestLeveePointY);
+//				}
+
+				//instead: Don't move the point if the same line (extended out beyond the closest levee point, because sometimes
+				//the polygon centerline is on the far side of the levee) intersects another line segment or point on the 
+				//polygon centerline.
+				//need to identify a point that is .01 feet away from the polygon point x3,y3, in the direction of the
+				//closest levee point
+				double theta = CsdpFunctions.getTheta(x3, closestLeveePointX, y3, closestLeveePointY);
+				double x3Prime = x3+0.01*Math.cos(theta);
+				double y3Prime = y3+0.01*Math.sin(theta);
+				double beyondClosestLeveePointX = closestLeveePointX+maxAllowableDist*Math.cos(theta);
+				double beyondClosestLeveePointY = closestLeveePointY+maxAllowableDist*Math.sin(theta);
+				if(!polygonCenterline.intersectsLine(beyondClosestLeveePointX, x3Prime, beyondClosestLeveePointY, y3Prime)) {
 					//move the point
-					polygonCenterlinePoint.putXFeet(shortestDistXIntersection);
-					polygonCenterlinePoint.putYFeet(shortestDistYIntersection);
+					polygonCenterlinePoint.putXFeet(closestLeveePointX);
+					polygonCenterlinePoint.putYFeet(closestLeveePointY);
 				}
+			
 			}//if
 		}//for
 		_csdpFrame.getPlanViewCanvas(0).setUpdateNetwork(true);

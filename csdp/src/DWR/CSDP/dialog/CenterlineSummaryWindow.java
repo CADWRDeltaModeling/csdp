@@ -284,11 +284,21 @@ public class CenterlineSummaryWindow extends JFrame {
 			centerlineOrReachSummaryLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 			centerlineOrReachSummaryLabel.setBackground(Color.LIGHT_GRAY);
 			JLabel elevationLabel = new JLabel("Elevation, ft");
-			JLabel centerlineLengthLabel = new JLabel("Centerline Length, ft");
-			JLabel channelVolumeLabel = new JLabel("Channel Volume, ft3");
-			JLabel channelWettedAreaLabel = new JLabel("Channel Wetted Area, ft2");
-			JLabel channelSurfaceAreaLabel = new JLabel("Channel Surface Area, ft2");
-
+			JLabel centerlineLengthLabel = null;
+			JLabel channelVolumeLabel = null;
+			JLabel channelWettedAreaLabel = null;
+			JLabel channelSurfaceAreaLabel = null;
+			if(this.chanNumbersVector.size()>1) {
+				centerlineLengthLabel = new JLabel("Reach Length, ft");
+				channelVolumeLabel = new JLabel("Reach Volume, ft3");
+				channelWettedAreaLabel = new JLabel("Reach Wetted Area, ft2");
+				channelSurfaceAreaLabel = new JLabel("Reach Surface Area, ft2");
+			}else {
+				centerlineLengthLabel = new JLabel("Centerline Length, ft");
+				channelVolumeLabel = new JLabel("Channel Volume, ft3");
+				channelWettedAreaLabel = new JLabel("Channel Wetted Area, ft2");
+				channelSurfaceAreaLabel = new JLabel("Channel Surface Area, ft2");
+			}
 			double length = 0.0;
 			double volume = 0.0;
 			double wettedArea = 0.0;
