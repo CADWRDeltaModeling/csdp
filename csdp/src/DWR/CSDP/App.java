@@ -641,7 +641,7 @@ public class App {
 		parseFilename(filename);
 		CsdpFunctions.setDSMChannelsFilename(_filename+"."+_filetype);
 		CsdpFunctions.setDSMChannelsFiletype(_filetype);
-		try {
+//		try {
 			if (_filetype.equals(DSMChannels_TYPE)) {
 				DSMChannelsInput chanInput = DSMChannelsInput.getInstance(directory, _filename + "." + _filetype);
 				_DSMChannels = chanInput.readData();
@@ -649,10 +649,10 @@ public class App {
 					System.out.println("Done reading ascii DSMChannels data file");
 			} else
 				System.out.println("filetype not defined for extension " + _filetype);
-		}catch(Exception e) {
-			JOptionPane.showMessageDialog(_csdpFrame, "Exception caught in App.chanReadStore: "+e.getMessage(), 
-					"Error", JOptionPane.ERROR_MESSAGE);
-		}
+//		}catch(Exception e) {
+//			JOptionPane.showMessageDialog(_csdpFrame, "Exception caught in App.chanReadStore: "+e.getMessage(), 
+//					"Error", JOptionPane.ERROR_MESSAGE);
+//		}
 		return _DSMChannels;
 	}// chanReadStore
 
@@ -915,9 +915,9 @@ public class App {
 		String instructions = "<HTML><BODY><H2>A network summary report uses the following input files:</H2><BR>"
 				+ "1. An existing channels.imp file<BR>"
 				+ "2. The currently loaded network file<BR>"
-				+ "3. A DSM2 output (.hof) file which was created from the network file by running DSM2-Hydro with printlevel>=5</font><BR><BR>"
+				+ "3. (Optional): A DSM2 output (.hof) file which was created from the network file by running DSM2-Hydro with printlevel>=5</font><BR><BR>"
 				+ "<H2>To calculate, for each channel, for a given stage (usually 0.0 NAVD)</H2><BR>"
-				+ "1. A comparison of channels lengths from the channels.inp file vs channels lengths calculated using the network file<BR>"
+				+ "1. A comparison of channel lengths from the channels.inp file vs channel lengths calculated using the network file<BR>"
 				+ "2. Volume, wetted area, and surface area using CSDP cross-sections, assuming no inter-channel interpolation<BR>"
 				+ "3. (If hof file specified) Volume, wetted area, and surface area using Virtual cross-sections (which are calculated using inter-channel interpolation<BR>"
 				+ "4. The maximum ratio of CSDP cross-sectional areas within the channel<BR>"
@@ -1075,6 +1075,7 @@ public class App {
 //			for(int i=0; i<externalChannelNumbers.size(); i++) {
 //				String chan = externalChannelNumbers.get(i);
 				Centerline centerline = null;
+
 				if(_net.centerlineExists(chan)) {
 					centerline = _net.getCenterline(chan);
 				}
@@ -1096,8 +1097,8 @@ public class App {
 				double dsm2SurfArea = -Double.MAX_VALUE;
 				double dsm2MaxAreaRatio = -Double.MAX_VALUE;
 				if(dsm2HofFileSpecified) {
-					if(!chanToVol.contains(chan) || !chanToWettedArea.contains(chan) || !chanToSurfArea.contains(chan) ||
-							chanToMaxAreaRatio.contains(chan)) {
+					if(!chanToVol.containsKey(chan) || !chanToWettedArea.containsKey(chan) || 
+							!chanToSurfArea.containsKey(chan) || !chanToMaxAreaRatio.containsKey(chan)) {
 						JOptionPane.showMessageDialog(_csdpFrame, "Error in App.createNetworkSummaryReport: a .hof file \n"
 								+ "was specified, but the .hof file is missing \n"
 								+ "information for channel "+chan, "Error", JOptionPane.ERROR_MESSAGE);

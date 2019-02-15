@@ -41,6 +41,7 @@
 package DWR.CSDP;
 
 import java.util.Hashtable;
+import java.util.Vector;
 
 /**
  * Stores channel connectivity information
@@ -63,46 +64,24 @@ public class DSMChannels {
 //	}
 
 	public void addDSMChannel(int index, String name, int length, String manning, String dispersion, int upnode, int downnode) {
-		putChanNum(index, name);
-		putLength(name, length);
-		putManning(name, manning);
-		putDispersion(name, dispersion);
-		putUpnode(name, upnode);
-		putDownnode(name, downnode);
-		
+		_chanNum.addElement(name);
+		_length.put(name, length);
+		_manning.put(name, manning);
+		_dispersion.put(name, dispersion);
+		_upnode.put(name, upnode);
+		_downnode.put(name, downnode);
 	}
 
 	public void addDSMXsectLayer(int index, String chan, String dist, String elev, String area, String width, String wetPerim) {
 		String xsectLayerID = chan+"_"+dist+"_"+elev;
-		putXsectLayerID(index, xsectLayerID);
-		putDist(xsectLayerID, dist);
-		putElev(xsectLayerID, elev);
-		putArea(xsectLayerID, area);
-		putWidth(xsectLayerID, width);
-		putWetPerim(xsectLayerID, wetPerim);
-	}
-	
-	protected void putXsectLayerID(int index, String xsectLayerID){
-		_xsectLayerID.put(index, xsectLayerID);
-		_numXsectLayers++;
-	}
-	
-	protected void putDist(String xsectLayerID, String dist) {
+		_xsectLayerID.addElement(xsectLayerID);
 		_xsectLayerDist.put(xsectLayerID, dist);
-	}
-	protected void putElev(String xsectLayerID, String elev) {
 		_xsectLayerElev.put(xsectLayerID, elev);
-	}
-	protected void putArea(String xsectLayerID, String area) {
 		_xsectLayerArea.put(xsectLayerID, area);
-	}
-	protected void putWidth(String xsectLayerID, String width) {
 		_xsectLayerWidth.put(xsectLayerID, width);
-	}
-	protected void putWetPerim(String xsectLayerID, String wetPerim) {
 		_xsectLayerWetPerim.put(xsectLayerID, wetPerim);
 	}
-
+	
 	public String getXsectLayerID(int index) {
 		return _xsectLayerID.get(index);
 	}
@@ -123,17 +102,10 @@ public class DSMChannels {
 	}
 	
 	public int getNumXsectLayers() {
-		return _numXsectLayers;
+//		return _numXsectLayers;
+		return _xsectLayerID.size();
 	}
 	
-	/**
-	 * stores channel number
-	 */
-	protected void putChanNum(int index, String value) {
-		_chanNum.put(index, value);
-		_numChannels++;
-	}
-
 	/**
 	 * returns channel number
 	 */
@@ -145,15 +117,8 @@ public class DSMChannels {
 	 * returns number of channels
 	 */
 	public int getNumChannels() {
-		return _numChannels;
-	}
-
-	/**
-	 * stores length
-	 */
-	public void putLength(String chan, int value) {
-		Integer lengthObject = new Integer(value);
-		_length.put(chan, lengthObject);
+//		return _numChannels;
+		return _chanNum.size();
 	}
 
 	/**
@@ -170,14 +135,6 @@ public class DSMChannels {
 	}
 
 	/**
-	 * stores downnode
-	 */
-	public void putDownnode(String chan, int value) {
-		Integer downnodeObject = new Integer(value);
-		_downnode.put(chan, downnodeObject);
-	}
-
-	/**
 	 * returns downnode
 	 */
 	public int getDownnode(String chan) {
@@ -186,14 +143,6 @@ public class DSMChannels {
 			returnValue = _downnode.get(chan).intValue();
 		}
 		return returnValue;
-	}
-
-	/**
-	 * stores upnode
-	 */
-	public void putUpnode(String chan, int value) {
-		Integer upnodeObject = new Integer(value);
-		_upnode.put(chan, upnodeObject);
 	}
 
 	/**
@@ -295,10 +244,6 @@ public class DSMChannels {
 		return returnValue;
 	}
 
-	public void putManning(String chan, String value) {
-		_manning.put(chan, value);
-	}
-
 	public String getDispersion(String chan) {
 		String returnValue = "";
 		if(_dispersion.containsKey(chan)) {
@@ -307,9 +252,6 @@ public class DSMChannels {
 		return returnValue;
 	}
 
-	public void putDispersion(String chan, String value) {
-		_dispersion.put(chan, value);
-	}
 	
 	/**
 	 * To check if all information exists for the specified channel number
@@ -321,39 +263,39 @@ public class DSMChannels {
 		return exists;
 	}
 
-	protected final String CHAN_HEADER = "CHAN";
-	protected final String LENGTH_HEADER = "LENGTH";
-	protected final String DOWNNODE_HEADER = "DOWNNODE";
-	protected final String UPNODE_HEADER = "UPNODE";
-	protected final String XSECT_HEADER = "XSECT";
-	protected final String DIST_HEADER = "DIST";
-	protected int _numChannels = 0;
+	private final String CHAN_HEADER = "CHAN";
+	private final String LENGTH_HEADER = "LENGTH";
+	private final String DOWNNODE_HEADER = "DOWNNODE";
+	private final String UPNODE_HEADER = "UPNODE";
+	private final String XSECT_HEADER = "XSECT";
+	private final String DIST_HEADER = "DIST";
+//	private int _numChannels;
 
-	protected ResizableStringArray _chanNum = new ResizableStringArray();
-	protected Hashtable<String, Integer> _length = new Hashtable<String, Integer>();
-	protected Hashtable<String, String> _manning = new Hashtable<String, String>();
-	protected Hashtable<String, String> _dispersion = new Hashtable<String, String>();
-	protected Hashtable<String, Integer> _downnode = new Hashtable<String, Integer>();
-	protected Hashtable<String, Integer> _upnode = new Hashtable<String, Integer>();
+	private Vector<String> _chanNum = new Vector<String>();
+	private Hashtable<String, Integer> _length = new Hashtable<String, Integer>();
+	private Hashtable<String, String> _manning = new Hashtable<String, String>();
+	private Hashtable<String, String> _dispersion = new Hashtable<String, String>();
+	private Hashtable<String, Integer> _downnode = new Hashtable<String, Integer>();
+	private Hashtable<String, Integer> _upnode = new Hashtable<String, Integer>();
 	
-	protected Hashtable<String, Integer> _xsect1 = new Hashtable<String, Integer>();
-	protected Hashtable<String, Integer> _dist1 = new Hashtable<String, Integer>();
-	protected Hashtable<String, Integer> _xsect2 = new Hashtable<String, Integer>();
-	protected Hashtable<String, Integer> _dist2 = new Hashtable<String, Integer>();
+	private Hashtable<String, Integer> _xsect1 = new Hashtable<String, Integer>();
+	private Hashtable<String, Integer> _dist1 = new Hashtable<String, Integer>();
+	private Hashtable<String, Integer> _xsect2 = new Hashtable<String, Integer>();
+	private Hashtable<String, Integer> _dist2 = new Hashtable<String, Integer>();
 
-	protected int _numXsectLayers = 0;
-	protected ResizableStringArray _xsectLayerID = new ResizableStringArray();
-	protected Hashtable<String, String> _xsectLayerDist = new Hashtable<String, String>();
-	protected Hashtable<String, String> _xsectLayerElev = new Hashtable<String, String>();
-	protected Hashtable<String, String> _xsectLayerArea = new Hashtable<String, String>();
-	protected Hashtable<String, String> _xsectLayerWidth = new Hashtable<String, String>();
-	protected Hashtable<String, String> _xsectLayerWetPerim = new Hashtable<String, String>();
+//	private int _numXsectLayers = 0;
+	private Vector<String> _xsectLayerID = new Vector<String>();
+	private Hashtable<String, String> _xsectLayerDist = new Hashtable<String, String>();
+	private Hashtable<String, String> _xsectLayerElev = new Hashtable<String, String>();
+	private Hashtable<String, String> _xsectLayerArea = new Hashtable<String, String>();
+	private Hashtable<String, String> _xsectLayerWidth = new Hashtable<String, String>();
+	private Hashtable<String, String> _xsectLayerWetPerim = new Hashtable<String, String>();
 	
-	protected final String ELEV_HEADER = "ELEV";
-	protected final String AREA_HEADER = "AREA";
-	protected final String WIDTH_HEADER = "WIDTH";
-	protected final String WET_PERIM_HEADER = "WET_PERIM";
+	private final String ELEV_HEADER = "ELEV";
+	private final String AREA_HEADER = "AREA";
+	private final String WIDTH_HEADER = "WIDTH";
+	private final String WET_PERIM_HEADER = "WET_PERIM";
 	
-	protected static final boolean DEBUG = false;
+	private static final boolean DEBUG = false;
 
 }// DSMChannels

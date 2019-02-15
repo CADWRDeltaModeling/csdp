@@ -84,7 +84,8 @@ public class DSMChannelsAsciiInput extends DSMChannelsInput {
 			String line = null;
 			boolean done = false;
 			//Skip lines before header line
-			while (line == null || !(line.toLowerCase().contains("chan") && line.toLowerCase().contains("length"))) {
+			while (line == null || !(line.toLowerCase().contains("chan") && line.toLowerCase().contains("length"))
+					|| line.trim().indexOf("#")==0) {
 				line = _asciiIn.readLine();// skip first line
 			}
 			int readingSection = CHAN_SECTION;

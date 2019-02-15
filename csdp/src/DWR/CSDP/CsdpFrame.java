@@ -1395,9 +1395,9 @@ public class CsdpFrame extends JFrame {
 		tCalcRect.addActionListener(tCalcRectListener);
 		tOpenWaterCalc.addActionListener(tOpenWaterCalcListener);
 		ActionListener tMovePolygonCenterlinePointsToLeveeCenterlineEnterCoordListener = 
-				_toolsMenu.new MovePolygonCenterlinePointsToLeveeCenterline(ToolsMenu.ENTER_CENTERLINE_NAMES);
+				_toolsMenu.new SnapPolygonCenterlinePointsToLeveeCenterline(ToolsMenu.ENTER_CENTERLINE_NAMES);
 		ActionListener tMovePolygonCenterlinePointsToLeveeCenterlineReadFileListener = 
-				_toolsMenu.new MovePolygonCenterlinePointsToLeveeCenterline(ToolsMenu.READ_CENTERLINE_NAMES_FROM_FILE);
+				_toolsMenu.new SnapPolygonCenterlinePointsToLeveeCenterline(ToolsMenu.READ_CENTERLINE_NAMES_FROM_FILE);
 
 		enterCenterlineNames.addActionListener(tMovePolygonCenterlinePointsToLeveeCenterlineEnterCoordListener);		
 		readCenterlineNamesFromFile.addActionListener(tMovePolygonCenterlinePointsToLeveeCenterlineReadFileListener);
