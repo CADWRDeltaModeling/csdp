@@ -81,6 +81,15 @@ public class ToolsMenu {
 
 	}//inner class TCreateDSM2ChanPolygons
 
+	public class TClosePolygonCenterlines implements ActionListener {
+		public void actionPerformed(ActionEvent arg0) {
+			Network network = _app.getNetwork();
+			network.closePolygonCenterlines(network);
+		}
+	}//inner class TClosePolygonCenterlines
+
+
+	
 	/**
 	 * Given 3 centerlines:
 	 * 1. The channel centerline

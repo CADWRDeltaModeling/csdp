@@ -44,6 +44,8 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JOptionPane;
+
 /**
  * calls methods for zooming
  *
@@ -51,6 +53,13 @@ import java.awt.event.ActionListener;
  * @version $Id: ZoomMenu.java,v 1.4 2005/04/08 04:28:25 btom Exp $
  */
 public class ZoomMenu {
+	App _app;
+	CsdpFrame _gui;
+	BathymetryPlot _plot;
+
+	protected static final boolean DEBUG = false;
+	protected Rectangle _r = new Rectangle(0, 0);
+	
 	public ZoomMenu(CsdpFrame gui) {
 		_gui = gui;
 	}
@@ -166,10 +175,38 @@ public class ZoomMenu {
 		}// actionPerformed
 	}// class ZOut
 
-	App _app;
-	CsdpFrame _gui;
-	BathymetryPlot _plot;
+	public class NZoomToCenterline implements ActionListener {
+		CsdpFrame _gui;
+		public NZoomToCenterline(CsdpFrame gui) {
+			_gui = gui;
+		}
 
-	protected static final boolean DEBUG = false;
-	protected Rectangle _r = new Rectangle(0, 0);
+		public void actionPerformed(ActionEvent arg0) {
+			_gui.pressArrowButton();
+			String response = JOptionPane.showInputDialog(_gui, "Enter centerline name", "Zoom to centerline", JOptionPane.OK_CANCEL_OPTION);
+			if(response!=null && response.length()>0) {
+				NetworkInteractor networkInteractor = _gui.getNetworkInteractor();
+				networkInteractor.zoomToCenterline(response);
+			}
+		}
+	}
+
+	public class NZoomToNode implements ActionListener {
+		CsdpFrame _gui;
+		public NZoomToNode(CsdpFrame gui) {
+			_gui = gui;
+		}
+
+		public void actionPerformed(ActionEvent arg0) {
+			_gui.pressArrowButton();
+			String response = JOptionPane.showInputDialog(_gui, "Enter node name", "Zoom to node", JOptionPane.OK_CANCEL_OPTION);
+			if(response!=null && response.length()>0) {
+				NetworkInteractor networkInteractor = _gui.getNetworkInteractor();
+				networkInteractor.zoomToNode(response);
+			}
+		}
+	}
+
+	
 }// class ZoomMenu
+

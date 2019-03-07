@@ -48,6 +48,11 @@ import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import org.junit.experimental.theories.Theories;
+import org.jzy3d.bridge.IFrame;
+
+import vista.app.PTMAnimator;
+
 /**
  * A centerline contains centerline points and cross-sections. Centerline points
  * are stored in order.
@@ -180,15 +185,36 @@ public class Centerline {
 	/**
 	 * create new CenterlinePoint object, add to _centerlinePoints vector.
 	 */
-	public void addCenterlinePointFeet(double x, double y) {
+	public void addDownstreamCenterlinePointFeet(double x, double y) {
 		CenterlinePoint point = new CenterlinePoint();
 		_centerlinePoints.addElement(point);
 		point.putXFeet(x);
 		point.putYFeet(y);
 		_numCenterlinePoints++;
 		_maxMinCalled = false;
-	}
+	}//addDownstreamCenterlinePointFeet
 
+	/*
+	 * adds a point to the upstream end. For undoing a delete and for allowing addition of a point 
+	 * to the upstream end interactively.
+	 * Automatically adjusts cross-section distances so they will not move when the point is added.
+	 */
+	public void addUpstreamCenterlinePointFeet(double x, double y) {
+		int numPoints = getNumCenterlinePoints();
+		CenterlinePoint upstreamPointBefore = getCenterlinePoint(0);
+		CenterlinePoint newUpstreamPoint = new CenterlinePoint();
+		newUpstreamPoint.putXFeet(x);
+		newUpstreamPoint.putYFeet(y);
+		double centerlineLengthIncrease = getDistanceBetweenCenterlinePoints(upstreamPointBefore, newUpstreamPoint);
+		_centerlinePoints.insertElementAt(newUpstreamPoint, 0);
+		_numCenterlinePoints++;
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			double distAlong = xsect.getDistAlongCenterlineFeet();
+			xsect.putDistAlongCenterlineFeet(distAlong+centerlineLengthIncrease);
+		}
+	}//addUpstreamCenterlinePointFeet
+	
 	/**
 	 * insert new CenterlinePoint object, add to _centerlinePoints vector.
 	 */
@@ -226,7 +252,115 @@ public class Centerline {
 	}// insertCenterlinePointFeet
 
 	/*
+	 * Sets new point coordinates, and adjusts positions of all cross-sections if needed, to try to
+	 * keep cross-sections in the same geographic location.
+	 */
+	public void moveCenterlinePointFeet(int centerlinePointIndex, double x, double y) {
+		CenterlinePoint centerlinePoint = getCenterlinePoint(centerlinePointIndex);
+		double centerlineLengthBefore = getLengthFeet();
+		//moving a point affects one line segment if it's the upstream or downstream end being moved.
+		//otherwise, it affects two line segments.
+		if(centerlinePointIndex==0) {
+			//moving the upstream end--one line segment affected
+			//adjust the positions of all cross-sections. If on the affected centerline segment, 
+			//adjust the position relative to the normalized distance along the line segment.
+			//if on another line segment, simply adjust the position based on the ratio of initial and final centerline lengths.
+			CenterlinePoint firstCenterlinePoint = getCenterlinePoint(0);
+			CenterlinePoint secondCenterlinePoint = getCenterlinePoint(1);
+			double x1 = firstCenterlinePoint.getXFeet();
+			double y1 = firstCenterlinePoint.getYFeet();
+			double x2 = secondCenterlinePoint.getXFeet();
+			double y2 = secondCenterlinePoint.getYFeet();
+			double firstLineSegmentLength = CsdpFunctions.pointDist(x1, y1, x2, y2);
+			double adjustedLineSegmentLength = CsdpFunctions.pointDist(x, y, x2, y2);
+			double centerlineLengthAfter = centerlineLengthBefore + (adjustedLineSegmentLength-firstLineSegmentLength);
+			for(int i=0; i<getNumXsects(); i++) {
+				Xsect xsect = getXsect(i);
+				double xsectDist = xsect.getDistAlongCenterlineFeet();
+				double newDistAlong = -Double.MAX_VALUE;
+				if(xsectDist <=firstLineSegmentLength) {
+					newDistAlong = (adjustedLineSegmentLength-firstLineSegmentLength) + xsectDist;
+				}else {
+					newDistAlong = (centerlineLengthAfter-centerlineLengthBefore) + xsectDist;
+				}
+				xsect.putDistAlongCenterlineFeet(newDistAlong);
+			}
+		}else if(centerlinePointIndex==getNumCenterlinePoints()-1) {
+			//moving the downstream end--one line segment affected.
+			//xsect distances need no adjustment--do nothing
+		}else {
+			//moving one of the midpoints--two line segments affected
+			CenterlinePoint pointToBeMoved = getCenterlinePoint(centerlinePointIndex);
+			CenterlinePoint upstreamLineSegmentPoint = getCenterlinePoint(centerlinePointIndex-1);
+			CenterlinePoint downstreamLineSegmentPoint = getCenterlinePoint(centerlinePointIndex+1);
+			
+			double x1 = upstreamLineSegmentPoint.getXFeet();
+			double y1 = upstreamLineSegmentPoint.getYFeet();
+			double x2 = pointToBeMoved.getXFeet();
+			double y2 = pointToBeMoved.getYFeet();
+			double x3 = downstreamLineSegmentPoint.getXFeet();
+			double y3 = downstreamLineSegmentPoint.getYFeet();
+			
+			double firstLineSegmentLength = CsdpFunctions.pointDist(x1, y1, x2, y2);
+			double secondLineSegmentLength = CsdpFunctions.pointDist(x2, y2, x3, y3);
+			double adjustedFirstLineSegmentLength = CsdpFunctions.pointDist(x, y, x1, y1);
+			double adjustedSecondLineSegmentLength = CsdpFunctions.pointDist(x, y, x3, y3);
+
+			double distToDownstreamLineSegmentPointAfter = getDistToPoint(centerlinePointIndex-1) +
+					CsdpFunctions.pointDist(x1, y1, x, y)+ CsdpFunctions.pointDist(x, y, x3, y3);
+			double distToPointToBeMoved = getDistToPoint(centerlinePointIndex);
+			double distToDownstreamLineSegmentPoint = getDistToPoint(centerlinePointIndex+1);
+			double centerlineLengthAfter = centerlineLengthBefore + (adjustedFirstLineSegmentLength-firstLineSegmentLength) +
+					(adjustedSecondLineSegmentLength-secondLineSegmentLength);
+
+			for(int i=0; i<getNumXsects(); i++) {
+				Xsect xsect = getXsect(i);
+				double xsectDist = xsect.getDistAlongCenterlineFeet();
+				double newDistAlong = -Double.MAX_VALUE;
+
+				if(xsectDist<=distToPointToBeMoved) {
+					//do nothing--the xsect is upstream from the point to be moved--the best we can do is to 
+					//keep it where it is, even if it is on the line segment that will move.
+					newDistAlong = xsectDist;
+				}else if(xsectDist >= distToDownstreamLineSegmentPoint) {
+					//adjust based on change in centerline length
+					newDistAlong = (centerlineLengthAfter-centerlineLengthBefore) + xsectDist;
+				}else {
+					//The xsect is located on the downstream line segment that will move.
+					newDistAlong = (distToDownstreamLineSegmentPointAfter-distToDownstreamLineSegmentPoint) + xsectDist;
+				}
+				xsect.putDistAlongCenterlineFeet(newDistAlong);
+			}
+		}
+		
+		centerlinePoint.putXFeet(x);
+		centerlinePoint.putYFeet(y);
+	}//moveCenterlinePointFeet
+	
+	/*
+	 * the distance along the centerline from the upstream end to the centerlinePoint at the given index.
+	 */
+	private double getDistToPoint(int index) {
+		double returnValue = -Double.MAX_VALUE;
+		if(getNumCenterlinePoints()>2) {
+			returnValue = 0.0;
+			if(index>0) {
+				int xsIndex=0;
+				while(xsIndex<index) {
+					CenterlinePoint firstPoint = getCenterlinePoint(xsIndex);
+					CenterlinePoint secondPoint = getCenterlinePoint(xsIndex+1);
+					returnValue += getDistanceBetweenCenterlinePoints(firstPoint, secondPoint);
+					xsIndex++;
+				}				
+			}
+		}
+		return returnValue;
+	}//getDistToPoint
+		
+	/*
 	 * Delete all points that are inside or outside a box drawn by user.
+	 * This was intended to be used for centerlines that represent polygons used in GIS for channel volume calculation,
+	 * and not necessarily for centerlines with cross-sections
 	 */
 	public void deleteCenterlinePointsInBox(JFrame parent, int option, double xi, double yi, double xf, double yf) {
 		Vector<Integer> pointIndicesToDelete = new Vector<Integer>();
@@ -257,13 +391,86 @@ public class Centerline {
 	}//deleteCenterlinePointsInBox
 
 	/**
-	 * delete CenterlinePoint
+	 * delete CenterlinePoint that is closest to coordinates
+	 * adjust cross-section lines positions to compensate for shortening of centerline.
 	 */
 	public void deleteCenterlinePoint(double x, double y) {
 		int minDistIndex = getNearestPointIndex(x, y);
-		_centerlinePoints.removeElementAt(minDistIndex);
-		_numCenterlinePoints--;
-	}
+		if(minDistIndex<Integer.MAX_VALUE) {
+			double centerlineLengthBeforeDelete = getLengthFeet();
+			double centerlineLengthAfterDelete = centerlineLengthBeforeDelete - getDistToPoint(1);
+			double centerlineLengthChange = centerlineLengthBeforeDelete-centerlineLengthAfterDelete;
+			if(minDistIndex==0) {
+				for(int i=0; i<getNumXsects(); i++) {
+					Xsect xsect = getXsect(i);
+					double xsectDist = xsect.getDistAlongCenterlineFeet();
+					double newXsectDist = xsectDist - centerlineLengthChange;
+					xsect.putDistAlongCenterlineFeet(newXsectDist);
+				}
+			}else if(minDistIndex==getNumCenterlinePoints()-1) {
+				//downstream point deleted. do nothing.
+			}else {
+				//one of the midpoints deleted.
+				double distToUpstreamPoint = getDistToPoint(minDistIndex-1);
+				double distToPointToBeDeleted = getDistToPoint(minDistIndex);
+				double distToDownstreamPoint = getDistToPoint(minDistIndex+1);
+
+				double twoLineSegmentLength = (distToPointToBeDeleted-distToUpstreamPoint) + 
+						(distToDownstreamPoint-distToPointToBeDeleted);
+				double finalSingleLineSegmentLength = getDistanceBetweenCenterlinePoints(getCenterlinePoint(minDistIndex-1), 
+						getCenterlinePoint(minDistIndex+1));
+				for(int i=0; i<getNumXsects(); i++) {
+					Xsect xsect = getXsect(i);
+					double xsectDist = xsect.getDistAlongCenterlineFeet();
+					double newDistAlong = -Double.MAX_VALUE;
+					if(xsectDist<=distToUpstreamPoint) {
+						//cross-section is upstream from the line segments that will change; no change
+						newDistAlong = xsectDist;
+					}else if(xsectDist>distToUpstreamPoint && xsectDist<=distToPointToBeDeleted) {
+						//cross-section is on the upstream line segment that will change.
+						//adjust xsect dist to maintain the same fraction of the distance from the upstream point.
+						double distFromUpstreamPoint = xsectDist-distToUpstreamPoint;
+						double fractionalDistFromUpstreamPoint = distFromUpstreamPoint/twoLineSegmentLength;
+						newDistAlong = fractionalDistFromUpstreamPoint * finalSingleLineSegmentLength;
+					}else if(xsectDist>distToPointToBeDeleted && xsectDist<=distToDownstreamPoint) {
+						//xsect is downstream from line segments that will change. Adjust xsect dist to maintain 
+						//the same fraction of the distance from the downstream line segment endpoint.
+						double distFromDownstreamPoint = twoLineSegmentLength - (xsectDist-distToUpstreamPoint);
+						double downstreamDistanceFraction = distFromDownstreamPoint/twoLineSegmentLength;
+						double newDistFromDownstreamPoint = downstreamDistanceFraction * finalSingleLineSegmentLength; 
+						newDistAlong = distToUpstreamPoint+finalSingleLineSegmentLength-newDistFromDownstreamPoint;
+					}else {
+						//xsect is downstream from the line segments that will change. adjust by ratio of initial
+						//and final centerline lengths.
+						newDistAlong = xsectDist*(finalSingleLineSegmentLength/twoLineSegmentLength);
+					}//if
+					xsect.putDistAlongCenterlineFeet(newDistAlong);
+				}//for each xsect
+			}//if/else
+			_centerlinePoints.removeElementAt(minDistIndex);
+			_numCenterlinePoints--;
+			
+			for(int i=getNumXsects()-1; i>=0; i--) {
+				Xsect xsect = getXsect(i);
+				double xsectDist = xsect.getDistAlongCenterlineFeet();
+				if(xsectDist<=0.0 || xsectDist>=getLengthFeet()) {
+					removeXsect(i);
+				}
+			}
+		}//if
+	}//deleteCenterlinePoint
+	
+	/*
+	 * delete centerline point matching specified index. Maybe just for undo/redo
+	 */
+	public void deleteCenterlinePoint(int index) {
+		if(getNumCenterlinePoints()>index) {
+			_centerlinePoints.removeElementAt(index);
+			_numCenterlinePoints--;
+		}else {
+			System.out.println("Error in Centerline.deleteCenterlinePoint: index is too large");
+		}
+	}//deleteCenterlinePoint
 
 	/**
 	 * sort array that stores all of the xsects in this centerline. sort by
@@ -868,16 +1075,16 @@ public class Centerline {
 		Xsect xs1 = new Xsect();
 		Xsect xs2 = new Xsect();
 		xs1.putDistAlongCenterlineFeet(0.0f);
-		xs1.addXsectPoint(0.0f, 100.0f);
-		xs1.addXsectPoint(0.0f, botelv1);
-		xs1.addXsectPoint(width1, botelv1);
-		xs1.addXsectPoint(width1, 100.0f);
+		xs1.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, 0.0f, 100.0f);
+		xs1.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, 0.0f, botelv1);
+		xs1.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, width1, botelv1);
+		xs1.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, width1, 100.0f);
 
 		xs2.putDistAlongCenterlineFeet(0.0f);
-		xs2.addXsectPoint(0.0f, 100.0f);
-		xs2.addXsectPoint(0.0f, botelv2);
-		xs2.addXsectPoint(width2, botelv2);
-		xs2.addXsectPoint(width2, 100.0f);
+		xs2.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, 0.0f, 100.0f);
+		xs2.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, 0.0f, botelv2);
+		xs2.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, width2, botelv2);
+		xs2.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, width2, 100.0f);
 
 		_rectXsects.addElement(xs1);
 		_rectXsects.addElement(xs2);

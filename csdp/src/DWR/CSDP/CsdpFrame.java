@@ -97,12 +97,12 @@ public class CsdpFrame extends JFrame {
 	JButton _zoomFitButton;
 	JButton _zoomUndoButton;
 
-	ImageIcon _fileOpenIcon, _networkOpenIcon, _networkSaveIcon, _cursorIcon, _insertIcon, _movePointIcon, _addIcon,
-			_deleteIcon, _addXsectIcon, _removeXsectIcon, _moveXsectIcon;
+	ImageIcon _fileOpenIcon, _networkOpenIcon, _networkSaveIcon, _cursorIcon, _insertIcon, _movePointIcon, _addUpstreamPointIcon, 
+		_addDownstreamPointIcon, _deleteIcon, _addXsectIcon, _removeXsectIcon, _moveXsectIcon;
 
 	ImageIcon _viewIcon, _colorUniformIcon, _colorElevIcon, _colorSourceIcon, _colorYearIcon;
-	ImageIcon _networkCalculateIcon, _cursorIconSelected, _insertIconSelected, _movePointIconSelected, _addIconSelected,
-			_deleteIconSelected, _addXsectIconSelected, _removeXsectIconSelected, _moveXsectIconSelected;
+	ImageIcon _networkCalculateIcon, _cursorIconSelected, _insertIconSelected, _movePointIconSelected, _addUpstreamPointIconSelected,
+		_addDownstreamPointIconSelected, _deleteIconSelected, _addXsectIconSelected, _removeXsectIconSelected, _moveXsectIconSelected;
 
 	// ImageIcon _landmarkAddIcon, _landmarkEditIcon, _landmarkDeleteIcon,
 	// _landmarkMoveIcon,
@@ -134,7 +134,9 @@ public class CsdpFrame extends JFrame {
 	/**
 	 * turns add centerline point mode on
 	 */
-	JRadioButton _addButton;
+	JRadioButton _addDownstreamPointButton;
+	
+	JRadioButton _addUpstreamPointButton;
 	/**
 	 * turns delete centerline point mode on
 	 */
@@ -212,11 +214,11 @@ public class CsdpFrame extends JFrame {
 	private JCheckBoxMenuItem oEchoTimeSeriesInput, oEchoXsectInput, oPrintXsectResults, oUseFremontWeir,
 			oUseToeDrainRestriction, oEchoToeDrainInput;
 	private JMenu tOpenWaterOptionsMenu, nExport, nExportOptions;
-	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc, tCreateDSM2ChanPolygons;
+	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc, tCreateDSM2ChanPolygons, tClosePolygonCenterlines;
 	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
-	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nZoomToCenterline, 
-		nZoomToNode, nList, nSummary, nClearNetwork, nDisplayReachSummary, nCalculate, nExportToSEFormat, 
-		nExportTo3DFormat, nAWDSummaryReport, nXSCheckReport, nDConveyanceReport, nNetworkSummaryReport, nNetworkColorLegend;
+	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nList, nSummary, nClearNetwork, 
+		nDisplayReachSummary, nCalculate, nExportToSEFormat, nExportTo3DFormat, nAWDSummaryReport, nXSCheckReport, 
+		nDConveyanceReport, nNetworkSummaryReport, nNetworkColorLegend;
 	private JMenuItem lSave, lSaveAs, lExportToWKT, lAdd, lMove, lEdit, lDelete, lHelp;
 
 	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;
@@ -235,7 +237,7 @@ public class CsdpFrame extends JFrame {
 	private JMenuItem cRestore, cKeep, cSplit, cJoin, cView, cInfo, cList, cSummary;
 	private JMenuItem xAutoGen, xCreate, xRemove, xMove, xPosition, xView, xInfo;
 	private JMenuItem xSummary, xAdjustLength, xExtractData;
-	private JMenuItem zPan, zFit, zFactor, zBox, zUndo;
+	private JMenuItem zPan, zFit, zFactor, zBox, zUndo, zZoomToCenterline, zZoomToNode;
 	private JMenuItem wCascade, wTile, wArrangeIcons, wCloseAll, wRepaint;
 	private JMenuItem hContents, hUsingHelp, hAbout;
 
@@ -361,7 +363,8 @@ public class CsdpFrame extends JFrame {
 		URL arrowUrl = this.getClass().getResource("images/ArrowButton.png");
 		URL insertPointUrl = this.getClass().getResource("images/InsertPointButton.png");
 		URL movePointUrl = this.getClass().getResource("images/MovePointButton.png");
-		URL addPointUrl = this.getClass().getResource("images/AddPointButton.png");
+		URL addUpstreamPointUrl = this.getClass().getResource("images/AddUpstreamPointButton.png");
+		URL addDownstreamPointUrl = this.getClass().getResource("images/AddDownstreamPointButton.png");
 		URL deletePointUrl = this.getClass().getResource("images/DeletePointButton.png");
 		URL addXsectUrl = this.getClass().getResource("images/AddXsectButton.png");
 
@@ -398,7 +401,9 @@ public class CsdpFrame extends JFrame {
 		_cursorIcon = CsdpFunctions.createScaledImageIcon(arrowUrl,ICON_WIDTH, ICON_HEIGHT);
 		_insertIcon = CsdpFunctions.createScaledImageIcon(insertPointUrl,ICON_WIDTH, ICON_HEIGHT);
 		_movePointIcon = CsdpFunctions.createScaledImageIcon(movePointUrl,ICON_WIDTH, ICON_HEIGHT);
-		_addIcon = CsdpFunctions.createScaledImageIcon(addPointUrl,ICON_WIDTH, ICON_HEIGHT);
+		
+		_addUpstreamPointIcon = CsdpFunctions.createScaledImageIcon(addUpstreamPointUrl,ICON_WIDTH, ICON_HEIGHT);
+		_addDownstreamPointIcon = CsdpFunctions.createScaledImageIcon(addDownstreamPointUrl,ICON_WIDTH, ICON_HEIGHT);
 		_deleteIcon = CsdpFunctions.createScaledImageIcon(deletePointUrl,ICON_WIDTH, ICON_HEIGHT);
 		_addXsectIcon = CsdpFunctions.createScaledImageIcon(addXsectUrl,ICON_WIDTH, ICON_HEIGHT);
 		_removeXsectIcon = CsdpFunctions.createScaledImageIcon(removeXsectUrl,ICON_WIDTH, ICON_HEIGHT);
@@ -420,7 +425,8 @@ public class CsdpFrame extends JFrame {
 		URL cursorIconSelectedUrl = this.getClass().getResource("images/ArrowButtonSelected.png");
 		URL insertPointButtonSelectedUrl = this.getClass().getResource("images/InsertPointButtonSelected.png");
 		URL movePointIconSelectedUrl = this.getClass().getResource("images/MovePointButtonSelected.png");
-		URL addIconSelectedUrl = this.getClass().getResource("images/AddPointButtonSelected.png");
+		URL addUpstreamPointIconSelectedUrl = this.getClass().getResource("images/AddUpstreamPointButtonSelected.png");
+		URL addDownstreamPointIconSelectedUrl = this.getClass().getResource("images/AddDownstreamPointButtonSelected.png");
 		URL deleteIconSelectedUrl = this.getClass().getResource("images/DeletePointButtonSelected.png");
 		URL addXsectIconSelectedUrl = this.getClass().getResource("images/AddXsectButtonSelected.png");
 		URL removeXsectIconSelectedUrl = this.getClass().getResource("images/RemoveXsectButtonSelected.png");
@@ -458,7 +464,8 @@ public class CsdpFrame extends JFrame {
 		_cursorIconSelected = CsdpFunctions.createScaledImageIcon(cursorIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
 		_insertIconSelected = CsdpFunctions.createScaledImageIcon(insertPointButtonSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
 		_movePointIconSelected = CsdpFunctions.createScaledImageIcon(movePointIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
-		_addIconSelected = CsdpFunctions.createScaledImageIcon(addIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
+		_addUpstreamPointIconSelected = CsdpFunctions.createScaledImageIcon(addUpstreamPointIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
+		_addDownstreamPointIconSelected = CsdpFunctions.createScaledImageIcon(addDownstreamPointIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
 		_deleteIconSelected = CsdpFunctions.createScaledImageIcon(deleteIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
 		_addXsectIconSelected = CsdpFunctions.createScaledImageIcon(addXsectIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
 		_removeXsectIconSelected = CsdpFunctions.createScaledImageIcon(removeXsectIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
@@ -503,7 +510,8 @@ public class CsdpFrame extends JFrame {
 		_cursorButton = new JRadioButton(_cursorIcon);
 		_insertButton = new JRadioButton(_insertIcon);
 		_moveButton = new JRadioButton(_movePointIcon);
-		_addButton = new JRadioButton(_addIcon);
+		_addDownstreamPointButton = new JRadioButton(_addDownstreamPointIcon);
+		_addUpstreamPointButton = new JRadioButton(_addUpstreamPointIcon);
 		_deleteButton = new JRadioButton(_deleteIcon);
 		_addXsectButton = new JRadioButton(_addXsectIcon);
 		_removeXsectButton = new JRadioButton(_removeXsectIcon);
@@ -575,7 +583,8 @@ public class CsdpFrame extends JFrame {
 		_colorByYearButton.setSelectedIcon(_colorYearIconSelected);
 		_moveButton.setSelectedIcon(_movePointIconSelected);
 		_insertButton.setSelectedIcon(_insertIconSelected);
-		_addButton.setSelectedIcon(_addIconSelected);
+		_addUpstreamPointButton.setSelectedIcon(_addUpstreamPointIconSelected);
+		_addDownstreamPointButton.setSelectedIcon(_addDownstreamPointIconSelected);
 		_deleteButton.setSelectedIcon(_deleteIconSelected);
 		_addXsectButton.setSelectedIcon(_addXsectIconSelected);
 		_removeXsectButton.setSelectedIcon(_removeXsectIconSelected);
@@ -635,7 +644,8 @@ public class CsdpFrame extends JFrame {
 		btnPanel.add(_cursorButton);
 		btnPanel.add(_moveButton);
 		btnPanel.add(_insertButton);
-		btnPanel.add(_addButton);
+		btnPanel.add(_addUpstreamPointButton);
+		btnPanel.add(_addDownstreamPointButton);
 		btnPanel.add(_deleteButton);
 		btnPanel.add(_addXsectButton);
 		btnPanel.add(_moveXsectButton);
@@ -653,7 +663,8 @@ public class CsdpFrame extends JFrame {
 		_centerlineLandmarkEditButtonGroup.add(_cursorButton);
 		_centerlineLandmarkEditButtonGroup.add(_moveButton);
 		_centerlineLandmarkEditButtonGroup.add(_insertButton);
-		_centerlineLandmarkEditButtonGroup.add(_addButton);
+		_centerlineLandmarkEditButtonGroup.add(_addUpstreamPointButton);
+		_centerlineLandmarkEditButtonGroup.add(_addDownstreamPointButton);
 		_centerlineLandmarkEditButtonGroup.add(_deleteButton);
 		_centerlineLandmarkEditButtonGroup.add(_addXsectButton);
 		_centerlineLandmarkEditButtonGroup.add(_moveXsectButton);
@@ -680,7 +691,8 @@ public class CsdpFrame extends JFrame {
 		_filterSourceButton.setToolTipText("Filter bathymetry by source");
 		_filterYearButton.setToolTipText("Filter bathymetry by year");
 		_moveButton.setToolTipText("move centerline point ");
-		_addButton.setToolTipText("add centerline point ");
+		_addUpstreamPointButton.setToolTipText("Add upstream centerline point");
+		_addDownstreamPointButton.setToolTipText("Add downstream centerline point ");
 		_insertButton.setToolTipText("insert centerline point ");
 		_deleteButton.setToolTipText("delete centerline point ");
 		_addXsectButton.setToolTipText("add cross-section line ");
@@ -991,9 +1003,6 @@ public class CsdpFrame extends JFrame {
 		nSaveAs.setMnemonic(KeyEvent.VK_A);
 
 		cfNetwork.add(nNetworkColorLegend = new JMenuItem("Show Network Color Legend"));
-		cfNetwork.add(nZoomToCenterline = new JMenuItem("Zoom to centerline"));
-		nZoomToCenterline.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
-		cfNetwork.add(nZoomToNode = new JMenuItem("Zoom to node"));
 		cfNetwork.add(nClearNetwork = new JMenuItem("Clear Network"));
 		cfNetwork.addSeparator();
 		// cfNetwork.add(nList = new JMenuItem("List"));
@@ -1030,8 +1039,6 @@ public class CsdpFrame extends JFrame {
 		ActionListener nExportToWKTListener = networkMenu.new NExportToWKTFormat(this);
 		_nSaveSpeficiedChannelsAsListener = networkMenu.new NSaveSpecifiedChannelsAs(this);
 		ActionListener nClearNetworkListener = networkMenu.new NClearNetwork(this);
-		ActionListener nZoomToCenterlineListener = networkMenu.new NZoomToCenterline(this);
-		ActionListener nZoomToNodeListener = networkMenu.new NZoomToNode(this); 
 		ActionListener nExportToSEFormatListener = networkMenu.new NExportToSEFormat(this);
 		ActionListener nExportTo3DFormatListener = networkMenu.new NExportTo3DFormat(this);
 		EventListener noChannelLengthsOnlyListener = networkMenu.new NChannelLengthsOnly();
@@ -1052,8 +1059,6 @@ public class CsdpFrame extends JFrame {
 		nExportToWKT.addActionListener(nExportToWKTListener);
 		nClearNetwork.addActionListener(nClearNetworkListener);
 		nNetworkColorLegend.addActionListener(nShowNetworkColorLegendListener);
-		nZoomToCenterline.addActionListener(nZoomToCenterlineListener);
-		nZoomToNode.addActionListener(nZoomToNodeListener);
 		nExportToSEFormat.addActionListener(nExportToSEFormatListener);
 		nExportTo3DFormat.addActionListener(nExportTo3DFormatListener);
 		noChannelLengthsOnly.addItemListener((ItemListener) noChannelLengthsOnlyListener);
@@ -1289,6 +1294,10 @@ public class CsdpFrame extends JFrame {
 		cfZoom.add(zFit = new JMenuItem("Fit"));
 		cfZoom.add(zUndo = new JMenuItem("Undo Zoom"));
 
+		cfZoom.add(zZoomToCenterline = new JMenuItem("Zoom to centerline"));
+		zZoomToCenterline.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
+		cfZoom.add(zZoomToNode = new JMenuItem("Zoom to node"));
+
 		cfZoom.setMnemonic(KeyEvent.VK_Z);
 		if (_addZoomMenu)
 			menubar.add(cfZoom);
@@ -1301,6 +1310,11 @@ public class CsdpFrame extends JFrame {
 		ActionListener zUndoListener = zoomMenu.new ZUndo();
 		ActionListener zPanMIListener = zoomMenu.new ZPanMI();
 		ActionListener zBoxMIListener = zoomMenu.new ZBoxMI();
+		ActionListener nZoomToCenterlineListener = zoomMenu.new NZoomToCenterline(this);
+		ActionListener nZoomToNodeListener = zoomMenu.new NZoomToNode(this); 
+
+		zZoomToCenterline.addActionListener(nZoomToCenterlineListener);
+		zZoomToNode.addActionListener(nZoomToNodeListener);
 
 		zPan.addActionListener(zPanMIListener);
 		zFit.addActionListener(zFitListener);
@@ -1324,6 +1338,7 @@ public class CsdpFrame extends JFrame {
 		cfTools.add(tCalcRect = new JMenuItem("Calculate Equivalent Rectangular cross-sections"));
 		cfTools.add(tOpenWaterCalc = new JMenuItem("Open Water Area Calculations"));
 //		cfTools.add(tCreateDSM2ChanPolygons = new JMenuItem("Create DSM2 channel polygons"));
+		cfTools.add(tClosePolygonCenterlines = new JMenuItem("Close All Polygon Centerlines"));
 		if (_addToolsMenu)
 			menubar.add(cfTools);
 		cfTools.add(cMovePolygonCenterlinePointsToLeveeCenterline = 
@@ -1334,6 +1349,7 @@ public class CsdpFrame extends JFrame {
 		cMovePolygonCenterlinePointsToLeveeCenterline.add(readCenterlineNamesFromFile);
 		
 		tCalcRect.setEnabled(false);
+		tClosePolygonCenterlines.setEnabled(false);
 
 		cfTools.setMnemonic(KeyEvent.VK_T);
 
@@ -1372,6 +1388,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener tCalcRectListener = _toolsMenu.new TCalcRect(this);
 		ActionListener tOpenWaterCalcListener = _toolsMenu.new TOpenWaterCalc(this);
 		ActionListener tCreateDSM2ChanPolygonsListener = _toolsMenu.new TCreateDSM2ChanPolygons();
+		ActionListener tClosePolygonCenterlinesListener = _toolsMenu.new TClosePolygonCenterlines();
 		// removed temporarily(?) options now appear in dialog
 		// EventListener oEchoTimeSeriesInputListener = _toolsMenu.new
 		// TEchoTimeSeriesInput();
@@ -1398,7 +1415,8 @@ public class CsdpFrame extends JFrame {
 				_toolsMenu.new SnapPolygonCenterlinePointsToLeveeCenterline(ToolsMenu.ENTER_CENTERLINE_NAMES);
 		ActionListener tMovePolygonCenterlinePointsToLeveeCenterlineReadFileListener = 
 				_toolsMenu.new SnapPolygonCenterlinePointsToLeveeCenterline(ToolsMenu.READ_CENTERLINE_NAMES_FROM_FILE);
-
+		tClosePolygonCenterlines.addActionListener(tClosePolygonCenterlinesListener);
+		
 		enterCenterlineNames.addActionListener(tMovePolygonCenterlinePointsToLeveeCenterlineEnterCoordListener);		
 		readCenterlineNamesFromFile.addActionListener(tMovePolygonCenterlinePointsToLeveeCenterlineReadFileListener);
 //		tCreateDSM2ChanPolygons.addActionListener(tCreateDSM2ChanPolygonsListener);
@@ -1567,7 +1585,9 @@ public class CsdpFrame extends JFrame {
 		if (getCenterlineSelected()) {
 			_moveButton.setEnabled(true);
 			_insertButton.setEnabled(true);
-			_addButton.setEnabled(true);
+
+			_addUpstreamPointButton.setEnabled(true);
+			_addDownstreamPointButton.setEnabled(true);
 			_deleteButton.setEnabled(true);
 			_addXsectButton.setEnabled(true);
 			_removeXsectButton.setEnabled(true);
@@ -1586,7 +1606,8 @@ public class CsdpFrame extends JFrame {
 		} else {
 			_moveButton.setEnabled(false);
 			_insertButton.setEnabled(false);
-			_addButton.setEnabled(false);
+			_addUpstreamPointButton.setEnabled(false);
+			_addDownstreamPointButton.setEnabled(false);
 			_deleteButton.setEnabled(false);
 			_addXsectButton.setEnabled(false);
 			_removeXsectButton.setEnabled(false);
@@ -1612,10 +1633,14 @@ public class CsdpFrame extends JFrame {
 	 * called when user wants to add centerline points to the end of the
 	 * set(after last pt)--only called when adding a centerline
 	 */
-	public void setAddPointMode() {
-		_addButton.setSelected(true);
+	public void setAddDownstreamPointMode() {
+		_addDownstreamPointButton.setSelected(true);
 	}// setAddPointMode
 
+	public void setAddUpstreamPointMode() {
+		_addUpstreamPointButton.setSelected(true);
+	}
+	
 	/**
 	 * toggles zoom mode when button is not clicked by user. Allows another
 	 * event to toggle mode.
@@ -1672,7 +1697,8 @@ public class CsdpFrame extends JFrame {
 		_networkSaveButton.setEnabled(false);
 		_moveButton.setEnabled(false);
 		_insertButton.setEnabled(false);
-		_addButton.setEnabled(false);
+		_addUpstreamPointButton.setEnabled(false);
+		_addDownstreamPointButton.setEnabled(false);
 		_deleteButton.setEnabled(false);
 		_addXsectButton.setEnabled(false);
 		_moveXsectButton.setEnabled(false);
@@ -1735,7 +1761,8 @@ public class CsdpFrame extends JFrame {
 		nExportTo3DFormat.setEnabled(false);
 		// nList.setEnabled(false);nSummary.setEnabled(false);
 		nClearNetwork.setEnabled(false);
-		nZoomToCenterline.setEnabled(false);
+		zZoomToCenterline.setEnabled(false);
+		zZoomToNode.setEnabled(false);
 		nCalculate.setEnabled(false);
 		_networkCalculateButton.setEnabled(false);
 		cCreate.setEnabled(false);
@@ -1754,6 +1781,7 @@ public class CsdpFrame extends JFrame {
 //		nDConveyanceReport.setEnabled(false);
 		nNetworkSummaryReport.setEnabled(false);
 		
+		tClosePolygonCenterlines.setEnabled(false);
 		tCalcRect.setEnabled(false);
 
 		// xMove.setEnabled(false);
@@ -1854,7 +1882,7 @@ public class CsdpFrame extends JFrame {
 		nExportToWKT.setEnabled(true);
 		nSaveSpecifiedChannelsAs.setEnabled(true);
 		nClearNetwork.setEnabled(true);
-		nZoomToCenterline.setEnabled(true);
+		zZoomToCenterline.setEnabled(true);
 		_networkSaveButton.setEnabled(true);
 		// nList.setEnabled(true);nSummary.setEnabled(true);
 		nExportToSEFormat.setEnabled(true);
@@ -1864,6 +1892,7 @@ public class CsdpFrame extends JFrame {
 		_networkCalculateButton.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
 		tCalcRect.setEnabled(true);
+		tClosePolygonCenterlines.setEnabled(true);
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 //		nAWDSummaryReport.setEnabled(true);
 //		nXSCheckReport.setEnabled(true);
@@ -1881,6 +1910,7 @@ public class CsdpFrame extends JFrame {
 		lSaveAs.setEnabled(true);
 		lExportToWKT.setEnabled(true);
 		cLandmarks.setEnabled(true);
+		zZoomToNode.setEnabled(true);
 		// _landmarkSaveButton.setEnabled(true);
 		// _landmarkAddButton.setEnabled(true);
 		// _landmarkMoveButton.setEnabled(true);
@@ -1904,7 +1934,7 @@ public class CsdpFrame extends JFrame {
 		nExportToWKT.setEnabled(false);
 		nSaveSpecifiedChannelsAs.setEnabled(false);
 		nClearNetwork.setEnabled(false);
-		nZoomToCenterline.setEnabled(false);
+		zZoomToCenterline.setEnabled(false);
 		_networkSaveButton.setEnabled(false);
 		// nList.setEnabled(false);nSummary.setEnabled(false);
 		nExportToSEFormat.setEnabled(false);
@@ -1914,6 +1944,7 @@ public class CsdpFrame extends JFrame {
 		_networkCalculateButton.setEnabled(false);
 		dFitByNetworkMenuItem.setEnabled(false);
 		tCalcRect.setEnabled(false);
+		tClosePolygonCenterlines.setEnabled(false);
 //		nAWDSummaryReport.setEnabled(false);
 //		nXSCheckReport.setEnabled(false);
 //		nDConveyanceReport.setEnabled(false);
@@ -1930,7 +1961,7 @@ public class CsdpFrame extends JFrame {
 		nSaveSpecifiedChannelsAs.setEnabled(true);
 		nExportToWKT.setEnabled(true);
 		nClearNetwork.setEnabled(true);
-		nZoomToCenterline.setEnabled(true);
+		zZoomToCenterline.setEnabled(true);
 		nExportToSEFormat.setEnabled(true);
 		nExportTo3DFormat.setEnabled(true);
 		nCalculate.setEnabled(true);
@@ -1938,6 +1969,7 @@ public class CsdpFrame extends JFrame {
 		_networkCalculateButton.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
 		tCalcRect.setEnabled(true);
+		tClosePolygonCenterlines.setEnabled(true);
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 //		nAWDSummaryReport.setEnabled(true);
 //		nXSCheckReport.setEnabled(true);
@@ -1952,6 +1984,7 @@ public class CsdpFrame extends JFrame {
 	 */
 	public void disableWhenLandmarkCleared() {
 		dFitByLandmarkMenuItem.setEnabled(false);
+		zZoomToNode.setEnabled(false);
 		cLandmarks.setEnabled(false);
 	}
 
@@ -1965,7 +1998,8 @@ public class CsdpFrame extends JFrame {
 
 		_moveButton.setEnabled(true);
 		_insertButton.setEnabled(true);
-		_addButton.setEnabled(true);
+		_addUpstreamPointButton.setEnabled(true);
+		_addDownstreamPointButton.setEnabled(true);
 		_deleteButton.setEnabled(true);
 		_addXsectButton.setEnabled(true);
 		cDisplaySummary.setEnabled(true);
@@ -2005,7 +2039,8 @@ public class CsdpFrame extends JFrame {
 		setDefaultModesStates();
 		_moveButton.setEnabled(false);
 		_insertButton.setEnabled(false);
-		_addButton.setEnabled(false);
+		_addUpstreamPointButton.setEnabled(false);
+		_addDownstreamPointButton.setEnabled(false);
 		_deleteButton.setEnabled(false);
 		_addXsectButton.setEnabled(false);
 		_moveXsectButton.setEnabled(false);
@@ -2117,7 +2152,8 @@ public class CsdpFrame extends JFrame {
 	 */
 	private void enableCenterlineEditButtons() {
 		_moveButton.setEnabled(true);
-		_addButton.setEnabled(true);
+		_addUpstreamPointButton.setEnabled(true);
+		_addDownstreamPointButton.setEnabled(true);
 		_insertButton.setEnabled(true);
 		_deleteButton.setEnabled(true);
 		_addXsectButton.setEnabled(true);
@@ -2535,8 +2571,12 @@ public class CsdpFrame extends JFrame {
 		return _moveButton.isSelected();
 	}
 
-	public boolean getAddPointMode() {
-		return _addButton.isSelected();
+	public boolean getAddUpstreamPointMode() {
+		return _addUpstreamPointButton.isSelected();
+	}
+	
+	public boolean getAddDownstreamPointMode() {
+		return _addDownstreamPointButton.isSelected();
 	}
 
 	public boolean getDeletePointMode() {

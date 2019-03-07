@@ -1877,6 +1877,14 @@ public class CsdpFunctions {
 	 */
 	private static boolean MOVE_POLYGON_CENTERLINE_POINTS_TO_LEVEE_CENTERLINE_DIALOG_OPEN;
 
+	/*
+	 * When editing a cross-section, in add left point or add right point modes,
+	 * compare stations of first and last points before determining where to insert points.
+	 * This can behave strangely if cross-sections do not have a trapezoidal shape.
+	 * If you want user to change this option, could be added to Display Parameter menu
+	 */
+	public static boolean ADD_XSECT_POINTS_BASED_ON_POINT_ORDER = true;
+
 	public static boolean backupFile(String fullPath) {
 		String inputPath = fullPath;
 		String outputPath = inputPath + ".bak";
@@ -1931,7 +1939,7 @@ public class CsdpFunctions {
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "2.6_20190214";
+	private static final String _version = "2.6_20190307";
 
 	public static boolean movePolygonCenterlinePointsToLeveeCenterlineDialogOpen() {
 		return MOVE_POLYGON_CENTERLINE_POINTS_TO_LEVEE_CENTERLINE_DIALOG_OPEN;

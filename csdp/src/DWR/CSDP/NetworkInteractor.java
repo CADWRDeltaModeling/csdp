@@ -46,6 +46,7 @@ import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
+import java.util.LinkedList;
 import java.util.Vector;
 
 import javax.swing.JOptionPane;
@@ -61,13 +62,139 @@ import vista.graph.ElementInteractor;
  */
 
 public class NetworkInteractor extends ElementInteractor {
+	/**
+	 * Initial point's x value
+	 */
+	protected int _xi = 0;
+	/**
+	 * Initial point's y value
+	 */
+	protected int _yi = 0;
+	/**
+	 * Final point's x value
+	 */
+	protected int _xf = 0;
+	/**
+	 * Final point's y value
+	 */
+	protected int _yf = 0;
+	public static final boolean DEBUG = false;
+	PlanViewCanvas _can;
+	Network _net;
+	CsdpFrame _gui;
+	BathymetryPlot _bathymetryPlot;
+	// protected boolean _centerlineSelected = false;
+	NetworkPlot _nPlotter;
+	/*
+	 * number of pixels to search for centerline
+	 */
+	protected int SELECT_RANGE = 30;
+	protected static final int x1Index = 0;
+	protected static final int y1Index = 1;
+	protected static final int x2Index = 2;
+	protected static final int y2Index = 3;
+	protected boolean _mouseDragged = false;
+	protected static final double MAX_XSECT_LINE_LENGTH = 1.0e6;
+	protected double _minSlope = 0.0;
+	protected double _minX = 0.0;
+	protected double _minY = 0.0;
+	protected double _height = 0.0;
+	// /**
+	// * centerX is the value in meters to add to all x coordinates so that the
+	// data
+	// * will be centered in the window in the x direction
+	// */
+	// float _centerX = 0.0f;
+	// /**
+	// * centerY is the value in meters to add to all y coordinates so that the
+	// data
+	// * will be centered in the window in the y direction
+	// */
+	// float _centerY = 0.0f;
+	// private final float MAX_SEARCH_DIST = 1000.0f;
 
+	protected boolean _drawDragRect = true;
+	protected boolean _previouslyDoubleBuffered = true;
+	protected Image _gCImage;
+	protected Rectangle _zoomRect = new Rectangle(0, 0, 0, 0);
+	protected Color _zoomRectColor = Color.black;
+	protected App _app;
+	/*
+	 * Initial cursor position converted to length units.
+	 */
+	private double[] _lengthI = new double[2];
+	/**
+	 * Final cursor position converted to length units.
+	 */
+	private double[] _lengthF = new double[2];
+
+	/*
+	 * A LIFO list of objects, each object representing a network editing command object.
+	 * Each object can be used to undo the editing action.
+	 * The current position (index) of the LinkedList will be remembered. When executing editing commands normally, 
+	 * this index will be the index of the last object in the LinkedList. When undo is executed, the last object in the list
+	 * will be retained, and the index will be decremented. Similarly, if redo is executed, the 
+	 * 
+	 * Other important behaviors:
+	 * 1. Executing an editing command will delete all CSDPPlanViewEditingInfo objects after the current index 
+	 * 2. Clearing the network or loading a network file will clear the LinkedList.
+	 */
+	private LinkedList<NetworkEditingInfo> networkEditingCommandLinkedList = new LinkedList<NetworkEditingInfo>();
+
+	private int networkEditingCommandIndex=0;
+	private static final int ADD_DOWNSTREAM_POINT = 100;
+	private static final int ADD_UPSTREAM_POINT = 200;
+	
+	/*
+	 * Constructor
+	 */
 	public NetworkInteractor(CsdpFrame gui, PlanViewCanvas can, App app) {
 		_gui = gui;
 		_can = can;
 		_app = app;
 	}
 
+	/*
+	 * Should be called when clearing the network or loading another network file
+	 */
+	public void clearNetworkEditingCommands() {
+		networkEditingCommandLinkedList.clear();
+	}
+
+	/*
+	 * Called when user wants to undo the previous editing action
+	 */
+	public void undoAction() {
+		if(networkEditingCommandIndex > 0) {
+			networkEditingCommandLinkedList.get(networkEditingCommandIndex).undoAction();
+			networkEditingCommandIndex--;
+		}
+	}//undoAction
+
+	/*
+	 * Called when user wants to redo the last undone editing action
+	 */
+	public void redoAction() {
+		if(networkEditingCommandIndex < networkEditingCommandLinkedList.size()-1) {
+			networkEditingCommandIndex++;
+			networkEditingCommandLinkedList.get(networkEditingCommandIndex).redoAction();
+		}
+	}//redoAction
+	
+	/*
+	 * Should be called when an editing action is taken (not an undo or redo)
+	 * deletes all actions before taking the action
+	 */
+	public void deleteActionsAfterCurrentIndex() {
+		if(networkEditingCommandIndex < networkEditingCommandLinkedList.size()-1) {
+			int currentIndex = networkEditingCommandLinkedList.size()-1;
+			while(currentIndex > networkEditingCommandIndex) {
+				networkEditingCommandLinkedList.removeLast();
+				currentIndex--;
+			}
+		}
+	}//deleteActionsAfterCurrentIndex
+	
 	/**
 	 * Invoked when the mouse has been clicked on a component.
 	 * 
@@ -115,17 +242,21 @@ public class NetworkInteractor extends ElementInteractor {
 				_minX = bb[CsdpFunctions.minXIndex];
 				_minY = bb[CsdpFunctions.minYIndex];
 			}
-			if (_gui.getAddPointMode())
-				addPoint();
-			else if (_gui.getInsertPointMode())
+			if (_gui.getAddDownstreamPointMode()) {
+				System.out.println("about to add downstream point");
+				addPoint(ADD_DOWNSTREAM_POINT);
+			}else if(_gui.getAddUpstreamPointMode()) {
+				System.out.println("about to add upstream point");
+				addPoint(ADD_UPSTREAM_POINT);
+			}else if (_gui.getInsertPointMode()) {
 				insertPoint();
-			else if (_gui.getDeletePointMode())
+			}else if (_gui.getDeletePointMode()) {
 				deletePoint();
-			else if (_gui.getAddXsectMode())
+			}else if (_gui.getAddXsectMode()) {
 				addXsect();
-			else if (_gui.getMoveXsectMode())
+			}else if (_gui.getMoveXsectMode()) {
 				moveXsect();
-			else if (_gui.getZoomBoxMode() || _gui.getZoomPanMode() || _gui.getDeleteCenterlinePointsInBoxMode() ||
+			}else if (_gui.getZoomBoxMode() || _gui.getZoomPanMode() || _gui.getDeleteCenterlinePointsInBoxMode() ||
 					_gui.getDeleteCenterlinePointsOutsideBoxMode()) {
 				_drawDragRect = true;
 				_previouslyDoubleBuffered = _can.isDoubleBuffered();
@@ -354,24 +485,7 @@ public class NetworkInteractor extends ElementInteractor {
 					_net._oldCenterlineName = _net._newCenterlineName;
 				} // if _nPlotter != null
 				if (_gui.getRemoveXsectMode()) {
-					String centerlineName = _net.getSelectedCenterlineName();
-					int selectedXsectNum = _net.getSelectedXsectNum();
-					String xsectName = centerlineName+"_"+selectedXsectNum;
-					//12/19/2018: remove confirmation
-
-					//					int response = JOptionPane.showConfirmDialog(_gui, "Delete selected cross-section line("+xsectName+")?", 
-//							"Are you sure?", JOptionPane.YES_NO_OPTION);
-//					if(response==JOptionPane.YES_OPTION) {
-						_net.getSelectedCenterline().removeXsect(_net.getSelectedXsectNum());
-						_gui.updateInfoPanel(_net.getSelectedCenterlineName());
-						_gui.updateInfoPanel(_net.getSelectedXsectNum());
-						// _gui.setRemoveXsectMode();
-						_net.setIsUpdated(true);
-						_can.redoNextPaint();
-						_can.repaint();
-//					}
-						//12/19/2018: make it sticky
-//					_gui.turnOffEditModes();
+					removeXsect();
 				}
 			} // else
 		} else if (button == MouseEvent.BUTTON2_MASK) {
@@ -409,7 +523,7 @@ public class NetworkInteractor extends ElementInteractor {
 	/**
 	 * add point to the end (usually downstream end) of centerline
 	 */
-	protected void addPoint() {
+	protected void addPoint(int upstreamOrDownstream) {
 		double xDataCoord;
 		double yDataCoord;
 		Centerline centerline;
@@ -428,12 +542,21 @@ public class NetworkInteractor extends ElementInteractor {
 			// xDataCoord = length[0]-_centerX;
 			// yDataCoord = length[1]-_centerY;
 			// }
-			centerline.addCenterlinePointFeet(xDataCoord, yDataCoord);
-			_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
-			// removed for conversion to swing
-			_gui.getPlanViewCanvas(0).redoNextPaint();
-			_gui.getPlanViewCanvas(0).repaint();
-			_net.setIsUpdated(true);
+			boolean success = true;
+			if(upstreamOrDownstream==ADD_DOWNSTREAM_POINT) {
+				centerline.addDownstreamCenterlinePointFeet(xDataCoord, yDataCoord);
+			}else if(upstreamOrDownstream==ADD_UPSTREAM_POINT) {
+				centerline.addUpstreamCenterlinePointFeet(xDataCoord, yDataCoord);
+			}else {
+				success = false;
+			}
+			if(success) {
+				_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+				// removed for conversion to swing
+				_gui.getPlanViewCanvas(0).redoNextPaint();
+				_gui.getPlanViewCanvas(0).repaint();
+				_net.setIsUpdated(true);
+			}
 		} // if centerlineName not null
 	}// addPoint
 
@@ -459,6 +582,8 @@ public class NetworkInteractor extends ElementInteractor {
 	
 	/**
 	 * move centerline point
+	 * 
+	 * Adjust Xsect distances to try to keep them in the same location 
 	 */
 	protected void movePoint() {
 		if (DEBUG)
@@ -512,8 +637,10 @@ public class NetworkInteractor extends ElementInteractor {
 			double maxSearchDist = minDimension / 10.0;
 
 			if (distToNearestPoint < maxSearchDist) {
-				point.putXFeet(xDataCoordFinal);
-				point.putYFeet(yDataCoordFinal);
+//				point.putXFeet(xDataCoordFinal);
+//				point.putYFeet(yDataCoordFinal);
+				centerline.moveCenterlinePointFeet(minDistIndex, xDataCoordFinal, yDataCoordFinal);
+				
 				_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
 				// removed for conversion to swing
 				//
@@ -880,6 +1007,26 @@ public class NetworkInteractor extends ElementInteractor {
 //		_gui.setDefaultModesStates();
 	}// addXsect
 
+	private void removeXsect() {
+		String centerlineName = _net.getSelectedCenterlineName();
+		int selectedXsectNum = _net.getSelectedXsectNum();
+		String xsectName = centerlineName+"_"+selectedXsectNum;
+		//12/19/2018: remove confirmation
+
+		//					int response = JOptionPane.showConfirmDialog(_gui, "Delete selected cross-section line("+xsectName+")?", 
+//				"Are you sure?", JOptionPane.YES_NO_OPTION);
+//		if(response==JOptionPane.YES_OPTION) {
+			_net.getSelectedCenterline().removeXsect(_net.getSelectedXsectNum());
+			_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+			_gui.updateInfoPanel(_net.getSelectedXsectNum());
+			// _gui.setRemoveXsectMode();
+			_net.setIsUpdated(true);
+			_can.redoNextPaint();
+			_can.repaint();
+//		}
+			//12/19/2018: make it sticky
+//		_gui.turnOffEditModes();
+	}
 	
 	/*
 	 * Create a cross-section line at every computational point location
@@ -1320,70 +1467,5 @@ public class NetworkInteractor extends ElementInteractor {
 		_bathymetryPlot = plot;
 	}
 
-	/**
-	 * Initial point's x value
-	 */
-	protected int _xi = 0;
-	/**
-	 * Initial point's y value
-	 */
-	protected int _yi = 0;
-	/**
-	 * Final point's x value
-	 */
-	protected int _xf = 0;
-	/**
-	 * Final point's y value
-	 */
-	protected int _yf = 0;
-	public static final boolean DEBUG = false;
-	PlanViewCanvas _can;
-	Network _net;
-	CsdpFrame _gui;
-	BathymetryPlot _bathymetryPlot;
-	// protected boolean _centerlineSelected = false;
-	NetworkPlot _nPlotter;
-	/*
-	 * number of pixels to search for centerline
-	 */
-	protected int SELECT_RANGE = 30;
-	protected static final int x1Index = 0;
-	protected static final int y1Index = 1;
-	protected static final int x2Index = 2;
-	protected static final int y2Index = 3;
-	protected boolean _mouseDragged = false;
-	protected static final double MAX_XSECT_LINE_LENGTH = 1.0e6;
-	protected double _minSlope = 0.0;
-	protected double _minX = 0.0;
-	protected double _minY = 0.0;
-	protected double _height = 0.0;
-	// /**
-	// * centerX is the value in meters to add to all x coordinates so that the
-	// data
-	// * will be centered in the window in the x direction
-	// */
-	// float _centerX = 0.0f;
-	// /**
-	// * centerY is the value in meters to add to all y coordinates so that the
-	// data
-	// * will be centered in the window in the y direction
-	// */
-	// float _centerY = 0.0f;
-	// private final float MAX_SEARCH_DIST = 1000.0f;
-
-	protected boolean _drawDragRect = true;
-	protected boolean _previouslyDoubleBuffered = true;
-	protected Image _gCImage;
-	protected Rectangle _zoomRect = new Rectangle(0, 0, 0, 0);
-	protected Color _zoomRectColor = Color.black;
-	protected App _app;
-	/*
-	 * Initial cursor position converted to length units.
-	 */
-	private double[] _lengthI = new double[2];
-	/**
-	 * Final cursor position converted to length units.
-	 */
-	private double[] _lengthF = new double[2];
 
 }// NetworkInteractor

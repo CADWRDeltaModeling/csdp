@@ -849,40 +849,6 @@ public class NetworkMenu {
 
 	}
 
-
-	public class NZoomToCenterline implements ActionListener {
-		CsdpFrame _gui;
-		public NZoomToCenterline(CsdpFrame gui) {
-			_gui = gui;
-		}
-
-		public void actionPerformed(ActionEvent arg0) {
-			_gui.pressArrowButton();
-			String response = JOptionPane.showInputDialog(_gui, "Enter centerline name", "Zoom to centerline", JOptionPane.OK_CANCEL_OPTION);
-			if(response!=null && response.length()>0) {
-				NetworkInteractor networkInteractor = _gui.getNetworkInteractor();
-				networkInteractor.zoomToCenterline(response);
-			}
-		}
-	}
-	public class NZoomToNode implements ActionListener {
-		CsdpFrame _gui;
-		public NZoomToNode(CsdpFrame gui) {
-			_gui = gui;
-		}
-
-		public void actionPerformed(ActionEvent arg0) {
-			_gui.pressArrowButton();
-			String response = JOptionPane.showInputDialog(_gui, "Enter node name", "Zoom to node", JOptionPane.OK_CANCEL_OPTION);
-			if(response!=null && response.length()>0) {
-				NetworkInteractor networkInteractor = _gui.getNetworkInteractor();
-				networkInteractor.zoomToNode(response);
-			}
-		}
-	}
-
-
-
 	//// KEEP THIS CLASS--IT MIGHT BE NEEDED SOMEDAY
 	// // public class NetworkFilenameFilter implements FilenameFilter{
 	// // public boolean accept(File dir, String name){

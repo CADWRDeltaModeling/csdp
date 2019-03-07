@@ -86,7 +86,6 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 
 import DWR.CSDP.XsectBathymetryData;
-import net.miginfocom.examples.Example01;
 import vista.app.CurveFactory;
 import vista.app.GraphBuilderInfo;
 import vista.app.MainProperties;
@@ -151,12 +150,16 @@ public class XsectGraph extends JDialog implements ActionListener {
 	URL cursorIconUrl = this.getClass().getResource("images/ArrowButton.png");
 	URL reverseXsectIconUrl = this.getClass().getResource("images/ReverseXsectButton.png");
 	URL movePointIconUrl = this.getClass().getResource("images/MoveXsectPointButton.png");
-	URL addPointIconUrl = this.getClass().getResource("images/AddXsectPointButton.png");
+//	URL addPointIconUrl = this.getClass().getResource("images/AddXsectPointButton.png");
+	URL addLeftPointIconUrl = this.getClass().getResource("images/AddBeginningXsectPointButton.png");
+	URL addRightPointIconUrl = this.getClass().getResource("images/AddEndingXsectPointButton.png");
 	URL insertPointIconUrl = this.getClass().getResource("images/InsertXsectPointButton.png");
 	URL deletePointIconUrl = this.getClass().getResource("images/DeleteXsectPointButton.png");
 	URL cursorIconSelectedUrl = this.getClass().getResource("images/ArrowButtonSelected.png");
 	URL movePointIconSelectedUrl = this.getClass().getResource("images/MoveXsectPointButtonSelected.png");
-	URL addPointIconSelectedUrl = this.getClass().getResource("images/AddXsectPointButtonSelected.png");
+//	URL addPointIconSelectedUrl = this.getClass().getResource("images/AddXsectPointButtonSelected.png");
+	URL addBeginningPointIconSelectedUrl = this.getClass().getResource("images/AddBeginningXsectPointButtonSelected.png");
+	URL addEndingPointIconSelectedUrl = this.getClass().getResource("images/AddEndingXsectPointButtonSelected.png");
 	URL insertPointIconSelectedUrl = this.getClass().getResource("images/InsertXsectPointButtonSelected.png");
 	URL deletePointIconSelectedUrl = this.getClass().getResource("images/DeleteXsectPointButtonSelected.png");
 	URL keepIconUrl = this.getClass().getResource("images/KeepButton.png");
@@ -172,12 +175,16 @@ public class XsectGraph extends JDialog implements ActionListener {
 	ImageIcon _cursorIcon = CsdpFunctions.createScaledImageIcon(cursorIconUrl, ICON_WIDTH, ICON_HEIGHT);
 	ImageIcon _reverseXsectIcon = CsdpFunctions.createScaledImageIcon(reverseXsectIconUrl, ICON_WIDTH, ICON_HEIGHT);
 	ImageIcon _movePointIcon = CsdpFunctions.createScaledImageIcon(movePointIconUrl, ICON_WIDTH, ICON_HEIGHT);
-	ImageIcon _addPointIcon = CsdpFunctions.createScaledImageIcon(addPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
+//	ImageIcon _addPointIcon = CsdpFunctions.createScaledImageIcon(addPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _addLeftPointIcon = CsdpFunctions.createScaledImageIcon(addLeftPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _addRightPointIcon = CsdpFunctions.createScaledImageIcon(addRightPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
 	ImageIcon _insertPointIcon = CsdpFunctions.createScaledImageIcon(insertPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
 	ImageIcon _deletePointIcon = CsdpFunctions.createScaledImageIcon(deletePointIconUrl, ICON_WIDTH, ICON_HEIGHT);
 	ImageIcon _cursorIconSelected = CsdpFunctions.createScaledImageIcon(cursorIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
 	ImageIcon _movePointIconSelected = CsdpFunctions.createScaledImageIcon(movePointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
-	ImageIcon _addPointIconSelected = CsdpFunctions.createScaledImageIcon(addPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
+//	ImageIcon _addPointIconSelected = CsdpFunctions.createScaledImageIcon(addPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _addUpstreamPointIconSelected = CsdpFunctions.createScaledImageIcon(addBeginningPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
+	ImageIcon _addDownstreamPointIconSelected = CsdpFunctions.createScaledImageIcon(addEndingPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
 	ImageIcon _insertPointIconSelected = CsdpFunctions.createScaledImageIcon(insertPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
 	ImageIcon _deletePointIconSelected = CsdpFunctions.createScaledImageIcon(deletePointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
 
@@ -199,7 +206,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 	JButton _reverseButton = new JButton(_reverseXsectIcon);
 	JRadioButton _arrowButton = new JRadioButton(_cursorIcon);
 	JRadioButton _moveButton = new JRadioButton(_movePointIcon);
-	JRadioButton _addButton = new JRadioButton(_addPointIcon);
+//	JRadioButton _addButton = new JRadioButton(_addPointIcon);
+	JRadioButton _addLeftPointButton = new JRadioButton(_addLeftPointIcon);
+	JRadioButton _addRightPointButton = new JRadioButton(_addRightPointIcon);
 	JRadioButton _insertButton = new JRadioButton(_insertPointIcon);
 	JRadioButton _deleteButton = new JRadioButton(_deletePointIcon);
 
@@ -450,7 +459,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 		btnPanel.add(_reverseButton);
 		btnPanel.add(_arrowButton);
 		btnPanel.add(_moveButton);
-		btnPanel.add(_addButton);
+//		btnPanel.add(_addButton);
+		btnPanel.add(_addLeftPointButton);
+		btnPanel.add(_addRightPointButton);
 		btnPanel.add(_insertButton);
 		btnPanel.add(_deleteButton);
 		btnPanel.add(_keepButton);
@@ -464,13 +475,17 @@ public class XsectGraph extends JDialog implements ActionListener {
 		// btnPanel.add(_metadataButton);
 		_arrowButton.setSelectedIcon(_cursorIconSelected);
 		_moveButton.setSelectedIcon(_movePointIconSelected);
-		_addButton.setSelectedIcon(_addPointIconSelected);
+//		_addButton.setSelectedIcon(_addPointIconSelected);
+		_addLeftPointButton.setSelectedIcon(_addUpstreamPointIconSelected);
+		_addRightPointButton.setSelectedIcon(_addDownstreamPointIconSelected);
 		_insertButton.setSelectedIcon(_insertPointIconSelected);
 		_deleteButton.setSelectedIcon(_deletePointIconSelected);
 		_xsectEditButtonGroup = new ButtonGroup();
 		_xsectEditButtonGroup.add(_arrowButton);
 		_xsectEditButtonGroup.add(_moveButton);
-		_xsectEditButtonGroup.add(_addButton);
+//		_xsectEditButtonGroup.add(_addButton);
+		_xsectEditButtonGroup.add(_addLeftPointButton);
+		_xsectEditButtonGroup.add(_addRightPointButton);
 		_xsectEditButtonGroup.add(_insertButton);
 		_xsectEditButtonGroup.add(_deleteButton);
 
@@ -483,7 +498,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 		_reverseButton.setToolTipText("reverse cross-section drawing  ");
 		_arrowButton.setToolTipText("turn off edit mode");
 		_moveButton.setToolTipText("move point  ");
-		_addButton.setToolTipText("add point  ");
+//		_addButton.setToolTipText("add point  ");
+		_addLeftPointButton.setToolTipText("add left point ");
+		_addRightPointButton.setToolTipText("add right point  ");
 		_insertButton.setToolTipText("insert point  ");
 		_deleteButton.setToolTipText("delete point  ");
 		_restoreButton.setToolTipText("undo changes since last keep  ");
@@ -966,7 +983,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 		ActionListener xPrintListener = xsectEditMenu.new XPrint(this);
 		EventListener xCloseListener = xsectEditMenu.new XClose();
 		ItemListener xMovePointListener = xsectEditMenu.new XMovePoint();
-		ItemListener xAddPointListener = xsectEditMenu.new XAddPoint();
+//		ItemListener xAddPointListener = xsectEditMenu.new XAddPoint();
+		ItemListener xAddBeginningPointListener = xsectEditMenu.new XAddPoint();
+		ItemListener xAddEndingPointListener = xsectEditMenu.new XAddPoint();
 		ItemListener xInsertPointListener = xsectEditMenu.new XInsertPoint();
 		ItemListener xDeletePointListener = xsectEditMenu.new XDeletePoint();
 		ItemListener xStopEditListener = xsectEditMenu.new XStopEdit();
@@ -991,13 +1010,17 @@ public class XsectGraph extends JDialog implements ActionListener {
 		_xsCloseButton.addActionListener((ActionListener) xCloseListener);
 
 		_moveButton.addItemListener(xMovePointListener);
-		_addButton.addItemListener(xAddPointListener);
+//		_addButton.addItemListener(xAddPointListener);
+		_addLeftPointButton.addItemListener(xAddBeginningPointListener);
+		_addRightPointButton.addItemListener(xAddEndingPointListener);
 		_insertButton.addItemListener(xInsertPointListener);
 		_deleteButton.addItemListener(xDeletePointListener);
 		_arrowButton.addItemListener(xStopEditListener);
 
 		_moveButton.addItemListener(xMovePointListener);
-		_addButton.addItemListener(xAddPointListener);
+//		_addButton.addItemListener(xAddPointListener);
+		_addLeftPointButton.addItemListener(xAddBeginningPointListener);
+		_addRightPointButton.addItemListener(xAddEndingPointListener);
 		_insertButton.addItemListener(xInsertPointListener);
 		_deleteButton.addItemListener(xDeletePointListener);
 		_arrowButton.addItemListener(xStopEditListener);
@@ -1123,7 +1146,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 				System.out.println("adding old points back to xsect. size=" + _oldNetworkDataSet.size());
 				for (int i = 0; i <= _oldNetworkDataSet.size() - 1; i++) {
 					System.out.println("restoring: _xsect,x,y=" + _xsect + "," + x + "," + y);
-					_xsect.addXsectPoint((double) x[i], (double) y[i]);
+					_xsect.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, (double) x[i], (double) y[i]);
 				}
 			} else {
 				System.out.println("NOT ADDING POINTS TO XSECT. SIZE=" + _oldNetworkDataSet.size());
@@ -1182,7 +1205,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 	 */
 	protected void setAllButtonsTrue() {
 		_moveButton.setEnabled(true);
-		_addButton.setEnabled(true);
+//		_addButton.setEnabled(true);
+		_addLeftPointButton.setEnabled(true);
+		_addRightPointButton.setEnabled(true);
 		_insertButton.setEnabled(true);
 		_deleteButton.setEnabled(true);
 	}
@@ -1214,10 +1239,10 @@ public class XsectGraph extends JDialog implements ActionListener {
 	protected void makeDummyNetworkDataSet() {
 		double[] x = new double[]{-1000.0, -900.0, 900.0, 1000.0};
 		double[] y = new double[]{100.0, -100.0, -110.0, 100.0};
-		_xsect.addXsectPoint((float) x[0], (float)y[0]);
-		_xsect.addXsectPoint((float) x[1], (float)y[1]);
-		_xsect.addXsectPoint((float) x[2], (float)y[2]);
-		_xsect.addXsectPoint((float) x[3], (float)y[3]);
+		_xsect.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, (float) x[0], (float)y[0]);
+		_xsect.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, (float) x[1], (float)y[1]);
+		_xsect.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, (float) x[2], (float)y[2]);
+		_xsect.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, (float) x[3], (float)y[3]);
 //		_xsect.setIsUpdated(true);
 		_networkDataSet = new NetworkDataSet("Network",  x, y);
 	}
@@ -1603,8 +1628,14 @@ public class XsectGraph extends JDialog implements ActionListener {
 		return _changesKept;
 	}
 
-	public boolean getAddPointMode() {
-		return _addButton.isSelected();
+//	public boolean getAddPointMode() {
+//		return _addUpstreamButton.isSelected() || _addDownstreamButton.isSelected();
+//	}	
+	public boolean getAddBeginningPointMode() {
+		return _addLeftPointButton.isSelected();
+	}	
+	public boolean getAddEndingPointMode() {
+		return _addRightPointButton.isSelected();
 	}
 
 	public boolean getInsertPointMode() {

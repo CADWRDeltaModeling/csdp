@@ -99,7 +99,7 @@ public abstract class XsectInput {
 
 		if (_numStationValues == _numElevationValues) {
 			for (int i = 0; i <= _numStationValues - 1; i++) {
-				xsect.addXsectPoint(_station.get(i), _elevation.get(i));
+				xsect.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, _station.get(i), _elevation.get(i));
 
 				if (DEBUG)
 					System.out.println(

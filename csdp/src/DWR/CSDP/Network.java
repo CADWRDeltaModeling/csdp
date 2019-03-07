@@ -952,6 +952,32 @@ public class Network {
 		return y1 + station * (double) Math.sin(theta);
 	}// stationToY
 
+	/*
+	 * Adjust all centerlines whose names end with "_chanpoly". These centerlines are exported to wkt and used by GIS to 
+	 * calculate channel volumes.
+	 * Closing the centerlines means chaning the coordinates of the last point to match those of the first point.
+	 */
+	public void closePolygonCenterlines(Network network) {
+		for(int i=0; i<getNumCenterlines(); i++) {
+			String centerlineName = getCenterlineName(i);
+			if(centerlineName.endsWith("_chanpoly")) {
+				Centerline centerline = getCenterline(centerlineName);
+				CenterlinePoint upstreamPoint = centerline.getCenterlinePoint(0);
+				CenterlinePoint downstreamPoint = centerline.getCenterlinePoint(centerline.getNumCenterlinePoints()-1);
+				double upstreamX = upstreamPoint.getXFeet();
+				double upstreamY = upstreamPoint.getYFeet();
+				downstreamPoint.putXFeet(upstreamX);
+				downstreamPoint.putYFeet(upstreamY);
+			}
+		}
+		
+		_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+		// removed for conversion to swing
+		_gui.getPlanViewCanvas(0).redoNextPaint();
+		_gui.getPlanViewCanvas(0).repaint();		
+		JOptionPane.showMessageDialog(_gui, "Close Polygon Centerlines complete", "Success", JOptionPane.INFORMATION_MESSAGE);
+	}//closePolygonCenterlines
+	
 	protected String _oldCenterlineName = null;
 	protected String _newCenterlineName = null;
 	/**

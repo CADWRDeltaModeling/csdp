@@ -99,14 +99,15 @@ public class DisplayMenu {
 			double oldIntertidalHighTide = CsdpFunctions.INTERTIDAL_HIGH_TIDE;
 			double oldDeltaX = CsdpFunctions.DELTAX;
 			double oldCrossSectionLineLength = CsdpFunctions.CROSS_SECTION_LINE_LENGTH;
+			boolean oldAddXsectPointsBasedOnPointOrder = CsdpFunctions.ADD_XSECT_POINTS_BASED_ON_POINT_ORDER;
 			
-			String[] names = new String[9];
-			String[] defaultValue = new String[9];
+			String[] names = new String[10];
+			String[] defaultValue = new String[10];
 			int[] dataType = new int[] {DataEntryDialog.NUMERIC_TYPE, DataEntryDialog.NUMERIC_TYPE, DataEntryDialog.NUMERIC_TYPE, 
 					DataEntryDialog.BOOLEAN_TYPE, 
 					DataEntryDialog.NUMERIC_TYPE, DataEntryDialog.NUMERIC_TYPE, DataEntryDialog.NUMERIC_TYPE, 
-					DataEntryDialog.NUMERIC_TYPE, DataEntryDialog.NUMERIC_TYPE};
-			int[] numDecimalPlaces = new int[] {0,0,0,0,2,2,2,0,0};
+					DataEntryDialog.NUMERIC_TYPE, DataEntryDialog.NUMERIC_TYPE, DataEntryDialog.BOOLEAN_TYPE};
+			int[] numDecimalPlaces = new int[] {0,0,0,0,2,2,2,0,0,0};
 			names[0] = "Cross-Section Thickness";
 			names[1] = "Bathymetry Point Dimension";
 			names[2] = "Centerline Point Dimension";
@@ -116,6 +117,7 @@ public class DisplayMenu {
 			names[6] = "Intertidal High Tide";
 			names[7] = "Delta X";
 			names[8] = "Cross-section line length";
+			names[9] = "Add Xsect points based on point order";
 			
 			defaultValue[0] = String.valueOf(oldThickness);
 			defaultValue[1] = String.valueOf(oldPointSize);
@@ -126,8 +128,9 @@ public class DisplayMenu {
 			defaultValue[6] = String.valueOf(oldIntertidalHighTide);
 			defaultValue[7] = String.valueOf(oldDeltaX);
 			defaultValue[8] = String.valueOf(oldCrossSectionLineLength);
+			defaultValue[9] = String.valueOf(oldAddXsectPointsBasedOnPointOrder);
 
-			boolean[] disableIfNull = new boolean[] {true, true, true, true, true, true, true, true, true};
+			boolean[] disableIfNull = new boolean[] {true, true, true, true, true, true, true, true, true, true};
 			
 			String[] tooltips = new String[] {
 					"In cross-section view, this value determines how far (feet) upstream and downstream you are looking",
@@ -145,7 +148,12 @@ public class DisplayMenu {
 					"The value of delta x used by DSM2. This is used for calculating the actual delta x that will be used for "
 					+ "a channel by DSM2. It is needed for automatically adding cross-sections at computational points.",
 					"Cross-section line length: The cross-section line length to be used when automatically adding cross-sections at "
-					+ "computational points."
+					+ "computational points.",
+					"Add Xsect points based on point order: Cross-section points can be added to the left or right side of a cross-section "
+					+ "drawing. A cross-section drawing can be created starting on the left bank or the right bank. When adding points, the "
+					+ "CSDP must determine which point in the drawing is on the right bank and which is on the left bank. This can be easily "
+					+ "done by comparing the station values of the leftmost and rightmost points. If you uncheck this box, the left side "
+					+ "will be assumed to be the first point that was drawn, and the right bank will be the last point."
 			};
 			
 			String instructions = "<HTML><BODY><B>Cross-Section Thickness:</B> In cross-section view, this value determines how far (feet) <BR>"
@@ -165,7 +173,12 @@ public class DisplayMenu {
 					+ "<B>Delta X:</B> The value of delta x used by DSM2. This is used for calculating the actual delta x that will be used for<BR>"
 					+ "a channel by DSM2. It is needed for automatically adding cross-sections at computational points.<BR>"
 					+ "<B>Cross-section line length:</B> The cross-section line length to be used when automatically adding cross-sections at <BR>"
-					+ "computational points.</BODY></HTML>";
+					+ "computational points.<BR>"
+					+ "<B>Add Xsect points based on point order:</B>  Cross-section points can be added to the left or right side of a cross-section<BR>"
+					+ "drawing. A cross-section drawing can be created starting on the left bank or the right bank. When adding points, the  CSDP <BR> "
+					+ "must determine which point in the drawing is on the right bank and which is on the left bank. This can be easily done by <BR>"
+					+ "comparing the station values of the leftmost and rightmost points. If you uncheck this box, the left side will be assumed to be <BR>"
+					+ "the first point that was drawn, and the right bank will be the last point.\".</BODY></HTML>";
 
 			DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, "Program Options", instructions, names, defaultValue, dataType, 
 					disableIfNull, numDecimalPlaces, tooltips, true);
@@ -180,11 +193,14 @@ public class DisplayMenu {
 				String newIntertidalHighTideString = dataEntryDialog.getValue(names[6]);
 				String newDeltaXString = dataEntryDialog.getValue(names[7]);
 				String newCrossSectionLineLengthString = dataEntryDialog.getValue(names[8]);
+				String newAddXsectPointsBasedOnPointOrderString = dataEntryDialog.getValue(names[9]);
 
 				System.out.println("t,pd,npd,newNetworkColoringOptionString, newElevationString, newIntertidalLowTideString,"
-						+ "newIntertidalHighTideString, newDeltaXString, newCrossSectionLineLengthString="+
+						+ "newIntertidalHighTideString, newDeltaXString, newCrossSectionLineLengthString, "
+						+ "newAddXsectPointsBasedOnPointOrderString="+
 						t+","+pd+","+npd+","+newNetworkColoringOptionString+","+newElevationString+","+newIntertidalLowTideString+","
-						+newIntertidalHighTideString+","+newDeltaXString+","+newCrossSectionLineLengthString);
+						+newIntertidalHighTideString+","+newDeltaXString+","+newCrossSectionLineLengthString+","+
+						newAddXsectPointsBasedOnPointOrderString);
 				
 				int newPointSize = (int) (Double.parseDouble(pd));
 				int newNetworkSelectionPointSize = (int)Double.parseDouble(npd);
@@ -195,10 +211,14 @@ public class DisplayMenu {
 				double newIntertidalHighTide = Double.parseDouble(newIntertidalHighTideString);
 				double newDeltaX = Double.parseDouble(newDeltaXString);
 				double newCrossSectionLineLength = Double.parseDouble(newCrossSectionLineLengthString);
+				boolean newAddXsectPointsBasedOnPointOrder = Boolean.parseBoolean(newAddXsectPointsBasedOnPointOrderString);
+
 				System.out.println("newThickness, newPointSize, newNetworkSelectionPointSize, newNetworkColoringOption,"
-						+ "newElevation, newIntertidalLowTide, newIntertidalHighTide, newDeltaX, newCrossSectionLineLength="+
+						+ "newElevation, newIntertidalLowTide, newIntertidalHighTide, newDeltaX, newCrossSectionLineLength, "
+						+ "newAddXsectPointsBasedOnPointOrder="+
 						newThickness+","+newPointSize+","+newNetworkSelectionPointSize+","+newNetworkColoringOption+","+
-						newElevation+","+newIntertidalLowTide+","+newIntertidalHighTide+","+newDeltaX+","+newCrossSectionLineLength);
+						newElevation+","+newIntertidalLowTide+","+newIntertidalHighTide+","+newDeltaX+","+newCrossSectionLineLength+","+
+						newAddXsectPointsBasedOnPointOrder);
 				
 				if (DEBUG)
 					System.out.println("thickness, point dimension=" + newThickness + "," + newPointSize);
@@ -249,6 +269,9 @@ public class DisplayMenu {
 				}
 				if(newCrossSectionLineLength != oldCrossSectionLineLength) {
 					CsdpFunctions.CROSS_SECTION_LINE_LENGTH = newCrossSectionLineLength;
+				}
+				if(newAddXsectPointsBasedOnPointOrder != oldAddXsectPointsBasedOnPointOrder) {
+					CsdpFunctions.ADD_XSECT_POINTS_BASED_ON_POINT_ORDER = newAddXsectPointsBasedOnPointOrder;
 				}
 				if(repaintNetwork) {
 					_gui.getPlanViewCanvas(0).setUpdateCanvas(true);

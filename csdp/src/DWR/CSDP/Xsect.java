@@ -46,6 +46,18 @@ import java.util.Vector;
  * Store data for a single cross-section. Calculate all cross-section properties
  */
 public class Xsect {
+	private int _numPoints;
+	private final boolean DEBUG = false;
+	private Vector<XsectPoint> _xsectPoints = new Vector<XsectPoint>();
+	private double _distAlongCenterline = 0.0;
+	private double _xsectLineLength = 0.0;
+	private final int leftIndex = 0;
+	private final int rightIndex = 0;
+	private int _numUniqueElevations;
+	public boolean _isUpdated = false;
+	private String _metadata;
+
+	// private double MAX_INSERT_DIST = 300.0;
 
 	/*
 	 * All stations in a cross-section should be unique. return true if they
@@ -133,16 +145,68 @@ public class Xsect {
 	/**
 	 * create new XsectPoint object, add to _xsectPoints vector, set values.
 	 */
-	public void addXsectPoint(double x, double y) {
+	public void addXsectPoint(Integer insertPointMode, double x, double y) {
 		XsectPoint point = new XsectPoint();
-		_xsectPoints.addElement(point);
+		//This is not the default. It works as expected if the cross-section is drawn 
+		// from left bank to right bank, but not from right bank to left bank.
+		if(!CsdpFunctions.ADD_XSECT_POINTS_BASED_ON_POINT_ORDER) {
+			if(insertPointMode==XsectEditInteractor.ADD_LEFT_POINT) {
+				_xsectPoints.insertElementAt(point, 0);
+			}else if(insertPointMode==XsectEditInteractor.ADD_RIGHT_POINT) {
+				_xsectPoints.addElement(point);
+			}
+		}else {
+			//this is the default...because it will not be reversed if cross-section is drawn 
+			//right to left. But it will behave inconsistently if user creates a strane shape that looks
+			//nothing like a cross-section
+			if(getNumPoints()>1) {
+				XsectPoint firstPoint = getXsectPoint(0);
+				XsectPoint lastPoint = getXsectPoint(getNumPoints()-1);
+				double firstStation = firstPoint.getStationFeet();
+				double lastStation = lastPoint.getStationFeet();
+				boolean leftToRight = true;
+				if(firstStation<lastStation) {
+					leftToRight = true;
+				}else {
+					leftToRight = false;
+				}
+				boolean addToBeginningOfVector = true;
+				
+				if(insertPointMode==XsectEditInteractor.ADD_LEFT_POINT) {
+					if(leftToRight) {
+						addToBeginningOfVector = true;
+					}else {
+						addToBeginningOfVector = false;
+					}
+				}else if(insertPointMode==XsectEditInteractor.ADD_RIGHT_POINT) {
+					if(leftToRight) {
+						addToBeginningOfVector = false;
+					}else {
+						addToBeginningOfVector = true;
+					}
+				}else {
+					System.out.println("Error in Xsect.addXsectPoint");
+				}
+				if(addToBeginningOfVector) {
+					_xsectPoints.insertElementAt(point, 0);
+				}else {
+					_xsectPoints.addElement(point);
+				}
+			}else {
+				if(insertPointMode==XsectEditInteractor.ADD_LEFT_POINT) {
+					_xsectPoints.insertElementAt(point, 0);
+	
+				}else if(insertPointMode==XsectEditInteractor.ADD_RIGHT_POINT) {
+					_xsectPoints.addElement(point);
+				}
+			}
+		}
 		point.putStationFeet(x);
 		point.putElevationFeet(y);
 		_numPoints++;
 
 		if (DEBUG)
 			System.out.println("added xsect point.  x,y,numpoints=" + x + "," + y + "," + getNumPoints());
-
 	}
 
 	/**
@@ -734,7 +798,7 @@ public class Xsect {
 	/**
 	 * calculates the dconveyance (derivative of conveyance wrt height)
 	 */
-	protected double getDConveyance(int i) {
+	private double getDConveyance(int i) {
 		double elevationLeft = getXsectPoint(i - 1).getElevationFeet();
 		double elevationMiddle = getXsectPoint(i).getElevationFeet();
 		double elevationRight = getXsectPoint(i + 1).getElevationFeet();
@@ -752,7 +816,7 @@ public class Xsect {
 	/**
 	 * returns point that is closest to specified coord.
 	 */
-	protected int getNearestPointIndex(double x, double y) {
+	public int getNearestPointIndex(double x, double y) {
 		XsectPoint point;
 		double minDist = Double.MAX_VALUE;
 		int minDistIndex = 0;
@@ -775,14 +839,14 @@ public class Xsect {
 	/**
 	 * puts XsectPoint object at specified index--only used for reversing
 	 */
-	protected void putXsectPoint(int index, XsectPoint point) {
+	private void putXsectPoint(int index, XsectPoint point) {
 		_xsectPoints.setElementAt(point, index);
 	}
 
 	/**
 	 * sort and return the array
 	 */
-	protected double[] sortArray(double[] array, int numElements) {
+	private double[] sortArray(double[] array, int numElements) {
 		int last;
 		int ptr;
 		int first;
@@ -807,7 +871,7 @@ public class Xsect {
 	/**
 	 * copy unique elements on to new array
 	 */
-	protected double[] findUnique(double[] array, int numElements) {
+	private double[] findUnique(double[] array, int numElements) {
 		/**
 		 * this array should contain only unique elevation. However, some of the
 		 * elevations will be very close to each other. If the elevations are
@@ -845,7 +909,7 @@ public class Xsect {
 	 * specified elevation of the line segment whose leftmost point index is
 	 * equal to the specified index
 	 */
-	protected double getWidthFeet(int index, double elevation) {
+	private double getWidthFeet(int index, double elevation) {
 		double sLeft = getXsectPoint(index).getStationFeet();
 		double eLeft = getXsectPoint(index).getElevationFeet();
 		double sRight = getXsectPoint(index + 1).getStationFeet();
@@ -873,7 +937,7 @@ public class Xsect {
 	 * equal to the specified index for OpenWaterArea (Yolo Bypass) calculations
 	 * only.
 	 */
-	protected double getWidthFeet(int index, double elevation, String crossSectionName, ToeDrainData tdData) {
+	private double getWidthFeet(int index, double elevation, String crossSectionName, ToeDrainData tdData) {
 		double sLeft = getXsectPoint(index).getStationFeet();
 		double eLeft = getXsectPoint(index).getElevationFeet();
 		double sRight = getXsectPoint(index + 1).getStationFeet();
@@ -939,7 +1003,7 @@ public class Xsect {
 	 * equal to the specified index for OpenWaterArea (Yolo Bypass) calculations
 	 * only.
 	 */
-	protected double getAreaSqft(int index, double elevation, String crossSectionName, ToeDrainData tdData) {
+	private double getAreaSqft(int index, double elevation, String crossSectionName, ToeDrainData tdData) {
 		double sLeft = getXsectPoint(index).getStationFeet();
 		double eLeft = getXsectPoint(index).getElevationFeet();
 		double sRight = getXsectPoint(index + 1).getStationFeet();
@@ -1025,7 +1089,7 @@ public class Xsect {
 	 * specified elevation of the line segment whose leftmost point index is
 	 * equal to the specified index
 	 */
-	protected double getAreaSqft(int index, double elevation) {
+	private double getAreaSqft(int index, double elevation) {
 		double sLeft = getXsectPoint(index).getStationFeet();
 		double eLeft = getXsectPoint(index).getElevationFeet();
 		double sRight = getXsectPoint(index + 1).getStationFeet();
@@ -1052,7 +1116,7 @@ public class Xsect {
 	 * perimeter at the specified elevation of the line segment whose leftmost
 	 * point index is equal to the specified index
 	 */
-	protected double getWettedPerimeterFeet(int index, double elevation) {
+	private double getWettedPerimeterFeet(int index, double elevation) {
 		double sLeft = getXsectPoint(index).getStationFeet();
 		double eLeft = getXsectPoint(index).getElevationFeet();
 		double sRight = getXsectPoint(index + 1).getStationFeet();
@@ -1081,7 +1145,7 @@ public class Xsect {
 	 * point index is equal to the specified index for OpenWaterArea (Yolo
 	 * Bypass) calculations only.
 	 */
-	protected double getWettedPerimeterFeet(int index, double elevation, String crossSectionName, ToeDrainData tdData) {
+	private double getWettedPerimeterFeet(int index, double elevation, String crossSectionName, ToeDrainData tdData) {
 		double sLeft = getXsectPoint(index).getStationFeet();
 		double eLeft = getXsectPoint(index).getElevationFeet();
 		double sRight = getXsectPoint(index + 1).getStationFeet();
@@ -1162,7 +1226,7 @@ public class Xsect {
 	 * the specified elevation of the line segment whose leftmost point index is
 	 * equal to the specified index
 	 */
-	protected double getXCentroidFeet(int index, double intersectionElevation) {
+	private double getXCentroidFeet(int index, double intersectionElevation) {
 		double sLeft = getXsectPoint(index).getStationFeet();
 		double eLeft = getXsectPoint(index).getElevationFeet();
 		double sRight = getXsectPoint(index + 1).getStationFeet();
@@ -1192,7 +1256,7 @@ public class Xsect {
 	 * the specified elevation of the line segment whose leftmost point index is
 	 * equal to the specified index
 	 */
-	protected double getZCentroidFeet(int index, double intersectionElevation) {
+	private double getZCentroidFeet(int index, double intersectionElevation) {
 		double sLeft = getXsectPoint(index).getStationFeet();
 		double eLeft = getXsectPoint(index).getElevationFeet();
 		double sRight = getXsectPoint(index + 1).getStationFeet();
@@ -1228,7 +1292,7 @@ public class Xsect {
 	 * x0 or x1) z[0] = stage(top of rectangle) z[1] = bottom of rectangle z[2]
 	 * = bottom of triangle
 	 */
-	protected double getXCentroidFeet(double x0, double x1, double x2, double z0, double z1, double z2) {
+	private double getXCentroidFeet(double x0, double x1, double x2, double z0, double z1, double z2) {
 		if (DEBUG)
 			System.out.println("x,z=" + x0 + "," + x1 + "," + x2 + "," + z0 + "," + z1 + "," + z2);
 		double aRectangle = Math.abs((z0 - z1) * (x0 - x1));
@@ -1257,7 +1321,7 @@ public class Xsect {
 	 * = stage(top of rectangle) z[1] = bottom of rectangle z[2] = bottom of
 	 * triangle
 	 */
-	protected double getZCentroidFeet(double x0, double x1, double x2, double z0, double z1, double z2) {
+	private double getZCentroidFeet(double x0, double x1, double x2, double z0, double z1, double z2) {
 		if (DEBUG)
 			System.out.println("zcentroid calculation");
 		if (DEBUG)
@@ -1278,7 +1342,7 @@ public class Xsect {
 	/**
 	 * returns true if the line segment is above specified elevation
 	 */
-	protected boolean aboveWater(double eLeft, double eRight, double elevation) {
+	private boolean aboveWater(double eLeft, double eRight, double elevation) {
 		if (eLeft >= elevation && eRight >= elevation) {
 			return true;
 		} else {
@@ -1290,7 +1354,7 @@ public class Xsect {
 	 * Returns true if the specified elevation is above one point and below the
 	 * other point of the line segment.
 	 */
-	protected boolean partiallySubmerged(double eLeft, double eRight, double elevation) {
+	private boolean partiallySubmerged(double eLeft, double eRight, double elevation) {
 		if ((elevation - eLeft) * (elevation - eRight) < 0) {
 			return true;
 		} else {
@@ -1302,7 +1366,7 @@ public class Xsect {
 	 * Returns true if the specified elevation is above both points in the line
 	 * segment
 	 */
-	protected boolean completelySubmerged(double eLeft, double eRight, double elevation) {
+	private boolean completelySubmerged(double eLeft, double eRight, double elevation) {
 		if (elevation >= eLeft && elevation >= eRight) {
 			return true;
 		} else {
@@ -1313,14 +1377,14 @@ public class Xsect {
 	/**
 	 * interpolates to find x value for given Y value
 	 */
-	protected double interp(double x1, double x2, double y1, double y2, double Y) {
+	private double interp(double x1, double x2, double y1, double y2, double Y) {
 		return -((y2 - Y) * ((x2 - x1) / (y2 - y1)) - x2);
 	}
 
 	/**
 	 * find elevation of lower point
 	 */
-	protected double getLowerPointElevationFeet(double sLeft, double sRight, double eLeft, double eRight) {
+	private double getLowerPointElevationFeet(double sLeft, double sRight, double eLeft, double eRight) {
 		if (eLeft <= eRight)
 			return eLeft;
 		else
@@ -1330,7 +1394,7 @@ public class Xsect {
 	/**
 	 * find station of lower point
 	 */
-	protected double getLowerPointStationFeet(double sLeft, double sRight, double eLeft, double eRight) {
+	private double getLowerPointStationFeet(double sLeft, double sRight, double eLeft, double eRight) {
 		if (eLeft <= eRight)
 			return sLeft;
 		else
@@ -1342,7 +1406,7 @@ public class Xsect {
 	 * to (x=0) x[1] = side of rectangle farthest from (x=0) x[2] = x coord. of
 	 * lowest point of triangle (will be x0 or x1)
 	 */
-	protected double[] getTrapezoidStationValues(double sLeft, double sRight, double eLeft, double eRight,
+	private double[] getTrapezoidStationValues(double sLeft, double sRight, double eLeft, double eRight,
 			double elevation) {
 		double[] x = new double[3];
 
@@ -1382,7 +1446,7 @@ public class Xsect {
 	 * Find Trapezoid point elevations: z[0] = stage(top of rectangle) z[1] =
 	 * bottom of rectangle z[2] = bottom of triangle
 	 */
-	protected double[] getTrapezoidElevationValues(double sLeft, double sRight, double eLeft, double eRight,
+	private double[] getTrapezoidElevationValues(double sLeft, double sRight, double eLeft, double eRight,
 			double elevation) {
 		double[] z = new double[3];
 
@@ -1413,16 +1477,4 @@ public class Xsect {
 		_metadata = metadata;
 	}
 
-	protected int _numPoints;
-	protected final boolean DEBUG = false;
-	protected Vector _xsectPoints = new Vector();
-	protected double _distAlongCenterline = 0.0;
-	protected double _xsectLineLength = 0.0;
-	protected final int leftIndex = 0;
-	protected final int rightIndex = 0;
-	protected int _numUniqueElevations;
-	public boolean _isUpdated = false;
-	private String _metadata;
-
-	// protected double MAX_INSERT_DIST = 300.0;
 }// class Xsect

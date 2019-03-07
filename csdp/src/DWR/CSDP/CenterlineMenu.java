@@ -194,7 +194,7 @@ public class CenterlineMenu {
 			_net.setSelectedCenterlineName(centerlineName);
 			_net.setSelectedCenterline(_net.getCenterline(centerlineName));
 			_gui.enableAfterCenterlineSelected();
-			_gui.setAddPointMode();
+			_gui.setAddDownstreamPointMode();
 			_gui.setCursor(CsdpFunctions._handCursor);
 		}
 
@@ -400,8 +400,8 @@ public class CenterlineMenu {
 				upnodeY = _landmark.getYFeet(upnodeString);
 				downnodeX = _landmark.getXFeet(downnodeString);
 				downnodeY = _landmark.getYFeet(downnodeString);
-				centerline.addCenterlinePointFeet(upnodeX, upnodeY);
-				centerline.addCenterlinePointFeet(downnodeX, downnodeY);
+				centerline.addDownstreamCenterlinePointFeet(upnodeX, upnodeY);
+				centerline.addDownstreamCenterlinePointFeet(downnodeX, downnodeY);
 				if (DEBUG)
 					System.out.println("landmark coordinates: upstream xy, downstream xy=" + upnodeX + "," + upnodeY
 							+ "," + downnodeX + "," + downnodeY);

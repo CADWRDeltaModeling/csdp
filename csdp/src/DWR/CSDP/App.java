@@ -642,13 +642,13 @@ public class App {
 		CsdpFunctions.setDSMChannelsFilename(_filename+"."+_filetype);
 		CsdpFunctions.setDSMChannelsFiletype(_filetype);
 //		try {
-			if (_filetype.equals(DSMChannels_TYPE)) {
-				DSMChannelsInput chanInput = DSMChannelsInput.getInstance(directory, _filename + "." + _filetype);
+//			if (_filetype.equals(DSMChannels_TYPE)) {
+				DSMChannelsInput chanInput = DSMChannelsInput.getInstance(directory, _filename + "." + DSMChannels_TYPE);
 				_DSMChannels = chanInput.readData();
 				if (DEBUG)
 					System.out.println("Done reading ascii DSMChannels data file");
-			} else
-				System.out.println("filetype not defined for extension " + _filetype);
+//			} else
+//				System.out.println("filetype not defined for extension " + _filetype);
 //		}catch(Exception e) {
 //			JOptionPane.showMessageDialog(_csdpFrame, "Exception caught in App.chanReadStore: "+e.getMessage(), 
 //					"Error", JOptionPane.ERROR_MESSAGE);
@@ -918,7 +918,7 @@ public class App {
 				+ "3. (Optional): A DSM2 output (.hof) file which was created from the network file by running DSM2-Hydro with printlevel>=5</font><BR><BR>"
 				+ "<H2>To calculate, for each channel, for a given stage (usually 0.0 NAVD)</H2><BR>"
 				+ "1. A comparison of channel lengths from the channels.inp file vs channel lengths calculated using the network file<BR>"
-				+ "2. Volume, wetted area, and surface area using CSDP cross-sections, assuming no inter-channel interpolation<BR>"
+				+ "2. Average width, Volume, wetted area, and surface area using CSDP cross-sections, assuming no inter-channel interpolation<BR>"
 				+ "3. (If hof file specified) Volume, wetted area, and surface area using Virtual cross-sections (which are calculated using inter-channel interpolation<BR>"
 				+ "4. The maximum ratio of CSDP cross-sectional areas within the channel<BR>"
 				+ "5. (If hof file specified) The maximum ratio of Virtual cross-sectional areas within the channel<BR>"
@@ -980,16 +980,16 @@ public class App {
 			}
 				
 			DSM2VirtualCrossSectionVolume dsm2VirtualCrossSectionVolume = null;
-			Hashtable<String, Double> chanToVol = null;
-			Hashtable<String, Double> chanToWettedArea = null;
-			Hashtable<String, Double> chanToSurfArea = null;
-			Hashtable<String, Double> chanToMaxAreaRatio = null;
+			Hashtable<String, Double> chanToVirtualXSVol = null;
+			Hashtable<String, Double> chanToVirtualXSWettedArea = null;
+			Hashtable<String, Double> chanToVirtualXSSurfArea = null;
+			Hashtable<String, Double> chanToVirtualXSMaxAreaRatio = null;
 			if(dsm2HofFileSpecified) {
 				dsm2VirtualCrossSectionVolume = new DSM2VirtualCrossSectionVolume(dsm2HofDirectory.toString(), dsm2HofFilename);
-				chanToVol = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.VOLUME_RESULTS);
-				chanToWettedArea = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.WETTED_AREA_RESULTS);
-				chanToSurfArea = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.SURFACE_AREA_RESULTS);
-				chanToMaxAreaRatio = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.MAX_AREA_RATIO_RESULTS);
+				chanToVirtualXSVol = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.VOLUME_RESULTS);
+				chanToVirtualXSWettedArea = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.WETTED_AREA_RESULTS);
+				chanToVirtualXSSurfArea = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.SURFACE_AREA_RESULTS);
+				chanToVirtualXSMaxAreaRatio = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.MAX_AREA_RATIO_RESULTS);
 			}			
 			
 			_net.sortCenterlineNames();
@@ -1004,6 +1004,7 @@ public class App {
 			reportText.addElement("Channels.inp length: length specified for DSM2 in the DSM2 channels file above.");
 			reportText.addElement("CSDP length: length calculated by the CSDP that will be used to replace the 'Channels.inp length'.");
 			reportText.addElement("% change: the change in length CSDP vs Channels.inp");
+			reportText.addElement("CSDP Average width");
 			reportText.addElement("CSDP Volume: Channel volume calculated by CSDP for specified elevation assuming no inter-channel interpolation.");		
 			reportText.addElement("CSDP Wetted Area: Wetted area calculated by CSDP for specified elevation assuming no inter-channel interpolation.");
 			reportText.addElement("CSDP Surface Area: Surface area calculated by CSDP for specified elevation assuming no inter-channel interpolation.");
@@ -1034,6 +1035,7 @@ public class App {
 						+ "Channels.inp length\t"
 						+ "CSDP Length\t"
 						+ "% change\t"
+						+ "CSDP Average Width\t"
 						+ "CSDP Volume\t"
 						+ "CSDP Wetted Area\t"
 						+ "CSDP Surface Area\t"
@@ -1055,6 +1057,7 @@ public class App {
 						+ "Channels.inp length\t"
 						+ "CSDP Length\t"
 						+ "% change\t"
+						+ "CSDP Average Width\t"
 						+ "CSDP Volume\t"
 						+ "CSDP Wetted Area\t"
 						+ "CSDP Surface Area\t"
@@ -1082,12 +1085,14 @@ public class App {
 				double csdpChanLength = -Double.MAX_VALUE; 
 				double channelsInpLength = _DSMChannels.getLength(chan);
 				double percentChange = -Integer.MAX_VALUE;
+				double csdpAverageWidth = -Double.MAX_VALUE;
 				double csdpVolume = -Double.MAX_VALUE;
 				double csdpWettedArea = -Double.MAX_VALUE;
 				double csdpSurfaceArea = -Double.MAX_VALUE;
 				if(centerline!=null) {
 					csdpChanLength=centerline.getLengthFeet();
 					percentChange = 100.0 * ((csdpChanLength-channelsInpLength) / channelsInpLength);
+					csdpAverageWidth = centerline.getAverageWidthFeet(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS, centerline.getLengthFeet());
 					csdpVolume = centerline.getChannelVolumeEstimateNoInterp(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
 					csdpWettedArea = centerline.getChannelWettedAreaEstimateNoInterp(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
 					csdpSurfaceArea = centerline.getChannelSurfaceAreaEstimateNoInterp(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
@@ -1097,16 +1102,16 @@ public class App {
 				double dsm2SurfArea = -Double.MAX_VALUE;
 				double dsm2MaxAreaRatio = -Double.MAX_VALUE;
 				if(dsm2HofFileSpecified) {
-					if(!chanToVol.containsKey(chan) || !chanToWettedArea.containsKey(chan) || 
-							!chanToSurfArea.containsKey(chan) || !chanToMaxAreaRatio.containsKey(chan)) {
+					if(!chanToVirtualXSVol.containsKey(chan) || !chanToVirtualXSWettedArea.containsKey(chan) || 
+							!chanToVirtualXSSurfArea.containsKey(chan) || !chanToVirtualXSMaxAreaRatio.containsKey(chan)) {
 						JOptionPane.showMessageDialog(_csdpFrame, "Error in App.createNetworkSummaryReport: a .hof file \n"
 								+ "was specified, but the .hof file is missing \n"
 								+ "information for channel "+chan, "Error", JOptionPane.ERROR_MESSAGE);
 					}
-					dsm2Vol = chanToVol.get(chan);
-					dsm2WetArea = chanToWettedArea.get(chan);
-					dsm2SurfArea = chanToSurfArea.get(chan);
-					dsm2MaxAreaRatio = chanToMaxAreaRatio.get(chan);
+					dsm2Vol = chanToVirtualXSVol.get(chan);
+					dsm2WetArea = chanToVirtualXSWettedArea.get(chan);
+					dsm2SurfArea = chanToVirtualXSSurfArea.get(chan);
+					dsm2MaxAreaRatio = chanToVirtualXSMaxAreaRatio.get(chan);
 				}
 				double csdpMaxAreaRatio = -Double.MAX_VALUE;
 				double csdpHighestBottomElev = -Double.MAX_VALUE;
@@ -1142,6 +1147,7 @@ public class App {
 				
 				String csdpChanLengthString = String.format("%.0f",  csdpChanLength);
 				String percentLengthChangeString = String.format("%.0f", percentChange);
+				String csdpAverageWidthString = String.format("%.0f", csdpAverageWidth); 
 				String csdpVolumeString = String.format("%.1f", csdpVolume);
 				String csdpWettedAreaString = String.format("%.1f", csdpWettedArea);
 				String csdpSurfaceAreaString = String.format("%.1f", csdpSurfaceArea);
@@ -1161,6 +1167,7 @@ public class App {
 					if(centerline==null) {
 						csdpChanLengthString = na;
 						percentLengthChangeString = na;
+						csdpAverageWidthString = na;
 						csdpVolumeString = na;
 						csdpWettedAreaString = na;
 						csdpSurfaceAreaString = na;
@@ -1176,7 +1183,7 @@ public class App {
 						csdpXsWithNegDKInIntertidalString = na;
 					}
 					reportText.addElement(chan+"\t"+channelsInpLength+"\t"+csdpChanLengthString+"\t"+
-							percentLengthChangeString+"\t"+csdpVolumeString+"\t"+csdpWettedAreaString+"\t"+
+							percentLengthChangeString+"\t"+csdpAverageWidthString+"\t"+csdpVolumeString+"\t"+csdpWettedAreaString+"\t"+
 							csdpSurfaceAreaString+"\t"+dsm2VolString+"\t"+dsm2WetAreaString+"\t"+dsm2SurfAreaString+"\t"+
 							csdpMaxAreaRatioString+"\t"+dsm2MaxAreaRatioString+"\t"+csdpHighestBottomElevString+"\t"+
 							csdpXsWithNoPointsString+"\t"+csdpXsWithinSpecifiedDistanceString+"\t"+csdpXSWithMinAreaString+"\t"+
@@ -1187,6 +1194,7 @@ public class App {
 					if(centerline==null) {
 						csdpChanLengthString = na;
 						percentLengthChangeString = na;
+						csdpAverageWidthString = na;
 						csdpVolumeString = na;
 						csdpWettedAreaString = na;
 						csdpSurfaceAreaString = na;
@@ -1203,7 +1211,7 @@ public class App {
 					}
 					//with no hof file, don't include dsm2 volume, wetted area, surface area, or max area ratio
 					reportText.addElement(chan+"\t"+channelsInpLength+"\t"+csdpChanLengthString+"\t"+
-							percentLengthChangeString+"\t"+csdpVolumeString+"\t"+csdpWettedAreaString+"\t"+
+							percentLengthChangeString+"\t"+csdpAverageWidthString+"\t"+csdpVolumeString+"\t"+csdpWettedAreaString+"\t"+
 							csdpSurfaceAreaString+"\t"+
 							csdpMaxAreaRatioString+"\t"+csdpHighestBottomElevString+"\t"+
 							csdpXsWithNoPointsString+"\t"+csdpXsWithinSpecifiedDistanceString+"\t"+csdpXSWithMinAreaString+"\t"+
@@ -1988,13 +1996,13 @@ public class App {
 					for(int j=0; j<c.getNumCenterlinePoints(); j++) {
 						double xFeet = c.getCenterlinePoint(j).getXFeet();
 						double yFeet = c.getCenterlinePoint(j).getYFeet();
-						leveeCenterline.addCenterlinePointFeet(xFeet, yFeet);
+						leveeCenterline.addDownstreamCenterlinePointFeet(xFeet, yFeet);
 					}
 				}else if(pointOrder[i]==Centerline.DOWNSTREAM_TO_UPSTREAM) {
 					for(int j=c.getNumCenterlinePoints()-1; j>0; j--) {
 						double xFeet = c.getCenterlinePoint(j).getXFeet();
 						double yFeet = c.getCenterlinePoint(j).getYFeet();
-						leveeCenterline.addCenterlinePointFeet(xFeet, yFeet);
+						leveeCenterline.addDownstreamCenterlinePointFeet(xFeet, yFeet);
 					}
 				}
 			}

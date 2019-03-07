@@ -61,6 +61,9 @@ import vista.graph.Plot;
  * @version
  */
 public class XsectEditInteractor extends ElementInteractor {
+	//identifies what type of add: upstream or downstream
+	public static final int ADD_LEFT_POINT = 100;
+	public static final int ADD_RIGHT_POINT = 200;
 	/**
 	 * for debugging
 	 */
@@ -96,8 +99,11 @@ public class XsectEditInteractor extends ElementInteractor {
 	 */
 	public void mousePressed(MouseEvent e) {
 		setInitialPoint(e.getX(), e.getY());
-		if (_xsectGraph.getAddPointMode())
-			addPoint();
+		if (_xsectGraph.getAddBeginningPointMode())
+			addPoint(ADD_LEFT_POINT);
+		else if(_xsectGraph.getAddEndingPointMode()) {
+			addPoint(ADD_RIGHT_POINT);
+		}
 		else if (_xsectGraph.getInsertPointMode())
 			insertPoint();
 		else if (_xsectGraph.getDeletePointMode())
@@ -270,14 +276,14 @@ public class XsectEditInteractor extends ElementInteractor {
 	/**
 	 * adds a point after the last point in xsect
 	 */
-	protected void addPoint() {
+	protected void addPoint(int insertPointMode) {
 		double xDataCoord;
 		double yDataCoord;
 		if (DEBUG)
 			System.out.println("adding xsect point");
 		xDataCoord = (_graph.getPlot().getAxis(AxisAttr.BOTTOM)).getScale().scaleToDC(_xi);
 		yDataCoord = (_graph.getPlot().getAxis(AxisAttr.LEFT)).getScale().scaleToDC(_yi);
-		_xsect.addXsectPoint((float) xDataCoord, (float) yDataCoord);
+		_xsect.addXsectPoint(insertPointMode, (float) xDataCoord, (float) yDataCoord);
 		// if there are no points, create net networkdataset
 		// if(_xsectGraph._gC.getPlot().getCurve(_xsectGraph._networkDataSet) ==
 		// null){
