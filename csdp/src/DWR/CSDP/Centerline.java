@@ -48,11 +48,6 @@ import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-import org.junit.experimental.theories.Theories;
-import org.jzy3d.bridge.IFrame;
-
-import vista.app.PTMAnimator;
-
 /**
  * A centerline contains centerline points and cross-sections. Centerline points
  * are stored in order.

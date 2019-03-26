@@ -37,7 +37,7 @@
     chung@water.ca.gov
 
     or see our home page: http://wwwdelmod.water.ca.gov/
-*/
+ */
 package DWR.CSDP;
 
 import java.awt.Polygon;
@@ -120,7 +120,7 @@ public class Network {
 		}
 		return returnValue;
 	}
-	
+
 	/**
 	 * sort centerline names lexicographically
 	 */
@@ -138,15 +138,19 @@ public class Network {
 	/**
 	 * create new Centerline object
 	 */
-	public void addCenterline(String name) {
+	public boolean addCenterline(String name) {
+		boolean addedNewCenterline = true;
 		// if there is already a centerline with the name, erase the old one.
 		if (_centerlines.containsKey(name)) {
+			System.out.println("centerline name matches existing centerline name: "+name);
+			addedNewCenterline = false;
 			removeCenterline(name);
 		}
 		Centerline cent = new Centerline(name);
 		_centerlines.put(name, cent);
 		putCenterlineName(name);
 		_numCenterlines++;
+		return addedNewCenterline;
 	}// addCenterline
 
 	/**
@@ -244,9 +248,16 @@ public class Network {
 	public void setIsUpdated(boolean value) {
 		_isUpdated = value;
 
-		if (DEBUG)
+		if (DEBUG) {
 			System.out.println("setting is updated to " + value);
-
+			System.out.println("Printing stack trace:");
+			StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+			for (int i = 1; i < elements.length; i++) {
+				StackTraceElement s = elements[i];
+				System.out.println("\tat " + s.getClassName() + "." + s.getMethodName()
+				+ "(" + s.getFileName() + ":" + s.getLineNumber() + ")");
+			}
+		}
 	}
 
 	/**
@@ -339,7 +350,7 @@ public class Network {
 	 * xsect also finds the distance from the first pt in the centerline to the
 	 * point that is upstream of the xsect
 	 */
-	protected double[] findCenterlineSegmentCoord(String centerlineName, int xsectNum) {
+	private double[] findCenterlineSegmentCoord(String centerlineName, int xsectNum) {
 		double[] returnValues = new double[5];
 		Centerline centerline = getCenterline(centerlineName);
 		Xsect xsect = centerline.getXsect(xsectNum);
@@ -513,7 +524,7 @@ public class Network {
 	/**
 	 * find coordinates of xsect line
 	 */
-	protected double[] findXsectLineCoord(double x1, double y1, double x2, double y2, Xsect xsect,
+	private double[] findXsectLineCoord(double x1, double y1, double x2, double y2, Xsect xsect,
 			double centerlineDist) {
 		double[] returnValues = new double[4];
 		// distance of xsect from nearest upstream centerline point
@@ -550,7 +561,7 @@ public class Network {
 	/**
 	 * stores name of centerline
 	 */
-	protected void putCenterlineName(String name) {
+	private void putCenterlineName(String name) {
 		_centerlineNames.put(getNumCenterlines(), name);
 	}
 
@@ -900,7 +911,7 @@ public class Network {
 			JOptionPane.showMessageDialog(_gui, "bathmetry and network file are in different UTM zones. Conversion will NOT be performed", 
 					"Error", JOptionPane.ERROR_MESSAGE);
 		} // if same zone or not (if not, won't do datum change)
-			// set network datum to bath datum
+		// set network datum to bath datum
 		m.setHDatum(bm.getHDatum());
 		m.setVDatum(bm.getVDatum());
 	}// convertToBathymetryDatum
@@ -970,67 +981,67 @@ public class Network {
 				downstreamPoint.putYFeet(upstreamY);
 			}
 		}
-		
+
 		_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
 		// removed for conversion to swing
 		_gui.getPlanViewCanvas(0).redoNextPaint();
 		_gui.getPlanViewCanvas(0).repaint();		
 		JOptionPane.showMessageDialog(_gui, "Close Polygon Centerlines complete", "Success", JOptionPane.INFORMATION_MESSAGE);
 	}//closePolygonCenterlines
-	
-	protected String _oldCenterlineName = null;
-	protected String _newCenterlineName = null;
+
+	public String _oldCenterlineName = null;
+	public String _newCenterlineName = null;
 	/**
 	 * centerline that has been selected by the user
 	 */
-	protected Centerline _selectedCenterline;
+	private Centerline _selectedCenterline;
 	/**
 	 * xsect that has been selected by the user
 	 */
-	protected Xsect _selectedXsect;
+	private Xsect _selectedXsect;
 	/**
 	 * name of centerline that has been selected
 	 */
-	protected String _selectedCenterlineName;
+	private String _selectedCenterlineName;
 	/**
 	 * number of xsect that has been selected. The numbers start with zero, with
 	 * xsect number zero being the closest xsect to the upstream end.
 	 */
-	protected int _selectedXsectNum;
+	private int _selectedXsectNum;
 	/**
 	 * the number of centerlines in the network
 	 */
-	protected int _numCenterlines;
+	private int _numCenterlines;
 	/**
 	 * the name of the network. no use for this now; currently only one instance
 	 * of the Network class is allowed.
 	 */
-	protected String _networkName = null;
+	private String _networkName = null;
 	/**
 	 * stores all Centerline objects
 	 */
-	protected Hashtable<String, Centerline> _centerlines = new Hashtable<String, Centerline>();
+	private Hashtable<String, Centerline> _centerlines = new Hashtable<String, Centerline>();
 	/**
 	 * stores all centerline names
 	 */
-	protected ResizableStringArray _centerlineNames = new ResizableStringArray();
+	private ResizableStringArray _centerlineNames = new ResizableStringArray();
 	/**
 	 * turn on to print debugging statements
 	 */
-	protected static final boolean DEBUG = false;
+	private static final boolean DEBUG = false;
 	/**
 	 * true if any change has been made to the network or anything it contains
 	 * This value is checked when exiting program, loading new network, etc.
 	 */
-	protected boolean _isUpdated = false;
-	protected boolean _maxMinFound = false;
+	private boolean _isUpdated = false;
+	private boolean _maxMinFound = false;
 	/**
 	 * array index of
 	 */
-	protected final int distIndex = 4;
-	protected double _maxX;
-	protected double _minX;
-	protected double _maxY;
-	protected double _minY;
+	private final int distIndex = 4;
+	private double _maxX;
+	private double _minX;
+	private double _maxY;
+	private double _minY;
 	private CsdpFrame _gui;
 } // class Network

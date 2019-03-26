@@ -185,8 +185,11 @@ public abstract class NetworkInput {
 	 */
 	protected void storeCenterline() {
 		String name = _pd.centerlineName;
-		_net.addCenterline(name);
-
+		boolean addedNewCenterline = _net.addCenterline(name);
+		if(!addedNewCenterline) {
+			JOptionPane.showMessageDialog(_gui, "Network file contains centerlines with duplicate names: "+
+					name+". You should fix the network file before using.", "Warning", JOptionPane.WARNING_MESSAGE);
+		}
 		for (int i = 0; i <= _pd.numCenterlinePoints - 1; i++) {
 			_net.getCenterline(name).addCenterlinePoint();
 			_net.getCenterline(name).getCenterlinePoint(i).putXFeet(_pd.xUTM.get(i));

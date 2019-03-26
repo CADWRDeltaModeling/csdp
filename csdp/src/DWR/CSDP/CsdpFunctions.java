@@ -40,6 +40,8 @@
 */
 package DWR.CSDP;
 
+import java.awt.BasicStroke;
+import java.awt.Color;
 //import DWR.CSDP.semmscon.UseSemmscon;
 import java.awt.Cursor;
 import java.awt.Polygon;
@@ -50,11 +52,27 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.AbstractCollection;
+import java.util.Iterator;
 import java.util.Vector;
 
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.plot.DatasetRenderingOrder;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.category.CategoryItemRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.XYSeriesCollection;
 
 import DWR.CSDP.semmscon.UseSemmscon;
 
@@ -1487,9 +1505,11 @@ public class CsdpFunctions {
 	/*
 	 * Use file chooser to get directory and filename, given a list of acceptable file extensions
 	 * This is ok to use when you don't need to remember the directory for a given filetype
+	 * if multipleSelection == true, multiple selection will be enabled. Otherwise, disabled.
 	 */
-	public static String[] selectFilePath(JFrame gui, String dialogTitle, String[] extensions) {
-		String filename = null;
+	public static String[] selectFilePath(JFrame gui, String dialogTitle, String[] extensions, String startingDirectory,
+			boolean multipleSelection) {
+		String[] returnValues = null;
 		String directory = null;
 		JFileChooser jfcChannelsInp = new JFileChooser();
 		int numChannelsInpExtensions = extensions.length;
@@ -1499,17 +1519,38 @@ public class CsdpFunctions {
 		jfcChannelsInp.setApproveButtonText("Open");
 		jfcChannelsInp.addChoosableFileFilter(csdpFileFilter);
 		jfcChannelsInp.setFileFilter(csdpFileFilter);
+		jfcChannelsInp.setMultiSelectionEnabled(multipleSelection);
 
-		if (CsdpFunctions.getOpenDirectory() != null) {
-			jfcChannelsInp.setCurrentDirectory(CsdpFunctions.getOpenDirectory());
+		//set starting Directory
+		File startingDirectoryFileObject = null;
+		if(startingDirectory != null && startingDirectory.trim().length()>0) {
+			try {
+				startingDirectoryFileObject = new File(startingDirectory);
+			}catch(Exception e) {
+			}
 		}
+		if (startingDirectoryFileObject==null && CsdpFunctions.getOpenDirectory() != null) {
+			startingDirectoryFileObject = CsdpFunctions.getOpenDirectory();
+		}
+		jfcChannelsInp.setCurrentDirectory(startingDirectoryFileObject);
+
 		int filechooserState = jfcChannelsInp.showOpenDialog(gui);
 		if (filechooserState == JFileChooser.APPROVE_OPTION) {
-			filename = jfcChannelsInp.getName(jfcChannelsInp.getSelectedFile());
 			directory = jfcChannelsInp.getCurrentDirectory().getAbsolutePath() + File.separator;
+			if(multipleSelection) {
+				File[] files = jfcChannelsInp.getSelectedFiles();
+				returnValues = new String[1+files.length];
+				returnValues[0] = directory;
+				for(int i=1; i<files.length+1; i++) {
+					returnValues[i]= jfcChannelsInp.getName(files[i-1]);
+				}
+			}else {
+				String filename = jfcChannelsInp.getName(jfcChannelsInp.getSelectedFile());
+				returnValues =  new String[] {directory, filename};
+			}
 		}
 		CsdpFunctions.setOpenDirectory(jfcChannelsInp.getCurrentDirectory());
-		return new String[] {directory, filename};
+		return returnValues;
 	}//getFilePath	
 	
 	public static String selectDirectory(JFrame gui, String dialogTitle) {
@@ -1530,7 +1571,115 @@ public class CsdpFunctions {
 		}
 		CsdpFunctions.setOpenDirectory(jfcChannelsInp.getCurrentDirectory());
 		return directory;
-	}
+	}//selectDirectory
+	
+	/*
+	 * Create chart for multiple time series
+	 */
+	public static JFreeChart createChartWithXYPlot(CsdpFrame csdpFrame, String title, String xLabel, String yLabel, 
+			XYSeriesCollection xySeriesCollection, boolean lines, boolean shapes, float[] lineThicknessArray) {
+//		JFreeChart jFreeChart = ChartFactory.createXYLineChart(title, yLabel, xLabel, datasets[0], PlotOrientation.HORIZONTAL, legend, true, true);
+		JFreeChart jFreeChart = ChartFactory.createXYLineChart(title, xLabel, yLabel, xySeriesCollection);
+		XYPlot plot = jFreeChart.getXYPlot();
+
+		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(lines, shapes);
+		for(int i=0; i<xySeriesCollection.getSeriesCount(); i++) {
+			renderer.setSeriesPaint(i, csdpFrame.getColor(i));
+			renderer.setSeriesStroke(i, new BasicStroke(lineThicknessArray[i]));
+		}
+		plot.setRenderer(renderer);
+		plot.setOutlinePaint(Color.BLACK);
+		plot.setOutlineStroke(new BasicStroke(2.0f));
+		plot.setBackgroundPaint(Color.DARK_GRAY);
+		plot.setRangeGridlinesVisible(true);
+		plot.setRangeGridlinePaint(Color.BLACK);
+		plot.setDomainGridlinesVisible(true);
+		plot.setDomainGridlinePaint(Color.BLACK);
+		//seems to have no effect:
+		plot.setDatasetRenderingOrder(DatasetRenderingOrder.FORWARD);
+		return jFreeChart;
+	}//createChartWithXYPlot
+
+	/*
+	 * Create chart for multiple time series
+	 */
+	public static JFreeChart createChartWithScatterPlot(CsdpFrame csdpFrame, String title, String xLabel, String yLabel, 
+			XYSeriesCollection xySeriesCollection, boolean legend) {
+		boolean lines = false;
+		boolean shapes = true;
+		JFreeChart jFreeChart = ChartFactory.createScatterPlot(title, yLabel, xLabel, xySeriesCollection, PlotOrientation.HORIZONTAL, legend, true, true);
+		XYPlot plot = jFreeChart.getXYPlot();
+		
+		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(lines, shapes);
+		for(int i=0; i<xySeriesCollection.getSeriesCount(); i++) {
+			renderer.setSeriesPaint(i,  csdpFrame.getColor(i));
+		}
+		plot.setRenderer(renderer);
+		plot.setOutlinePaint(Color.BLACK);
+		plot.setOutlineStroke(new BasicStroke(2.0f));
+		plot.setBackgroundPaint(Color.DARK_GRAY);
+		plot.setRangeGridlinesVisible(true);
+		plot.setRangeGridlinePaint(Color.BLACK);
+		plot.setDomainGridlinesVisible(true);
+		plot.setDomainGridlinePaint(Color.BLACK);
+		return jFreeChart;
+	}//createChartWithScatterPlot
+	
+	/*
+	 * Create a line chart with labels instead of numeric values on the x axis
+	 */
+	public static JFreeChart createLineChart(CsdpFrame csdpFrame, String title, String xLabel, String yLabel, 
+			DefaultCategoryDataset defaultCategoryDataset) {
+		boolean lines = true;
+		boolean shapes = false;		
+		JFreeChart returnChart = ChartFactory.createLineChart(title, xLabel, yLabel, defaultCategoryDataset);
+		CategoryPlot plot = returnChart.getCategoryPlot();
+		plot.setOutlinePaint(Color.BLACK);
+		plot.setOutlineStroke(new BasicStroke(2.0f));
+		plot.setBackgroundPaint(Color.DARK_GRAY);
+		CategoryAxis categoryAxis = plot.getDomainAxis();
+		categoryAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+		categoryAxis.setMaximumCategoryLabelLines(2);
+		CategoryItemRenderer renderer  = plot.getRenderer();
+		for(int i=0; i<defaultCategoryDataset.getColumnCount(); i++) {
+			renderer.setSeriesPaint(i, csdpFrame.getColor(i));
+		}
+//		plot.setRenderer(renderer);
+		return returnChart;
+	}//getChannelGroupGraphs
+	
+	/*
+	 * Example: Given "280_290-292_300", return vector containing {"280", "290", "291", "292", "300"}
+	 * Also allow reverse order: Given 300_292-290_280 return vector containing {"300", "292", "291", "290", "280"}
+	 */
+	public static Vector<String> parseChanGroupString(CsdpFrame csdpFrame, String s) {
+		Vector<String> returnValues = new Vector<String> (); 
+		String[] c = s.split("_|,");
+		for(int i=0; i<c.length; i++) {
+			if(c[i].indexOf("-")>0) {
+				String[] parts = c[i].split("-");
+				try {
+					int firstChan = Integer.parseInt(parts[0]);
+					int lastChan = Integer.parseInt(parts[1]);
+					if(firstChan<lastChan) {
+						for(int j=firstChan; j<=lastChan; j++) {
+							returnValues.addElement(Integer.toString(j).trim());
+						}
+					}else {
+						//count backwards--channels are to be added in reverse order
+						for(int j=firstChan; j>=lastChan; j--) {
+							returnValues.addElement(Integer.toString(j).trim());
+						}
+					}
+				}catch(Exception e) {
+					JOptionPane.showMessageDialog(csdpFrame, "Unable to parse "+(String) c[i], "ERROR", JOptionPane.ERROR_MESSAGE);
+				}
+			}else {
+				returnValues.addElement(c[i].trim());
+			}
+		}
+		return returnValues;
+	}//parseChanGroupString
 	
 	/**
 	 * debugging statements printed if true
@@ -1884,7 +2033,9 @@ public class CsdpFunctions {
 	 * If you want user to change this option, could be added to Display Parameter menu
 	 */
 	public static boolean ADD_XSECT_POINTS_BASED_ON_POINT_ORDER = true;
-
+	public static double cubicMetersToCubicFeet = 35.3147;
+	public static double squareMetersToSquareFeet = 10.7639;
+	
 	public static boolean backupFile(String fullPath) {
 		String inputPath = fullPath;
 		String outputPath = inputPath + ".bak";
@@ -1927,6 +2078,28 @@ public class CsdpFunctions {
 		return success;
 	}// backupFile
 
+	/*
+	 * creates a string representation of a Vector or HashSet of integer values 
+	 * i.e. 1-2-56
+	 */
+	public static String abstractCollectionToString(AbstractCollection<Integer> vector) {
+		String returnValue = "";
+		int index=0;
+		if(vector!=null && vector.size()>0) {
+			Iterator<Integer> iterator = vector.iterator(); 
+			while(iterator.hasNext()) {
+			//			for(int i=0; i<vector.size(); i++) {
+				if(index>0) {
+					returnValue += ",";
+				}
+//				returnValue += String.valueOf(vector.get(i));
+				returnValue += String.valueOf(iterator.next());
+				index++;
+			}
+		}
+		return returnValue;
+	}
+
 
 	/*
 	 * Create instance of ImageIcon using image Url scaled to specified width and height
@@ -1935,11 +2108,14 @@ public class CsdpFunctions {
 		return new ImageIcon((new ImageIcon(imageUrl)).getImage().getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH));
 	}
 
+	/*
+	 * The font size used by instances of DataEntryDialog, and possibly others.
+	 */
 	public static final float DIALOG_FONT_SIZE = 16.0f;
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "2.6_20190307";
+	private static final String _version = "2.6_20190326";
 
 	public static boolean movePolygonCenterlinePointsToLeveeCenterlineDialogOpen() {
 		return MOVE_POLYGON_CENTERLINE_POINTS_TO_LEVEE_CENTERLINE_DIALOG_OPEN;

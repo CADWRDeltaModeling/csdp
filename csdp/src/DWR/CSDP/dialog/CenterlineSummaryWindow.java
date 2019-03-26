@@ -95,8 +95,8 @@ public class CenterlineSummaryWindow extends JFrame {
 	}
 	
 	/*
-	 * Constructor for creating a window for multiple centerlines, which will be specified as a string in one of the following formats:
-	 * 1-21,23,385
+	 * Constructor for creating a Reach Summary window for multiple centerlines, which will be specified as a string 
+	 * in one of the following formats: 1-21,23,385 or 385,23,21-1 for reverse order
 	 */
 	public CenterlineSummaryWindow(CsdpFrame csdpFrame, Network network, String reachName, String centerlineNames) {
 		super("Reach Summary for "+reachName);
@@ -105,35 +105,9 @@ public class CenterlineSummaryWindow extends JFrame {
 		this.centerlineNames = centerlineNames;
 		this.network = network;
 		String[] parts = centerlineNames.split(",");
-//		try {
-			chanNumbersVector = new Vector<String>();
-			for(int i=0; i<parts.length; i++) {
-				if(parts[i].indexOf("-")>=0) {
-					String[] rangeParts = parts[i].split("-");
-					System.out.println("about to parse values: "+rangeParts[0]+","+rangeParts[1]);
-					int firstNum = Integer.parseInt(rangeParts[0]);
-					int lastNum = Integer.parseInt(rangeParts[1]);
-					if(firstNum<lastNum) {
-						for(int k=firstNum; k<=lastNum; k++) {
-							chanNumbersVector.addElement(String.valueOf(k));
-						}
-					}else if(firstNum>lastNum) {
-						for(int k=firstNum; k>=lastNum; k--) {
-							chanNumbersVector.addElement(String.valueOf(k));
-						}
-					}else if(firstNum==lastNum) {
-						chanNumbersVector.addElement(String.valueOf(firstNum));
-					}
-				}else {
-					chanNumbersVector.addElement(parts[i]);
-				}
-			}//for
-
-			this.network = network;
-			addContent();
-//		}catch(Exception e) {
-//			JOptionPane.showMessageDialog(gui, "Unable to parse numeric centerline names string: "+centerlineNames, "Error", JOptionPane.ERROR_MESSAGE);
-//		}
+		this.chanNumbersVector = CsdpFunctions.parseChanGroupString(csdpFrame, centerlineNames);
+		this.network = network;
+		addContent();
 	}//CenterlineSummaryWindow
 	
 	private void addContent(){
@@ -172,10 +146,14 @@ public class CenterlineSummaryWindow extends JFrame {
     	String yLabelWidth = "Width, ft2";
     	String yLabelBottomElevation = "Bottom Elevation, ft";
 		
-    	XYDataset[] areaDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
-    	XYDataset[] widthDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
-    	XYDataset[] wetPDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
-    	XYDataset[] bottomElevationDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
+//    	XYDataset[] areaDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
+//    	XYDataset[] widthDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
+//    	XYDataset[] wetPDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
+//    	XYDataset[] bottomElevationDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
+    	XYSeriesCollection areaSeriesCollection = new XYSeriesCollection();
+    	XYSeriesCollection widthSeriesCollection = new XYSeriesCollection();
+    	XYSeriesCollection wetPSeriesCollection = new XYSeriesCollection();
+    	XYSeriesCollection bottomElevationSeriesCollection = new XYSeriesCollection();
     	boolean displayWindow = true;
     	for(int i=0; i<this.chanNumbersVector.size(); i++) {
     		String centerlineName = this.chanNumbersVector.get(i);
@@ -197,10 +175,10 @@ public class CenterlineSummaryWindow extends JFrame {
 	    		String centerlineName = this.chanNumbersVector.get(i);
 	    		Centerline centerline = this.network.getCenterline(centerlineName);
 	    		int numXsects = centerline.getNumXsects();
-		    	XYSeries areaSeries = new XYSeries("Area", false);
-		    	XYSeries wetPSeries = new XYSeries("Wetted Perimeter", false);
-		    	XYSeries widthSeries = new XYSeries("Width", false);
-		    	XYSeries bottomElevationSeries = new XYSeries("Botton Elevation", false);
+		    	XYSeries areaSeries = new XYSeries(centerlineName, false);
+		    	XYSeries wetPSeries = new XYSeries(centerlineName, false);
+		    	XYSeries widthSeries = new XYSeries(centerlineName, false);
+		    	XYSeries bottomElevationSeries = new XYSeries(centerlineName, false);
 				for(int j=0; j<numXsects; j++){
 					Xsect currentXsect = centerline.getXsect(j);
 					if(currentXsect.getNumPoints()>0) {
@@ -217,15 +195,20 @@ public class CenterlineSummaryWindow extends JFrame {
 					}
 				}
 				lengthIncrement += centerline.getLengthFeet();
-		        areaDatasetArray[i] = new XYSeriesCollection(areaSeries);
-		        wetPDatasetArray[i] = new XYSeriesCollection(wetPSeries);
-		        widthDatasetArray[i] = new XYSeriesCollection(widthSeries);
-		        bottomElevationDatasetArray[i] = new XYSeriesCollection(bottomElevationSeries);
-	    	}
-	        JFreeChart areaChart = createChartWithScatterPlot(titleArea, xLabel, yLabelArea, areaDatasetArray);
-	        JFreeChart wetPChart = createChartWithScatterPlot(titleWetP,xLabel, yLabelWetP, wetPDatasetArray);
-	        JFreeChart widthChart = createChartWithScatterPlot(titleWidth, xLabel, yLabelWidth, widthDatasetArray);
-	        JFreeChart bottomElevationChart = createChartWithScatterPlot(titleBottomElevation, xLabel, yLabelBottomElevation, bottomElevationDatasetArray);
+				areaSeriesCollection.addSeries(areaSeries);
+				wetPSeriesCollection.addSeries(wetPSeries);
+				widthSeriesCollection.addSeries(widthSeries);
+				bottomElevationSeriesCollection.addSeries(bottomElevationSeries);
+    		}
+    		boolean legend = false;
+	        JFreeChart areaChart = CsdpFunctions.createChartWithScatterPlot(this.csdpFrame, titleArea, xLabel, yLabelArea, areaSeriesCollection, 
+	        		legend);
+	        JFreeChart wetPChart = CsdpFunctions.createChartWithScatterPlot(this.csdpFrame, titleWetP,xLabel, yLabelWetP, wetPSeriesCollection, 
+	        		legend);
+	        JFreeChart widthChart = CsdpFunctions.createChartWithScatterPlot(this.csdpFrame, titleWidth, xLabel, yLabelWidth, widthSeriesCollection, 
+	        		legend);
+	        JFreeChart bottomElevationChart = CsdpFunctions.createChartWithScatterPlot(this.csdpFrame, titleBottomElevation, 
+	        		xLabel, yLabelBottomElevation, bottomElevationSeriesCollection, legend);
 	    	  	
 	        ChartPanel areaChartPanel = new ChartPanel(areaChart);
 	        ChartPanel wetPChartPanel = new ChartPanel(wetPChart);
@@ -356,29 +339,6 @@ public class CenterlineSummaryWindow extends JFrame {
 //	  return ChartFactory.createScatterPlot(title, yLabel, xLabel, dataset, PlotOrientation.HORIZONTAL, false, true, true);
 //	}
 	
-	/*
-	 * Create chart for multiple time series
-	 */
-	private JFreeChart createChartWithScatterPlot(String title, String xLabel, String yLabel, XYDataset[] datasets) {
-		JFreeChart jFreeChart = ChartFactory.createScatterPlot(title, yLabel, xLabel, datasets[0], PlotOrientation.HORIZONTAL, false, true, true);
-		XYPlot plot = jFreeChart.getXYPlot();
-		XYLineAndShapeRenderer[] renderers = new XYLineAndShapeRenderer[datasets.length];
-		renderers[0] = new XYLineAndShapeRenderer(false, true);
-		renderers[0].setSeriesPaint(0, this.csdpFrame.getColor(0));
-		plot.setRenderer(0, renderers[0]);
-		for(int i=1; i<datasets.length; i++) {
-
-			plot.setDataset(i, datasets[i]);
-			renderers[i] = new XYLineAndShapeRenderer(false, true);
-//			renderers[i].setSeriesPaint(i, this.csdpFrame.getColor(i));
-			//this may be deprecated, but setSeriesPaint doesn't work properly--it changes the color.
-			renderers[i].setPaint(this.csdpFrame.getColor(i));
-//			plot.getRendererForDataset(plot.getDataset(i)).setSeriesPaint(i, this.csdpFrame.getColor(i));
-			plot.setRenderer(i, renderers[i]);
-//			plot.getRenderer().setSeriesPaint(i, this.csdpFrame.getColor(i)); 
-		}
-		return jFreeChart;
-	}
 
 }//class CenterlineSumamryWindow
 

@@ -43,6 +43,7 @@ package DWR.CSDP.dialog;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -57,7 +58,10 @@ import java.io.File;
 import java.text.NumberFormat;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Vector;
 
+import javax.sound.sampled.Line;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -69,8 +73,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JViewport;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -80,20 +86,27 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 
+import DWR.CSDP.AsciiFileReader;
+import DWR.CSDP.AsciiFileWriter;
 import DWR.CSDP.CsdpFrame;
 import DWR.CSDP.CsdpFunctions;
 
+
 /**
- * dialog with multiple labels and text fields
+ * A class for creating dialogs to get user input using various components, such as text entry fields, radio buttons, 
+ * file selector dialogs, etc. Arguments to the constructor specify how many fields and their type. 
+ * Each field has a unique name, which is also used to get the user entry.
+ * 
  * After instantiating, call getResponse to determine which button was clicked.
  * Instructions panel will help determine dialog width if it contains html tags.
  * Usage:
+ * 
  * With no centerline selection:
  *  Set modal to true;
  * 	DataEntryDialog dataEntryDialog = new DataEntryDialog(<your arguments>);
  *  int reponse=dataEntryDialog.getResponse();
  *
- * With centerline selection:
+ * With centerline selection (currently not used, but if you want to try it):
  * 
  * 					final DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names,
  *							defaultValues, dataTypes, disableIfNull, tooltips, modal);
@@ -109,6 +122,7 @@ import DWR.CSDP.CsdpFunctions;
  * @version $Id: TextFieldDialog.java,v 1.1 2002/06/12 18:48:38 btom Exp $
  */
 public class DataEntryDialog extends JDialog {
+
 	/*
 	 * Identifies the type of one of the fields in the dialog as numeric
 	 */
@@ -131,8 +145,17 @@ public class DataEntryDialog extends JDialog {
 	 * a text field and a button which will bring up a file selector dialog that will only select a directory
 	 */
 	public static final int DIRECTORY_SPECIFICATION_TYPE = 50;
-	
+	/*
+	 * Currently not used. The goal was to have user specify a centerline by clicking on it. They would click on a "specify
+	 * centerline" button, then this dialog would temporarily disappear, revealing the CSDP main application window. 
+	 * They would then click on a centerline, and the dialog would reappear, with the selected centerline's name in the 
+	 * text field.
+	 */
 	public static final int CENTERLINE_SELECTION_TYPE = 60;
+	/*
+	 * Allows a user to select multiple files in a given directory. Selected files will be displayed in a scrollable JTextArea
+	 */
+	public static int MULTI_FILE_SPECIFICATION_TYPE = 70;
 	
 	/*
 	 * The identifier of the button that was clicked. Will be compared to values above (NUMERIC_TYPE, STRING_TYPE, etc.) to 
@@ -178,7 +201,7 @@ public class DataEntryDialog extends JDialog {
 	 * (such as a required entry and a text field is blank), the ok button will be disabled)
 	 */
 	private Hashtable<String, Boolean> disableIfNullHashtable;
-	private JTextField currentJTextField;
+	private JTextComponent currentJTextComponent;
 	/*
 	 * Color to use for JLabels if required field
 	 */
@@ -188,6 +211,8 @@ public class DataEntryDialog extends JDialog {
 	 */
 	public static final Color OPTIONAL_COLOR = new Color(0, 153, 51);
 
+	private String[] fieldNames;
+	
 	/*
 	 * Constructor for only String, boolean, or centerline selector values
 	 */
@@ -243,16 +268,19 @@ public class DataEntryDialog extends JDialog {
 	 * GridBagLayout is used to make variable width columns in the layout, 
 	 * mainly so that file selector components can have very wide text fields to display full path specification.
 	 */
-	private void createDialog(JFrame parent, String title, String instructions, String[] names, 
+	private void createDialog(JFrame parent, String title, String instructions, String[] fieldNames, 
 			String[] defaultValues, int[] dataTypes, boolean[] disableIfNull, int[] numDecimalPlaces, 
 			String[] extensions, String[] tooltips, boolean modal) {
+		//resizing messes up the layout. Ideally, this should be resizable with no effect on layout, but that will take more work.
+		setResizable(false);
+		this.fieldNames = fieldNames;
 		_frame = parent;
 		GridBagLayout layout = new GridBagLayout();
 		GridBagConstraints mainWindowGridBagConstraints = new GridBagConstraints();
 		mainWindowGridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
 		this.disableIfNullHashtable = new Hashtable<String, Boolean>();
-		for(int i=0; i<names.length; i++) {
-			this.disableIfNullHashtable.put(names[i], disableIfNull[i]);
+		for(int i=0; i<fieldNames.length; i++) {
+			this.disableIfNullHashtable.put(fieldNames[i], disableIfNull[i]);
 		}
 		
 		getContentPane().setLayout(layout);
@@ -283,7 +311,7 @@ public class DataEntryDialog extends JDialog {
 	        // instead of the value in javax.swing.text.html.default.csss
 	        Font font = UIManager.getFont("Label.font");
 	        String bodyRule = "body { font-family: " + font.getFamily() + "; " +
-	                "font-size: " + font.getSize()*1.5 + "pt; }";
+	                "font-size: " + font.getSize()*1.25 + "pt; }";
 	        ((HTMLDocument) instructionsJTC.getDocument()).getStyleSheet().addRule(bodyRule);
 		}else {
 			instructionsJTC = new JTextArea(instructions);
@@ -297,6 +325,15 @@ public class DataEntryDialog extends JDialog {
 		
 		JPanel legendPanel = DialogLegendFactory.createLegendPanel("Legend", new Color[] {REQUIRED_COLOR, OPTIONAL_COLOR}, 
 				new String[] {"Required Entry", "Optional Entry"});
+		
+		//create panel to load/save default values to/from .csv file. Loading the file will put values into text fields/text areas.
+		JPanel defaultButtonsPanel = new JPanel(new BorderLayout());
+		JButton loadDialogValuesButton = new JButton("Load Dialog Values");
+		JButton saveDialogValuesButton = new JButton("Save Dialog Values");
+		loadDialogValuesButton.addActionListener(new LoadDialogValuesListener(this));
+		saveDialogValuesButton.addActionListener(new SaveDialogValuesListener(this));
+		defaultButtonsPanel.add(loadDialogValuesButton, BorderLayout.NORTH);
+		defaultButtonsPanel.add(saveDialogValuesButton, BorderLayout.SOUTH);
 		
 		GridBagLayout instructionsAndLegendLayout = new GridBagLayout();
 		GridBagConstraints instructionsAndLegendGridBagConstraints = new GridBagConstraints();
@@ -312,6 +349,7 @@ public class DataEntryDialog extends JDialog {
 		instructionsAndLegendPanel.add(instructionsJTC, instructionsAndLegendGridBagConstraints);
 		//add legend panel
 		instructionsAndLegendGridBagConstraints.gridx=1;
+		instructionsAndLegendPanel.add(defaultButtonsPanel, instructionsAndLegendGridBagConstraints);
 		instructionsAndLegendGridBagConstraints.anchor=GridBagConstraints.PAGE_END;
 		instructionsAndLegendPanel.add(legendPanel, instructionsAndLegendGridBagConstraints);
 		
@@ -326,7 +364,7 @@ public class DataEntryDialog extends JDialog {
 
 		
 		//Add the data entry components to the dataEntryPanel
-		for(int i=0; i<names.length; i++) {
+		for(int i=0; i<fieldNames.length; i++) {
 			int numDecimalPlacesInt = -Integer.MAX_VALUE;
 			String extension = null;
 			String tooltip = null;
@@ -334,7 +372,7 @@ public class DataEntryDialog extends JDialog {
 			if(numDecimalPlaces!=null) numDecimalPlacesInt = numDecimalPlaces[i];
 			if(extensions!=null) extension = extensions[i];
 			if(tooltips!=null) tooltip = tooltips[i];
-			addFieldObjects(i, names[i], defaultValues[i], dataTypes[i], numDecimalPlacesInt, extension, tooltip);
+			addFieldObjects(i, fieldNames[i], defaultValues[i], dataTypes[i], numDecimalPlacesInt, extension, tooltip);
 		}
 
 		//add the buttons to the bottom of the dialog.
@@ -435,23 +473,36 @@ public class DataEntryDialog extends JDialog {
 				jComponent = new JCheckBox(name, initVal);
 				((JCheckBox)jComponent).setSelected(initVal);
 			}else if(dataType==FILE_SPECIFICATION_TYPE || dataType==DIRECTORY_SPECIFICATION_TYPE || 
-					dataType==CENTERLINE_SELECTION_TYPE) {
+					dataType==CENTERLINE_SELECTION_TYPE || dataType==MULTI_FILE_SPECIFICATION_TYPE) {
 				jComponent = new JPanel(new GridBagLayout());
-				JTextField jTextField = new JTextField();
+				JTextComponent jTextComponent = null;
+				JComponent componentToAddToDialog = null;
+				if(dataType==MULTI_FILE_SPECIFICATION_TYPE) {
+					jTextComponent = new JTextArea(3, 100);
+					JScrollPane jScrollPane = new JScrollPane(jTextComponent);
+					componentToAddToDialog = jScrollPane;
+				}else {
+					jTextComponent = new JTextField();
+					componentToAddToDialog = jTextComponent;
+				}
 				if(defaultValue!=null && defaultValue.length()>0) {
-					jTextField.setText(defaultValue);
+					jTextComponent.setText(defaultValue);
 				}
 				//always add the document listener after setting default value
-				jTextField.getDocument().addDocumentListener(new ValidateListener(this));
-				jTextField.setFont(jTextField.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
-				jTextField.setEditable(false);
+				jTextComponent.getDocument().addDocumentListener(new ValidateListener(this));
+				jTextComponent.setFont(jTextComponent.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
+				jTextComponent.setEditable(false);
 				JButton selectFileOrDirectoryButton = null;
 				if(dataType==DIRECTORY_SPECIFICATION_TYPE) {
 					selectFileOrDirectoryButton = new JButton("Select Directory");
 				}else if(dataType==CENTERLINE_SELECTION_TYPE) {
 					selectFileOrDirectoryButton = new JButton("Select Centerline");
 				} else {
-					selectFileOrDirectoryButton = new JButton("Select File");
+					if(dataType==MULTI_FILE_SPECIFICATION_TYPE) {
+						selectFileOrDirectoryButton = new JButton("Select File(s)");
+					}else {
+						selectFileOrDirectoryButton = new JButton("Select File");
+					}
 				}
 				selectFileOrDirectoryButton.setFont(selectFileOrDirectoryButton.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
 				JButton clearSelectionButton = new JButton("Clear");
@@ -465,7 +516,7 @@ public class DataEntryDialog extends JDialog {
 				fileSpecGridBagConstraints.gridwidth=3;
 				fileSpecGridBagConstraints.gridx=0;
 				fileSpecGridBagConstraints.gridy=0;
-				jComponent.add(jTextField, fileSpecGridBagConstraints);
+				jComponent.add(componentToAddToDialog, fileSpecGridBagConstraints);
 				
 				fileSpecGridBagConstraints.weightx=0.0;
 				fileSpecGridBagConstraints.gridwidth=1;
@@ -477,13 +528,17 @@ public class DataEntryDialog extends JDialog {
 				fileSpecGridBagConstraints.gridy=0;
 				jComponent.add(clearSelectionButton, fileSpecGridBagConstraints);
 				if(dataType==DIRECTORY_SPECIFICATION_TYPE) {
-					selectFileOrDirectoryButton.addActionListener(new GetDirectory(_frame, "Specify "+name, jTextField));
+					selectFileOrDirectoryButton.addActionListener(new GetDirectory(_frame, "Specify "+name, jTextComponent));
 				}else if(dataType==CENTERLINE_SELECTION_TYPE){
-					selectFileOrDirectoryButton.addActionListener(new SelectCenterline(this, jTextField));
+					selectFileOrDirectoryButton.addActionListener(new SelectCenterline(this, jTextComponent));
 				}else {
-					selectFileOrDirectoryButton.addActionListener(new GetFile(_frame, "Specify "+name, extension, jTextField));
+					boolean multipleSelection = false;
+					if(dataType==MULTI_FILE_SPECIFICATION_TYPE) {
+						multipleSelection = true;
+					}
+					selectFileOrDirectoryButton.addActionListener(new GetOneOrMoreFiles(_frame, "Specify "+name, extension, jTextComponent, multipleSelection));
 				}
-				clearSelectionButton.addActionListener(new ClearSelection(jTextField));
+				clearSelectionButton.addActionListener(new ClearSelection(jTextComponent));
 			}
 
 			jComponent.setFont(jComponent.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
@@ -621,8 +676,28 @@ public class DataEntryDialog extends JDialog {
 		}
 		//		return _textFields.get(name).getText();
 		return returnValue;
-	}
+	}//getValue
 
+	/*
+	 * The JTextArea containing one or more file pathnames contains strings separated by newline characters.
+	 */
+	public String[] getMultipleFilePaths(String name) {
+		String[] returnArray = null;
+		JComponent jComponent = _allComponents.get(name);
+		if(jComponent instanceof JPanel) {
+			JScrollPane jScrollPane = (JScrollPane)(((JPanel)jComponent).getComponent(0));
+			JViewport jViewport = (JViewport) jScrollPane.getComponent(0);
+			JTextArea jTextArea = (JTextArea) jViewport.getComponent(0);
+			String textEntry = jTextArea.getText().trim();
+			if(textEntry.length() > 0) {
+				returnArray = (textEntry).split("\\n");
+			}else {
+				returnArray = null;
+			}
+		}
+		return returnArray;
+	}//getMultipleFilePaths
+	
 	/*
 	 * returns a directory specification specified by user in any file selection component.
 	 * Components are identified by name in this dialog. The names of each component are specified to the constructor.
@@ -725,12 +800,12 @@ public class DataEntryDialog extends JDialog {
 	private class GetDirectory implements ActionListener{
 		private JFrame csdpFrame;
 		private String dialogTitle;
-		private JTextField pathTextField;
+		private JTextComponent pathTextField;
 
-		public GetDirectory(JFrame csdpFrame, String dialogTitle, JTextField pathTextField){
+		public GetDirectory(JFrame csdpFrame, String dialogTitle, JTextComponent jTextComponent){
 			this.csdpFrame = csdpFrame;
 			this.dialogTitle = dialogTitle;
-			this.pathTextField = pathTextField;
+			this.pathTextField = jTextComponent;
 		}
 
 		public void actionPerformed(ActionEvent arg0) {
@@ -745,22 +820,34 @@ public class DataEntryDialog extends JDialog {
 	/*
 	 * Allows user to select a file using a file selector dialog, then puts the result into the JTextField object
 	 */
-	private class GetFile implements ActionListener{
+	private class GetOneOrMoreFiles implements ActionListener{
 
 		private JFrame csdpFrame;
 		private String dialogTitle;
 		private String extension;
-		private JTextField pathTextField;
+		private JTextComponent pathTextComponent;
+		private boolean multipleSelection;
+		private String startingDirectory;
 
-		public GetFile(JFrame csdpFrame, String dialogTitle, String extension, JTextField pathTextField){
+		/*
+		 * pathTextComponent is either a JTextField or a JTextArea (for multiple selection).
+		 */
+		public GetOneOrMoreFiles(JFrame csdpFrame, String dialogTitle, String extension, JTextComponent pathTextComponent, 
+				boolean multipleSelection){
 			this.csdpFrame = csdpFrame;
 			this.dialogTitle = dialogTitle;
 			this.extension = extension;
-			this.pathTextField = pathTextField;
+			this.pathTextComponent = pathTextComponent;
+			this.multipleSelection = multipleSelection;
+			String currentEntry = pathTextComponent.getText();
+			if(currentEntry.contains(File.separator)) {
+				this.startingDirectory = currentEntry.substring(0, currentEntry.lastIndexOf(File.separator));
+			}
 		}
 
 		public void actionPerformed(ActionEvent arg0) {
-			String[] filePath = CsdpFunctions.selectFilePath(csdpFrame, dialogTitle, new String[] {extension});
+			String[] filePath = CsdpFunctions.selectFilePath(this.csdpFrame, this.dialogTitle, new String[] {this.extension}, 
+					this.startingDirectory, this.multipleSelection);
 			boolean updateText = true;
 			if(filePath!=null) {
 				for(int i=0; i<filePath.length; i++) {
@@ -772,8 +859,16 @@ public class DataEntryDialog extends JDialog {
 				}
 			}
 			if(updateText) {
-				pathTextField.setText(filePath[0]+File.separator+filePath[1]);
-//				pathTextField.setPreferredSize(pathTextField.getPreferredSize());
+				String componentText = "";
+				String directory = filePath[0];
+				for(int i=1; i<filePath.length; i++) {
+					if(i>1) {
+						componentText += "\n";
+					}
+					componentText += directory+File.separator+filePath[i];
+				}
+				this.pathTextComponent.setText(componentText);
+				//				pathTextField.setPreferredSize(pathTextField.getPreferredSize());
 			}
 		}
 	}//inner class GetFile
@@ -784,12 +879,12 @@ public class DataEntryDialog extends JDialog {
 	 *
 	 */
 	private class SelectCenterline implements ActionListener{
-
 		private DataEntryDialog dataEntryDialog;
-		private JTextField jTextField;
-		public SelectCenterline(DataEntryDialog dataEntryDialog, JTextField jTextField) {
+		private JTextComponent jTextComponent;
+
+		public SelectCenterline(DataEntryDialog dataEntryDialog, JTextComponent jTextComponent) {
 			this.dataEntryDialog = dataEntryDialog;
-			this.jTextField = jTextField;
+			this.jTextComponent = jTextComponent;
 		}
 		public void actionPerformed(ActionEvent arg0) {
 			this.dataEntryDialog.setVisible(false);
@@ -800,7 +895,7 @@ public class DataEntryDialog extends JDialog {
 			
 			csdpFrame.setCenterlineSelectionDialog(this.dataEntryDialog);
 //			this.dataEntryDialog.setVisible(true);
-			setCurrentJTextField(this.jTextField);
+			setCurrentJTextComponent(this.jTextComponent);
 		}
 	}//inner class SelectCenterline
 	
@@ -809,7 +904,7 @@ public class DataEntryDialog extends JDialog {
 	 * to the centerlineName that was selected.
 	 */
 	public void setSelectedCenterlineName(String centerlineName) {
-		this.currentJTextField.setText(centerlineName);
+		this.currentJTextComponent.setText(centerlineName);
 		CsdpFrame csdpFrame = ((CsdpFrame)_frame);
 		csdpFrame.pressArrowButton();
 	}
@@ -818,18 +913,141 @@ public class DataEntryDialog extends JDialog {
 	 * When a select centerline button is clicked, this method set the current jTextArea instance to the jTextArea
 	 * corresponding to the button that was clicked. 
 	 */
-	private void setCurrentJTextField(JTextField jTextField){
-		this.currentJTextField = jTextField;
+	private void setCurrentJTextComponent(JTextComponent jTextComponent){
+		this.currentJTextComponent = jTextComponent;
 	}
 	
+	/*
+	 * Clears the text in the field
+	 */
 	private class ClearSelection implements ActionListener{
-		private JTextField jTextField;
-		public ClearSelection(JTextField jTextField) {
-			this.jTextField = jTextField;
+		private JTextComponent jTextComponent;
+		public ClearSelection(JTextComponent jTextComponent) {
+			this.jTextComponent = jTextComponent;
 		}
 		public void actionPerformed(ActionEvent arg0) {
-			jTextField.setText("");
+			jTextComponent.setText("");
 		}
 	}//inner class ClearSelection
+
+	/**
+	 * Creates a file that contains a line for each field in the dialog. 
+	 * Each line will contain the text in each of the fields in the dialog.
+	 * @author btom
+	 *
+	 */
+	public class SaveDialogValuesListener implements ActionListener {
+		private DataEntryDialog parentDialog;
+		private Hashtable<String, JComponent> allComponentsHashtable;
+		private String[] fieldNames;
+		public SaveDialogValuesListener(DataEntryDialog parentDialog) {
+			this.parentDialog = parentDialog;
+			this.allComponentsHashtable = this.parentDialog._allComponents;
+			this.fieldNames = parentDialog.getFieldNames();
+		}
+		public void actionPerformed(ActionEvent arg0) {
+			String[] filePath = CsdpFunctions.selectFilePath(null, "Save Dialog Values", new String[] {"txt"}, null, false);
+			try {
+				if(filePath[0] != null && filePath[0].length()>0) {
+					AsciiFileWriter asciiFileWriter  = new AsciiFileWriter(null, filePath[0]+File.separator+filePath[1]);
+					for(int i=0; i<this.fieldNames.length; i++) {
+						String fieldName = this.fieldNames[i];
+						JComponent currentComponent = this.allComponentsHashtable.get(fieldName);
+						String lineToWrite = null;
+						if(currentComponent instanceof JTextComponent) {
+							lineToWrite = ((JTextComponent) currentComponent).getText();
+						}else if(currentComponent instanceof JPanel) {
+							JComponent component0 = (JComponent) currentComponent.getComponent(0);
+							if(component0 instanceof JScrollPane) {
+								JScrollPane jScrollPane = (JScrollPane) component0;
+								JViewport jViewport = (JViewport) jScrollPane.getComponent(0);
+								JTextArea jTextArea= (JTextArea) jViewport.getComponent(0);
+								lineToWrite = jTextArea.getText().replaceAll("\\n", ",");
+							}else if(component0 instanceof JTextField) {
+								JTextField jTextField = (JTextField) component0;
+								lineToWrite = jTextField.getText();
+							}
+						}else if(currentComponent instanceof JCheckBox) {
+							lineToWrite = Boolean.toString(((JCheckBox) currentComponent).isSelected());
+						}
+						asciiFileWriter.writeLine(lineToWrite);
+					}
+					asciiFileWriter.close();
+				}
+				JOptionPane.showMessageDialog(null, "File written", "Success", JOptionPane.INFORMATION_MESSAGE);
+			}catch(Exception e) {
+				
+			}
+		}
+	}//inner class SaveDefaultsListener
+
+	/**
+	 * Loads a file that should contain a line for each field in the dialog. 
+	 * Each line will then be used to populate the fields in the dialog.
+	 * @author btom
+	 *
+	 */
+	public class LoadDialogValuesListener implements ActionListener {
+		private DataEntryDialog parentDialog;
+		private Hashtable<String, JComponent> allComponentsHashtable;
+		private String[] fieldNames;
+
+		public LoadDialogValuesListener(DataEntryDialog parentDialog) {
+			this.parentDialog = parentDialog;
+			this.allComponentsHashtable = this.parentDialog._allComponents;
+			this.fieldNames = parentDialog.getFieldNames();
+		}
+
+		public void actionPerformed(ActionEvent arg0) {
+			String[] filePath = CsdpFunctions.selectFilePath(null, "Load Dialog Defaults", new String[] {"txt"}, null, false);
+			if(filePath[0] != null && filePath[0].length()>0) {
+				Vector<String> lines = new Vector<String>(); 
+				AsciiFileReader asciiFileReader = new AsciiFileReader(filePath[0]+File.separator+filePath[1]);
+				while(true) {
+					String line = asciiFileReader.getNextLine();
+					if(line==null) break; 
+					lines.addElement(line);
+				}
+				asciiFileReader.close();
+
+				if(this.allComponentsHashtable.size() != lines.size()) {
+					JOptionPane.showMessageDialog(null, "Error: Number of lines in file is different from number of fields in dialog", 
+							"Error", JOptionPane.ERROR_MESSAGE);
+				}else {
+					for(int i=0; i<this.fieldNames.length; i++) {
+						String fieldName = this.fieldNames[i];
+						JComponent currentComponent = this.allComponentsHashtable.get(fieldName);
+						if(currentComponent instanceof JTextComponent) {
+							((JTextComponent) currentComponent).setText(lines.get(i));
+						}else if(currentComponent instanceof JPanel) {
+							JComponent component0 = (JComponent) currentComponent.getComponent(0);
+							JTextComponent jTextComponent = null;
+							if(component0 instanceof JScrollPane) {
+								JScrollPane jScrollPane = (JScrollPane) component0;
+								JViewport jViewport = (JViewport) jScrollPane.getComponent(0);
+								jTextComponent = (JTextArea) jViewport.getComponent(0);
+								jTextComponent.setText(lines.get(i).replaceAll(",", "\n"));
+								
+							}else if(component0 instanceof JTextField) {
+								jTextComponent = (JTextField) component0;
+								jTextComponent.setText(lines.get(i));
+							}
+						}else if(currentComponent instanceof JCheckBox) {
+							try {
+								boolean selected = Boolean.parseBoolean(lines.get(i));
+								((JCheckBox) currentComponent).setSelected(selected);
+							}catch(Exception e) {
+								
+							}
+						}
+					}
+				}
+			}//if
+		}//actionPerformed
+
+	}//inner class LoadDefaultsListener
+	
+	public String[] getFieldNames() {return this.fieldNames;}
+
 	
 }// class DataEntryDialog
