@@ -72,7 +72,7 @@ public class HelpMenu {
 			i++;
 			_licenseMessage += "State of California, Department of Water Resources." + "\n";
 			i++;
-			_licenseMessage += "Send bug reports to btom@water.ca.gov or call (916) 227-0436." + "\n";
+			_licenseMessage += "Send bug reports to Bradley.Tom@water.ca.gov or call (916) 654-8540." + "\n";
 			i++;
 			_licenseMessage += "" + "\n";
 			i++;

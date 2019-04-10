@@ -1677,7 +1677,7 @@ public class App {
 				double x2 = currentLeveeCenterlinePoint.getXFeet();
 				double y2 = currentLeveeCenterlinePoint.getYFeet();
 
-				double distToLevee = CsdpFunctions.shortestDistLineSegment(x1, x2, x3, y1, y2, y3, maxAllowableDist);
+				double distToLevee = CsdpFunctions.shortestDistLineSegment(x1, x2, x3, y1, y2, y3, maxAllowableDist, false);
 				//now see if any centerline point is closer. This will be necessary if the polygon point is not 
 				//contained within any of the rectangles created for each levee line segment, which can occur if the levee
 				//centerline is convex
@@ -1746,21 +1746,22 @@ public class App {
 	public void createNetworkSummaryReport() {
 		String title = "Create Network Summary Report";
 		String instructions = "<HTML><BODY><H2>A network summary report uses the following inputs:</H2><BR>"
-				+ "1. An existing channels.imp file<BR>"
+				+ "1. An existing channels.inp file<BR>"
 				+ "2. The currently loaded network file<BR>"
 				+ "3. (Optional): A DSM2 output (.hof) file which was created from the network file by running DSM2-Hydro with printlevel>=5<BR><BR>"
-				+ "<H2>To calculate, for each channel, for a given stage (usually 0.0 NAVD)</H2><BR>"
 				+ "4. (Optional): A series of comma separated strings specifying channel groups, for calculating volumes for groups of channels. <BR>"
+				+ "Example: '290-294, 438_443_444_450_570_571_574_575'<BR><BR>"
 				+ "5. (Optional): A series of filenames (.csv) containing GIS volume and 2D area results<BR>"
 				+ "6. (Optional, required if using GIS results): A 2m validity file, indicating whether or not the 2m DEM coverage in each channel<BR>"
 				+ " is sufficient<BR>"
-				+ "Example: '290-294, 438_443_444_450_570_571_574_575'<BR><BR>"
-				+ "To create an output file containing<BR>"
+				+ "7. Check the box if you want to include dsm2-2m DEM and dsm2-10m DEM difference plots<BR>"
+				+ "<H2>To write to an output file, for each channel, for a given stage (usually 0.0 NAVD)</H2><BR>"
 				+ "1. A comparison of channel lengths from the channels.inp file vs channel lengths calculated using the network file<BR>"
-				+ "2. Conveyance characteristics, CSDP, DSM2 Virtual Cross-section, and GIS"
-				+ "3. Cross-section diagnostic information"
+				+ "2. Conveyance characteristics, CSDP, DSM2 Virtual Cross-section, and GIS<BR>"
+				+ "3. Cross-section diagnostic information<BR>"
 				+ "4. Channel volumes from CSDP, DSM2 Virtual cross-sections, and GIS, with summary statistics.<BR><BR>"
-				+ "<H2>Output will be written to a tab delimited .txt file, which can be imported into Excel<H2><BR></BODY></HTML>";
+				+ "<H2>Output will be written to a tab delimited .txt file, which can be imported into Excel<H2><BR>"
+				+ "If all inputs specified, GIS vs DSM2 volume comparison plots will appear in a separate window.</BODY></HTML>";
 
 		//Create dialog to get input from user.
 		String[] names = new String[] {
@@ -1769,9 +1770,10 @@ public class App {
 				"Channel Groups", 
 				"GIS Volume filenames", 
 				"2m DEM CutFill Validity file",
-				"Output file (tab delimited .txt)"
+				"Output file (tab delimited .txt)",
+				"Include difference plots"
 				};
-		String[] defaultValues = new String[6];
+		String[] defaultValues = new String[7];
 		if(CsdpFunctions.getDSMChannelsDirectory()!=null && CsdpFunctions.getDSMChannelsFilename()!=null) {
 			defaultValues[0] = CsdpFunctions.getDSMChannelsDirectory().toString()+File.separator+CsdpFunctions.getDSMChannelsFilename();
 		}
@@ -1794,20 +1796,32 @@ public class App {
 		defaultValues[3] = "";
 		defaultValues[4] = "";
 		defaultValues[5] = CsdpFunctions.getNetworkDirectory().toString()+File.separator+"networkSummary.txt";
-
+		defaultValues[6] = "false";
+		
 		int[] dataTypes = new int[] {
 				DataEntryDialog.FILE_SPECIFICATION_TYPE, 
 				DataEntryDialog.FILE_SPECIFICATION_TYPE, 
 				DataEntryDialog.STRING_TYPE, 
 				DataEntryDialog.MULTI_FILE_SPECIFICATION_TYPE, 
 				DataEntryDialog.FILE_SPECIFICATION_TYPE,
-				DataEntryDialog.FILE_SPECIFICATION_TYPE
+				DataEntryDialog.FILE_SPECIFICATION_TYPE,
+				DataEntryDialog.BOOLEAN_TYPE
 				};
-		String[] extensions = new String[] {"inp", "hof", "", "csv", "csv", "txt"};
-		String[] tooltips = new String[6];
+		String[] extensions = new String[] {"inp", "hof", "", "csv", "csv", "txt", ""};
+		String[] tooltips = new String[] {"An existing channels.inp file", 
+				"(Optional): A DSM2 output (.hof) file which was created from the "
+				+ "network file by running DSM2-Hydro with printlevel>=5",
+				"(Optional): A series of comma separated strings specifying channel groups, "
+				+ "for calculating volumes for groups of channels."
+				+ "Example: '290-294, 438_443_444_450_570_571_574_575'",
+				"(Optional): A series of filenames (.csv) containing GIS volume and 2D area results",
+				"(Optional, required if using GIS results): A 2m validity file, indicating whether or not the 2m DEM "
+				+ "coverage in each channel is sufficient",
+				"Specify an output file",
+				"Check the box if you want to include dsm2-2m DEM and dsm2-10m DEM difference plots"};
 		
 		//require channels.inp and output file name, but not hof file
-		boolean[] disableIfNull = new boolean[] {true, false, false, false, false, true}; 
+		boolean[] disableIfNull = new boolean[] {true, false, false, false, false, true, true}; 
 		DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, title, instructions, names, defaultValues, dataTypes, disableIfNull, 
 				extensions, tooltips, true);
 		int response = dataEntryDialog.getResponse();
@@ -1866,11 +1880,106 @@ public class App {
 					twoMeterValidityFilename, gisVolumeFilenames);
 			networkSummary.writeResults();
 
+			boolean includeDifferencePlots = Boolean.parseBoolean(dataEntryDialog.getValue(names[6]));
 			if(dsm2HofFileSpecified && gisVolumeFilenames!=null && gisVolumeFilenames.length>0 && twoMeterValidityDirectory!=null &&
 					twoMeterValidityFilename!=null) {
-				new GISSummaryStatisticGraphFrame(this._csdpFrame, networkSummary);
+				new GISSummaryStatisticGraphFrame(this._csdpFrame, networkSummary, includeDifferencePlots);
 			}
 		}
 	}//createNetworkSummaryReport
+
+	public void removeAllCrossSections(CsdpFrame gui) {
+		int response = JOptionPane.showConfirmDialog(gui, "Remove All Cross-Sections?", "Are you sure?", JOptionPane.YES_NO_OPTION);
+		System.out.println("response="+response);
+		if(response==JOptionPane.YES_OPTION) {
+			System.out.println("removing");
+			gui.getNetwork().removeAllCrossSections();
+		}
+	}
+
+	/*
+	 * For each landmark, determines nearest Centerline and distance from the upstream end of the nearest point on the centerline
+	 * to the landmark. Optionally draws a cross-section line, which can be useful for verification.
+	 */
+	public void findChanDistForLandmarks(CsdpFrame csdpFrame) {
+		String title = "Calculate nearest chan/dist for landmarks";
+		String instructions = "<HTML><BODY><H2>Find nearest channel/distance for each landmark</H2><BR>"
+				+ "Using the currently loaded network and landmark files (with landmarks representing <BR>"
+				+ "stations/output locations, for example), for each landmark:<BR>"
+				+ "1. Identify the closest channel centerline and the distance along the centerline from the upstream end <BR>"
+				+ "of the closest point on the centerline to the landmark<BR>"
+				+ "2. Write the results to a .txt file<BR>"
+				+ "3. Create cross-section lines, which can be used for verification<BR><BR>"
+				+ "Notes:"
+				+ "1. You may want to remove all existing cross-section lines in the network. To do so:<BR>"
+				+ "		a. Save-As to save the network file to a different name.<BR>"
+				+ "     b. Tools-Remove all cross-sections<BR>"
+				+ "     c. Save the network file.<BR>"
+				+ "2. If the routine is selecting wrong centerlines, consider deleting some centerlines</BODY></HTML>";
+
+		//Create dialog to get input from user.
+		String[] names = new String[] {"Output file (.txt)"};
+		String[] defaultValues = new String[1];
+		defaultValues[0] = CsdpFunctions.getOpenDirectory().toString()+File.separator+"landmarkChanDist.txt";
+
+		int[] dataTypes = new int[] {
+				DataEntryDialog.FILE_SPECIFICATION_TYPE
+				};
+		String[] extensions = new String[] {"txt"};
+		String[] tooltips = new String[1];
+		tooltips[0] = "Output file will contain landmark name, channel number, and distance";
+//		tooltips[1] = "If checked, will create a cross-section line on the nearest channel that intersects the landmark point";
+		
+		//require channels.inp and output file name, but not hof file
+		boolean[] disableIfNull = new boolean[] {true}; 
+		DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, title, instructions, names, defaultValues, dataTypes, disableIfNull, 
+				extensions, tooltips, true);
+		int response = dataEntryDialog.getResponse();
+		//done creating dialog. Now get input from the dialog and create report.
+		if(response==DataEntryDialog.OK) {
+			//for storing results: key=landmarkName, value =centerlineName 
+			Hashtable<String, String> closestChanHashtable = new Hashtable<String, String>();
+			//for storing results: key=landmarkName, value=distance along centerline
+			Hashtable<String, Double> closestChanDistHashtable = new Hashtable<String, Double>();
+			
+			File outputFileDirectory = dataEntryDialog.getDirectory(names[0]);
+			String outputFileFilename = dataEntryDialog.getFilename(names[0]);
+			CsdpFunctions.setOpenDirectory(outputFileDirectory.toString());
+//			boolean createCrossSectionLines = Boolean.parseBoolean(dataEntryDialog.getValue(names[1]));
+			
+			Network network = csdpFrame.getNetwork();
+			Landmark landmark = csdpFrame.getLandmark();
+			
+
+			AsciiFileWriter asciiFileWriter= new AsciiFileWriter(csdpFrame, outputFileDirectory.toString()+File.separator+outputFileFilename);
+			Enumeration<String> landmarkNamesEnum = landmark.getLandmarkNames();
+			double minDist = Double.MAX_VALUE;
+			try {
+				while(landmarkNamesEnum.hasMoreElements()) {
+					String landmarkName = landmarkNamesEnum.nextElement();
+					double landmarkX = landmark.getXFeet(landmarkName);
+					double landmarkY = landmark.getYFeet(landmarkName);
+					for(int i=0; i<network.getNumCenterlines(); i++) {
+						String centerlineName = network.getCenterlineName(i);
+						Centerline centerline = network.getCenterline(centerlineName);
+						double[] cumAndMinDist = CsdpFunctions.getXsectDistAndPointDist(centerline, landmarkX, 
+								landmarkY, Double.MAX_VALUE, true); 
+						double cumDist = cumAndMinDist[0];
+						double minCenterlineDist = cumAndMinDist[1];
+						if(minCenterlineDist>0 && minCenterlineDist < minDist) {
+							
+							closestChanHashtable.put(landmarkName, centerlineName);
+							closestChanDistHashtable.put(landmarkName, cumDist);
+						}
+					}//for each centerline
+					asciiFileWriter.writeLine(landmarkName+","+closestChanHashtable.get(landmarkName)+","+closestChanDistHashtable.get(landmarkName));
+				}//for each landmark
+				asciiFileWriter.close();
+				JOptionPane.showMessageDialog(csdpFrame, "File written", "Success", JOptionPane.INFORMATION_MESSAGE);
+			}catch(Exception e) {			
+				JOptionPane.showMessageDialog(csdpFrame, "Error occurred when trying to write to file", "Error", JOptionPane.ERROR_MESSAGE);
+			}
+		}//if Ok button clicked
+	}//findChanDistForLandmarks
 
 }// class App

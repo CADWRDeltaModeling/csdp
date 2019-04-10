@@ -616,7 +616,7 @@ public class CenterlineMenu {
 			Centerline selectedCenterline = _net.getSelectedCenterline();
 			int numXsectsWithPoints = selectedCenterline.getNumXsectsWithPoints();
 			if(numXsectsWithPoints>0) {
-				new CenterlineSummaryWindow(_gui, _net);
+				new CenterlineSummaryWindow(_gui, _net, CenterlineSummaryWindow.START_AT_DOWNSTREAM_END);
 			}else {
 				JOptionPane.showMessageDialog(_gui, "Selected centerline has no user-created cross-sections", "Nothing to plot", JOptionPane.OK_OPTION);
 			}

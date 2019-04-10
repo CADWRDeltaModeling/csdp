@@ -52,13 +52,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
@@ -76,6 +71,13 @@ import DWR.CSDP.Xsect;
  *
  */
 public class CenterlineSummaryWindow extends JFrame {
+	
+	public static final int START_AT_DOWNSTREAM_END = 10;
+	public static final int START_AT_UPSTREAM_END = 20;
+	/*
+	 * identifies which end plots will start on. Plots will either go from downstream-upstream or upstream-downstream.
+	 */
+	private int startingEnd;
 	private Network network;
 //	private String chanNum;
 	private Vector<String> chanNumbersVector = new Vector<String>();
@@ -86,11 +88,12 @@ public class CenterlineSummaryWindow extends JFrame {
 	/*
 	 * Constructor for single centerline summary window
 	 */
-	public CenterlineSummaryWindow(CsdpFrame csdpFrame, Network network) {
+	public CenterlineSummaryWindow(CsdpFrame csdpFrame, Network network, int startingEnd) {
 		super("Summary for Channel "+network.getSelectedCenterlineName());
 		this.chanNumbersVector.addElement(network.getSelectedCenterlineName());
 		this.csdpFrame = csdpFrame;
 		this.network = network;
+		this.startingEnd = startingEnd;
 		addContent();
 	}
 	
@@ -98,7 +101,8 @@ public class CenterlineSummaryWindow extends JFrame {
 	 * Constructor for creating a Reach Summary window for multiple centerlines, which will be specified as a string 
 	 * in one of the following formats: 1-21,23,385 or 385,23,21-1 for reverse order
 	 */
-	public CenterlineSummaryWindow(CsdpFrame csdpFrame, Network network, String reachName, String centerlineNames) {
+	public CenterlineSummaryWindow(CsdpFrame csdpFrame, Network network, String reachName, String centerlineNames,
+			int startingEnd) {
 		super("Reach Summary for "+reachName);
 		this.csdpFrame = csdpFrame;
 		this.reachName = reachName;
@@ -107,12 +111,21 @@ public class CenterlineSummaryWindow extends JFrame {
 		String[] parts = centerlineNames.split(",");
 		this.chanNumbersVector = CsdpFunctions.parseChanGroupString(csdpFrame, centerlineNames);
 		this.network = network;
+		this.startingEnd = startingEnd;
 		addContent();
 	}//CenterlineSummaryWindow
 	
 	private void addContent(){
-    	String xLabel = "Distance from Upstream End, ft";
-
+		if(startingEnd!=START_AT_DOWNSTREAM_END && startingEnd!=START_AT_UPSTREAM_END) {
+			JOptionPane.showMessageDialog(this.csdpFrame, "Starting end was not specified correctly. Starting at downstream end.", "Warning", JOptionPane.INFORMATION_MESSAGE);
+			startingEnd = START_AT_DOWNSTREAM_END;
+		}
+		String xLabel = null;
+		if(this.startingEnd==START_AT_UPSTREAM_END) {
+			xLabel = "Distance from Upstream End, ft";
+		}else {
+			xLabel = "Distance from Downstream end, ft";
+		}
     	String titleArea = null;
     	String titleWetP = null;
     	String titleWidth = null;
@@ -170,36 +183,8 @@ public class CenterlineSummaryWindow extends JFrame {
     	}
 
     	if(displayWindow) {
-    		double lengthIncrement = 0.0;
-    		for(int i=0; i<this.chanNumbersVector.size(); i++) {
-	    		String centerlineName = this.chanNumbersVector.get(i);
-	    		Centerline centerline = this.network.getCenterline(centerlineName);
-	    		int numXsects = centerline.getNumXsects();
-		    	XYSeries areaSeries = new XYSeries(centerlineName, false);
-		    	XYSeries wetPSeries = new XYSeries(centerlineName, false);
-		    	XYSeries widthSeries = new XYSeries(centerlineName, false);
-		    	XYSeries bottomElevationSeries = new XYSeries(centerlineName, false);
-				for(int j=0; j<numXsects; j++){
-					Xsect currentXsect = centerline.getXsect(j);
-					if(currentXsect.getNumPoints()>0) {
-						double distanceAlong = lengthIncrement + currentXsect.getDistAlongCenterlineFeet();
-						double e = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
-						double area = currentXsect.getAreaSqft(e);
-						double wetP = currentXsect.getWettedPerimeterFeet(e);
-						double width = currentXsect.getWettedPerimeterFeet(e);
-						double botElev = currentXsect.getMinimumElevationFeet();
-						areaSeries.add(area, distanceAlong);
-						wetPSeries.add(wetP, distanceAlong);
-						widthSeries.add(width, distanceAlong);
-						bottomElevationSeries.add(botElev, distanceAlong);
-					}
-				}
-				lengthIncrement += centerline.getLengthFeet();
-				areaSeriesCollection.addSeries(areaSeries);
-				wetPSeriesCollection.addSeries(wetPSeries);
-				widthSeriesCollection.addSeries(widthSeries);
-				bottomElevationSeriesCollection.addSeries(bottomElevationSeries);
-    		}
+    		populateSeriesCollections(areaSeriesCollection, wetPSeriesCollection, widthSeriesCollection, bottomElevationSeriesCollection);
+    		
     		boolean legend = false;
 	        JFreeChart areaChart = CsdpFunctions.createChartWithScatterPlot(this.csdpFrame, titleArea, xLabel, yLabelArea, areaSeriesCollection, 
 	        		legend);
@@ -329,6 +314,79 @@ public class CenterlineSummaryWindow extends JFrame {
 	    	setVisible(true);
     	}
 	}//addContent
+
+	/*
+	 * Copy values to SeriesCollection objects. Order will depend upon specified order: starting at downstream vs upstream end
+	 */
+	private void populateSeriesCollections(XYSeriesCollection areaSeriesCollection,
+			XYSeriesCollection wetPSeriesCollection, XYSeriesCollection widthSeriesCollection,
+			XYSeriesCollection bottomElevationSeriesCollection) {
+		double lengthIncrement = 0.0;
+
+		int startingCenterlineIndex = -Integer.MAX_VALUE;
+		int endingCenterlineIndex = -Integer.MAX_VALUE;
+		int centerlineIncrement = -Integer.MAX_VALUE;
+		if(this.startingEnd==START_AT_UPSTREAM_END) {
+			startingCenterlineIndex = 0;
+			endingCenterlineIndex = this.chanNumbersVector.size();
+			centerlineIncrement = 1;
+		}else {
+			startingCenterlineIndex = this.chanNumbersVector.size()-1;
+			endingCenterlineIndex = 0;
+			centerlineIncrement = -1;
+		}
+
+		for(int i=startingCenterlineIndex; ((startingEnd==START_AT_UPSTREAM_END && i<endingCenterlineIndex) || 
+				(startingEnd==START_AT_DOWNSTREAM_END && i>=endingCenterlineIndex)); i+=centerlineIncrement) {
+			String centerlineName = this.chanNumbersVector.get(i);
+    		Centerline centerline = this.network.getCenterline(centerlineName);
+    		int numXsects = centerline.getNumXsects();
+	    	XYSeries areaSeries = new XYSeries(centerlineName, false);
+	    	XYSeries wetPSeries = new XYSeries(centerlineName, false);
+	    	XYSeries widthSeries = new XYSeries(centerlineName, false);
+	    	XYSeries bottomElevationSeries = new XYSeries(centerlineName, false);
+	    	
+	    	int startingXsectIndex = -Integer.MAX_VALUE;
+	    	int endingXsectIndex = -Integer.MAX_VALUE;
+	    	int xsectIncrement = -Integer.MAX_VALUE;
+	    	if(startingEnd==START_AT_UPSTREAM_END) {
+	    		startingXsectIndex = 0;
+	    		endingXsectIndex = numXsects;
+	    		xsectIncrement = 1;
+	    	}else {
+	    		startingXsectIndex = numXsects-1;
+	    		endingXsectIndex = 0;
+	    		xsectIncrement = -1;
+	    	}
+	    	
+	    	for(int j=startingXsectIndex; ((startingEnd==START_AT_UPSTREAM_END && j<endingXsectIndex) || 
+	    			(startingEnd==START_AT_DOWNSTREAM_END && j>=endingXsectIndex)); j+=xsectIncrement) {
+				Xsect currentXsect = centerline.getXsect(j);
+				if(currentXsect.getNumPoints()>0) {
+					double distanceAlong = -Double.MAX_VALUE;
+					if(startingEnd==START_AT_UPSTREAM_END) {
+						distanceAlong = lengthIncrement + currentXsect.getDistAlongCenterlineFeet();
+					}else {
+						distanceAlong = lengthIncrement + centerline.getLengthFeet() - currentXsect.getDistAlongCenterlineFeet();
+					}
+					double e = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
+					double area = currentXsect.getAreaSqft(e);
+					double wetP = currentXsect.getWettedPerimeterFeet(e);
+					double width = currentXsect.getWettedPerimeterFeet(e);
+					double botElev = currentXsect.getMinimumElevationFeet();
+					areaSeries.add(area, distanceAlong);
+					wetPSeries.add(wetP, distanceAlong);
+					widthSeries.add(width, distanceAlong);
+					bottomElevationSeries.add(botElev, distanceAlong);
+				}
+			}
+			lengthIncrement += centerline.getLengthFeet();
+			areaSeriesCollection.addSeries(areaSeries);
+			wetPSeriesCollection.addSeries(wetPSeries);
+			widthSeriesCollection.addSeries(widthSeries);
+			bottomElevationSeriesCollection.addSeries(bottomElevationSeries);
+		}
+	}//populateSeriesCollections
 
 //	/*
 //	 * Create chart for one time series

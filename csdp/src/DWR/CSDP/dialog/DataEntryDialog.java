@@ -42,7 +42,6 @@ package DWR.CSDP.dialog;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
@@ -57,12 +56,12 @@ import java.awt.event.MouseListener;
 import java.io.File;
 import java.text.NumberFormat;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Vector;
 
-import javax.sound.sampled.Line;
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -94,8 +93,8 @@ import DWR.CSDP.CsdpFunctions;
 
 /**
  * A class for creating dialogs to get user input using various components, such as text entry fields, radio buttons, 
- * file selector dialogs, etc. Arguments to the constructor specify how many fields and their type. 
- * Each field has a unique name, which is also used to get the user entry.
+ * file selector dialogs, checkboxes, etc. Arguments to the constructor specify how many fields and their type. 
+ * Each field must have a unique name, which is used to label the user entry component.
  * 
  * After instantiating, call getResponse to determine which button was clicked.
  * Instructions panel will help determine dialog width if it contains html tags.
@@ -212,6 +211,7 @@ public class DataEntryDialog extends JDialog {
 	public static final Color OPTIONAL_COLOR = new Color(0, 153, 51);
 
 	private String[] fieldNames;
+	private JDialog instructionsDialog;
 	
 	/*
 	 * Constructor for only String, boolean, or centerline selector values
@@ -271,36 +271,161 @@ public class DataEntryDialog extends JDialog {
 	private void createDialog(JFrame parent, String title, String instructions, String[] fieldNames, 
 			String[] defaultValues, int[] dataTypes, boolean[] disableIfNull, int[] numDecimalPlaces, 
 			String[] extensions, String[] tooltips, boolean modal) {
-		//resizing messes up the layout. Ideally, this should be resizable with no effect on layout, but that will take more work.
-		setResizable(false);
-		this.fieldNames = fieldNames;
-		_frame = parent;
-		GridBagLayout layout = new GridBagLayout();
-		GridBagConstraints mainWindowGridBagConstraints = new GridBagConstraints();
-		mainWindowGridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-		this.disableIfNullHashtable = new Hashtable<String, Boolean>();
+		boolean inputArgsOk = true;
+		//make sure all values unique
+		HashSet<String> fieldNamesHashSet = new HashSet<String>();
 		for(int i=0; i<fieldNames.length; i++) {
-			this.disableIfNullHashtable.put(fieldNames[i], disableIfNull[i]);
+			fieldNamesHashSet.add(fieldNames[i]);
+		}
+		if(fieldNamesHashSet.size()!=fieldNames.length) {
+			JOptionPane.showMessageDialog(parent, "Error in DataEntryDialog.createDialog: fieldNames are not all unique!", 
+					"Error", JOptionPane.ERROR_MESSAGE);
+			inputArgsOk = false;
+		}
+
+		//make sure all arrays same length
+		int numFieldNames = fieldNames.length;
+		if((defaultValues!=null && defaultValues.length!=numFieldNames) || 
+				(dataTypes!=null && dataTypes.length!=numFieldNames) || 
+				(disableIfNull!=null && disableIfNull.length!=numFieldNames) || 
+				(numDecimalPlaces!=null && numDecimalPlaces.length!=numFieldNames) || 
+				(extensions!=null && extensions.length!=numFieldNames) || 
+				(tooltips!=null && tooltips.length!=numFieldNames)) {
+			inputArgsOk = false;
+			JOptionPane.showMessageDialog(parent, "Error in DataEntryDialog.createDialog: input arrays have different lengths!", 
+					"Error", JOptionPane.ERROR_MESSAGE);	
 		}
 		
-		getContentPane().setLayout(layout);
-		
-		GridBagLayout dataEntryPanelLayout = new GridBagLayout();
-		this.dataEntryPanel = new JPanel(dataEntryPanelLayout);
-		this.dataEntryPanel.setBorder(this.blackLineBorder);
+		if(inputArgsOk) {
+			//resizing messes up the layout. Ideally, this should be resizable with no effect on layout, but that will take more work.
+			setResizable(false);
+			this.fieldNames = fieldNames;
+			_frame = parent;
+			GridBagLayout layout = new GridBagLayout();
+			GridBagConstraints mainWindowGridBagConstraints = new GridBagConstraints();
+			mainWindowGridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+			this.disableIfNullHashtable = new Hashtable<String, Boolean>();
+			for(int i=0; i<fieldNames.length; i++) {
+				this.disableIfNullHashtable.put(fieldNames[i], disableIfNull[i]);
+			}
+			
+			getContentPane().setLayout(layout);
+			
+			GridBagLayout dataEntryPanelLayout = new GridBagLayout();
+			this.dataEntryPanel = new JPanel(dataEntryPanelLayout);
+			this.dataEntryPanel.setBorder(this.blackLineBorder);
+	
+	//		int dataEntryPanelHeightPixels = names.length * 75;
+	//		int dataEntryPanelPreferredWidth = 1000;
+	//		for(int i=0; i<dataTypes.length; i++) {
+	//			if(dataTypes[i]==DataEntryDialog.FILE_SPECIFICATION_TYPE) {
+	//				dataEntryPanelPreferredWidth=1500;
+	//				break;
+	//			}
+	//		}
+	//		this.dataEntryPanel.setPreferredSize(new Dimension(dataEntryPanelPreferredWidth, dataEntryPanelHeightPixels));
+	
+			createInstructionsDialog(instructions);
 
-//		int dataEntryPanelHeightPixels = names.length * 75;
-//		int dataEntryPanelPreferredWidth = 1000;
-//		for(int i=0; i<dataTypes.length; i++) {
-//			if(dataTypes[i]==DataEntryDialog.FILE_SPECIFICATION_TYPE) {
-//				dataEntryPanelPreferredWidth=1500;
-//				break;
-//			}
-//		}
-//		this.dataEntryPanel.setPreferredSize(new Dimension(dataEntryPanelPreferredWidth, dataEntryPanelHeightPixels));
+			JPanel legendPanel = DialogLegendFactory.createLegendPanel("Legend", new Color[] {REQUIRED_COLOR, OPTIONAL_COLOR}, 
+					new String[] {"Required Entry", "Optional Entry"});
+			
+			//create panel to load/save default values to/from .csv file. Loading the file will put values into text fields/text areas.
+			JPanel defaultButtonsPanel = new JPanel(new BorderLayout());
+			JButton loadDialogValuesButton = new JButton("Load Dialog Values");
+			JButton saveDialogValuesButton = new JButton("Save Dialog Values");
+			loadDialogValuesButton.addActionListener(new LoadDialogValuesListener(this));
+			saveDialogValuesButton.addActionListener(new SaveDialogValuesListener(this));
+			defaultButtonsPanel.add(loadDialogValuesButton, BorderLayout.NORTH);
+			defaultButtonsPanel.add(saveDialogValuesButton, BorderLayout.SOUTH);
+			
+			GridBagLayout instructionsAndLegendLayout = new GridBagLayout();
+			GridBagConstraints instructionsAndLegendGridBagConstraints = new GridBagConstraints();
+			JPanel instructionsAndLegendPanel = new JPanel(instructionsAndLegendLayout);
+			instructionsAndLegendGridBagConstraints.insets = new Insets(5, 5, 5, 5);
+			//natural height, maximum width
+			instructionsAndLegendGridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+			instructionsAndLegendGridBagConstraints.weightx=1.0;
+			instructionsAndLegendGridBagConstraints.gridwidth=1;
+			//add legend panel
+			instructionsAndLegendGridBagConstraints.gridx=0;
+			instructionsAndLegendGridBagConstraints.gridy=0;
+			instructionsAndLegendPanel.add(legendPanel, instructionsAndLegendGridBagConstraints);
+			instructionsAndLegendGridBagConstraints.anchor=GridBagConstraints.PAGE_END;
+			instructionsAndLegendGridBagConstraints.gridx=1;
+			instructionsAndLegendGridBagConstraints.gridy=0;
+			instructionsAndLegendPanel.add(defaultButtonsPanel, instructionsAndLegendGridBagConstraints);
 
+			instructionsAndLegendGridBagConstraints.gridx=2;
+			instructionsAndLegendGridBagConstraints.gridy=0;
+			//add instructions panel
+			//add help button
+			Icon helpIcon = UIManager.getIcon("OptionPane.questionIcon");
+			JButton helpButton = new JButton(helpIcon);
+			helpButton.addActionListener(new ShowInstructionsDialog(this));
+			//don't display background or border
+			helpButton.setContentAreaFilled(false);
+			helpButton.setBorderPainted(false);
+			instructionsAndLegendPanel.add(helpButton);
+			//this displays instructions in the dialog, which makes big dialogs. Replaced with above code, which will add a help button
+			//instructionsAndLegendPanel.add(instructionsJTC, instructionsAndLegendGridBagConstraints);
+			//add(instructionsAndLegendPanel, BorderLayout.NORTH);
+			
+			mainWindowGridBagConstraints.gridx=0;
+			mainWindowGridBagConstraints.gridy=0;
+			getContentPane().add(instructionsAndLegendPanel,  mainWindowGridBagConstraints);
+			mainWindowGridBagConstraints.gridx=0;
+			mainWindowGridBagConstraints.gridy=1;
+			getContentPane().add(this.dataEntryPanel, mainWindowGridBagConstraints);
+	
+			
+			//Add the data entry components to the dataEntryPanel
+			for(int i=0; i<fieldNames.length; i++) {
+				int numDecimalPlacesInt = -Integer.MAX_VALUE;
+				String extension = null;
+				String tooltip = null;
+				boolean directoryOnly = false;
+				if(numDecimalPlaces!=null) numDecimalPlacesInt = numDecimalPlaces[i];
+				if(extensions!=null) extension = extensions[i];
+				if(tooltips!=null) tooltip = tooltips[i];
+				addFieldObjects(i, fieldNames[i], defaultValues[i], dataTypes[i], numDecimalPlacesInt, extension, tooltip);
+			}
+	
+			//add the buttons to the bottom of the dialog.
+			JPanel bottomButtonPanel = new JPanel(new GridLayout(1, 2));
+			this.okButton = new JButton("ok");
+			this.okButton.setFont(this.okButton.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
+			bottomButtonPanel.add(this.okButton);
+			boolean enableOk = okToEnableOkButton();
+			this.okButton.setEnabled(enableOk);
+			JButton cancelButton = new JButton("Cancel");
+			cancelButton.setFont(cancelButton.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
+			CancelListener cancelListener = new CancelListener();
+			cancelButton.addMouseListener(cancelListener);
+			bottomButtonPanel.add(cancelButton);
+			addWindowListener(cancelListener);
+	//		add(bottomButtonPanel, BorderLayout.SOUTH);
+	
+			mainWindowGridBagConstraints.gridx=0;
+			mainWindowGridBagConstraints.gridy=2;
+			getContentPane().add(bottomButtonPanel, mainWindowGridBagConstraints);
+			validate();
+			pack();
+			doLayout();
+			OkListener okButtonListener = new OkListener(this);
+	//		this.okButton.addActionListener(okButtonListener);
+			//adding a MouseListener means that when the button loses focus, one click will activate it rather than 2 
+			this.okButton.addMouseListener(okButtonListener);
+			setVisible(true);
+			//Let size be managed by preferred size of contents, rather than specifying a size here.
+			//			setSize(1000, 200);
+		}//if inputArgsOk
+	}// constructor
+
+	private void createInstructionsDialog(String instructions) {
 		//Add a JTextArea or a JEditorPane (for HTML) displaying instructions
 		JTextComponent instructionsJTC = null;
+//		JTextComponent instructionsJTC = null;
 		if(instructions.indexOf("<HTML>")>=0 || instructions.indexOf("<html>")>0){
 	        // create a JEditorPane that renders HTML and defaults to the system font.
 			//copied from https://explodingpixels.wordpress.com/2008/10/28/make-jeditorpane-use-the-system-font/
@@ -323,88 +448,37 @@ public class DataEntryDialog extends JDialog {
 		instructionsJTC.setEditable(false);
 		instructionsJTC.setBorder(this.blackLineBorder);
 		
-		JPanel legendPanel = DialogLegendFactory.createLegendPanel("Legend", new Color[] {REQUIRED_COLOR, OPTIONAL_COLOR}, 
-				new String[] {"Required Entry", "Optional Entry"});
-		
-		//create panel to load/save default values to/from .csv file. Loading the file will put values into text fields/text areas.
-		JPanel defaultButtonsPanel = new JPanel(new BorderLayout());
-		JButton loadDialogValuesButton = new JButton("Load Dialog Values");
-		JButton saveDialogValuesButton = new JButton("Save Dialog Values");
-		loadDialogValuesButton.addActionListener(new LoadDialogValuesListener(this));
-		saveDialogValuesButton.addActionListener(new SaveDialogValuesListener(this));
-		defaultButtonsPanel.add(loadDialogValuesButton, BorderLayout.NORTH);
-		defaultButtonsPanel.add(saveDialogValuesButton, BorderLayout.SOUTH);
-		
-		GridBagLayout instructionsAndLegendLayout = new GridBagLayout();
-		GridBagConstraints instructionsAndLegendGridBagConstraints = new GridBagConstraints();
-		JPanel instructionsAndLegendPanel = new JPanel(instructionsAndLegendLayout);
-		instructionsAndLegendGridBagConstraints.insets = new Insets(5, 5, 5, 5);
-		//natural height, maximum width
-		instructionsAndLegendGridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
-		instructionsAndLegendGridBagConstraints.weightx=1.0;
-		instructionsAndLegendGridBagConstraints.gridwidth=1;
-		instructionsAndLegendGridBagConstraints.gridx=0;
-		instructionsAndLegendGridBagConstraints.gridy=0;
-		//add instructions panel
-		instructionsAndLegendPanel.add(instructionsJTC, instructionsAndLegendGridBagConstraints);
-		//add legend panel
-		instructionsAndLegendGridBagConstraints.gridx=1;
-		instructionsAndLegendPanel.add(defaultButtonsPanel, instructionsAndLegendGridBagConstraints);
-		instructionsAndLegendGridBagConstraints.anchor=GridBagConstraints.PAGE_END;
-		instructionsAndLegendPanel.add(legendPanel, instructionsAndLegendGridBagConstraints);
-		
-//		add(instructionsAndLegendPanel, BorderLayout.NORTH);
-		
-		mainWindowGridBagConstraints.gridx=0;
-		mainWindowGridBagConstraints.gridy=0;
-		getContentPane().add(instructionsAndLegendPanel,  mainWindowGridBagConstraints);
-		mainWindowGridBagConstraints.gridx=0;
-		mainWindowGridBagConstraints.gridy=1;
-		getContentPane().add(this.dataEntryPanel, mainWindowGridBagConstraints);
-
-		
-		//Add the data entry components to the dataEntryPanel
-		for(int i=0; i<fieldNames.length; i++) {
-			int numDecimalPlacesInt = -Integer.MAX_VALUE;
-			String extension = null;
-			String tooltip = null;
-			boolean directoryOnly = false;
-			if(numDecimalPlaces!=null) numDecimalPlacesInt = numDecimalPlaces[i];
-			if(extensions!=null) extension = extensions[i];
-			if(tooltips!=null) tooltip = tooltips[i];
-			addFieldObjects(i, fieldNames[i], defaultValues[i], dataTypes[i], numDecimalPlacesInt, extension, tooltip);
+		this.instructionsDialog = new InstructionsDialog(this, this.getTitle(), false, instructionsJTC);
+//		this.jDialog.setLayout(new BorderLayout());
+//		this.jDialog.add(instructionsJTC, BorderLayout.NORTH);
+//		JButton okButton = new JButton("OK");
+//		okButton.addActionListener(new ActionListener() {
+//			
+//			public void actionPerformed(ActionEvent arg0) {
+//				setVisible(false);
+//			}
+//		});
+//		this.jDialog.add(okButton, BorderLayout.SOUTH);
+//		this.jDialog.pack();
+	}//createInstructionsPanel
+	
+	/**
+	 * Shows instructions Dialog when help button clicked.
+	 * @author btom
+	 *
+	 */
+	private class ShowInstructionsDialog implements ActionListener{
+		private DataEntryDialog parentDialog;
+		public ShowInstructionsDialog(DataEntryDialog parentDialog) {
+			this.parentDialog = parentDialog;
 		}
-
-		//add the buttons to the bottom of the dialog.
-		JPanel bottomButtonPanel = new JPanel(new GridLayout(1, 2));
-		this.okButton = new JButton("ok");
-		this.okButton.setFont(this.okButton.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
-		bottomButtonPanel.add(this.okButton);
-		boolean enableOk = okToEnableOkButton();
-		this.okButton.setEnabled(enableOk);
-		JButton cancelButton = new JButton("Cancel");
-		cancelButton.setFont(cancelButton.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
-		CancelListener cancelListener = new CancelListener();
-		cancelButton.addMouseListener(cancelListener);
-		bottomButtonPanel.add(cancelButton);
-		addWindowListener(cancelListener);
-//		add(bottomButtonPanel, BorderLayout.SOUTH);
-
-		mainWindowGridBagConstraints.gridx=0;
-		mainWindowGridBagConstraints.gridy=2;
-		getContentPane().add(bottomButtonPanel, mainWindowGridBagConstraints);
-		validate();
-		pack();
-		doLayout();
-		OkListener okButtonListener = new OkListener(this);
-//		this.okButton.addActionListener(okButtonListener);
-		//adding a MouseListener means that when the button loses focus, one click will activate it rather than 2 
-		this.okButton.addMouseListener(okButtonListener);
-		setVisible(true);
-		//Let size be managed by preferred size of contents, rather than specifying a size here.
-		//			setSize(1000, 200);
-	}// constructor
-
+		public void actionPerformed(ActionEvent arg0) {
+//			JOptionPane.showMessageDialog(parentDialog.instructionsJTC, JOptionPane.INFORMATION_MESSAGE);
+			System.out.println("Action performed");
+			this.parentDialog.instructionsDialog.setVisible(true);
+		}
+	}//class ShowInstructionsPanel
+	
 	/*
 	 * Adds a JLabel (containing field name) and a JComponent to the dataEntryPanel.
 	 * What kind of JComponent will depend upon requested dataType:

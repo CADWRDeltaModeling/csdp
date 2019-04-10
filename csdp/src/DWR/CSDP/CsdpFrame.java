@@ -57,6 +57,7 @@ import java.util.EventListener;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
@@ -214,7 +215,8 @@ public class CsdpFrame extends JFrame {
 	private JCheckBoxMenuItem oEchoTimeSeriesInput, oEchoXsectInput, oPrintXsectResults, oUseFremontWeir,
 			oUseToeDrainRestriction, oEchoToeDrainInput;
 	private JMenu tOpenWaterOptionsMenu, nExport, nExportOptions;
-	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc, tCreateDSM2ChanPolygons, tClosePolygonCenterlines;
+	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc, tCreateDSM2ChanPolygons, tClosePolygonCenterlines,
+		tRemoveAllCrossSections, tFindLandmarkDistAlong;
 	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
 	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nList, nSummary, nClearNetwork, 
 		nDisplayReachSummary, nCalculate, nExportToSEFormat, nExportTo3DFormat, nAWDSummaryReport, nXSCheckReport, 
@@ -507,6 +509,17 @@ public class CsdpFrame extends JFrame {
 		_filterYearButton = new JButton(_filterYearIcon);
 		_filterLabel = new JLabel(_filterLabelIcon);
 
+		removeBackgroundAndBorder(_fileOpenButton);
+		removeBackgroundAndBorder(_propOpenButton);
+		removeBackgroundAndBorder(_networkOpenButton);
+		removeBackgroundAndBorder(_networkSaveButton);
+		removeBackgroundAndBorder(_networkCalculateButton);
+		removeBackgroundAndBorder(_colorUniformButton);
+		removeBackgroundAndBorder(_colorByElevButton);
+		removeBackgroundAndBorder(_colorBySourceButton);
+		removeBackgroundAndBorder(_colorByYearButton);
+		removeBackgroundAndBorder(_filterSourceButton);
+		
 		_cursorButton = new JRadioButton(_cursorIcon);
 		_insertButton = new JRadioButton(_insertIcon);
 		_moveButton = new JRadioButton(_movePointIcon);
@@ -525,6 +538,25 @@ public class CsdpFrame extends JFrame {
 		_deleteCenterlinePointsOutsideBoxButton = new JRadioButton("Delete Centerline Points outside box");
 		_selectCenterlineForDataEntryDialogButton = new JRadioButton("Select Centerline for DataEntryDialog button");
 
+		removeBackgroundAndBorder(_cursorButton);
+		removeBackgroundAndBorder(_insertButton);
+		removeBackgroundAndBorder(_moveButton);
+		removeBackgroundAndBorder(_addDownstreamPointButton);
+		removeBackgroundAndBorder(_addUpstreamPointButton);
+		removeBackgroundAndBorder(_deleteButton);
+		removeBackgroundAndBorder(_addXsectButton);
+		removeBackgroundAndBorder(_removeXsectButton);
+		removeBackgroundAndBorder(_moveXsectButton);
+		removeBackgroundAndBorder(_viewXsectButton);
+		removeBackgroundAndBorder(_zoomBoxButton);
+		removeBackgroundAndBorder(_zoomPanButton);
+		removeBackgroundAndBorder(_zoomFitButton);
+		removeBackgroundAndBorder(_zoomUndoButton);
+		removeBackgroundAndBorder(_deleteCenterlinePointsInBoxButton);
+		removeBackgroundAndBorder(_deleteCenterlinePointsOutsideBoxButton);
+		removeBackgroundAndBorder(_selectCenterlineForDataEntryDialogButton);
+		
+		
 		// _landmarkOpenButton = new JButton("Open Landmark File");
 		// _landmarkSaveButton = new JButton("Save Landmark File");
 		// _landmarkAddButton = new JButton("Add landmark");
@@ -541,6 +573,14 @@ public class CsdpFrame extends JFrame {
 		// JRadioButton(_landmarkDeleteSelectedIcon);
 	}
 
+	/*
+	 * For buttons with icons. Removes the background and border.
+	 */
+	private void removeBackgroundAndBorder(AbstractButton button) {
+		button.setContentAreaFilled(false);
+		button.setBorderPainted(false);
+	}
+	
 	/**
 	 * makes menus and buttons; creates and registers listeners
 	 */
@@ -1339,6 +1379,8 @@ public class CsdpFrame extends JFrame {
 		cfTools.add(tOpenWaterCalc = new JMenuItem("Open Water Area Calculations"));
 //		cfTools.add(tCreateDSM2ChanPolygons = new JMenuItem("Create DSM2 channel polygons"));
 		cfTools.add(tClosePolygonCenterlines = new JMenuItem("Close All Polygon Centerlines"));
+		cfTools.add(tRemoveAllCrossSections = new JMenuItem("Remove All Cross-Sections"));
+		cfTools.add(tFindLandmarkDistAlong = new JMenuItem("Find Channel/Distance for Landmarks"));
 		if (_addToolsMenu)
 			menubar.add(cfTools);
 		cfTools.add(cMovePolygonCenterlinePointsToLeveeCenterline = 
@@ -1350,7 +1392,9 @@ public class CsdpFrame extends JFrame {
 		
 		tCalcRect.setEnabled(false);
 		tClosePolygonCenterlines.setEnabled(false);
-
+		tRemoveAllCrossSections.setEnabled(false);
+		tFindLandmarkDistAlong.setEnabled(false);
+		
 		cfTools.setMnemonic(KeyEvent.VK_T);
 
 		// removed temporarily(?) options now displayed in dialog.
@@ -1389,6 +1433,8 @@ public class CsdpFrame extends JFrame {
 		ActionListener tOpenWaterCalcListener = _toolsMenu.new TOpenWaterCalc(this);
 		ActionListener tCreateDSM2ChanPolygonsListener = _toolsMenu.new TCreateDSM2ChanPolygons();
 		ActionListener tClosePolygonCenterlinesListener = _toolsMenu.new TClosePolygonCenterlines();
+		ActionListener tRemoveAllCrossSectionsListener = _toolsMenu.new TRemoveAllCrossSections();
+		ActionListener tFindLandmarkDistAlongListener = _toolsMenu.new TFindChanDistForLandmarks();
 		// removed temporarily(?) options now appear in dialog
 		// EventListener oEchoTimeSeriesInputListener = _toolsMenu.new
 		// TEchoTimeSeriesInput();
@@ -1416,7 +1462,8 @@ public class CsdpFrame extends JFrame {
 		ActionListener tMovePolygonCenterlinePointsToLeveeCenterlineReadFileListener = 
 				_toolsMenu.new SnapPolygonCenterlinePointsToLeveeCenterline(ToolsMenu.READ_CENTERLINE_NAMES_FROM_FILE);
 		tClosePolygonCenterlines.addActionListener(tClosePolygonCenterlinesListener);
-		
+		tRemoveAllCrossSections.addActionListener(tRemoveAllCrossSectionsListener);
+		tFindLandmarkDistAlong.addActionListener(tFindLandmarkDistAlongListener);
 		enterCenterlineNames.addActionListener(tMovePolygonCenterlinePointsToLeveeCenterlineEnterCoordListener);		
 		readCenterlineNamesFromFile.addActionListener(tMovePolygonCenterlinePointsToLeveeCenterlineReadFileListener);
 //		tCreateDSM2ChanPolygons.addActionListener(tCreateDSM2ChanPolygonsListener);
@@ -1782,6 +1829,8 @@ public class CsdpFrame extends JFrame {
 		nNetworkSummaryReport.setEnabled(false);
 		
 		tClosePolygonCenterlines.setEnabled(false);
+		tRemoveAllCrossSections.setEnabled(false);
+		tFindLandmarkDistAlong.setEnabled(false);
 		tCalcRect.setEnabled(false);
 
 		// xMove.setEnabled(false);
@@ -1893,6 +1942,10 @@ public class CsdpFrame extends JFrame {
 		dFitByNetworkMenuItem.setEnabled(true);
 		tCalcRect.setEnabled(true);
 		tClosePolygonCenterlines.setEnabled(true);
+		tRemoveAllCrossSections.setEnabled(true);
+		if(_landmark!=null) {
+			tFindLandmarkDistAlong.setEnabled(true);
+		}
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 //		nAWDSummaryReport.setEnabled(true);
 //		nXSCheckReport.setEnabled(true);
@@ -1921,6 +1974,7 @@ public class CsdpFrame extends JFrame {
 		lDeletePopup.setEnabled(true);
 		cLandmarks.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
+		tFindLandmarkDistAlong.setEnabled(true);
 		tCalcRect.setEnabled(true);
 	}// enableAfterNetwork
 
@@ -1945,6 +1999,8 @@ public class CsdpFrame extends JFrame {
 		dFitByNetworkMenuItem.setEnabled(false);
 		tCalcRect.setEnabled(false);
 		tClosePolygonCenterlines.setEnabled(false);
+		tRemoveAllCrossSections.setEnabled(false);
+		tFindLandmarkDistAlong.setEnabled(false);
 //		nAWDSummaryReport.setEnabled(false);
 //		nXSCheckReport.setEnabled(false);
 //		nDConveyanceReport.setEnabled(false);
@@ -1970,6 +2026,10 @@ public class CsdpFrame extends JFrame {
 		dFitByNetworkMenuItem.setEnabled(true);
 		tCalcRect.setEnabled(true);
 		tClosePolygonCenterlines.setEnabled(true);
+		tRemoveAllCrossSections.setEnabled(true);
+		if(_landmark!=null) {
+			tFindLandmarkDistAlong.setEnabled(true);
+		}
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 //		nAWDSummaryReport.setEnabled(true);
 //		nXSCheckReport.setEnabled(true);
@@ -1986,6 +2046,7 @@ public class CsdpFrame extends JFrame {
 		dFitByLandmarkMenuItem.setEnabled(false);
 		zZoomToNode.setEnabled(false);
 		cLandmarks.setEnabled(false);
+		tFindLandmarkDistAlong.setEnabled(false);
 	}
 
 	/**

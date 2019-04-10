@@ -56,6 +56,8 @@ import DWR.CSDP.dialog.FileIO;
 
 public class ToolsMenu {
 
+
+
 	public static final int ENTER_CENTERLINE_NAMES = 10;
 	public static final int READ_CENTERLINE_NAMES_FROM_FILE = 20;
 	
@@ -70,6 +72,27 @@ public class ToolsMenu {
 		_DSMChanFilter = new CsdpFileFilter(_dsmOpenExtensions, _dsmNumOpenExtensions);
 		_irregXsectsFilter = new CsdpFileFilter(_dsmOpenExtensions, _dsmNumOpenExtensions);
 		_xsectsInpFilter = new CsdpFileFilter(_dsmOpenExtensions, _dsmNumOpenExtensions);
+	}
+
+	/**
+	 * For each landmark, determines nearest Centerline and distance from the upstream end of the nearest point on the centerline
+	 * to the landmark. Optionally draws a cross-section line, which can be useful for verification.
+	 * @author btom
+	 *
+	 */
+	public class TFindChanDistForLandmarks implements ActionListener {
+		public void actionPerformed(ActionEvent arg0) {
+			_app.findChanDistForLandmarks(_gui);
+		}
+	}
+
+	
+	public class TRemoveAllCrossSections implements ActionListener {
+
+		public void actionPerformed(ActionEvent arg0) {
+			_app.removeAllCrossSections(_gui);
+		}
+
 	}
 
 	public class TCreateDSM2ChanPolygons implements ActionListener {

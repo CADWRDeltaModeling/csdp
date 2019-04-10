@@ -1514,6 +1514,12 @@ public class Centerline {
 //		}
 //		//now find the 
 //	}
+
+	public void removeAllCrossSections() {
+		for(int i=getNumXsects()-1; i>=0; i--) {
+			removeXsect(i);
+		}
+	}
 	
 
 }// class Centerline

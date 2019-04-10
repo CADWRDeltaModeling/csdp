@@ -55,6 +55,64 @@ import DWR.CSDP.semmscon.UseSemmscon;
  * @version
  */
 public class Network {
+
+	
+	public String _oldCenterlineName = null;
+	public String _newCenterlineName = null;
+	/**
+	 * centerline that has been selected by the user
+	 */
+	private Centerline _selectedCenterline;
+	/**
+	 * xsect that has been selected by the user
+	 */
+	private Xsect _selectedXsect;
+	/**
+	 * name of centerline that has been selected
+	 */
+	private String _selectedCenterlineName;
+	/**
+	 * number of xsect that has been selected. The numbers start with zero, with
+	 * xsect number zero being the closest xsect to the upstream end.
+	 */
+	private int _selectedXsectNum;
+	/**
+	 * the number of centerlines in the network
+	 */
+	private int _numCenterlines;
+	/**
+	 * the name of the network. no use for this now; currently only one instance
+	 * of the Network class is allowed.
+	 */
+	private String _networkName = null;
+	/**
+	 * stores all Centerline objects
+	 */
+	private Hashtable<String, Centerline> _centerlines = new Hashtable<String, Centerline>();
+	/**
+	 * stores all centerline names
+	 */
+	private ResizableStringArray _centerlineNames = new ResizableStringArray();
+	/**
+	 * turn on to print debugging statements
+	 */
+	private static final boolean DEBUG = false;
+	/**
+	 * true if any change has been made to the network or anything it contains
+	 * This value is checked when exiting program, loading new network, etc.
+	 */
+	private boolean _isUpdated = false;
+	private boolean _maxMinFound = false;
+	/**
+	 * array index of
+	 */
+	private final int distIndex = 4;
+	private double _maxX;
+	private double _minX;
+	private double _maxY;
+	private double _minY;
+	private CsdpFrame _gui;
+
 	/**
 	 * constructor
 	 */
@@ -981,7 +1039,6 @@ public class Network {
 				downstreamPoint.putYFeet(upstreamY);
 			}
 		}
-
 		_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
 		// removed for conversion to swing
 		_gui.getPlanViewCanvas(0).redoNextPaint();
@@ -989,59 +1046,19 @@ public class Network {
 		JOptionPane.showMessageDialog(_gui, "Close Polygon Centerlines complete", "Success", JOptionPane.INFORMATION_MESSAGE);
 	}//closePolygonCenterlines
 
-	public String _oldCenterlineName = null;
-	public String _newCenterlineName = null;
-	/**
-	 * centerline that has been selected by the user
+	/*
+	 * Removes all of the cross-section lines from all centerlines.
+	 * This is used for determining distance along channel for 
 	 */
-	private Centerline _selectedCenterline;
-	/**
-	 * xsect that has been selected by the user
-	 */
-	private Xsect _selectedXsect;
-	/**
-	 * name of centerline that has been selected
-	 */
-	private String _selectedCenterlineName;
-	/**
-	 * number of xsect that has been selected. The numbers start with zero, with
-	 * xsect number zero being the closest xsect to the upstream end.
-	 */
-	private int _selectedXsectNum;
-	/**
-	 * the number of centerlines in the network
-	 */
-	private int _numCenterlines;
-	/**
-	 * the name of the network. no use for this now; currently only one instance
-	 * of the Network class is allowed.
-	 */
-	private String _networkName = null;
-	/**
-	 * stores all Centerline objects
-	 */
-	private Hashtable<String, Centerline> _centerlines = new Hashtable<String, Centerline>();
-	/**
-	 * stores all centerline names
-	 */
-	private ResizableStringArray _centerlineNames = new ResizableStringArray();
-	/**
-	 * turn on to print debugging statements
-	 */
-	private static final boolean DEBUG = false;
-	/**
-	 * true if any change has been made to the network or anything it contains
-	 * This value is checked when exiting program, loading new network, etc.
-	 */
-	private boolean _isUpdated = false;
-	private boolean _maxMinFound = false;
-	/**
-	 * array index of
-	 */
-	private final int distIndex = 4;
-	private double _maxX;
-	private double _minX;
-	private double _maxY;
-	private double _minY;
-	private CsdpFrame _gui;
+	public void removeAllCrossSections() {
+		for(int i=0; i<getNumCenterlines(); i++) {
+			String centerlineName = getCenterlineName(i);
+			Centerline centerline = getCenterline(centerlineName);
+			centerline.removeAllCrossSections();
+			_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+			// removed for conversion to swing
+			_gui.getPlanViewCanvas(0).redoNextPaint();
+			_gui.getPlanViewCanvas(0).repaint();		
+		}
+	}
 } // class Network

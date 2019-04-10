@@ -818,7 +818,7 @@ public class NetworkInteractor extends ElementInteractor {
 			y1 = centerline.getCenterlinePoint(i).getYFeet();
 			x2 = centerline.getCenterlinePoint(i + 1).getXFeet();
 			y2 = centerline.getCenterlinePoint(i + 1).getYFeet();
-			dist = CsdpFunctions.shortestDistLineSegment(x1, x2, xDataCoord, y1, y2, yDataCoord, MAX_XSECT_LINE_LENGTH);
+			dist = CsdpFunctions.shortestDistLineSegment(x1, x2, xDataCoord, y1, y2, yDataCoord, MAX_XSECT_LINE_LENGTH, false);
 			if (dist < minDist) {
 				minDist = dist;
 				minDistIndex = i;
@@ -892,64 +892,69 @@ public class NetworkInteractor extends ElementInteractor {
 			if (DEBUG)
 				System.out.println("trying to add xsect to centerline " + _net.getSelectedCenterlineName()
 						+ ", x,y initial point=" + xDataCoord + "," + yDataCoord);
-
-			// loop through all centerline segments; find minimum perpendicular
+			System.out.println("before getXsectDistAndPointDist");
+			double[] cumAndMinDist = CsdpFunctions.getXsectDistAndPointDist(centerline, xDataCoord, yDataCoord, MAX_XSECT_LINE_LENGTH, false); 
+			System.out.println("after getXsectDistAndPointDist");
+			cumDist = cumAndMinDist[0];
+			minDist = cumAndMinDist[1];
+			//code below moved to a new method in CsdpFunctions.
+			//			// loop through all centerline segments; find minimum perpendicular
 			// distance
 			// and index of first point of line segment that has minimum
 			// perpendicular dist
-			for (int i = 0; i <= centerline.getNumCenterlinePoints() - 2; i++) {
-				x1 = centerline.getCenterlinePoint(i).getXFeet();
-				y1 = centerline.getCenterlinePoint(i).getYFeet();
-				x2 = centerline.getCenterlinePoint(i + 1).getXFeet();
-				y2 = centerline.getCenterlinePoint(i + 1).getYFeet();
-				dist = CsdpFunctions.shortestDistLineSegment(x1, x2, xDataCoord, y1, y2, yDataCoord,
-						MAX_XSECT_LINE_LENGTH);
-				if (DEBUG)
-					System.out.println("line segment, shortest dist, x1x2x3y1y2y3=" + i + "," + dist + "," + x1 + ","
-							+ x2 + "," + xDataCoord + "," + y1 + "," + y2 + "," + yDataCoord);
-				if (dist < minDist) {
-					minDist = dist;
-					minDistIndex = i;
-				} // if
-			} // for i
-
-			if (DEBUG)
-				System.out.println("minDistIndex, min dist=" + minDistIndex + "," + minDist);
-			if (minDist < Double.MAX_VALUE) {
-				x1 = centerline.getCenterlinePoint(minDistIndex).getXFeet();
-				y1 = centerline.getCenterlinePoint(minDistIndex).getYFeet();
-				x2 = centerline.getCenterlinePoint(minDistIndex + 1).getXFeet();
-				y2 = centerline.getCenterlinePoint(minDistIndex + 1).getYFeet();
-				theta = CsdpFunctions.getTheta(x1, x2, y1, y2);
-				xi = CsdpFunctions.findXIntersection(x1, x2, xDataCoord, y1, y2, yDataCoord);
-				yi = CsdpFunctions.findYIntersection(x1, x2, xDataCoord, y1, y2, yDataCoord);
-
-				if (DEBUG)
-					System.out.println("Intersection coord:" + xi + "," + yi);
-
-				// find dist from first point in centerline to first point in
-				// centerline
-				// segment that contains the xsect
-				cumDist = 0.0;
-				if (DEBUG)
-					System.out.println("minDistIndex=" + minDistIndex);
-				for (int i = 0; i <= minDistIndex - 1 && minDistIndex > 0; i++) {
-					x1 = centerline.getCenterlinePoint(i).getXFeet();
-					y1 = centerline.getCenterlinePoint(i).getYFeet();
-					x2 = centerline.getCenterlinePoint(i + 1).getXFeet();
-					y2 = centerline.getCenterlinePoint(i + 1).getYFeet();
-					cumDist += CsdpFunctions.pointDist(x1, y1, x2, y2);
-					if (DEBUG)
-						System.out.println("increasing cumDist:" + cumDist);
-				} // for i
-
-				x1 = centerline.getCenterlinePoint(minDistIndex).getXFeet();
-				y1 = centerline.getCenterlinePoint(minDistIndex).getYFeet();
-				cumDist += CsdpFunctions.pointDist(x1, y1, xi, yi);
-
-				if (DEBUG)
-					System.out.println("cumDist=" + cumDist);
-
+//			for (int i = 0; i <= centerline.getNumCenterlinePoints() - 2; i++) {
+//				x1 = centerline.getCenterlinePoint(i).getXFeet();
+//				y1 = centerline.getCenterlinePoint(i).getYFeet();
+//				x2 = centerline.getCenterlinePoint(i + 1).getXFeet();
+//				y2 = centerline.getCenterlinePoint(i + 1).getYFeet();
+//				dist = CsdpFunctions.shortestDistLineSegment(x1, x2, xDataCoord, y1, y2, yDataCoord,
+//						MAX_XSECT_LINE_LENGTH, false);
+//				if (DEBUG)
+//					System.out.println("line segment, shortest dist, x1x2x3y1y2y3=" + i + "," + dist + "," + x1 + ","
+//							+ x2 + "," + xDataCoord + "," + y1 + "," + y2 + "," + yDataCoord);
+//				if (dist < minDist) {
+//					minDist = dist;
+//					minDistIndex = i;
+//				} // if
+//			} // for i
+//
+//			if (DEBUG)
+//				System.out.println("minDistIndex, min dist=" + minDistIndex + "," + minDist);
+//			if (minDist < Double.MAX_VALUE) {
+//				x1 = centerline.getCenterlinePoint(minDistIndex).getXFeet();
+//				y1 = centerline.getCenterlinePoint(minDistIndex).getYFeet();
+//				x2 = centerline.getCenterlinePoint(minDistIndex + 1).getXFeet();
+//				y2 = centerline.getCenterlinePoint(minDistIndex + 1).getYFeet();
+//				theta = CsdpFunctions.getTheta(x1, x2, y1, y2);
+//				xi = CsdpFunctions.findXIntersection(x1, x2, xDataCoord, y1, y2, yDataCoord);
+//				yi = CsdpFunctions.findYIntersection(x1, x2, xDataCoord, y1, y2, yDataCoord);
+//
+//				if (DEBUG)
+//					System.out.println("Intersection coord:" + xi + "," + yi);
+//
+//				// find dist from first point in centerline to first point in
+//				// centerline
+//				// segment that contains the xsect
+//				cumDist = 0.0;
+//				if (DEBUG)
+//					System.out.println("minDistIndex=" + minDistIndex);
+//				for (int i = 0; i <= minDistIndex - 1 && minDistIndex > 0; i++) {
+//					x1 = centerline.getCenterlinePoint(i).getXFeet();
+//					y1 = centerline.getCenterlinePoint(i).getYFeet();
+//					x2 = centerline.getCenterlinePoint(i + 1).getXFeet();
+//					y2 = centerline.getCenterlinePoint(i + 1).getYFeet();
+//					cumDist += CsdpFunctions.pointDist(x1, y1, x2, y2);
+//					if (DEBUG)
+//						System.out.println("increasing cumDist:" + cumDist);
+//				} // for i
+//
+//				x1 = centerline.getCenterlinePoint(minDistIndex).getXFeet();
+//				y1 = centerline.getCenterlinePoint(minDistIndex).getYFeet();
+//				cumDist += CsdpFunctions.pointDist(x1, y1, xi, yi);
+//
+//				if (DEBUG)
+//					System.out.println("cumDist=" + cumDist);
+			if(minDist < Double.MAX_VALUE) {
 				// find index of last xsect that is closer to first point in
 				// centerline.
 				// Xsect xsect = null;

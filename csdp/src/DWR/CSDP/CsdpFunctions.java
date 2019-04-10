@@ -69,7 +69,7 @@ import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.category.CategoryItemRenderer;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -153,6 +153,93 @@ public class CsdpFunctions {
 	// return y1 + station*(float)Math.sin(theta);
 	// }//stationToY
 
+	/*
+	 * For creating a new cross-section: given centerline and x and y dataCoordinates (point that user clicked on),
+	 * determine the distance along the centerline and the distance from the centerline to the point that the user clicked on.
+	 *
+	 * This is also used for determining channel/distance for landmarks (output locations)
+	 * If distance is such that the xsect line exceeds the maxXsectLineLength, return negative values.
+	 * 
+	 *  For landmark operations, limitWidth should be true; otherwise, false.
+	 */
+	public static double[] getXsectDistAndPointDist(Centerline centerline, double xDataCoord, double yDataCoord, 
+			double maxXsectLineLength, boolean limitWidth) {
+		double[] returnValues = new double[] {-Double.MAX_VALUE, -Double.MAX_VALUE};
+		double x1 = 0.0;
+		double y1 = 0.0;
+		double x2 = 0.0;
+		double y2 = 0.0;
+		double dist = 0.0;
+		double theta = 0.0;
+		double xi = 0.0;
+		double yi = 0.0;
+		double cumDist = 0.0;
+		double minDist = Double.MAX_VALUE;
+		int minDistIndex = Integer.MAX_VALUE;
+
+		// loop through all centerline segments; find minimum perpendicular
+		// distance
+		// and index of first point of line segment that has minimum
+		// perpendicular dist
+		for (int i = 0; i <= centerline.getNumCenterlinePoints() - 2; i++) {
+			x1 = centerline.getCenterlinePoint(i).getXFeet();
+			y1 = centerline.getCenterlinePoint(i).getYFeet();
+			x2 = centerline.getCenterlinePoint(i + 1).getXFeet();
+			y2 = centerline.getCenterlinePoint(i + 1).getYFeet();
+//			if(Double.isNaN(maxXsectLineLength)) {
+//				dist = CsdpFunctions.shortestDistLineSegment(x1, x2, xDataCoord, y1, y2, yDataCoord);
+//			}else {
+				dist = CsdpFunctions.shortestDistLineSegment(x1, x2, xDataCoord, y1, y2, yDataCoord, maxXsectLineLength, limitWidth);
+//			}
+			if (DEBUG)
+				System.out.println("line segment, shortest dist, x1x2x3y1y2y3=" + i + "," + dist + "," + x1 + ","
+						+ x2 + "," + xDataCoord + "," + y1 + "," + y2 + "," + yDataCoord);
+			if (dist < minDist) {
+				minDist = dist;
+				minDistIndex = i;
+			} // if
+		} // for i
+	
+		System.out.println("CsdpFunctions.getXsectDistAndPointDist: minDist="+minDist);
+
+		if (DEBUG)
+			System.out.println("minDistIndex, min dist=" + minDistIndex + "," + minDist);
+		if (minDist < Double.MAX_VALUE) {
+			x1 = centerline.getCenterlinePoint(minDistIndex).getXFeet();
+			y1 = centerline.getCenterlinePoint(minDistIndex).getYFeet();
+			x2 = centerline.getCenterlinePoint(minDistIndex + 1).getXFeet();
+			y2 = centerline.getCenterlinePoint(minDistIndex + 1).getYFeet();
+			theta = CsdpFunctions.getTheta(x1, x2, y1, y2);
+			xi = CsdpFunctions.findXIntersection(x1, x2, xDataCoord, y1, y2, yDataCoord);
+			yi = CsdpFunctions.findYIntersection(x1, x2, xDataCoord, y1, y2, yDataCoord);
+	
+			if (DEBUG)
+				System.out.println("Intersection coord:" + xi + "," + yi);
+	
+			// find dist from first point in centerline to first point in
+			// centerline
+			// segment that contains the xsect
+			cumDist = 0.0;
+			if (DEBUG)
+				System.out.println("minDistIndex=" + minDistIndex);
+			for (int i = 0; i <= minDistIndex - 1 && minDistIndex > 0; i++) {
+				x1 = centerline.getCenterlinePoint(i).getXFeet();
+				y1 = centerline.getCenterlinePoint(i).getYFeet();
+				x2 = centerline.getCenterlinePoint(i + 1).getXFeet();
+				y2 = centerline.getCenterlinePoint(i + 1).getYFeet();
+				cumDist += CsdpFunctions.pointDist(x1, y1, x2, y2);
+				if (DEBUG)
+					System.out.println("increasing cumDist:" + cumDist);
+			} // for i
+	
+			x1 = centerline.getCenterlinePoint(minDistIndex).getXFeet();
+			y1 = centerline.getCenterlinePoint(minDistIndex).getYFeet();
+			cumDist += CsdpFunctions.pointDist(x1, y1, xi, yi);
+			returnValues=new double[] {cumDist, minDist};
+		}
+		return returnValues;
+	}//getXsectDistAndPointDist
+	
 	/**
 	 * find x coordinate of intersection of 2 perpendicular lines. 1st line is
 	 * defined by (x1,y2) and (x2,y2) and the second line is defined by (x3,y3)
@@ -240,9 +327,20 @@ public class CsdpFunctions {
 	 * Points 1 and 2 are the line segment endpoints, point 3 is the point.
 	 * polygonWidth is the width of the rectangular polygon which will be used
 	 * to see if the selected point is close enough to the line segment.
+	 * 
+	 * limitWidth should be true for landmark to chan/dist operations, false otherwise.
 	 */
 	public static double shortestDistLineSegment(double x1, double x2, double x3, double y1, double y2, double y3,
-			double width) {
+			double width, boolean limitWidth) {
+		//adjust width if too large. This is necessary because the findPolygon won't make a good polygon if you give it a 
+		//value that is too large. The value will get converted to an int, so it really can't be very big
+		//This is necessary for finding chan/dist corresponding to a landmark. Sometimes big values for width get passed in,
+		//and since polygons use int values, the double value could be too large to convert to an int, and the result is a useless polygon.
+		if(limitWidth) {
+			if(width>1.0E5) {
+				width=1.0E5;
+			}
+		}
 		double dist = 0.0;
 		double xIntersect = findXIntersection(x1, x2, x3, y1, y2, y3);
 		double yIntersect = findYIntersection(x1, x2, x3, y1, y2, y3);
@@ -1575,6 +1673,8 @@ public class CsdpFunctions {
 	
 	/*
 	 * Create chart for multiple time series
+	 * Important: if your dataset(s) have any isolated single points, you should make shapes=true, otherwise
+	 * isolated single points will be invisible because there will be no line connecting it to another point.
 	 */
 	public static JFreeChart createChartWithXYPlot(CsdpFrame csdpFrame, String title, String xLabel, String yLabel, 
 			XYSeriesCollection xySeriesCollection, boolean lines, boolean shapes, float[] lineThicknessArray) {
@@ -1629,10 +1729,11 @@ public class CsdpFunctions {
 	 * Create a line chart with labels instead of numeric values on the x axis
 	 */
 	public static JFreeChart createLineChart(CsdpFrame csdpFrame, String title, String xLabel, String yLabel, 
-			DefaultCategoryDataset defaultCategoryDataset) {
+			DefaultCategoryDataset defaultCategoryDataset, boolean drawPoints) {
 		boolean lines = true;
-		boolean shapes = false;		
+		boolean shapes = drawPoints;		
 		JFreeChart returnChart = ChartFactory.createLineChart(title, xLabel, yLabel, defaultCategoryDataset);
+		
 		CategoryPlot plot = returnChart.getCategoryPlot();
 		plot.setOutlinePaint(Color.BLACK);
 		plot.setOutlineStroke(new BasicStroke(2.0f));
@@ -1640,11 +1741,12 @@ public class CsdpFunctions {
 		CategoryAxis categoryAxis = plot.getDomainAxis();
 		categoryAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
 		categoryAxis.setMaximumCategoryLabelLines(2);
-		CategoryItemRenderer renderer  = plot.getRenderer();
+		categoryAxis.setTickLabelFont(categoryAxis.getLabelFont().deriveFont(LINE_CHART_CATEGORY_TICK_LABEL_FONT_SIZE));
+		LineAndShapeRenderer renderer = new LineAndShapeRenderer(lines, shapes);
 		for(int i=0; i<defaultCategoryDataset.getColumnCount(); i++) {
 			renderer.setSeriesPaint(i, csdpFrame.getColor(i));
 		}
-//		plot.setRenderer(renderer);
+		plot.setRenderer(renderer);
 		return returnChart;
 	}//getChannelGroupGraphs
 	
@@ -2100,7 +2202,6 @@ public class CsdpFunctions {
 		return returnValue;
 	}
 
-
 	/*
 	 * Create instance of ImageIcon using image Url scaled to specified width and height
 	 */
@@ -2112,10 +2213,15 @@ public class CsdpFunctions {
 	 * The font size used by instances of DataEntryDialog, and possibly others.
 	 */
 	public static final float DIALOG_FONT_SIZE = 16.0f;
+
+	/*
+	 * Sets font size for tick labels on line charts
+	 */
+	private static final float LINE_CHART_CATEGORY_TICK_LABEL_FONT_SIZE = 16.0f;
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "2.6_20190326";
+	private static final String _version = "2.6_20190410";
 
 	public static boolean movePolygonCenterlinePointsToLeveeCenterlineDialogOpen() {
 		return MOVE_POLYGON_CENTERLINE_POINTS_TO_LEVEE_CENTERLINE_DIALOG_OPEN;

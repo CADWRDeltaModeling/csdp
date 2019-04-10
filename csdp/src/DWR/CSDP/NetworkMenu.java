@@ -641,15 +641,19 @@ public class NetworkMenu {
 		public void actionPerformed(ActionEvent arg0) {
 			Network net = gui.getNetwork();
 
-			String names[] = new String[2];
-			String initValue[] = new String[2];
+			String names[] = new String[3];
+			String initValue[] = new String[3];
 			names[0] = "Reach Name";
 			names[1] = "Channel Numbers";
+			names[2] = "profile plots begin at downstream end";
 			initValue[0] = "Reach";
 			initValue[1] = "17,1-5";
-			int[] dataTypes = new int[] {DataEntryDialog.STRING_TYPE, DataEntryDialog.STRING_TYPE};
-			String[] tooltips = new String[] {null, null};
-			boolean[] disableIfNull = new boolean[] {true, true};
+			initValue[2] = "true";
+			
+			int[] dataTypes = new int[] {DataEntryDialog.STRING_TYPE, DataEntryDialog.STRING_TYPE, DataEntryDialog.BOOLEAN_TYPE};
+			String[] tooltips = new String[] {null, null, "If true, profile plots will begin at the downstream end of the reach, and "
+					+ "end at the upstream end. Otherwise, they will do the opposite. "};
+			boolean[] disableIfNull = new boolean[] {true, true, true};
 
 			String instructions = 
 					"<HTML><BODY><B>Display Reach Summary</B><BR>"
@@ -657,16 +661,24 @@ public class NetworkMenu {
 							+ "2. Enter a string that identifies a <B>range of channels</B> that you would like to summarize. The string should only<BR> "
 							+ "consist of numbers separated by commas or hyphens. A range of channel numbers can be specified using two numbers separated <BR>"
 							+ "by a hyphen. Hyphen-separated values can be speficied in reverse order, to reverse the order of display. <BR>"
+							+ "3. Check the checkbox if you want profile plots to be downstream to upstream.<BR>"
 							+ "The example below indicates channels 1 through 5, followed by channel 10. This is equivalent to '1,2,3,4,5,10'<BR></font></BODY></HTML>";
 
-			int numFields = 2;
+//			int numFields = 3;
 			DataEntryDialog dataEntryDialog = new DataEntryDialog(gui, "Reach Summary Information", instructions, 
 					names, initValue, dataTypes, disableIfNull, tooltips, true);
 			int response=dataEntryDialog.getResponse();
 			if(response==DataEntryDialog.OK) {
 				String reachTitle = dataEntryDialog.getValue(names[0]);
 				String channelNumbersString = dataEntryDialog.getValue(names[1]);
-				new CenterlineSummaryWindow(gui, net, reachTitle, channelNumbersString);
+				boolean downstreamToUpstream = Boolean.parseBoolean(dataEntryDialog.getValue(names[2]));
+				int downstreamToUpstreamInt = -Integer.MAX_VALUE;
+				if(downstreamToUpstream) {
+					downstreamToUpstreamInt = CenterlineSummaryWindow.START_AT_DOWNSTREAM_END;
+				}else {
+					downstreamToUpstreamInt = CenterlineSummaryWindow.START_AT_UPSTREAM_END;
+				}
+				new CenterlineSummaryWindow(gui, net, reachTitle, channelNumbersString, downstreamToUpstreamInt);
 			}
 		}
 	}//inner class DisplayReachSummaryWindow
