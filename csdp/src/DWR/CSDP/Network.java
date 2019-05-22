@@ -441,7 +441,7 @@ public class Network {
 	 * cross-section point
 	 */
 	public double[] find3DXsectPointCoord(String centerlineName, int xsectNum, int xsectPointNum) {
-		double[] returnValue = new double[2];
+		double[] returnValue = new double[3];
 		double[] originCoord = findXsectOriginVector(centerlineName, xsectNum);
 		double xOrigin = originCoord[CsdpFunctions.x1Index];
 		double yOrigin = originCoord[CsdpFunctions.y1Index];
@@ -462,8 +462,10 @@ public class Network {
 		double station = xsectPoint.getStationFeet();
 		double x = stationToX(xOrigin, xEndpoint, yOrigin, yEndpoint, station);
 		double y = stationToY(xOrigin, xEndpoint, yOrigin, yEndpoint, station);
-		returnValue[CsdpFunctions.x1Index] = x;
-		returnValue[CsdpFunctions.y1Index] = y;
+		double z = xsectPoint.getElevationFeet();
+		returnValue[CsdpFunctions.xIndex] = x;
+		returnValue[CsdpFunctions.yIndex] = y;
+		returnValue[CsdpFunctions.zIndex] = z;
 		return returnValue;
 	}
 
@@ -1060,5 +1062,104 @@ public class Network {
 			_gui.getPlanViewCanvas(0).redoNextPaint();
 			_gui.getPlanViewCanvas(0).repaint();		
 		}
+	}
+
+	/*
+	 * Find coord of smallest rectangle containing all centerline points and all cross-section line endpoints 
+	 * Probably need to modify to include xsect thickness, but this involves some complex trig functions, 
+	 * so won't be easy maybe do later.
+	 */
+	public double[] findCenterline3DDisplayRegion(String[] centerlineNames, double xsectThickness) {
+		double minX = Double.MAX_VALUE;
+		double maxX = -Double.MAX_VALUE;
+		double minY = Double.MAX_VALUE;
+		double maxY = -Double.MAX_VALUE;
+
+		//to include all data, find the longest cross-section line length, and create imaginary cross-section lines
+		//that have this length and are located at the upstream and downstream ends.
+		double[] maxXsectLineLength = new double[centerlineNames.length];
+		for(int i=0; i<centerlineNames.length; i++) {
+			String centerlineName = centerlineNames[i];
+			Centerline centerline = getCenterline(centerlineName);
+			maxXsectLineLength[i] = centerline.getMaximumXsectLineLength();
+		}
+		
+		for(int i=0; i<centerlineNames.length; i++) {
+			String centerlineName = centerlineNames[i];
+			Centerline centerline = getCenterline(centerlineName);
+//			for(int j=0; j<centerline.getNumXsects(); j++) {
+			for(int j=0; j<centerline.getNumCenterlinePoints(); j++) {
+				CenterlinePoint centerlinePoint = centerline.getCenterlinePoint(j);
+//				double[] centerlineSegmentEndpoints = findCenterlineSegmentCoord(centerlineName, j);
+				minX = Math.min(minX, centerlinePoint.getXFeet());
+				maxX = Math.max(maxX, centerlinePoint.getXFeet());
+
+				if(j==0) {
+					CenterlinePoint nextCenterlinePoint = centerline.getCenterlinePoint(j+1);
+					double x1 = centerlinePoint.getXFeet();
+					double y1 = centerlinePoint.getYFeet();
+					double x2 = nextCenterlinePoint.getXFeet();
+					double y2 = nextCenterlinePoint.getYFeet();
+					Xsect dummyXsect = new Xsect();
+					dummyXsect.putDistAlongCenterlineFeet(0.0);
+					dummyXsect.putXsectLineLengthFeet(maxXsectLineLength[i]);
+					double[] upstreamXsectLineCoord = findXsectLineCoord(x1, y1, x2, y2, dummyXsect, 0.0); 
+					double xsX1 = upstreamXsectLineCoord[CsdpFunctions.x1Index];
+					double xsY1 = upstreamXsectLineCoord[CsdpFunctions.y1Index];
+					double xsX2 = upstreamXsectLineCoord[CsdpFunctions.x2Index];
+					double xsY2 = upstreamXsectLineCoord[CsdpFunctions.y2Index];
+					minX = Math.min(minX, xsX1);
+					maxX = Math.max(maxX, xsX2);
+					minY = Math.min(minY, xsY1);
+					maxY = Math.max(maxY, xsY2);
+				}else if(j==centerlineNames.length-1) {
+					CenterlinePoint previousCenterlinePoint = centerline.getCenterlinePoint(j-1);
+					//now trick the routine by doing it backwards, to get an imaginary xsect at the downstream end.
+					double x1 = centerlinePoint.getXFeet();
+					double y1 = centerlinePoint.getYFeet();
+					double x2 = previousCenterlinePoint.getXFeet();
+					double y2 = previousCenterlinePoint.getYFeet();
+					Xsect dummyXsect = new Xsect();
+					dummyXsect.putDistAlongCenterlineFeet(0.0);
+					dummyXsect.putXsectLineLengthFeet(maxXsectLineLength[i]);
+					double[] downstreamXsectLineCoord = findXsectLineCoord(x1, y1, x2, y2, dummyXsect, 0.0);
+					double xsX1 = downstreamXsectLineCoord[CsdpFunctions.x1Index];
+					double xsY1 = downstreamXsectLineCoord[CsdpFunctions.y1Index];
+					double xsX2 = downstreamXsectLineCoord[CsdpFunctions.x2Index];
+					double xsY2 = downstreamXsectLineCoord[CsdpFunctions.y2Index];
+					minX = Math.min(minX, xsX1);
+					maxX = Math.max(maxX, xsX2);
+					minY = Math.min(minY, xsY1);
+					maxY = Math.max(maxY, xsY2);
+				}
+				//				minX -= xsectThickness/2;
+//				maxX += xsectThickness/2;
+//				need to Fix this
+				
+				minY = Math.min(minY, centerlinePoint.getYFeet());
+				maxY = Math.max(maxY, centerlinePoint.getYFeet());
+//				minY -= xsectThickness/2;
+//				maxY += xsectThickness/2;
+			}
+			for(int j=0; j<centerline.getNumXsects(); j++) {
+				double[] xsectEndpoints = findXsectLineCoord(centerlineName, j);
+				minX = Math.min(minX, xsectEndpoints[CsdpFunctions.x1Index]);
+				minX = Math.min(minX, xsectEndpoints[CsdpFunctions.x2Index]);
+				maxX = Math.max(maxX, xsectEndpoints[CsdpFunctions.x1Index]);
+				maxX = Math.max(maxX, xsectEndpoints[CsdpFunctions.x2Index]);
+				
+				minY = Math.min(minY, xsectEndpoints[CsdpFunctions.y1Index]);
+				minY = Math.min(minY, xsectEndpoints[CsdpFunctions.y2Index]);
+				maxY = Math.max(maxY, xsectEndpoints[CsdpFunctions.y1Index]);
+				maxY = Math.max(maxY, xsectEndpoints[CsdpFunctions.y2Index]);
+			}
+		}
+		double[] returnValues = new double[4];
+		returnValues[CsdpFunctions.x1Index] = minX;
+		returnValues[CsdpFunctions.x2Index] = maxX;
+		returnValues[CsdpFunctions.y1Index] = minY;
+		returnValues[CsdpFunctions.y2Index] = maxY;
+		
+		return returnValues;
 	}
 } // class Network

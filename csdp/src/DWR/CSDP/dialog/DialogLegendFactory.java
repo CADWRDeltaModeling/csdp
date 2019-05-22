@@ -16,11 +16,12 @@ import javax.swing.JToolBar;
 /**
  * Creates a JPanel containing a legend with specified title,
  * and each line containing a rectangle with specified color and a JLabel containing a string.
+ * Created for use by the DataEntryDialog class.
  * @author btom
  *
  */
 public class DialogLegendFactory {
-	public static JPanel createLegendPanel(String title, Color[] colors, String[] text) {
+	public static JPanel createLegendPanel(String title, Color[] colors, String[] text, boolean reverseOrder) {
 		//add a legend to identify required vs optional field colors
 		GridBagLayout legendLayout = new GridBagLayout();
 		GridBagConstraints legendLayoutConstraints = new GridBagConstraints();
@@ -43,7 +44,9 @@ public class DialogLegendFactory {
 			JButton button = new JButton("   ");
 			button.setBackground(colors[i]);
 			button.setEnabled(false);
-			JLabel label = new JLabel(text[i]);
+			String labelText = text[i];
+			if(reverseOrder) labelText = text[numLegendItems-i-1];
+			JLabel label = new JLabel(labelText);
 			legendLayoutConstraints.gridx=0;
 			legendLayoutConstraints.gridy=i+1;
 			legendPanel.add(button, legendLayoutConstraints);

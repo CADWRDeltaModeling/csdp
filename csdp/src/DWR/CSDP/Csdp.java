@@ -40,6 +40,8 @@
 */
 package DWR.CSDP;
 
+import org.apache.log4j.BasicConfigurator;
+
 import DWR.CSDP.semmscon.UseSemmscon;
 
 /**
@@ -54,6 +56,9 @@ public class Csdp {
 	 * main method for Csdp
 	 */
 	public static void main(String args[]) {
+		//this is required for jzy3d library, used for 3d plotting of bathymetry points.
+		BasicConfigurator.configure();
+
 		try {
 			App app = new App();
 			// if(args.length > 0){

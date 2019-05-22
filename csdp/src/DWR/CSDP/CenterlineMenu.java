@@ -656,6 +656,27 @@ public class CenterlineMenu {
 		}
 	}//class AddXSAtComputationalPoints
 
+	/*
+	 * Displays centerline and xsect lines with bathymetry in 3d view
+	 */
+	public class DisplayCenterline3DView implements ActionListener {
+
+		public void actionPerformed(ActionEvent arg0) {
+			_net = _gui.getNetwork();
+			if (DEBUG)
+				System.out.println("net=" + _net);
+			_gui.pressArrowButton();
+//			Xsect xsect = _net.getSelectedXsect();
+			String centerlineName = _net.getSelectedCenterlineName();
+//			if (_app._xsectGraph.containsKey(centerlineName + "_" + xsectNum)) {
+//				JOptionPane.showMessageDialog(_gui, "You are already viewing that cross-section!", "", JOptionPane.ERROR_MESSAGE);
+//				// ((XsectGraph)(_app._xsectGraph.get(centerlineName+"_"+xsectNum))).setVisible(true);
+//			} else {
+			_app.viewCenterlinesWithBathymetry3D(new String[] {centerlineName}, CsdpFunctions.getXsectThickness(), null);
+//			} // if		
+		}
+
+	}//class DisplayCenterline3DView
 	
 	Network _net;
 	App _app;

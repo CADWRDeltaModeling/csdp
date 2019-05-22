@@ -2218,10 +2218,6 @@ public class CsdpFunctions {
 	 * Sets font size for tick labels on line charts
 	 */
 	private static final float LINE_CHART_CATEGORY_TICK_LABEL_FONT_SIZE = 16.0f;
-	/**
-	 * version number-displayed at top of frame
-	 */
-	private static final String _version = "2.6_20190410";
 
 	public static boolean movePolygonCenterlinePointsToLeveeCenterlineDialogOpen() {
 		return MOVE_POLYGON_CENTERLINE_POINTS_TO_LEVEE_CENTERLINE_DIALOG_OPEN;
@@ -2231,6 +2227,14 @@ public class CsdpFunctions {
 		MOVE_POLYGON_CENTERLINE_POINTS_TO_LEVEE_CENTERLINE_DIALOG_OPEN = b;		
 	}
 
+	/*
+	 * If true, when requesting a 3d plot, an information dialog will be displayed first.
+	 * Reason: it is necessary for user to right drag on plot before it will be displayed properly. 
+	 */
+	public static boolean DISPLAY_3D_PLOT_INFO_MSG = true;
 
-
+	/**
+	 * version number-displayed at top of frame
+	 */
+	private static final String _version = "2.6_20190522";
 }// class CsdpFunctions

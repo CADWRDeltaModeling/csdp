@@ -219,7 +219,12 @@ public class CenterlineSummaryWindow extends JFrame {
 					legendText[i] = this.chanNumbersVector.get(i);
 				}
 				String title = "Legend"; 
-				JPanel legendPanel = DialogLegendFactory.createLegendPanel(title, legendColors, legendText);
+				//Beware: reversing order only affects channels, not cross-sections.
+				boolean reverseOrder = true;
+				if(this.startingEnd==START_AT_UPSTREAM_END) {
+					reverseOrder = false;
+				}
+				JPanel legendPanel = DialogLegendFactory.createLegendPanel(title, legendColors, legendText, reverseOrder);
 				//for some reason the colors used in the plots doesn't match the colors here, so fix before adding legend.
 				JPanel channelsAndLegendPanel = new JPanel(new BorderLayout());
 

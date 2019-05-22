@@ -45,6 +45,7 @@ import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.util.Hashtable;
 import java.util.Random;
+import java.util.Vector;
 
 /**
  * Stores bathymetry data using automatically resized arrays. All coordinates
@@ -471,6 +472,33 @@ public class BathymetryData {
 		qsort(left, right - 1);
 	} // sortBathymetryData
 
+	/*
+	 * Given a set of points that define a polygon, find all bathymetry points that are in it.
+	 */
+	public Vector<Integer> findPointIndexesInRegionFor3dDisplay(double[] specifiedRectangularRegion) {
+		Vector<Integer> returnValues = new Vector<Integer>();
+		double[] coord = new double[3];
+		Polygon regionPolygon = new Polygon();
+		int x1 = (int) specifiedRectangularRegion[x1Index];
+		int x2 = (int) specifiedRectangularRegion[x2Index];
+		int y1 = (int) specifiedRectangularRegion[y1Index];
+		int y2 = (int) specifiedRectangularRegion[y2Index];
+		regionPolygon.addPoint(x1, y1);
+		regionPolygon.addPoint(x2, y1);
+		regionPolygon.addPoint(x2, y2);
+		regionPolygon.addPoint(x1, y2);
+		for(int i=0; i<getNumLines(); i++) {
+			getPointFeet(i, coord);
+			double x = coord[0];
+			double y = coord[1];
+			double z = coord[2];
+			if(regionPolygon.contains(x, y)) {
+				returnValues.add(i);
+			}
+		}
+		return returnValues;
+	}//findPointInRegionFor3dDisplay
+	
 	/**
 	 * finds all bathymetry data points that are within the specified polygon.
 	 * this is used to select points to be plotted in cross-section view

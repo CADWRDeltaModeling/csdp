@@ -1520,6 +1520,18 @@ public class Centerline {
 			removeXsect(i);
 		}
 	}
+
+	/*
+	 * For Centerline 3d plot
+	 */
+	public double getMaximumXsectLineLength() {
+		double maxLength = -Double.MAX_VALUE;
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			maxLength = Math.max(maxLength, xsect.getXsectLineLengthFeet());
+		}
+		return maxLength;
+	}
 	
 
 }// class Centerline

@@ -163,8 +163,8 @@ public class NetworkAsciiOutput extends NetworkOutput {
 								xPoint = xsect.getXsectPoint(m);
 								if (get3DOutput()) {
 									double[] threeDCoord = _net.find3DXsectPointCoord(centerlineName, k, m);
-									line += threeDCoord[CsdpFunctions.x1Index] + ",";
-									line += threeDCoord[CsdpFunctions.y1Index] + ",";
+									line += threeDCoord[CsdpFunctions.xIndex] + ",";
+									line += threeDCoord[CsdpFunctions.yIndex] + ",";
 									line += xPoint.getElevationFeet() + "\n" + "       ";
 								} else {
 									line += xPoint.getStationFeet() + ",";

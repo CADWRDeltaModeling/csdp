@@ -328,7 +328,7 @@ public class DataEntryDialog extends JDialog {
 			createInstructionsDialog(instructions);
 
 			JPanel legendPanel = DialogLegendFactory.createLegendPanel("Legend", new Color[] {REQUIRED_COLOR, OPTIONAL_COLOR}, 
-					new String[] {"Required Entry", "Optional Entry"});
+					new String[] {"Required Entry", "Optional Entry"}, false);
 			
 			//create panel to load/save default values to/from .csv file. Loading the file will put values into text fields/text areas.
 			JPanel defaultButtonsPanel = new JPanel(new BorderLayout());
@@ -422,8 +422,11 @@ public class DataEntryDialog extends JDialog {
 		}//if inputArgsOk
 	}// constructor
 
+	/*
+	 * When help button clicked, displays a separate dialog displaying instructions. 
+	 * Add a JTextArea or a JEditorPane (for HTML) displaying instructions
+	 */
 	private void createInstructionsDialog(String instructions) {
-		//Add a JTextArea or a JEditorPane (for HTML) displaying instructions
 		JTextComponent instructionsJTC = null;
 //		JTextComponent instructionsJTC = null;
 		if(instructions.indexOf("<HTML>")>=0 || instructions.indexOf("<html>")>0){
@@ -526,12 +529,14 @@ public class DataEntryDialog extends JDialog {
 				}
 				//always add the document listener after setting default value
 				((JFormattedTextField)jComponent).getDocument().addDocumentListener(new ValidateListener(this));
+				((JFormattedTextField)jComponent).setColumns(10);
 			}else if(dataType==STRING_TYPE) {
 				jComponent = new JTextField("");
 				if(defaultValue!=null && defaultValue.length()>0) {
 					((JTextField)jComponent).setText(defaultValue);
 				}
 				//always add the document listener after setting default value
+				((JTextField)jComponent).setColumns(10);
 				((JTextField)jComponent).getDocument().addDocumentListener(new ValidateListener(this));
 			}else if(dataType==BOOLEAN_TYPE) {
 				boolean initVal = true;
@@ -556,7 +561,7 @@ public class DataEntryDialog extends JDialog {
 					JScrollPane jScrollPane = new JScrollPane(jTextComponent);
 					componentToAddToDialog = jScrollPane;
 				}else {
-					jTextComponent = new JTextField();
+					jTextComponent = new JTextField(50);
 					componentToAddToDialog = jTextComponent;
 				}
 				if(defaultValue!=null && defaultValue.length()>0) {
@@ -614,7 +619,7 @@ public class DataEntryDialog extends JDialog {
 				}
 				clearSelectionButton.addActionListener(new ClearSelection(jTextComponent));
 			}
-
+			
 			jComponent.setFont(jComponent.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
 			String adjustedTooltip = "";
 			if(tooltip!=null) {

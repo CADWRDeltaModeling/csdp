@@ -45,6 +45,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.util.List;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemListener;
@@ -79,6 +80,8 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
+import DWR.CSDP.CenterlineMenu.DisplayCenterline3DView;
+import DWR.CSDP.NetworkMenu.NDisplay3dReachView;
 import DWR.CSDP.dialog.DataEntryDialog;
 
 /**
@@ -219,14 +222,14 @@ public class CsdpFrame extends JFrame {
 		tRemoveAllCrossSections, tFindLandmarkDistAlong;
 	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
 	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nList, nSummary, nClearNetwork, 
-		nDisplayReachSummary, nCalculate, nExportToSEFormat, nExportTo3DFormat, nAWDSummaryReport, nXSCheckReport, 
+		nDisplayReachSummary, nDisplay3dReachView, nCalculate, nExportToSEFormat, nExportTo3DFormat, nAWDSummaryReport, nXSCheckReport, 
 		nDConveyanceReport, nNetworkSummaryReport, nNetworkColorLegend;
 	private JMenuItem lSave, lSaveAs, lExportToWKT, lAdd, lMove, lEdit, lDelete, lHelp;
 
 	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;
 
 	private JCheckBoxMenuItem noChannelLengthsOnly;
-	private JMenuItem cCursor, cCreate, cDSMCreate, cRemove, cDisplaySummary, cPlotAllCrossSections, cDeletePointsInWindow,
+	private JMenuItem cCursor, cCreate, cDSMCreate, cRemove, cDisplaySummary, cView3d, cPlotAllCrossSections, cDeletePointsInWindow,
 		cDeletePointsOutsideWindow, cAddXSAtComputationalPoints;
 	/*
 	 * For adjusting centerlines that are actually representations of polygons used to estimate channel volume
@@ -1049,6 +1052,7 @@ public class CsdpFrame extends JFrame {
 		// cfNetwork.add(nSummary = new JMenuItem("Summary"));
 		// cfNetwork.addSeparator();
 		cfNetwork.add(nDisplayReachSummary = new JMenuItem("View Reach Summary"));
+		cfNetwork.add(nDisplay3dReachView = new JMenuItem("3d Reach View"));
 		cfNetwork.add(nCalculate = new JMenuItem("Calculate"));
 		nCalculate.setMnemonic(KeyEvent.VK_C);
 
@@ -1085,6 +1089,7 @@ public class CsdpFrame extends JFrame {
 		//// ActionListener nListListener = networkMenu.new NList();
 		//// ActionListener nSummaryListener = networkMenu.new NSummary();
 		ActionListener nDisplayReachSummaryListener = networkMenu.new NDisplayReachSummaryWindow(this);
+		ActionListener nDisplay3dReachViewListener = networkMenu.new NDisplay3dReachView(this);
 		ActionListener nCalculateListener = networkMenu.new NCalculate(this);
 		ActionListener nNetworkSummaryReportListener = networkMenu.new NNetworkSummaryReport(this);
 		ActionListener nShowNetworkColorLegendListener = networkMenu.new NShowNetworkColorLegend();
@@ -1105,6 +1110,7 @@ public class CsdpFrame extends JFrame {
 		//// nList.addActionListener(nListListener);
 		//// nSummary.addActionListener(nSummaryListener);
 		nDisplayReachSummary.addActionListener(nDisplayReachSummaryListener);
+		nDisplay3dReachView.addActionListener(nDisplay3dReachViewListener);
 		nCalculate.addActionListener(nCalculateListener);
 //		nAWDSummaryReport.addActionListener(nAWDSummaryReportListener);
 //		nXSCheckReport.addActionListener(nXSCheckReportListener);
@@ -1224,6 +1230,7 @@ public class CsdpFrame extends JFrame {
 		// cfCenterline.add(cList = new JMenuItem("List"));
 		// cfCenterline.add(cSummary = new JMenuItem("Summary"));
 		cfCenterline.add(cDisplaySummary = new JMenuItem("View Centerline Summary"));
+		cfCenterline.add(cView3d = new JMenuItem("Centerline 3D View"));
 		cfCenterline.add(cPlotAllCrossSections = new JMenuItem("Multiple Cross-Section Graph"));
 		cfCenterline.add(cDeletePointsInWindow = new JMenuItem("Delete Centerline Points In Window"));
 		cfCenterline.add(cDeletePointsOutsideWindow = new JMenuItem("Delete Centerline Points Outside of Window"));
@@ -1251,6 +1258,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener cRemoveXsectListener = _centerlineMenu.new CRemoveXsect();
 		ActionListener cMoveXsectListener = _centerlineMenu.new CMoveXsect();
 		ActionListener cDisplaySummaryListener = _centerlineMenu.new DisplayCenterlineSummaryWindow();
+		ActionListener cView3dListener = _centerlineMenu.new DisplayCenterline3DView(); 
 		ActionListener cPlotAllCrossSectionsListener = _centerlineMenu.new PlotAllCrossSections();
 		ActionListener cDeletePointsInWindowListener = _centerlineMenu.new DeleteCenterlinePointsInWindow();
 		ActionListener cDeletePointsOutsideOfWindowListener = _centerlineMenu.new DeleteCenterlinePointsOutsideOfWindow();
@@ -1263,6 +1271,7 @@ public class CsdpFrame extends JFrame {
 		// cRestore.addActionListener(cRestoreListener);
 		// cKeep.addActionListener(cKeepListener);
 		cDisplaySummary.addActionListener(cDisplaySummaryListener);
+		cView3d.addActionListener(cView3dListener);
 		cPlotAllCrossSections.addActionListener(cPlotAllCrossSectionsListener);
 		cDeletePointsInWindow.addActionListener(cDeletePointsInWindowListener);
 		cDeletePointsOutsideWindow.addActionListener(cDeletePointsOutsideOfWindowListener);
@@ -1639,6 +1648,7 @@ public class CsdpFrame extends JFrame {
 			_addXsectButton.setEnabled(true);
 			_removeXsectButton.setEnabled(true);
 			cDisplaySummary.setEnabled(true);
+			cView3d.setEnabled(true);
 			cPlotAllCrossSections.setEnabled(true);
 			cDeletePointsInWindow.setEnabled(true);
 			cDeletePointsOutsideWindow.setEnabled(true);
@@ -1669,6 +1679,7 @@ public class CsdpFrame extends JFrame {
 			lMovePopup.setEnabled(false);
 			lDeletePopup.setEnabled(false);
 			cDisplaySummary.setEnabled(false);
+			cView3d.setEnabled(true);
 			cPlotAllCrossSections.setEnabled(false);
 			cDeletePointsInWindow.setEnabled(false);
 			cDeletePointsOutsideWindow.setEnabled(false);
@@ -1816,7 +1827,9 @@ public class CsdpFrame extends JFrame {
 		cDSMCreate.setEnabled(false);
 		//// cRename.setEnabled(false);
 		cDisplaySummary.setEnabled(false);
+		cView3d.setEnabled(false);
 		nDisplayReachSummary.setEnabled(false);
+		nDisplay3dReachView.setEnabled(false);
 		cPlotAllCrossSections.setEnabled(false);
 		cDeletePointsInWindow.setEnabled(false);
 		cDeletePointsOutsideWindow.setEnabled(false);
@@ -1893,6 +1906,7 @@ public class CsdpFrame extends JFrame {
 		cCreate.setEnabled(true);
 		cDSMCreate.setEnabled(true);
 		cDisplaySummary.setEnabled(false);
+		cView3d.setEnabled(false);
 //		cPlotAllCrossSections.setEnabled(false);
 		cAddXSAtComputationalPoints.setEnabled(false);
 
@@ -1937,6 +1951,7 @@ public class CsdpFrame extends JFrame {
 		nExportToSEFormat.setEnabled(true);
 		nExportTo3DFormat.setEnabled(true);
 		nDisplayReachSummary.setEnabled(true);
+		nDisplay3dReachView.setEnabled(true);
 		nCalculate.setEnabled(true);
 		_networkCalculateButton.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
@@ -1995,6 +2010,7 @@ public class CsdpFrame extends JFrame {
 		nExportTo3DFormat.setEnabled(false);
 		nCalculate.setEnabled(false);
 		nDisplayReachSummary.setEnabled(false);
+		nDisplay3dReachView.setEnabled(false);
 		_networkCalculateButton.setEnabled(false);
 		dFitByNetworkMenuItem.setEnabled(false);
 		tCalcRect.setEnabled(false);
@@ -2022,6 +2038,7 @@ public class CsdpFrame extends JFrame {
 		nExportTo3DFormat.setEnabled(true);
 		nCalculate.setEnabled(true);
 		nDisplayReachSummary.setEnabled(true);
+		nDisplay3dReachView.setEnabled(true);
 		_networkCalculateButton.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
 		tCalcRect.setEnabled(true);
@@ -2064,7 +2081,9 @@ public class CsdpFrame extends JFrame {
 		_deleteButton.setEnabled(true);
 		_addXsectButton.setEnabled(true);
 		cDisplaySummary.setEnabled(true);
+		cView3d.setEnabled(true);
 		nDisplayReachSummary.setEnabled(true);
+		nDisplay3dReachView.setEnabled(true);
 		cPlotAllCrossSections.setEnabled(true);
 		cDeletePointsInWindow.setEnabled(true);
 		cDeletePointsOutsideWindow.setEnabled(true);
@@ -2446,18 +2465,25 @@ public class CsdpFrame extends JFrame {
 	private void setDefaultColors(int numColors) {
 		// to make rainbow, use HSB colors. Set S to 100, B to 100, and vary H
 		// from 1 to 280
+		
+		List<Color> colorsList = ColorGenerator.pick(numColors);
+		
 		System.out.println("setDefaultColors: " + numColors);
 		_colorsVector.clear();
-		float increment = (float) (0.8 / ((float) numColors - 1));
-		float s = (float) 1.0;
-		float b = (float) 1.0;
 
-		for (int h = 0; h < numColors; h++) {
-			float hue = (float) h * increment;
-			int rgb = Color.HSBtoRGB(hue, s, b);
-			_colorsVector.addElement(new Color(rgb));
-			System.out.println("adding color " + hue + "," + s + "," + b + "," + rgb);
+		for(int i=colorsList.size()-1; i>0; i--) {
+			_colorsVector.add(colorsList.get(i));
 		}
+		//		float increment = (float) (0.8 / ((float) numColors - 1));
+//		float s = (float) 1.0;
+//		float b = (float) 1.0;
+//
+//		for (int h = 0; h < numColors; h++) {
+//			float hue = (float) h * increment;
+//			int rgb = Color.HSBtoRGB(hue, s, b);
+//			_colorsVector.addElement(new Color(rgb));
+//			System.out.println("adding color " + hue + "," + s + "," + b + "," + rgb);
+//		}
 
 		//this might do a better job, but colors can be hard to distinguish
 		//	 * Copied from https://stackoverflow.com/questions/223971/generating-spectrum-color-palettes

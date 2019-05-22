@@ -49,6 +49,22 @@ import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import org.jzy3d.chart.Chart;
+import org.jzy3d.chart.ChartLauncher;
+import org.jzy3d.chart.factories.AWTChartComponentFactory;
+import org.jzy3d.colors.Color;
+import org.jzy3d.colors.ColorMapper;
+import org.jzy3d.colors.colormaps.ColorMapRainbow;
+import org.jzy3d.maths.Coord3d;
+import org.jzy3d.maths.Rectangle;
+import org.jzy3d.plot3d.primitives.LineStrip;
+import org.jzy3d.plot3d.primitives.Point;
+import org.jzy3d.plot3d.primitives.Scatter;
+import org.jzy3d.plot3d.primitives.ScatterMultiColor;
+import org.jzy3d.plot3d.rendering.canvas.Quality;
+import org.jzy3d.plot3d.text.align.Halign;
+import org.jzy3d.plot3d.text.drawable.DrawableTextBitmap;
+
 import DWR.CSDP.XsectBathymetryData;
 import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.GISSummaryStatisticGraphFrame;
@@ -1981,5 +1997,98 @@ public class App {
 			}
 		}//if Ok button clicked
 	}//findChanDistForLandmarks
+
+	/*
+	 * Use jzy3d to display 3d plot of bathymetry data with cross-section lines.
+	 */
+	public void viewCenterlinesWithBathymetry3D(String[] centerlineNames, double xsectThickness, String windowTitle) {
+		if(CsdpFunctions.DISPLAY_3D_PLOT_INFO_MSG) {
+			int response = JOptionPane.showConfirmDialog(_csdpFrame, "For some reason, you must right drag with the mouse on the graph to get it to display "
+					+ "properly. Show this message again?", "Message", JOptionPane.YES_NO_OPTION);
+			if(response==JOptionPane.NO_OPTION) {
+				CsdpFunctions.DISPLAY_3D_PLOT_INFO_MSG = false;
+			}
+		}
+		_csdpFrame.setCursor(CsdpFunctions._waitCursor);
+		Chart chart = new AWTChartComponentFactory().newChart(Quality.Advanced, "awt");
+		double[] centerlineDataDisplayBounds = _net.findCenterline3DDisplayRegion(centerlineNames, xsectThickness);
+		Vector<Integer> bathymetryPointIndexes = _bathymetryData.findPointIndexesInRegionFor3dDisplay(centerlineDataDisplayBounds);
+		
+		int size = bathymetryPointIndexes.size();
+		Coord3d[] points = new Coord3d[size];
+
+		// Create scatter points
+		double[] point = new double[3];
+		double minZ = Double.MAX_VALUE;
+		double maxZ = -Double.MAX_VALUE;
+		
+		for (int i = 0; i < size; i++) {
+			_bathymetryData.getPointFeet(bathymetryPointIndexes.get(i), point);
+			double x = point[0];
+			double y = point[1];
+			double z = point[2];
+			minZ = Math.min(minZ, z);
+			maxZ = Math.max(maxZ, z);
+			points[i] = new Coord3d(x, y, z);
+		}
+		ScatterMultiColor scatter = new ScatterMultiColor(points, new ColorMapper(new ColorMapRainbow(), minZ, maxZ));
+		//this will change the point width. setting to a value less than 1 seems to have no effect. This would be helpful for dense data sets...
+		//		scatter.setWidth(1.0f);
+		scatter.setLegendDisplayed(true);
+		//		chart.getAxeLayout().setMainColor(Color.WHITE);
+		chart.getView().setBackgroundColor(new Color(59,59,59));
+		chart.getScene().add(scatter);
+
+		//now add the user-created cross-section points 
+		Coord3d[] xsectPoints = null;
+		for(int i=0; i<centerlineNames.length; i++) {
+			String centerlineName = centerlineNames[i];
+			Centerline centerline = _net.getCenterline(centerlineName);
+			for(int j=0; j<centerline.getNumXsects(); j++) {
+				Xsect xsect = centerline.getXsect(j);
+				xsectPoints = new Coord3d[xsect.getNumPoints()];
+				//now add a linestrip to connect all the user-defined cross-section points
+				// (from https://groups.google.com/forum/#!msg/jzy3d/kN8-a2W1laY/Ul7fxN1EPLUJ)
+				LineStrip lineStrip = new LineStrip();
+				for(int k=0; k<xsect.getNumPoints(); k++) {
+					double[] xsectPointCoord = _net.find3DXsectPointCoord(centerlineName, j, k);
+					double x = xsectPointCoord[CsdpFunctions.xIndex];
+					double y = xsectPointCoord[CsdpFunctions.yIndex];
+					double z = xsectPointCoord[CsdpFunctions.zIndex];
+					Coord3d coord3d = new Coord3d(x, y, z);
+					xsectPoints[k]= coord3d; 
+					lineStrip.add(new Point(coord3d, Color.WHITE));
+				}
+				lineStrip.setDisplayed(true);
+				
+				Scatter xsectScatter = new Scatter(xsectPoints, Color.WHITE);
+				xsectScatter.setWidth(5.0f);
+				chart.getScene().add(xsectScatter);
+				chart.getScene().add(lineStrip);
+				
+				//now add cross-section labels
+				DrawableTextBitmap drawableTextBitmap = new DrawableTextBitmap("  "+centerlineName+"_"+j, 
+						lineStrip.getLastPoint().getCoord(), Color.WHITE);
+				drawableTextBitmap.setHalign(Halign.RIGHT);
+				//you can also use other text objects, but I don't know what the difference is.
+//				DrawableTextWrapper drawableTextWrapper = new DrawableTextWrapper("  "+centerlineName+"_"+j, lineStrip.getLastPoint().getCoord(), 
+//						Color.WHITE, new TextBitmapRenderer());
+				chart.getScene().getGraph().add(drawableTextBitmap);
+			}
+		}//for each centerlineName, add user-created cross-section points
+		
+		if(windowTitle==null || windowTitle.length()<1) {
+			windowTitle = "";
+			for(int i=0; i<centerlineNames.length; i++) {
+				if(i>0) windowTitle += "_";
+				windowTitle += centerlineNames[i];
+			}
+		}
+		// using chart.open will create a static chart (you can't rotate it)
+		//		chart.open(chartTitle, 1000, 800);
+		ChartLauncher.openChart(chart, new Rectangle(1000, 800), windowTitle);
+		_csdpFrame.setCursor(CsdpFunctions._defaultCursor);
+
+	}//viewCenterlinesWithBathymetry3D
 
 }// class App

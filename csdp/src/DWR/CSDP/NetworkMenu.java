@@ -48,6 +48,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.util.HashSet;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -620,7 +621,7 @@ public class NetworkMenu {
 					"Duplicate Station Values & Exceeds Max Area Ratio & -dK in Intertidal Zone"
 			};
 			String title = "Network Color Legend";
-			JPanel legendPanel = DialogLegendFactory.createLegendPanel(title, colors, text);
+			JPanel legendPanel = DialogLegendFactory.createLegendPanel(title, colors, text, false);
 			JFrame legendFrame = new JFrame(title);
 			legendFrame.setLayout(new BorderLayout());
 			legendFrame.getContentPane().add(legendPanel, BorderLayout.NORTH);
@@ -630,6 +631,53 @@ public class NetworkMenu {
 		}
 	}//class NShowNetworkColorLegend
 
+	public class NDisplay3dReachView implements ActionListener {
+		private CsdpFrame gui;
+
+		public NDisplay3dReachView(CsdpFrame gui) {
+			this.gui = gui;
+		}
+		
+		public void actionPerformed(ActionEvent arg0) {
+			Network net = gui.getNetwork();
+
+			String names[] = new String[2];
+			String initValue[] = new String[2];
+			names[0] = "Reach Name";
+			names[1] = "Channel Numbers";
+			initValue[0] = "Reach";
+			initValue[1] = "17,1-5";
+			
+			int[] dataTypes = new int[] {DataEntryDialog.STRING_TYPE, DataEntryDialog.STRING_TYPE};
+			String[] tooltips = new String[] {null, null};
+			boolean[] disableIfNull = new boolean[] {true, true};
+
+			String instructions = 
+					"<HTML><BODY><B>Display 3d Reach View</B><BR>"
+							+ "1. Enter a <B>reach name</B>. This will appear in graph and window titles.<BR><BR>"
+							+ "2. Enter a string that identifies a <B>range of channels</B> that you would like to view. The string should only<BR> "
+							+ "consist of numbers separated by commas or hyphens. A range of channel numbers can be specified using two numbers separated <BR>"
+							+ "by a hyphen. Hyphen-separated values can be speficied in reverse order, to reverse the order of display. <BR></font></BODY></HTML>";
+
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(gui, "3d Reach View Information", instructions, 
+					names, initValue, dataTypes, disableIfNull, tooltips, true);
+			int response=dataEntryDialog.getResponse();
+			if(response==DataEntryDialog.OK) {
+				String reachTitle = dataEntryDialog.getValue(names[0]);
+				String channelNumbersString = dataEntryDialog.getValue(names[1]);
+				int downstreamToUpstreamInt = -Integer.MAX_VALUE;
+				Vector<String> centerlineNames = CsdpFunctions.parseChanGroupString(gui, channelNumbersString);
+				String[] centerlineNamesArray = new String[centerlineNames.size()];
+				for(int i=0; i<centerlineNames.size(); i++) {
+					centerlineNamesArray[i]= centerlineNames.get(i); 
+				}
+				_app.viewCenterlinesWithBathymetry3D(centerlineNamesArray, CsdpFunctions.getXsectThickness(), reachTitle);
+			}
+		}
+	}//inner class NDisplay3dReachView
+
+
+	
 	public class NDisplayReachSummaryWindow implements ActionListener {
 
 		private CsdpFrame gui;

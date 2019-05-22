@@ -1084,32 +1084,34 @@ public class Xsect {
 		return a;
 	}// getArea
 
-	/**
-	 * calculate and return the contribution to the cross-section area at the
-	 * specified elevation of the line segment whose leftmost point index is
-	 * equal to the specified index
-	 */
-	private double getAreaSqft(int index, double elevation) {
-		double sLeft = getXsectPoint(index).getStationFeet();
-		double eLeft = getXsectPoint(index).getElevationFeet();
-		double sRight = getXsectPoint(index + 1).getStationFeet();
-		double eRight = getXsectPoint(index + 1).getElevationFeet();
-		double a = 0.0;
-		if (aboveWater(eLeft, eRight, elevation))
-			a = 0.0;
-		if (completelySubmerged(eLeft, eRight, elevation)) {
-			// trapezoidal area
-			a = getWidthFeet(index, elevation) * 0.5 * (Math.abs(elevation - eLeft) + Math.abs(elevation - eRight));
-		}
-		if (partiallySubmerged(eLeft, eRight, elevation)) {
-			double intersectionStation = interp(sLeft, sRight, eLeft, eRight, elevation);
-			double lowerPointElevation = getLowerPointElevationFeet(sLeft, sRight, eLeft, eRight);
-			double lowerPointStation = getLowerPointStationFeet(sLeft, sRight, eLeft, eRight);
-			// triangular area
-			a = 0.5 * getWidthFeet(index, elevation) * Math.abs(elevation - lowerPointElevation);
-		}
-		return a;
-	}// getArea
+	//This is the old way. For some reason, it's not consistent enough with width results. 
+	//Result: DSM2 hits maxiter.
+//	/**
+//	 * calculate and return the contribution to the cross-section area at the
+//	 * specified elevation of the line segment whose leftmost point index is
+//	 * equal to the specified index
+//	 */
+//	private double getAreaSqft(int index, double elevation) {
+//		double sLeft = getXsectPoint(index).getStationFeet();
+//		double eLeft = getXsectPoint(index).getElevationFeet();
+//		double sRight = getXsectPoint(index + 1).getStationFeet();
+//		double eRight = getXsectPoint(index + 1).getElevationFeet();
+//		double a = 0.0;
+//		if (aboveWater(eLeft, eRight, elevation))
+//			a = 0.0;
+//		if (completelySubmerged(eLeft, eRight, elevation)) {
+//			// trapezoidal area
+//			a = getWidthFeet(index, elevation) * 0.5 * (Math.abs(elevation - eLeft) + Math.abs(elevation - eRight));
+//		}
+//		if (partiallySubmerged(eLeft, eRight, elevation)) {
+//			double intersectionStation = interp(sLeft, sRight, eLeft, eRight, elevation);
+//			double lowerPointElevation = getLowerPointElevationFeet(sLeft, sRight, eLeft, eRight);
+//			double lowerPointStation = getLowerPointStationFeet(sLeft, sRight, eLeft, eRight);
+//			// triangular area
+//			a = 0.5 * getWidthFeet(index, elevation) * Math.abs(elevation - lowerPointElevation);
+//		}
+//		return a;
+//	}// getArea
 
 	/**
 	 * calculate and return the contribution to the cross-section wetted
