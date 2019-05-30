@@ -40,10 +40,13 @@
 */
 package DWR.CSDP;
 
+
 import java.io.File;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JFrame;
@@ -51,16 +54,21 @@ import javax.swing.JOptionPane;
 
 import org.jzy3d.chart.Chart;
 import org.jzy3d.chart.ChartLauncher;
+import org.jzy3d.chart.controllers.camera.AbstractCameraController;
+import org.jzy3d.chart.controllers.mouse.camera.ICameraMouseController;
+import org.jzy3d.chart.controllers.thread.camera.CameraThreadController;
 import org.jzy3d.chart.factories.AWTChartComponentFactory;
 import org.jzy3d.colors.Color;
 import org.jzy3d.colors.ColorMapper;
 import org.jzy3d.colors.colormaps.ColorMapRainbow;
 import org.jzy3d.maths.Coord3d;
 import org.jzy3d.maths.Rectangle;
+import org.jzy3d.plot3d.builder.Builder;
 import org.jzy3d.plot3d.primitives.LineStrip;
 import org.jzy3d.plot3d.primitives.Point;
 import org.jzy3d.plot3d.primitives.Scatter;
 import org.jzy3d.plot3d.primitives.ScatterMultiColor;
+import org.jzy3d.plot3d.primitives.Shape;
 import org.jzy3d.plot3d.rendering.canvas.Quality;
 import org.jzy3d.plot3d.text.align.Halign;
 import org.jzy3d.plot3d.text.drawable.DrawableTextBitmap;
@@ -2025,7 +2033,7 @@ public class App {
 		Vector<Integer> bathymetryPointIndexes = _bathymetryData.findPointIndexesInRegionFor3dDisplay(centerlineDataDisplayBounds);
 		
 		int size = bathymetryPointIndexes.size();
-		Coord3d[] points = new Coord3d[size];
+		Coord3d[] bathymetryCoord3dArray = new Coord3d[size];
 
 		// Create scatter points
 		double[] point = new double[3];
@@ -2039,9 +2047,9 @@ public class App {
 			double z = point[2];
 			minZ = Math.min(minZ, z);
 			maxZ = Math.max(maxZ, z);
-			points[i] = new Coord3d(x, y, z);
+			bathymetryCoord3dArray[i] = new Coord3d(x, y, z);
 		}
-		ScatterMultiColor scatter = new ScatterMultiColor(points, new ColorMapper(new ColorMapRainbow(), minZ, maxZ));
+		ScatterMultiColor scatter = new ScatterMultiColor(bathymetryCoord3dArray, new ColorMapper(new ColorMapRainbow(), minZ, maxZ));
 		//this will change the point width. setting to a value less than 1 seems to have no effect. This would be helpful for dense data sets...
 		//		scatter.setWidth(1.0f);
 		scatter.setLegendDisplayed(true);
@@ -2128,6 +2136,11 @@ public class App {
 			}
 		}
 		
+		//create shape from bathymetry points--doesn't look right yet...
+//		ArrayList<Coord3d>bathymetryCoord3dList = new ArrayList<Coord3d>(Arrays.asList(bathymetryCoord3dArray)); 
+//		Shape bathymetrySurface = (Shape) Builder.buildDelaunay(bathymetryCoord3dList);
+//		chart.getScene().getGraph().add(bathymetrySurface);
+		
 		if(windowTitle==null || windowTitle.length()<1) {
 			windowTitle = "";
 			for(int i=0; i<centerlineNames.length; i++) {
@@ -2159,7 +2172,11 @@ public class App {
 //			
 //		});
 
-		
+		//add my custom controller which enables scaling in x and y directions (default was only z).
+		//Ctrl-MouseWheel: zoom x axis
+		//Alt-MouseWheel: zoom y axis
+		//MouseWheel: zoom z axis
+		chart.addController(new Bathymetry3dAWTCameraMouseController());
 		ChartLauncher.openChart(chart, new Rectangle(1000, 800), windowTitle);
 		_csdpFrame.setCursor(CsdpFunctions._defaultCursor);
 
