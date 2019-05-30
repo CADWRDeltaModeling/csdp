@@ -1667,5 +1667,13 @@ public class XsectGraph extends JDialog implements ActionListener {
 	private double getXSPropElevation() {
 		return _xsPropElevation;
 	}
+
+	/*
+	 * called when cross-section window is closing and updates are to be saved.
+	 */
+	public void updateMainWindowInfoPanel() {
+		// TODO Auto-generated method stub
+		_gui.updateInfoPanel(_net.getCenterline(_centerlineName));
+	}
 	
 }// class XsectGraph

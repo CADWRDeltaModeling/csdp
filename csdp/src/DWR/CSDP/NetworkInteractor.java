@@ -370,7 +370,7 @@ public class NetworkInteractor extends ElementInteractor {
 						_gui.disableIfNoXsectSelected();
 						_net.setNewCenterlineName(cFoundName.get(selectIndex));
 						_gui.updateInfoPanel(cFoundName.get(selectIndex));
-						_gui.updateInfoPanel(centerline.getLengthFeet());
+						_gui.updateInfoPanel(centerline);
 
 						// removed for conversion to swing
 
@@ -1274,7 +1274,7 @@ public class NetworkInteractor extends ElementInteractor {
 						_gui.disableIfNoXsectSelected();
 						_net.setNewCenterlineName(centerlineName);
 						_gui.updateInfoPanel(centerlineName);
-						_gui.updateInfoPanel(_net.getCenterline(centerlineName).getLengthFeet());
+						_gui.updateInfoPanel(_net.getCenterline(centerlineName));
 						_gui.setCursor(CsdpFunctions._waitCursor);
 						_can.zoomInOut(_zoomRect);
 					}

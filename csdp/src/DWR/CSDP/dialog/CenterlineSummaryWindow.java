@@ -261,6 +261,7 @@ public class CenterlineSummaryWindow extends JFrame {
 			JLabel channelVolumeLabel = null;
 			JLabel channelWettedAreaLabel = null;
 			JLabel channelSurfaceAreaLabel = null;
+			JLabel maxAreaRatioLabel = null;
 			if(this.chanNumbersVector.size()>1) {
 				centerlineLengthLabel = new JLabel("Reach Length, ft");
 				channelVolumeLabel = new JLabel("Reach Volume, ft3");
@@ -271,12 +272,14 @@ public class CenterlineSummaryWindow extends JFrame {
 				channelVolumeLabel = new JLabel("Channel Volume, ft3");
 				channelWettedAreaLabel = new JLabel("Channel Wetted Area, ft2");
 				channelSurfaceAreaLabel = new JLabel("Channel Surface Area, ft2");
+				maxAreaRatioLabel = new JLabel("Max Area Ratio");
 			}
 			double length = 0.0;
 			double volume = 0.0;
 			double wettedArea = 0.0;
 			double surfaceArea = 0.0;
-			
+			double maxAreaRatio = -Double.MAX_VALUE;
+
 			for(int i=0; i<this.chanNumbersVector.size(); i++) {
 				String centerlineName = this.chanNumbersVector.get(i);
 				Centerline centerline = this.network.getCenterline(centerlineName);
@@ -284,12 +287,16 @@ public class CenterlineSummaryWindow extends JFrame {
 				volume += centerline.getChannelVolumeEstimateNoInterp(elevation);
 				wettedArea += centerline.getChannelWettedAreaEstimateNoInterp(elevation);
 				surfaceArea += centerline.getChannelSurfaceAreaEstimateNoInterp(elevation);
+				if(this.chanNumbersVector.size()==1 && i==0) {
+					maxAreaRatio = centerline.getMaxAreaRatio();
+				}
 			}		
 			JLabel elevValueLabel = new JLabel(String.format("%,.2f", elevation), SwingConstants.RIGHT);
 			JLabel cLengthValueLabel = new JLabel(String.format("%,.1f", length), SwingConstants.RIGHT);
 			JLabel volValueLabel = new JLabel(String.format("%,.1f", volume), SwingConstants.RIGHT);
 			JLabel wetAreaValueLabel = new JLabel(String.format("%,.1f", wettedArea), SwingConstants.RIGHT);
 			JLabel surfAreaValueLabel = new JLabel(String.format("%,.1f",surfaceArea), SwingConstants.RIGHT);
+			JLabel maxAreaRatioValueLabel = new JLabel(String.format("%,.1f", maxAreaRatio), SwingConstants.RIGHT);
 			
 			conveyanceCharacteristicsPanel.add(elevationLabel);
 			conveyanceCharacteristicsPanel.add(elevValueLabel);
@@ -301,6 +308,10 @@ public class CenterlineSummaryWindow extends JFrame {
 			conveyanceCharacteristicsPanel.add(wetAreaValueLabel);
 			conveyanceCharacteristicsPanel.add(channelSurfaceAreaLabel);
 			conveyanceCharacteristicsPanel.add(surfAreaValueLabel);
+			if(this.chanNumbersVector.size()==1) {
+				conveyanceCharacteristicsPanel.add(maxAreaRatioLabel);
+				conveyanceCharacteristicsPanel.add(maxAreaRatioValueLabel);
+			}
 			
 			JPanel topValuesPanel = new JPanel(new GridLayout(0,1,5,5));
 			topValuesPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));

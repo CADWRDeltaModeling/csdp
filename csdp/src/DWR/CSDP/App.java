@@ -1770,7 +1770,8 @@ public class App {
 				+ "5. (Optional): A series of filenames (.csv) containing GIS volume and 2D area results<BR>"
 				+ "6. (Optional, required if using GIS results): A 2m validity file, indicating whether or not the 2m DEM coverage in each channel<BR>"
 				+ " is sufficient<BR>"
-				+ "7. Check the box if you want to include dsm2-2m DEM and dsm2-10m DEM difference plots<BR>"
+				+ "7. (Optional, for channel min elevation): A file containing historical minimum stage elevation for each channel<BR>"
+				+ "8. Check the box if you want to include dsm2-2m DEM and dsm2-10m DEM difference plots<BR>"
 				+ "<H2>To write to an output file, for each channel, for a given stage (usually 0.0 NAVD)</H2><BR>"
 				+ "1. A comparison of channel lengths from the channels.inp file vs channel lengths calculated using the network file<BR>"
 				+ "2. Conveyance characteristics, CSDP, DSM2 Virtual Cross-section, and GIS<BR>"
@@ -1786,10 +1787,11 @@ public class App {
 				"Channel Groups", 
 				"GIS Volume filenames", 
 				"2m DEM CutFill Validity file",
+				"Historical Min Stage file (.csv)",
 				"Output file (tab delimited .txt)",
 				"Include difference plots"
 				};
-		String[] defaultValues = new String[7];
+		String[] defaultValues = new String[8];
 		if(CsdpFunctions.getDSMChannelsDirectory()!=null && CsdpFunctions.getDSMChannelsFilename()!=null) {
 			defaultValues[0] = CsdpFunctions.getDSMChannelsDirectory().toString()+File.separator+CsdpFunctions.getDSMChannelsFilename();
 		}
@@ -1811,8 +1813,10 @@ public class App {
 		defaultValues[2] = "";
 		defaultValues[3] = "";
 		defaultValues[4] = "";
-		defaultValues[5] = CsdpFunctions.getNetworkDirectory().toString()+File.separator+"networkSummary.txt";
-		defaultValues[6] = "false";
+		defaultValues[5] = "";
+		defaultValues[6] = CsdpFunctions.getNetworkDirectory().toString()+File.separator+"networkSummary.txt";
+
+		defaultValues[7] = "false";
 		
 		int[] dataTypes = new int[] {
 				DataEntryDialog.FILE_SPECIFICATION_TYPE, 
@@ -1821,9 +1825,10 @@ public class App {
 				DataEntryDialog.MULTI_FILE_SPECIFICATION_TYPE, 
 				DataEntryDialog.FILE_SPECIFICATION_TYPE,
 				DataEntryDialog.FILE_SPECIFICATION_TYPE,
+				DataEntryDialog.FILE_SPECIFICATION_TYPE,
 				DataEntryDialog.BOOLEAN_TYPE
 				};
-		String[] extensions = new String[] {"inp", "hof", "", "csv", "csv", "txt", ""};
+		String[] extensions = new String[] {"inp", "hof", "", "csv", "csv", "csv", "txt", ""};
 		String[] tooltips = new String[] {"An existing channels.inp file", 
 				"(Optional): A DSM2 output (.hof) file which was created from the "
 				+ "network file by running DSM2-Hydro with printlevel>=5",
@@ -1833,11 +1838,12 @@ public class App {
 				"(Optional): A series of filenames (.csv) containing GIS volume and 2D area results",
 				"(Optional, required if using GIS results): A 2m validity file, indicating whether or not the 2m DEM "
 				+ "coverage in each channel is sufficient",
+				"(Optional, for channel min stage): A file containing historical minimum stage for each channel",
 				"Specify an output file",
 				"Check the box if you want to include dsm2-2m DEM and dsm2-10m DEM difference plots"};
 		
 		//require channels.inp and output file name, but not hof file
-		boolean[] disableIfNull = new boolean[] {true, false, false, false, false, true, true}; 
+		boolean[] disableIfNull = new boolean[] {true, false, false, false, false, false, true, true}; 
 		DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, title, instructions, names, defaultValues, dataTypes, disableIfNull, 
 				extensions, tooltips, true);
 		int response = dataEntryDialog.getResponse();
@@ -1889,14 +1895,16 @@ public class App {
 			String[] gisVolumeFilenames = dataEntryDialog.getMultipleFilePaths(names[3]);
 			File twoMeterValidityDirectory = dataEntryDialog.getDirectory(names[4]);
 			String twoMeterValidityFilename = dataEntryDialog.getFilename(names[4]);
-			File outputDirectory = dataEntryDialog.getDirectory(names[5]);
-			String outputFilename = dataEntryDialog.getFilename(names[5]);
+			File histMinStageDirectory = dataEntryDialog.getDirectory(names[5]);
+			String histMinStageFilename = dataEntryDialog.getFilename(names[5]);
+			File outputDirectory = dataEntryDialog.getDirectory(names[6]);
+			String outputFilename = dataEntryDialog.getFilename(names[6]);
 			NetworkSummary networkSummary = new NetworkSummary(_csdpFrame, _net, _DSMChannels, dsm2HofDirectory, dsm2HofFilename, 
 					outputDirectory+File.separator+outputFilename, chanGroupNamesInOrderVector, chanGroupsHashtable, twoMeterValidityDirectory, 
-					twoMeterValidityFilename, gisVolumeFilenames);
+					twoMeterValidityFilename, gisVolumeFilenames, histMinStageDirectory, histMinStageFilename);
 			networkSummary.writeResults();
 
-			boolean includeDifferencePlots = Boolean.parseBoolean(dataEntryDialog.getValue(names[6]));
+			boolean includeDifferencePlots = Boolean.parseBoolean(dataEntryDialog.getValue(names[7]));
 			if(dsm2HofFileSpecified && gisVolumeFilenames!=null && gisVolumeFilenames.length>0 && twoMeterValidityDirectory!=null &&
 					twoMeterValidityFilename!=null) {
 				new GISSummaryStatisticGraphFrame(this._csdpFrame, networkSummary, includeDifferencePlots);
@@ -1998,8 +2006,10 @@ public class App {
 		}//if Ok button clicked
 	}//findChanDistForLandmarks
 
+	
 	/*
 	 * Use jzy3d to display 3d plot of bathymetry data with cross-section lines.
+	 * assume that all centerlineNames are c
 	 */
 	public void viewCenterlinesWithBathymetry3D(String[] centerlineNames, double xsectThickness, String windowTitle) {
 		if(CsdpFunctions.DISPLAY_3D_PLOT_INFO_MSG) {
@@ -2010,7 +2020,7 @@ public class App {
 			}
 		}
 		_csdpFrame.setCursor(CsdpFunctions._waitCursor);
-		Chart chart = new AWTChartComponentFactory().newChart(Quality.Advanced, "awt");
+		final Chart chart = new AWTChartComponentFactory().newChart(Quality.Advanced, "awt");
 		double[] centerlineDataDisplayBounds = _net.findCenterline3DDisplayRegion(centerlineNames, xsectThickness);
 		Vector<Integer> bathymetryPointIndexes = _bathymetryData.findPointIndexesInRegionFor3dDisplay(centerlineDataDisplayBounds);
 		
@@ -2041,6 +2051,16 @@ public class App {
 
 		//now add the user-created cross-section points 
 		Coord3d[] xsectPoints = null;
+		int totalNumXsects = 0;
+		for(int i=0; i<centerlineNames.length; i++) {
+			String centerlineName = centerlineNames[i];
+			Centerline centerline = _net.getCenterline(centerlineName);
+			totalNumXsects += centerline.getNumXsects();
+		}
+		LineStrip[] lineStripArray = new LineStrip[totalNumXsects];
+		Scatter[] xsScatterArray = new Scatter[totalNumXsects];
+
+		int xsectIndex = 0;
 		for(int i=0; i<centerlineNames.length; i++) {
 			String centerlineName = centerlineNames[i];
 			Centerline centerline = _net.getCenterline(centerlineName);
@@ -2060,22 +2080,53 @@ public class App {
 					lineStrip.add(new Point(coord3d, Color.WHITE));
 				}
 				lineStrip.setDisplayed(true);
-				
+				lineStrip.setWidth(3.0f);
+
 				Scatter xsectScatter = new Scatter(xsectPoints, Color.WHITE);
 				xsectScatter.setWidth(5.0f);
-				chart.getScene().add(xsectScatter);
-				chart.getScene().add(lineStrip);
+//				chart.getScene().add(xsectScatter);
+				//adding here results in an error if channels are not in upstream to downstream order. add them below instead
+//				chart.getScene().add(lineStrip);
+				xsScatterArray[xsectIndex] = xsectScatter;
+				lineStripArray[xsectIndex] = lineStrip;
 				
 				//now add cross-section labels
-				DrawableTextBitmap drawableTextBitmap = new DrawableTextBitmap("  "+centerlineName+"_"+j, 
+				DrawableTextBitmap downstreamDrawableTextBitmap = new DrawableTextBitmap("  "+centerlineName+"_"+j, 
 						lineStrip.getLastPoint().getCoord(), Color.WHITE);
-				drawableTextBitmap.setHalign(Halign.RIGHT);
+				downstreamDrawableTextBitmap.setHalign(Halign.RIGHT);
 				//you can also use other text objects, but I don't know what the difference is.
 //				DrawableTextWrapper drawableTextWrapper = new DrawableTextWrapper("  "+centerlineName+"_"+j, lineStrip.getLastPoint().getCoord(), 
 //						Color.WHITE, new TextBitmapRenderer());
-				chart.getScene().getGraph().add(drawableTextBitmap);
+				chart.getScene().getGraph().add(downstreamDrawableTextBitmap);
+				DrawableTextBitmap upstreamDrawableTextBitmap = new DrawableTextBitmap("  "+centerlineName+"_"+j, 
+						lineStrip.getPoints().get(0).getCoord(), Color.WHITE);
+				upstreamDrawableTextBitmap.setHalign(Halign.RIGHT);
+				chart.getScene().getGraph().add(upstreamDrawableTextBitmap);
+				
+				xsectIndex++;
 			}
 		}//for each centerlineName, add user-created cross-section points
+
+		//now add the scatters
+		xsectIndex = 0;
+		for(int i=0; i<centerlineNames.length; i++) {
+			String centerlineName = centerlineNames[i];
+			Centerline centerline = _net.getCenterline(centerlineName);
+			for(int j=0; j<centerline.getNumXsects(); j++) {
+				chart.getScene().add(xsScatterArray[xsectIndex]);
+				xsectIndex++;
+			}
+		}
+		//now add the linestrips. Adding them here instead of above prevents error that occurs when channels are not in upstream to downstream order.
+		xsectIndex = 0;
+		for(int i=0; i<centerlineNames.length; i++) {
+			String centerlineName = centerlineNames[i];
+			Centerline centerline = _net.getCenterline(centerlineName);
+			for(int j=0; j<centerline.getNumXsects(); j++) {
+				chart.getScene().add(lineStripArray[xsectIndex]);
+				xsectIndex++;
+			}
+		}
 		
 		if(windowTitle==null || windowTitle.length()<1) {
 			windowTitle = "";
@@ -2086,9 +2137,68 @@ public class App {
 		}
 		// using chart.open will create a static chart (you can't rotate it)
 		//		chart.open(chartTitle, 1000, 800);
+//		Light light = chart.addLight(new Coord3d(10000, 10000, 10000));
+//		light.setAmbiantColor(Color.WHITE);
+//		light.setRepresentationRadius(1000);
+//		chart.getCanvas().addKeyController(new KeyListener(){
+//			public void keyPressed(KeyEvent e) {
+//				switch( e.getKeyChar()){
+//				case KeyEvent.VK_2: chart.getScene().getLightSet().get(0).getPosition().x -= 10; chart.render(); break;
+//				case KeyEvent.VK_8: chart.getScene().getLightSet().get(0).getPosition().x += 10; chart.render(); break;
+//				case KeyEvent.VK_4: chart.getScene().getLightSet().get(0).getPosition().y -= 10; chart.render(); break;
+//				case KeyEvent.VK_6: chart.getScene().getLightSet().get(0).getPosition().y += 10; chart.render(); break;
+//				case KeyEvent.VK_9: chart.getScene().getLightSet().get(0).getPosition().z += 10; chart.render(); break;
+//				case KeyEvent.VK_7: chart.getScene().getLightSet().get(0).getPosition().z -= 10; chart.render(); break;
+//				
+//				//KeyEvent.;
+//		        default: break;
+//		        }
+//			}
+//			public void keyReleased(KeyEvent e) {}
+//			public void keyTyped(KeyEvent e) {}
+//			
+//		});
+
+		
 		ChartLauncher.openChart(chart, new Rectangle(1000, 800), windowTitle);
 		_csdpFrame.setCursor(CsdpFunctions._defaultCursor);
 
+		//now write ply file
+		//https://stackoverflow.com/questions/4342901/is-there-a-java-library-for-writing-out-ply-files
+		//https://people.sc.fsu.edu/~jburkardt/data/ply/ply.html
+//		https://threejs.org/docs/#examples/exporters/GLTFExporter
+		
+//		https://people.sc.fsu.edu/~jburkardt/data/ply/ply.html
+//        FileOutputStream fos = new FileOutputStream(file);
+//        Writer writer= new OutputStreamWriter(fos, "UTF8");
+//        writer.write("ply\n");
+//        writer.write("format ");
+//        writer.write(isBinary() ? "binary_big_endian" : "ascii");
+//        writer.write(" 1.0\n");
+//        BufferedReader r=new BufferedReader(new StringReader(comment));
+//        String commentLine;
+//        while ((commentLine=r.readLine())!=null) {
+//            writer.write("comment ");
+//            writer.write(commentLine);
+//            writer.write('\n');
+//        }
+//        // lat,lon,alt as example
+//        writer.write("element vertex 3\n");
+//        writer.write("property double x\n");
+//        writer.write("property double y\n");
+//        writer.write("property double z\n");
+//        //writer.write("element face 0\n"); // no element like faces
+//        //writer.write("property list uchar int vertex_indices\n");
+//        writer.write("end_header\n");
+//        writer.flush();
+//        DataOutputStream dos=new DataOutputStream(fos);
+//        dos.writeDouble(x);
+//        dos.writeDouble(y);
+//        dos.writeDouble(z);
+//        dos.close();
+
+        
+        
 	}//viewCenterlinesWithBathymetry3D
 
 }// class App

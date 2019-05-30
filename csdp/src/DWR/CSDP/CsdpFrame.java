@@ -267,6 +267,8 @@ public class CsdpFrame extends JFrame {
 
 	private JLabel _centerlineLabel = new JLabel("Selected Centerline:");
 	private JLabel _centerlineLengthLabel = new JLabel("Centerline length:");
+	private JLabel _centerlineVolumeLabel = new JLabel("Centerline Volume:");
+	private JLabel _centerlineMaxAreaRatioLabel = new JLabel("Centerline MAR:");
 	private JLabel _xsectLabel = new JLabel("Selected Xsect:");
 	private JLabel _mouseXLabel = new JLabel("X coordinate (UTM):");
 	private JLabel _mouseYLabel = new JLabel("Y coordinate (UTM):");
@@ -757,7 +759,7 @@ public class CsdpFrame extends JFrame {
 		// _infoPanel.setFloatable(true);
 		// The info panel is at the bottom of the window
 		_infoPanel = new JPanel();
-		_infoPanel.setLayout(new GridLayout(4, 4));
+		_infoPanel.setLayout(new GridLayout(0, 4));
 		//// _infoPanel.setOpaque(true);
 		_infoPanel.add(_horDatumLabel);
 		_infoPanel.add(_horDatumUnitsLabel);
@@ -770,6 +772,11 @@ public class CsdpFrame extends JFrame {
 
 		//11/2018: remove hydraulic depth, shift others over and add centerline length
 		_infoPanel.add(_centerlineLengthLabel);
+		_infoPanel.add(_centerlineVolumeLabel);
+		_infoPanel.add(_centerlineMaxAreaRatioLabel);
+		_infoPanel.add(new JLabel(""));
+		_infoPanel.add(new JLabel(""));
+		_centerlineMaxAreaRatioLabel.setToolTipText("largest cross-sectiontal area/smallest");
 		_infoPanel.add(_areaLabel);
 		_infoPanel.add(_wetPLabel);
 		_infoPanel.add(_widthLabel);
@@ -2268,8 +2275,10 @@ public class CsdpFrame extends JFrame {
 		_centerlineLabel.setText("Selected Centerline:  " + centerlineName);
 	}// updateInfoPanel
 
-	public void updateInfoPanel(double centerlineLength) {
-		_centerlineLengthLabel.setText("Centerline Length: "+String.format("%.0f", centerlineLength));
+	public void updateInfoPanel(Centerline centerline) {
+		_centerlineLengthLabel.setText("Centerline Length: "+String.format("%.0f", centerline.getLengthFeet()));
+		_centerlineVolumeLabel.setText("Centerline Volume: "+String.format("%.0f", centerline.getChannelVolumeEstimateNoInterp(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS)));
+		_centerlineMaxAreaRatioLabel.setText("Centerline MAR: " +String.format("%.2f", centerline.getMaxAreaRatio()));
 	}
 	
 	/**
@@ -2358,8 +2367,8 @@ public class CsdpFrame extends JFrame {
 		// _plot is instance of BathymetryPlot
 
 		if (_plot != null) {
-			String xLabel = "X coordinate (UTM):  ";
-			String yLabel = "Y coordinate (UTM):  ";
+			String xLabel = null;
+			String yLabel = null;
 
 			try {
 				ZoomState zs = _plot.getCurrentZoomState();
@@ -2379,8 +2388,8 @@ public class CsdpFrame extends JFrame {
 				// }
 				x = CsdpFunctions.feetToMeters(x);
 				y = CsdpFunctions.feetToMeters(y);
-				xLabel += x;
-				yLabel += y;
+				xLabel = "Easting (UTM):  "+ String.format("%.1f", x);
+				yLabel = "Northing (UTM): "+ String.format("%.1f", y);
 				_mouseXLabel.setText(xLabel);
 				_mouseYLabel.setText(yLabel);
 

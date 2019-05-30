@@ -308,6 +308,7 @@ public class XsectEditMenu {
 						System.out.println("This probably just means that there is no metadata--no problem.");
 					}
 					_xsect.putMetadata(newmd);
+					_xsectGraph.updateMainWindowInfoPanel();
 				}else {
 					//Cancel clicked; do nothing.
 				}

@@ -1281,6 +1281,19 @@ public class Centerline {
 	}
 
 	/*
+	 * Return the lowest bottom elevation of all the cross-sections in the channel.
+	 */
+	public double getLowestBottomElevation() {
+		double returnValue = Double.MAX_VALUE;
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			double minElev = xsect.getMinimumElevationFeet();
+			returnValue = Math.min(returnValue, minElev);
+		}
+		return returnValue;
+	}
+
+	/*
 	 * Returns an array of cross-section indices of the cross-sections with min and max areas at specified elevation
 	 */
 	public int[] getMinMaxAreaXsectIndices() {
@@ -1532,6 +1545,5 @@ public class Centerline {
 		}
 		return maxLength;
 	}
-	
 
 }// class Centerline
