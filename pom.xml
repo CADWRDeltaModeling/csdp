@@ -1,0 +1,121 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>gov.ca.water.dms</groupId>
+	<artifactId>csdp</artifactId>
+	<version>2.6</version>
+	<repositories>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>central</id>
+			<name>Maven Repository Switchboard</name>
+			<url>http://repo1.maven.org/maven2</url>
+		</repository>
+		<!-- 
+		<repository>
+			<id>mvnrepository</id>
+			<name>Maven Repository</name>
+			<url>https://mvnrepository.com/artifact</url>
+		</repository>
+		 -->
+		<repository>
+			<id>mvnrepository</id>
+			<name>Maven Repository</name>
+			<url>http://maven.jzy3d.org/releases</url>
+		</repository>
+		<!-- <repository> <id>jzy3d-snapshots</id> <name>Jzy3d Snapshots</name> 
+			<url>http://maven.jzy3d.org/snapshots</url> </repository> -->
+			<!-- 
+		<repository>
+			<id>jzy3d-releases</id>
+			<name>Jzy3d Releases</name>
+			<url>http://maven.jzy3d.org/releases</url>
+		</repository>
+		 -->
+		<repository>
+			<id>org.geotools</id>
+			<name>Geotools</name>
+			<url>https://mvnrepository.com/artifact</url>
+		</repository>
+		<repository><id>org.jogamp.jogl</id>
+		<name>jogl</name>
+		<url>https://mvnrepository.com/artifact/</url>
+		</repository>
+		
+	</repositories>
+	<packaging>jar</packaging>
+	<dependencies>
+		<!-- https://mvnrepository.com/artifact/org.jfree/jfreechart -->
+		<dependency>
+			<groupId>org.jfree</groupId>
+			<artifactId>jfreechart</artifactId>
+			<version>1.0.19</version>
+		</dependency>
+		<dependency>
+			<groupId>gov.ca.water.dms</groupId>
+			<artifactId>vista</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>gov.ca.water.dms</groupId>
+			<artifactId>jpy</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>gov.ca.water.dms</groupId>
+			<artifactId>pd</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.jzy3d/jzy3d-graphs -->
+		<dependency>
+			<groupId>org.jzy3d</groupId>
+			<artifactId>jzy3d-api</artifactId>
+			<version>1.0.2</version>
+		</dependency>
+		<!-- 
+		<dependency>
+		    <groupId>org.jzy3d</groupId>
+		    <artifactId>jzy3d-g2d</artifactId>
+		    <version>0.9.1</version>
+		</dependency>
+ 		-->
+		<!-- 
+		<dependency>
+		    <groupId>org.jzy3d</groupId>
+		    <artifactId>jzy3d-graphs</artifactId>
+		    <version>1.0.2</version>
+		</dependency>
+ 		-->
+		<!-- 
+ 		-->
+		<dependency>
+    		<groupId>org.jzy3d</groupId>
+    		<artifactId>jzy3d-master</artifactId>
+    		<version>1.0.2</version>
+    		<type>pom</type>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<configuration>
+							<sources>
+								<source>csdp/src</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
