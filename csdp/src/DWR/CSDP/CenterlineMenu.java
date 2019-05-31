@@ -672,7 +672,7 @@ public class CenterlineMenu {
 //				JOptionPane.showMessageDialog(_gui, "You are already viewing that cross-section!", "", JOptionPane.ERROR_MESSAGE);
 //				// ((XsectGraph)(_app._xsectGraph.get(centerlineName+"_"+xsectNum))).setVisible(true);
 //			} else {
-			_app.viewCenterlinesWithBathymetry3D(new String[] {centerlineName}, CsdpFunctions.getXsectThickness(), null);
+			_app.viewCenterlinesWithBathymetry3D(new String[] {centerlineName}, CsdpFunctions.getXsectThickness(), null, true);
 //			} // if		
 		}
 

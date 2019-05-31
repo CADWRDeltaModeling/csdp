@@ -82,6 +82,7 @@ import javax.swing.border.Border;
 
 import DWR.CSDP.CenterlineMenu.DisplayCenterline3DView;
 import DWR.CSDP.NetworkMenu.NDisplay3dReachView;
+import DWR.CSDP.NetworkMenu.NSelectPointsFor3dReachView;
 import DWR.CSDP.dialog.DataEntryDialog;
 
 /**
@@ -96,6 +97,7 @@ public class CsdpFrame extends JFrame {
 
 	JRadioButton _zoomBoxButton;
 	JRadioButton _zoomPanButton;
+	JRadioButton _selectPointsFor3dViewButton;
 	JRadioButton _deleteCenterlinePointsInBoxButton;
 	JRadioButton _deleteCenterlinePointsOutsideBoxButton;
 	JButton _zoomFitButton;
@@ -222,8 +224,8 @@ public class CsdpFrame extends JFrame {
 		tRemoveAllCrossSections, tFindLandmarkDistAlong;
 	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
 	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nList, nSummary, nClearNetwork, 
-		nDisplayReachSummary, nDisplay3dReachView, nCalculate, nExportToSEFormat, nExportTo3DFormat, nAWDSummaryReport, nXSCheckReport, 
-		nDConveyanceReport, nNetworkSummaryReport, nNetworkColorLegend;
+		nDisplayReachSummary, nDisplay3dReachView, nSelectPointsFor3dReachView, nCalculate, nExportToSEFormat, nExportTo3DFormat, 
+		nAWDSummaryReport, nXSCheckReport, nDConveyanceReport, nNetworkSummaryReport, nNetworkColorLegend;
 	private JMenuItem lSave, lSaveAs, lExportToWKT, lAdd, lMove, lEdit, lDelete, lHelp;
 
 	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;
@@ -536,6 +538,7 @@ public class CsdpFrame extends JFrame {
 		_moveXsectButton = new JRadioButton(_moveXsectIcon);
 		_viewXsectButton = new JRadioButton(_viewIcon);
 		_zoomBoxButton = new JRadioButton(_zoomBoxIcon);
+		_selectPointsFor3dViewButton = new JRadioButton("Select Points for 3d View");
 		_zoomPanButton = new JRadioButton(_zoomPanIcon);
 		_zoomFitButton = new JButton(_zoomFitIcon);
 		_zoomUndoButton = new JButton(_zoomUndoIcon);
@@ -554,6 +557,7 @@ public class CsdpFrame extends JFrame {
 		removeBackgroundAndBorder(_moveXsectButton);
 		removeBackgroundAndBorder(_viewXsectButton);
 		removeBackgroundAndBorder(_zoomBoxButton);
+		removeBackgroundAndBorder(_selectPointsFor3dViewButton);
 		removeBackgroundAndBorder(_zoomPanButton);
 		removeBackgroundAndBorder(_zoomFitButton);
 		removeBackgroundAndBorder(_zoomUndoButton);
@@ -715,6 +719,7 @@ public class CsdpFrame extends JFrame {
 		_centerlineLandmarkEditButtonGroup.add(_moveXsectButton);
 		_centerlineLandmarkEditButtonGroup.add(_removeXsectButton);
 		_centerlineLandmarkEditButtonGroup.add(_zoomBoxButton);
+		_centerlineLandmarkEditButtonGroup.add(_selectPointsFor3dViewButton);
 		_centerlineLandmarkEditButtonGroup.add(_zoomPanButton);
 		_centerlineLandmarkEditButtonGroup.add(_deleteCenterlinePointsInBoxButton);
 		_centerlineLandmarkEditButtonGroup.add(_deleteCenterlinePointsOutsideBoxButton);
@@ -1059,7 +1064,12 @@ public class CsdpFrame extends JFrame {
 		// cfNetwork.add(nSummary = new JMenuItem("Summary"));
 		// cfNetwork.addSeparator();
 		cfNetwork.add(nDisplayReachSummary = new JMenuItem("View Reach Summary"));
-		cfNetwork.add(nDisplay3dReachView = new JMenuItem("3d Reach View"));
+		nDisplay3dReachView = new JMenuItem("Enter channel number range");
+		nSelectPointsFor3dReachView= new JMenuItem("Draw window to select data");
+		JMenu threeDimensionalPlotMenu = new JMenu("3D Plots");
+		threeDimensionalPlotMenu.add(nDisplay3dReachView);
+		threeDimensionalPlotMenu.add(nSelectPointsFor3dReachView);
+		cfNetwork.add(threeDimensionalPlotMenu);
 		cfNetwork.add(nCalculate = new JMenuItem("Calculate"));
 		nCalculate.setMnemonic(KeyEvent.VK_C);
 
@@ -1097,6 +1107,7 @@ public class CsdpFrame extends JFrame {
 		//// ActionListener nSummaryListener = networkMenu.new NSummary();
 		ActionListener nDisplayReachSummaryListener = networkMenu.new NDisplayReachSummaryWindow(this);
 		ActionListener nDisplay3dReachViewListener = networkMenu.new NDisplay3dReachView(this);
+		ActionListener nSelectPointsFor3dReachViewListener = networkMenu.new NSelectPointsFor3dReachView(this);
 		ActionListener nCalculateListener = networkMenu.new NCalculate(this);
 		ActionListener nNetworkSummaryReportListener = networkMenu.new NNetworkSummaryReport(this);
 		ActionListener nShowNetworkColorLegendListener = networkMenu.new NShowNetworkColorLegend();
@@ -1118,6 +1129,7 @@ public class CsdpFrame extends JFrame {
 		//// nSummary.addActionListener(nSummaryListener);
 		nDisplayReachSummary.addActionListener(nDisplayReachSummaryListener);
 		nDisplay3dReachView.addActionListener(nDisplay3dReachViewListener);
+		nSelectPointsFor3dReachView.addActionListener(nSelectPointsFor3dReachViewListener);
 		nCalculate.addActionListener(nCalculateListener);
 //		nAWDSummaryReport.addActionListener(nAWDSummaryReportListener);
 //		nXSCheckReport.addActionListener(nXSCheckReportListener);
@@ -1837,6 +1849,7 @@ public class CsdpFrame extends JFrame {
 		cView3d.setEnabled(false);
 		nDisplayReachSummary.setEnabled(false);
 		nDisplay3dReachView.setEnabled(false);
+		nSelectPointsFor3dReachView.setEnabled(false);
 		cPlotAllCrossSections.setEnabled(false);
 		cDeletePointsInWindow.setEnabled(false);
 		cDeletePointsOutsideWindow.setEnabled(false);
@@ -1910,6 +1923,7 @@ public class CsdpFrame extends JFrame {
 		// dColorByDepthRadioButton.setEnabled(true);
 		// dColorBySourceRadioButton, dColorByYearRadioButton;
 		nOpen.setEnabled(true);
+		nSelectPointsFor3dReachView.setEnabled(true);
 		cCreate.setEnabled(true);
 		cDSMCreate.setEnabled(true);
 		cDisplaySummary.setEnabled(false);
@@ -1959,6 +1973,7 @@ public class CsdpFrame extends JFrame {
 		nExportTo3DFormat.setEnabled(true);
 		nDisplayReachSummary.setEnabled(true);
 		nDisplay3dReachView.setEnabled(true);
+		nSelectPointsFor3dReachView.setEnabled(true);
 		nCalculate.setEnabled(true);
 		_networkCalculateButton.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
@@ -2018,6 +2033,7 @@ public class CsdpFrame extends JFrame {
 		nCalculate.setEnabled(false);
 		nDisplayReachSummary.setEnabled(false);
 		nDisplay3dReachView.setEnabled(false);
+//		nSelectPointsFor3dReachView.setEnabled(false);
 		_networkCalculateButton.setEnabled(false);
 		dFitByNetworkMenuItem.setEnabled(false);
 		tCalcRect.setEnabled(false);
@@ -2046,6 +2062,7 @@ public class CsdpFrame extends JFrame {
 		nCalculate.setEnabled(true);
 		nDisplayReachSummary.setEnabled(true);
 		nDisplay3dReachView.setEnabled(true);
+		nSelectPointsFor3dReachView.setEnabled(true);
 		_networkCalculateButton.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
 		tCalcRect.setEnabled(true);
@@ -2091,6 +2108,7 @@ public class CsdpFrame extends JFrame {
 		cView3d.setEnabled(true);
 		nDisplayReachSummary.setEnabled(true);
 		nDisplay3dReachView.setEnabled(true);
+		nSelectPointsFor3dReachView.setEnabled(true);
 		cPlotAllCrossSections.setEnabled(true);
 		cDeletePointsInWindow.setEnabled(true);
 		cDeletePointsOutsideWindow.setEnabled(true);
@@ -2720,6 +2738,10 @@ public class CsdpFrame extends JFrame {
 		return _zoomPanButton.isSelected();
 	}
 
+	public boolean getSelectPointsFor3dViewMode() {
+		return _selectPointsFor3dViewButton.isSelected();
+	}
+	
 	// add landmark, edit landmark(move, rename), delete landmark
 	public boolean getAddLandmarkMode() {
 		return lAddPopup.isSelected();
@@ -2825,6 +2847,10 @@ public class CsdpFrame extends JFrame {
 	public void sendSelectedCenterlineNameToDataEntryDialog(String centerlineName) {
 		this.parentDialog.setSelectedCenterlineName(centerlineName);
 		this.parentDialog.setVisible(true);
+	}
+
+	public void setSelectPointsFor3dViewMode() {
+		_selectPointsFor3dViewButton.doClick();
 	}
 
 

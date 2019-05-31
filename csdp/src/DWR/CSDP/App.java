@@ -41,12 +41,12 @@
 package DWR.CSDP;
 
 
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JFrame;
@@ -54,21 +54,16 @@ import javax.swing.JOptionPane;
 
 import org.jzy3d.chart.Chart;
 import org.jzy3d.chart.ChartLauncher;
-import org.jzy3d.chart.controllers.camera.AbstractCameraController;
-import org.jzy3d.chart.controllers.mouse.camera.ICameraMouseController;
-import org.jzy3d.chart.controllers.thread.camera.CameraThreadController;
 import org.jzy3d.chart.factories.AWTChartComponentFactory;
 import org.jzy3d.colors.Color;
 import org.jzy3d.colors.ColorMapper;
 import org.jzy3d.colors.colormaps.ColorMapRainbow;
 import org.jzy3d.maths.Coord3d;
 import org.jzy3d.maths.Rectangle;
-import org.jzy3d.plot3d.builder.Builder;
 import org.jzy3d.plot3d.primitives.LineStrip;
 import org.jzy3d.plot3d.primitives.Point;
 import org.jzy3d.plot3d.primitives.Scatter;
 import org.jzy3d.plot3d.primitives.ScatterMultiColor;
-import org.jzy3d.plot3d.primitives.Shape;
 import org.jzy3d.plot3d.rendering.canvas.Quality;
 import org.jzy3d.plot3d.text.align.Halign;
 import org.jzy3d.plot3d.text.drawable.DrawableTextBitmap;
@@ -2014,12 +2009,12 @@ public class App {
 		}//if Ok button clicked
 	}//findChanDistForLandmarks
 
-	
 	/*
 	 * Use jzy3d to display 3d plot of bathymetry data with cross-section lines.
 	 * assume that all centerlineNames are c
 	 */
-	public void viewCenterlinesWithBathymetry3D(String[] centerlineNames, double xsectThickness, String windowTitle) {
+	public void viewCenterlinesWithBathymetry3D(String[] centerlineNames, double xsectThickness, String windowTitle, 
+			boolean displayUserDefinedCrossSections) {
 		if(CsdpFunctions.DISPLAY_3D_PLOT_INFO_MSG) {
 			int response = JOptionPane.showConfirmDialog(_csdpFrame, "For some reason, you must right drag with the mouse on the graph to get it to display "
 					+ "properly. Show this message again?", "Message", JOptionPane.YES_NO_OPTION);
@@ -2028,10 +2023,68 @@ public class App {
 			}
 		}
 		_csdpFrame.setCursor(CsdpFunctions._waitCursor);
-		final Chart chart = new AWTChartComponentFactory().newChart(Quality.Advanced, "awt");
 		double[] centerlineDataDisplayBounds = _net.findCenterline3DDisplayRegion(centerlineNames, xsectThickness);
-		Vector<Integer> bathymetryPointIndexes = _bathymetryData.findPointIndexesInRegionFor3dDisplay(centerlineDataDisplayBounds);
+		viewCenterlinesWithBathymetry3D(centerlineDataDisplayBounds, centerlineNames, windowTitle, displayUserDefinedCrossSections);
+	}
+	
+	public void viewCenterlinesWithBathymetry3D(double[] centerlineDataDisplayBounds, String[] centerlineNames, String windowTitle, 
+			boolean displayUserDefinedCrossSections) {
+		//centerlineNames will be null if user has drawn box to specify region rather than entering centerline names
+		System.out.println("centerlineDataDisplayBounds="+
+				centerlineDataDisplayBounds[CsdpFunctions.x1Index]+","+
+				centerlineDataDisplayBounds[CsdpFunctions.y1Index]+","+
+				centerlineDataDisplayBounds[CsdpFunctions.x2Index]+","+
+				centerlineDataDisplayBounds[CsdpFunctions.y2Index]);
+		System.out.println("centerlineDataDisplayBounds meters="+
+				CsdpFunctions.feetToMeters(centerlineDataDisplayBounds[CsdpFunctions.x1Index])+","+
+				CsdpFunctions.feetToMeters(centerlineDataDisplayBounds[CsdpFunctions.y1Index])+","+
+				CsdpFunctions.feetToMeters(centerlineDataDisplayBounds[CsdpFunctions.x2Index])+","+
+				CsdpFunctions.feetToMeters(centerlineDataDisplayBounds[CsdpFunctions.y2Index]));
 		
+		
+		double x1 = centerlineDataDisplayBounds[CsdpFunctions.x1Index];
+		double y1 = centerlineDataDisplayBounds[CsdpFunctions.y1Index];
+		double x2 = centerlineDataDisplayBounds[CsdpFunctions.x2Index];
+		double y2 = centerlineDataDisplayBounds[CsdpFunctions.y2Index];
+		double rectWidth = Math.abs(x1-x2);
+		double rectHeight = Math.abs(y1-y2);
+		double minX = Math.min(x1, x2);
+		double minY = Math.min(y1, y2);
+		Rectangle2D.Double displayBoundsRectangle = new Rectangle2D.Double(minX, minY, rectWidth, rectHeight);
+
+		if(_net==null) {
+			centerlineNames = new String[0];
+		}else if(centerlineNames == null) {
+			Vector<String> centerlineNamesVector = new Vector<String>();
+			
+			for(int i=0; i < _net.getNumCenterlines(); i++) {
+				String centerlineName = _net.getCenterlineName(i);
+				Centerline centerline = _net.getCenterline(centerlineName);
+				//find coordinates of first and last points of cross-section lines, and determine if a line connecting the two points
+				//intersects centerlineDataDisplayBounds, which if centerlineNames is null, actually represents the window drawn by user.
+				for(int j=0; j<centerline.getNumXsects(); j++) {
+					Xsect xsect = centerline.getXsect(j);
+					if(xsect.getNumPoints()>0) {
+						double[] firstPoint = _net.find3DXsectPointCoord(centerlineName, j, 0);
+						double[] lastPoint = _net.find3DXsectPointCoord(centerlineName, j, xsect.getNumPoints()-1);
+						Line2D line2d = new Line2D.Double(firstPoint[CsdpFunctions.xIndex], firstPoint[CsdpFunctions.yIndex],
+								lastPoint[CsdpFunctions.xIndex], lastPoint[CsdpFunctions.yIndex]);
+						if(displayBoundsRectangle.intersectsLine(line2d)) {
+							centerlineNamesVector.add(centerlineName);
+							break;
+						}
+					}
+				}
+			}
+			centerlineNames = new String[centerlineNamesVector.size()];
+			for(int i=0; i<centerlineNamesVector.size(); i++) {
+				centerlineNames[i] = centerlineNamesVector.get(i); 
+				System.out.println("adding centelrineName to array= "+centerlineNamesVector.get(i));
+			}
+		}//if centerlineNames==null
+		
+		final Chart chart = new AWTChartComponentFactory().newChart(Quality.Advanced, "awt");
+		Vector<Integer> bathymetryPointIndexes = _bathymetryData.findPointIndexesInRegionFor3dDisplay(centerlineDataDisplayBounds);
 		int size = bathymetryPointIndexes.size();
 		Coord3d[] bathymetryCoord3dArray = new Coord3d[size];
 
@@ -2065,16 +2118,19 @@ public class App {
 			Centerline centerline = _net.getCenterline(centerlineName);
 			totalNumXsects += centerline.getNumXsects();
 		}
-		LineStrip[] lineStripArray = new LineStrip[totalNumXsects];
-		Scatter[] xsScatterArray = new Scatter[totalNumXsects];
-
+		Vector<LineStrip> lineStripVector = new Vector<LineStrip>();
+		Vector<Scatter> xsScatterVector = new Vector<Scatter>();
+		Vector<DrawableTextBitmap> beginningXsLabelsVector = new Vector<DrawableTextBitmap>();
+		Vector<DrawableTextBitmap> endingXsLabelsVector = new Vector<DrawableTextBitmap>();
+		
 		int xsectIndex = 0;
 		for(int i=0; i<centerlineNames.length; i++) {
 			String centerlineName = centerlineNames[i];
 			Centerline centerline = _net.getCenterline(centerlineName);
 			for(int j=0; j<centerline.getNumXsects(); j++) {
 				Xsect xsect = centerline.getXsect(j);
-				xsectPoints = new Coord3d[xsect.getNumPoints()];
+				Vector<Coord3d> xsectPointsVector = new Vector<Coord3d>();
+//				xsectPoints = new Coord3d[xsect.getNumPoints()];
 				//now add a linestrip to connect all the user-defined cross-section points
 				// (from https://groups.google.com/forum/#!msg/jzy3d/kN8-a2W1laY/Ul7fxN1EPLUJ)
 				LineStrip lineStrip = new LineStrip();
@@ -2083,57 +2139,93 @@ public class App {
 					double x = xsectPointCoord[CsdpFunctions.xIndex];
 					double y = xsectPointCoord[CsdpFunctions.yIndex];
 					double z = xsectPointCoord[CsdpFunctions.zIndex];
-					Coord3d coord3d = new Coord3d(x, y, z);
-					xsectPoints[k]= coord3d; 
-					lineStrip.add(new Point(coord3d, Color.WHITE));
+					if(displayBoundsRectangle.contains(x, y)) {
+						Coord3d coord3d = new Coord3d(x, y, z);
+						xsectPointsVector.add(coord3d); 
+						lineStrip.add(new Point(coord3d, Color.WHITE));
+					}
 				}
 				lineStrip.setDisplayed(true);
 				lineStrip.setWidth(3.0f);
+				if(xsectPointsVector.size()>0) {
+					xsectPoints = new Coord3d[xsectPointsVector.size()];
+					for(int k=0; k<xsectPointsVector.size(); k++) {
+						xsectPoints[k]= xsectPointsVector.get(k); 
+					}
+					Scatter xsectScatter = new Scatter(xsectPoints, Color.WHITE);
+					xsectScatter.setWidth(5.0f);
+					xsScatterVector.add(xsectScatter);
 
-				Scatter xsectScatter = new Scatter(xsectPoints, Color.WHITE);
-				xsectScatter.setWidth(5.0f);
-//				chart.getScene().add(xsectScatter);
-				//adding here results in an error if channels are not in upstream to downstream order. add them below instead
-//				chart.getScene().add(lineStrip);
-				xsScatterArray[xsectIndex] = xsectScatter;
-				lineStripArray[xsectIndex] = lineStrip;
-				
-				//now add cross-section labels
-				DrawableTextBitmap downstreamDrawableTextBitmap = new DrawableTextBitmap("  "+centerlineName+"_"+j, 
-						lineStrip.getLastPoint().getCoord(), Color.WHITE);
-				downstreamDrawableTextBitmap.setHalign(Halign.RIGHT);
-				//you can also use other text objects, but I don't know what the difference is.
-//				DrawableTextWrapper drawableTextWrapper = new DrawableTextWrapper("  "+centerlineName+"_"+j, lineStrip.getLastPoint().getCoord(), 
-//						Color.WHITE, new TextBitmapRenderer());
-				chart.getScene().getGraph().add(downstreamDrawableTextBitmap);
-				DrawableTextBitmap upstreamDrawableTextBitmap = new DrawableTextBitmap("  "+centerlineName+"_"+j, 
-						lineStrip.getPoints().get(0).getCoord(), Color.WHITE);
-				upstreamDrawableTextBitmap.setHalign(Halign.RIGHT);
-				chart.getScene().getGraph().add(upstreamDrawableTextBitmap);
-				
+					lineStripVector.add(lineStrip);
+//					chart.getScene().add(xsectScatter);
+					//adding here results in an error if channels are not in upstream to downstream order. add them below instead
+//					chart.getScene().add(lineStrip);
+
+					//now add cross-section labels
+					DrawableTextBitmap endingDrawableTextBitmap = new DrawableTextBitmap("  "+centerlineName+"_"+j, 
+							lineStrip.getLastPoint().getCoord(), Color.WHITE);
+					endingDrawableTextBitmap.setHalign(Halign.RIGHT);
+					endingXsLabelsVector.add(endingDrawableTextBitmap);
+					//you can also use other text objects, such as DrawableTextWrapper objects, but I don't know what the difference is.
+					//add this later
+					//				chart.getScene().getGraph().add(downstreamDrawableTextBitmap);
+					DrawableTextBitmap beginningDrawableTextBitmap = new DrawableTextBitmap("  "+centerlineName+"_"+j, 
+							lineStrip.getPoints().get(0).getCoord(), Color.WHITE);
+					beginningDrawableTextBitmap.setHalign(Halign.RIGHT);
+					beginningXsLabelsVector.add(beginningDrawableTextBitmap);
+					//add this later
+					//				chart.getScene().getGraph().add(upstreamDrawableTextBitmap);
+				}
 				xsectIndex++;
 			}
 		}//for each centerlineName, add user-created cross-section points
 
-		//now add the scatters
-		xsectIndex = 0;
-		for(int i=0; i<centerlineNames.length; i++) {
-			String centerlineName = centerlineNames[i];
-			Centerline centerline = _net.getCenterline(centerlineName);
-			for(int j=0; j<centerline.getNumXsects(); j++) {
-				chart.getScene().add(xsScatterArray[xsectIndex]);
-				xsectIndex++;
+		if(displayUserDefinedCrossSections) {
+			//now add the scatters
+			for(int j=0; j<xsScatterVector.size(); j++) {
+				chart.getScene().add(xsScatterVector.get(j));
 			}
-		}
-		//now add the linestrips. Adding them here instead of above prevents error that occurs when channels are not in upstream to downstream order.
-		xsectIndex = 0;
-		for(int i=0; i<centerlineNames.length; i++) {
-			String centerlineName = centerlineNames[i];
-			Centerline centerline = _net.getCenterline(centerlineName);
-			for(int j=0; j<centerline.getNumXsects(); j++) {
-				chart.getScene().add(lineStripArray[xsectIndex]);
-				xsectIndex++;
+			for(int j=0; j<xsScatterVector.size(); j++) {
+				chart.getScene().add(beginningXsLabelsVector.get(j));
+				chart.getScene().add(endingXsLabelsVector.get(j));
 			}
+			for(int j=0; j<xsScatterVector.size(); j++) {
+				chart.getScene().add(lineStripVector.get(j));
+			}
+
+			
+//			xsectIndex = 0;
+//			for(int i=0; i<centerlineNames.length; i++) {
+//				String centerlineName = centerlineNames[i];
+//				Centerline centerline = _net.getCenterline(centerlineName);
+//				for(int j=0; j<centerline.getNumXsects(); j++) {
+//					chart.getScene().add(xsScatterArray[xsectIndex]);
+//					xsectIndex++;
+//				}
+//			}
+			
+//			//add cross-section labels
+//			xsectIndex = 0;
+//			for(int i=0; i<centerlineNames.length; i++) {
+//				String centerlineName = centerlineNames[i];
+//				Centerline centerline = _net.getCenterline(centerlineName);
+//				for(int j=0; j<centerline.getNumXsects(); j++) {
+//					chart.getScene().getGraph().add(beginningXsLabelsArray[xsectIndex]);
+//					chart.getScene().getGraph().add(endingXsLabelsArray[xsectIndex]);
+//					xsectIndex++;
+//				}
+//			}
+//			
+//			//now add the linestrips. Adding them here instead of above prevents error that occurs when channels are not in upstream to downstream order.
+//			xsectIndex = 0;
+//			for(int i=0; i<centerlineNames.length; i++) {
+//				String centerlineName = centerlineNames[i];
+//				Centerline centerline = _net.getCenterline(centerlineName);
+//				for(int j=0; j<centerline.getNumXsects(); j++) {
+//					chart.getScene().add(lineStripArray[xsectIndex]);
+//					xsectIndex++;
+//				}
+//			}
 		}
 		
 		//create shape from bathymetry points--doesn't look right yet...
@@ -2174,8 +2266,8 @@ public class App {
 
 		//add my custom controller which enables scaling in x and y directions (default was only z).
 		//Ctrl-MouseWheel: zoom x axis
-		//Alt-MouseWheel: zoom y axis
-		//MouseWheel: zoom z axis
+		//Alt-MouseWheel:  zoom y axis
+		//MouseWheel:      zoom z axis
 		chart.addController(new Bathymetry3dAWTCameraMouseController());
 		ChartLauncher.openChart(chart, new Rectangle(1000, 800), windowTitle);
 		_csdpFrame.setCursor(CsdpFunctions._defaultCursor);

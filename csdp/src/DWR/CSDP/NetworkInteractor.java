@@ -257,7 +257,7 @@ public class NetworkInteractor extends ElementInteractor {
 			}else if (_gui.getMoveXsectMode()) {
 				moveXsect();
 			}else if (_gui.getZoomBoxMode() || _gui.getZoomPanMode() || _gui.getDeleteCenterlinePointsInBoxMode() ||
-					_gui.getDeleteCenterlinePointsOutsideBoxMode()) {
+					_gui.getDeleteCenterlinePointsOutsideBoxMode() || _gui.getSelectPointsFor3dViewMode()) {
 				_drawDragRect = true;
 				_previouslyDoubleBuffered = _can.isDoubleBuffered();
 				if (!_previouslyDoubleBuffered)
@@ -1165,6 +1165,51 @@ public class NetworkInteractor extends ElementInteractor {
 					_can.zoomInOut(_zoomRect);
 				}
 			} // if zoom mode
+			if(_gui.getSelectPointsFor3dViewMode()) {
+				_drawDragRect = false;
+				if (_zoomRect.width <= 5 || _zoomRect.height <= 5) {
+					_gui.pressCursorButton();
+				} else {
+					CoordConv cc = zs.getCoordConv();
+					double[] bb = zs.getPlotBoundaries();
+					double minX = bb[CsdpFunctions.minXIndex];
+					double minY = bb[CsdpFunctions.minYIndex];
+
+					int zoomRectMinX = (int) Math.round(_zoomRect.getMinX());
+					int zoomRectMaxX = (int) Math.round(_zoomRect.getMaxX());
+					int zoomRectMinY = (int) Math.round(_zoomRect.getMinY());
+					int zoomRectMaxY = (int) Math.round(_zoomRect.getMaxY());
+					
+					double[] minXMaxYFeet = new double[2];
+					double[] maxXMinYFeet = new double[2];
+					
+					cc.pixelsToLength(zoomRectMinX, zoomRectMaxY, minX, minY, minXMaxYFeet);
+					cc.pixelsToLength(zoomRectMaxX, zoomRectMinY, minX, minY, maxXMinYFeet);
+
+					double x1Feet = minXMaxYFeet[0];
+					double y1Feet = maxXMinYFeet[1];
+					double x2Feet = maxXMinYFeet[0];
+					double y2Feet = minXMaxYFeet[1];
+
+					double[] centerlineDataDisplayBounds = new double[4];
+					centerlineDataDisplayBounds[CsdpFunctions.x1Index] = x1Feet;
+					centerlineDataDisplayBounds[CsdpFunctions.y1Index] = y1Feet;
+					centerlineDataDisplayBounds[CsdpFunctions.x2Index] = x2Feet;
+					centerlineDataDisplayBounds[CsdpFunctions.y2Index] = y2Feet;
+					
+					_app.viewCenterlinesWithBathymetry3D(centerlineDataDisplayBounds, null, "User Region", true);
+
+					//now erase the selection rectangle from main application window
+					_can.setZoomFit(false);
+					_can.setChangePan(false);
+					_can.setUpdateBathymetry(true);
+					_can.setUpdateNetwork(true);
+					_can.setUpdateLandmark(true);
+					_can.setUpdateCanvas(true);
+					_can.redoNextPaint();
+					_can.repaint();
+				}
+			}
 			if (_gui.getZoomPanMode()) {
 				if (Math.abs(_xi - _xf) < 5 && Math.abs(_yi - _yf) < 5) {
 					_gui.pressCursorButton();
@@ -1418,7 +1463,8 @@ public class NetworkInteractor extends ElementInteractor {
 	public void mouseDragged(MouseEvent e) {
 		if (_drawDragRect)
 			_mouseDragged = true;
-		if (_gui.getZoomBoxMode() || _gui.getDeleteCenterlinePointsInBoxMode() || _gui.getDeleteCenterlinePointsOutsideBoxMode()) {
+		if (_gui.getZoomBoxMode() || _gui.getDeleteCenterlinePointsInBoxMode() || _gui.getDeleteCenterlinePointsOutsideBoxMode()
+				|| _gui.getSelectPointsFor3dViewMode()) {
 			Graphics g = _gCImage.getGraphics();
 			Rectangle bounds = _can.getBounds();
 			bounds.x = 0;
