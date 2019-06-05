@@ -80,9 +80,6 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
-import DWR.CSDP.CenterlineMenu.DisplayCenterline3DView;
-import DWR.CSDP.NetworkMenu.NDisplay3dReachView;
-import DWR.CSDP.NetworkMenu.NSelectPointsFor3dReachView;
 import DWR.CSDP.dialog.DataEntryDialog;
 
 /**
@@ -417,9 +414,6 @@ public class CsdpFrame extends JFrame {
 		_addXsectIcon = CsdpFunctions.createScaledImageIcon(addXsectUrl,ICON_WIDTH, ICON_HEIGHT);
 		_removeXsectIcon = CsdpFunctions.createScaledImageIcon(removeXsectUrl,ICON_WIDTH, ICON_HEIGHT);
 		_moveXsectIcon = CsdpFunctions.createScaledImageIcon(moveXsectUrl,ICON_WIDTH, ICON_HEIGHT);
-
-		
-		
 		_viewIcon = CsdpFunctions.createScaledImageIcon(viewXsectUrl,ICON_WIDTH, ICON_HEIGHT);
 
 		_colorUniformIcon = CsdpFunctions.createScaledImageIcon(colorUniformUrl,COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
@@ -538,6 +532,7 @@ public class CsdpFrame extends JFrame {
 		_moveXsectButton = new JRadioButton(_moveXsectIcon);
 		_viewXsectButton = new JRadioButton(_viewIcon);
 		_zoomBoxButton = new JRadioButton(_zoomBoxIcon);
+		//this button currently not added to gui. Eventually add a button.
 		_selectPointsFor3dViewButton = new JRadioButton("Select Points for 3d View");
 		_zoomPanButton = new JRadioButton(_zoomPanIcon);
 		_zoomFitButton = new JButton(_zoomFitIcon);

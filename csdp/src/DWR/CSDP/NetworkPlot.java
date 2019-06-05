@@ -67,18 +67,18 @@ public class NetworkPlot extends PlanViewPlot {
 	 */
 	public static final Color NO_POINTS_COLOR = new Color(102,102,102);
 	/*
-	 * (Red) Color to use to identify a centerline or cross-section line with negative dConveyance in the intertidal range.
+	 * (Blue) Color to use to identify a centerline or cross-section line with negative dConveyance in the intertidal range.
 	 */
-	public static final Color NEG_DK_IN_INTERTIDAL_COLOR = new Color(255, 0, 0);
+	public static final Color NEG_DK_IN_INTERTIDAL_COLOR = new Color(40, 63, 255);
 	/*
 	 * (Brown) Color used to identify a cross-section line with duplicate station values 
 	 */
 	public static final Color DUPLICATE_STATIONS_COLOR = new Color(204, 102, 0);
 	/*
-	 * (Blue) Color used to identify a centerline that exceeds the maximum area ratio 
+	 * (Red) Color used to identify a centerline that exceeds the maximum area ratio 
 	 * (largest xs area > 2.0 * smallest xs area)
 	 */
-	public static final Color EXCEEDS_MAX_AREA_RATIO_COLOR = new Color(40, 63, 255);
+	public static final Color EXCEEDS_MAX_AREA_RATIO_COLOR = new Color(255, 0, 0);
 	/*
 	 * (Orange) Color used to identify centerline and cross-section line with duplicate station values
 	 * and negative dConveyance in the intertidal zone
@@ -92,7 +92,6 @@ public class NetworkPlot extends PlanViewPlot {
 	 * (Green) Color used to identify centerlines with duplicate station values and that exceeds the max area ratio
 	 */
 	public static final Color DUP_STN_AND_EXCEEDS_MAX_AREA_RATIO_COLOR = new Color(0, 138, 0);
-	
 	/*
 	 * (Magenta) Color used to identify centerlines with duplicate station values and that exceeds the max area ratio and 
 	 * have negative dConveyance in the intertidal zone.

@@ -13,6 +13,7 @@ import org.jzy3d.chart.controllers.mouse.camera.AWTCameraMouseController;
  * MouseWheel zooms z axis
  * Ctrl-MouseWheel zooms x axis
  * Alt-MouseWheel zooms y axis 
+ * Ctrl-Alt-MouseWheel zooms x and y axes simultaneously by the same amount
  * 
  * See AbstractCameraController and AWTCameraMouseController for more interactive possibilities
  * https://groups.google.com/forum/#!topic/jzy3d/6nkwF8C01Do
@@ -25,7 +26,10 @@ public class Bathymetry3dAWTCameraMouseController extends AWTCameraMouseControll
 	public void mouseWheelMoved(MouseWheelEvent e) {
 		stopThreadController();
 		float factor = 1 + (e.getWheelRotation() / 10.0f);
-		if(e.isControlDown()) {
+		if(e.isControlDown() && e.isAltDown()) {
+			zoomX(factor);
+			zoomY(factor);
+		}else if(e.isControlDown()) {
 			zoomX(factor);
 		}else if(e.isAltDown()) {
 			zoomY(factor);
@@ -35,7 +39,7 @@ public class Bathymetry3dAWTCameraMouseController extends AWTCameraMouseControll
 	}//mouseWheelMoved
 
 	
-	//this was an attempt at enabling panning in the x and y directions...this may be the wrong approach.
+	//this was an attempt at enabling panning in the x and y directions...it doesn't work. This may be the wrong approach.
 //	/** Compute shift or rotate */
 //	@Override
 //	public void mouseDragged(MouseEvent e) {
