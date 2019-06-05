@@ -2015,13 +2015,7 @@ public class App {
 	 */
 	public void viewCenterlinesWithBathymetry3D(String[] centerlineNames, double xsectThickness, String windowTitle, 
 			boolean displayUserDefinedCrossSections) {
-		if(CsdpFunctions.DISPLAY_3D_PLOT_INFO_MSG) {
-			int response = JOptionPane.showConfirmDialog(_csdpFrame, "For some reason, you must right drag with the mouse on the graph to get it to display "
-					+ "properly. Show this message again?", "Message", JOptionPane.YES_NO_OPTION);
-			if(response==JOptionPane.NO_OPTION) {
-				CsdpFunctions.DISPLAY_3D_PLOT_INFO_MSG = false;
-			}
-		}
+		CsdpFunctions.display3dPlotInfoMessage(_csdpFrame);
 		_csdpFrame.setCursor(CsdpFunctions._waitCursor);
 		double[] centerlineDataDisplayBounds = _net.findCenterline3DDisplayRegion(centerlineNames, xsectThickness);
 		viewCenterlinesWithBathymetry3D(centerlineDataDisplayBounds, centerlineNames, windowTitle, displayUserDefinedCrossSections);

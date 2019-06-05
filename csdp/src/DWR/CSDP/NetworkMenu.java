@@ -387,9 +387,12 @@ public class NetworkMenu {
 			String[] defaultValues = new String[] {"", "", "false"};
 			int[] types = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.STRING_TYPE, DataEntryDialog.BOOLEAN_TYPE};
 			String instructions = "<HTML><BODY><B>Save Specified Channels</B><BR><BR>"
-					+ "Click the button below to specify a <B>network file name</B> for writing results. If file exists, it will be overwritten.<BR>"
-					+ "Enter a <B>list of channel numbers</B> separated by commas, spaces, or tabs. To export all polygon"
-					+ "centerlines (for GIS volume calculation), you may use an asterisk preceded by a '.' as a wildcard. Example: '.*_chanpoly'<BR>"
+					+ "Click the button below to specify a <B>network file name</B> for writing results. <BR>"
+					+ "If file exists, it will be overwritten.<BR>"
+					+ "Enter a <B>list of channel numbers</B> separated by commas, spaces, or tabs.<BR>"
+					+ "Examples:<BR>"
+					+ "'*_chanpoly' to include/exclude all centerlines ending in '_chanpoly'<BR>"
+					+ "'*_chanpoly, *_levee* to include/exclude all centerlines ending in '_chanpoly' or containing '_levee'<BR>"
 					+ "Leave the <B>box</B> unchecked if you wish to export ONLY the specified numbers.<BR>"
 					+ "Check the <B>box</B> if you wish to export all channels EXCEPT the specified numbers.</BODY></HTML>";
 			String title = "Write specified centerlines to a network file.";
@@ -424,13 +427,23 @@ public class NetworkMenu {
 				if(channelNumbers.length() >0) {
 					channelNumbersHashSet = new HashSet<String>();
 					String[] parts = channelNumbers.split(" |,|\t");
+					for(int i=0; i<parts.length; i++) {
+						parts[i] = parts[i].replace("*", ".*");
+					}
 					Network network = _csdpFrame.getNetwork();
 					if(dontExportSpecifiedChannels) {
 						for(int i=0; i<network.getNumCenterlines(); i++) {
 							String centerlineName = network.getCenterlineName(i);
 							boolean exportCenterline = true;
 							for(int j=0; j<parts.length; j++) {
-								if(centerlineName.equals(parts[j])) {
+								if(parts[j].indexOf("*")>=0) {
+									Pattern pattern = Pattern.compile(parts[j]);
+									Matcher matcher = pattern.matcher(centerlineName);
+									if(matcher.matches()) {
+										exportCenterline=false;
+										break;
+									}
+								}else if(centerlineName.equals(parts[j])) {
 									exportCenterline = false;
 									break;
 								}
@@ -694,6 +707,7 @@ public class NetworkMenu {
 			this._gui = gui;
 		}
 		public void actionPerformed(ActionEvent e) {
+			CsdpFunctions.display3dPlotInfoMessage(_gui);
 			_gui.setSelectPointsFor3dViewMode();
 			_gui.setCursor(CsdpFunctions._crosshairCursor);
 		}// actionPerformed

@@ -1,8 +1,15 @@
 package DWR.CSDP;
 
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 
+import org.jzy3d.chart.Chart;
+import org.jzy3d.chart.controllers.ControllerType;
+import org.jzy3d.chart.controllers.mouse.AWTMouseUtilities;
 import org.jzy3d.chart.controllers.mouse.camera.AWTCameraMouseController;
+import org.jzy3d.maths.Coord2d;
+import org.jzy3d.maths.Scale;
+import org.jzy3d.plot3d.rendering.view.View;
 
 /**
  * Overrides default MouseController for jzy3d graphs, which would only zoom in the z direction.
@@ -21,6 +28,10 @@ import org.jzy3d.chart.controllers.mouse.camera.AWTCameraMouseController;
  *
  */
 public class Bathymetry3dAWTCameraMouseController extends AWTCameraMouseController{
+	private static final int X_DIRECTION = 10;
+	private static final int Y_DIRECTION = 20;
+	private static final int Z_DIRECTION = 30;
+	
 	/** Compute zoom */
 	@Override
 	public void mouseWheelMoved(MouseWheelEvent e) {
@@ -38,40 +49,50 @@ public class Bathymetry3dAWTCameraMouseController extends AWTCameraMouseControll
 		}
 	}//mouseWheelMoved
 
+	//this was an attempt at enabling panning in the x and y directions...it doesn't work yet.
+	/** Compute shift or rotate */
+	@Override
+	public void mouseDragged(MouseEvent e) {
+		Coord2d mouse = xy(e);
+
+		// Rotate
+		if (AWTMouseUtilities.isLeftDown(e)) {
+			Coord2d move = mouse.sub(prevMouse).div(100);
+			rotate(move);
+		}
+		// Shift
+		else if (AWTMouseUtilities.isRightDown(e)) {
+			Coord2d move = mouse.sub(prevMouse);
+			if(e.isControlDown() && e.isAltDown()) {
+				pan(-move.x/500, true, X_DIRECTION);
+				pan(move.y/500, true, Y_DIRECTION);
+			}else if(e.isControlDown()) {
+				pan(-move.x/500, true, X_DIRECTION);
+			}else if(e.isAltDown()) {
+				pan(move.y/500, true, Y_DIRECTION);
+			}else {
+				if (move.y != 0)
+					shift(move.y / 500);
+			}
+		}
+		prevMouse = mouse;
+	}
 	
-	//this was an attempt at enabling panning in the x and y directions...it doesn't work. This may be the wrong approach.
-//	/** Compute shift or rotate */
-//	@Override
-//	public void mouseDragged(MouseEvent e) {
-//		Coord2d mouse = xy(e);
-//
-//		// Rotate
-//		if (AWTMouseUtilities.isLeftDown(e)) {
-//			Coord2d move = mouse.sub(prevMouse).div(100);
-//			rotate(move);
-//		}
-//		// Shift
-//		else if (AWTMouseUtilities.isRightDown(e)) {
-//			Coord2d move = mouse.sub(prevMouse);
-//			if(move.x==0 && move.y!=0) {
-//				if (move.y != 0)
-//					shift(move.y / 500);
-//			}else if(move.x!=0 && move.y!=0) {
-//				pan((float) Math.sqrt((move.x/500)*(move.x/500) + (move.y/500)*(move.y/500)), true);
-//			}else {
-////				if (move.y != 0)
-////					shift(move.y / 500);
-//			}
-//		}
-//		prevMouse = mouse;
-//	}
-//	
-//    
-//	protected void pan(final float factor, boolean updateView){
-//		for(Chart c: targets)
-//			c.getView().shift(factor, updateView);
-//		fireControllerEvent(ControllerType.PAN, factor);
-//	}
+	protected void pan(final float factor, boolean updateView, int direction){
+		for(Chart c: targets) {
+			View view = c.getView();
+			if(direction == X_DIRECTION) {
+				Scale current = new Scale(view.getBounds().getXmin(), view.getBounds().getXmax());
+				Scale newScale = current.add(factor * current.getRange());
+				view.setScaleX(newScale, true);
+			}else if(direction == Y_DIRECTION) {
+				Scale current = new Scale(view.getBounds().getYmin(), view.getBounds().getYmax());
+				Scale newScale = current.add(factor * current.getRange());
+				view.setScaleY(newScale, true);
+			}
+		}
+		fireControllerEvent(ControllerType.SHIFT, factor);
+	}
 	
 	
 }//class Bathymetry3dAWTCameraMouseController

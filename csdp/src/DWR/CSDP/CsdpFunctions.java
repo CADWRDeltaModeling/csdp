@@ -59,6 +59,7 @@ import java.util.Vector;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import org.jfree.chart.ChartFactory;
@@ -2237,4 +2238,30 @@ public class CsdpFunctions {
 	 * version number-displayed at top of frame
 	 */
 	private static final String _version = "2.6_20190605";
+
+	public static void display3dPlotInfoMessage(CsdpFrame csdpFrame) {
+		if(CsdpFunctions.DISPLAY_3D_PLOT_INFO_MSG) {
+			String message = "<HTML><BODY>For some reason, you must right click with the mouse on the graph to get it to display properly.<BR><BR>"
+					+ "Usage:<BR>"
+					+ "----------------------------------------------<BR>"
+					+ "<TABLE>"
+					+ "<TR><TD>Left drag:</TD>            <TD>rotate plot</TD></TR>"
+					+ "<TR><TD>Right click:</TD>          <TD>rotate plot continuously</TD></TR>"
+					+ "<TR><TD>Rotate Mouse Wheel:</TD>   <TD>zoom z axis</TD></TR>"
+					+ "<TR><TD>Ctrl-Mouse Wheel:</TD>     <TD>zoom x axis</TD></TR>"
+					+ "<TR><TD>Alt-Mouse Wheel:</TD>      <TD>zoom y axis</TD></TR>"
+					+ "<TR><TD>Ctrl-Alt-Mouse Wheel</TD>  <TD>zoom x and y axes</TD></TR>"
+					+ "<TR><TD>Right drag:</TD>           <TD>pan z axis</TD></TR>"
+					+ "<TR><TD>Ctrl-Right drag:</TD>      <TD>pan x axis</TD></TR>"
+					+ "<TR><TD>Alt-Right drag:</TD>       <TD>pan y axis</TD></TR>"
+					+ "<TR><TD>Ctrl-Alt-Right drag</TD>   <TD>pan x and y axes</TD></TR>"
+					+ "</TABLE><BR>"
+					+ "Display this message next time?</BODY></HTML>";
+			JLabel messageLabel = new JLabel(message);
+			int response = JOptionPane.showConfirmDialog(csdpFrame, messageLabel, "Message", JOptionPane.YES_NO_OPTION);
+			if(response==JOptionPane.NO_OPTION) {
+				CsdpFunctions.DISPLAY_3D_PLOT_INFO_MSG = false;
+			}
+		}
+	}
 }// class CsdpFunctions
