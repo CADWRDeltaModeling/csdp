@@ -194,14 +194,14 @@ public class ToolsMenu {
 							}
 							JOptionPane.showMessageDialog(_gui, messages, "Error", JOptionPane.ERROR_MESSAGE);
 						}else {
-							_gui.pressArrowButton();
+							_gui.pressSelectCursorAkaArrowButton();
 							_app.snapPolygonCenterlinePointsToLeveeCenterline(polygonCenterlineName,  
 									new String[] {leveeCenterlineName});
 						}
 					}else{
 	//					dataEntryDialog.removeWindowListener(this);
 	//					dataEntryDialog.disposeDialog();
-						_gui.pressArrowButton();
+						_gui.pressSelectCursorAkaArrowButton();
 						CsdpFunctions.setPolygonCenterlinePointsToLeveeCenterlineDialogOpen(false);
 					}
 	
@@ -311,7 +311,7 @@ public class ToolsMenu {
 						}
 					 	asciiFileReader.close();
 						for(int j=0; j<polygonCenterlineNamesVector.size(); j++) {
-							_gui.pressArrowButton();
+							_gui.pressSelectCursorAkaArrowButton();
 							String leveeCenterlineIndicesString = leveeCenterlineIndicesVector.get(j).trim().replaceAll("\"", "");
 //							System.out.println("leveeCenterlineIndicesString="+leveeCenterlineIndicesString);
 							if(!leveeCenterlineIndicesString.equals("no adj needed") && leveeCenterlineIndicesString.length()>0) {

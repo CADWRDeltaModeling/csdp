@@ -83,7 +83,7 @@ public class XsectMenu {
 		public void actionPerformed(ActionEvent e) {
 			if (DEBUG)
 				System.out.println("net=" + _net);
-			_gui.pressArrowButton();
+			_gui.pressSelectCursorAkaArrowButton();
 			Xsect xsect = _net.getSelectedXsect();
 			String centerlineName = _net.getSelectedCenterlineName();
 			int xsectNum = _net.getSelectedXsectNum();
@@ -184,7 +184,7 @@ public class XsectMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			_gui.pressArrowButton();
+			_gui.pressSelectCursorAkaArrowButton();
 
 			Xsect xsect = _net.getSelectedXsect();
 			_length = xsect.getXsectLineLengthFeet();

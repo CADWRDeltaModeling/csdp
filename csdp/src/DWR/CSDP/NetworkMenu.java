@@ -697,6 +697,7 @@ public class NetworkMenu {
 				}
 				_app.viewCenterlinesWithBathymetry3D(centerlineNamesArray, CsdpFunctions.getXsectThickness(), 
 						reachTitle, displayUserDefinedCrossSections);
+				gui.pressSelectCursorAkaArrowButton();
 			}
 		}
 	}//inner class NDisplay3dReachView
@@ -781,7 +782,7 @@ public class NetworkMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			_gui.pressArrowButton();
+			_gui.pressSelectCursorAkaArrowButton();
 			String instructions = "<HTML><BODY>"
 					+ "Calculating the network means creating DSM2 input files using the currently loaded network file.<BR><BR>"
 					+ "You must also specify a <B>DSM2 channels file</B> (i.e. 'channel_std_delta_grid_NAVD_20150129.inp'),<BR>"
@@ -893,7 +894,7 @@ public class NetworkMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			_gui.pressArrowButton();
+			_gui.pressSelectCursorAkaArrowButton();
 			_app.awdSummary(0.0f);
 			//			_app.awdSummary(0.292f); // MSL wrt NGVD
 		}// actionPerformed
@@ -905,7 +906,7 @@ public class NetworkMenu {
 			_gui = gui;
 		}
 		public void actionPerformed(ActionEvent arg0) {
-			_gui.pressArrowButton();
+			_gui.pressSelectCursorAkaArrowButton();
 			_app.createNetworkSummaryReport();
 		}
 
@@ -927,7 +928,7 @@ public class NetworkMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			_gui.pressArrowButton();
+			_gui.pressSelectCursorAkaArrowButton();
 			_app.xsCheck(_gui);
 		}// actionPerformed
 	} // NXSCheck
@@ -938,7 +939,7 @@ public class NetworkMenu {
 			_gui = gui;
 		}
 		public void actionPerformed(ActionEvent arg0) {
-			_gui.pressArrowButton();
+			_gui.pressSelectCursorAkaArrowButton();
 			_app.dConveyanceReport(_gui);
 		}
 

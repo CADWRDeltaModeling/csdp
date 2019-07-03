@@ -46,13 +46,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.util.Vector;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 import DWR.CSDP.dialog.CenterlineSummaryWindow;
-import DWR.CSDP.dialog.DataEntryDialog;
 
 /**
  * calls methods for creating and editing centerlines
@@ -62,6 +60,22 @@ import DWR.CSDP.dialog.DataEntryDialog;
  */
 public class CenterlineMenu {
 
+	/**
+	 * Remove all cross-sections in centerline
+	 * @author btom
+	 *
+	 */
+	public class RemoveAllCrossSections implements ActionListener {
+
+		public void actionPerformed(ActionEvent arg0) {
+			_gui.getNetwork().getSelectedCenterline().removeAllCrossSections();
+			_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+			// removed for conversion to swing
+			_gui.getPlanViewCanvas(0).redoNextPaint();
+			_gui.getPlanViewCanvas(0).repaint();	
+		}
+
+	}
 	public CenterlineMenu(CsdpFrame gui) {
 		_gui = gui;
 	}
@@ -116,7 +130,7 @@ public class CenterlineMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			_gui.pressArrowButton();
+			_gui.pressSelectCursorAkaArrowButton();
 			_net = _gui.getNetwork();
 			if (_net == null) {
 				System.out.println("ERROR in CenterlineMenu.CRemove.actionPerformed: network is null!");
@@ -156,7 +170,7 @@ public class CenterlineMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			_gui.pressArrowButton();
+			_gui.pressSelectCursorAkaArrowButton();
 			_net = _gui.getNetwork();
 			if (_net == null) {
 				_net = new Network("delta", _gui);
@@ -221,7 +235,7 @@ public class CenterlineMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			_gui.pressArrowButton();
+			_gui.pressSelectCursorAkaArrowButton();
 			_DSMChannels = _app.getDSMChannels();
 			_gui.setDefaultModesStates();
 			_net = _gui.getNetwork();
@@ -665,7 +679,7 @@ public class CenterlineMenu {
 			_net = _gui.getNetwork();
 			if (DEBUG)
 				System.out.println("net=" + _net);
-			_gui.pressArrowButton();
+			_gui.pressSelectCursorAkaArrowButton();
 //			Xsect xsect = _net.getSelectedXsect();
 			String centerlineName = _net.getSelectedCenterlineName();
 //			if (_app._xsectGraph.containsKey(centerlineName + "_" + xsectNum)) {

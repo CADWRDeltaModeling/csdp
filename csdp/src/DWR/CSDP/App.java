@@ -392,6 +392,26 @@ public class App {
 		return success;
 	} // fSaveZoomed
 
+	/*
+	 * Writes bathymetry data to file, only writing data that are inside or outside a polygon represented by a given centerline
+	 */
+	public boolean fSaveBathymetryDataInsideOrOutsidePolygonCenterline(String directory, String filename, Centerline centerline, boolean saveInside) {
+		boolean success = false;
+		parseFilename(filename);
+//		double[] plotBoundaries = _bathymetryPlot.getCurrentZoomState().getPlotBoundaries();
+
+		if (_filetype.equals(ASCII_TYPE)) {
+			BathymetryOutput aoutput = BathymetryOutput.getInstance(directory, _filename, ASCII_TYPE, _bathymetryData);
+			success = aoutput.writeData(centerline, saveInside);
+		} else if (_filetype.equals(BINARY_TYPE)) {
+			BathymetryOutput boutput = BathymetryOutput.getInstance(directory, _filename, BINARY_TYPE, _bathymetryData);
+			success = boutput.writeData(centerline, saveInside);
+		} else {
+			System.out.println("filetype not defined for extension " + _filetype);
+		}
+		return success;
+	}
+	
 	/**
 	 * Saves bathymetry data as ascii(prn) or binary(cdp) file
 	 */
@@ -2263,6 +2283,7 @@ public class App {
 		//Alt-MouseWheel:  zoom y axis
 		//MouseWheel:      zoom z axis
 		chart.addController(new Bathymetry3dAWTCameraMouseController());
+//		chart.addKeyboardCameraController(new AWTLightKeyController(chart));
 		ChartLauncher.openChart(chart, new Rectangle(1000, 800), windowTitle);
 		_csdpFrame.setCursor(CsdpFunctions._defaultCursor);
 

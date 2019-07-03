@@ -210,21 +210,41 @@ public class XsectEditInteractor extends ElementInteractor {
 	 * moves the nearest point in xsect
 	 */
 	protected void movePoint() {
-		double xDataCoordInitial;
-		double yDataCoordInitial;
+//		double xDataCoordInitial;
+//		double yDataCoordInitial;
 		double xDataCoordFinal;
 		double yDataCoordFinal;
-		XsectPoint point;
-		int minDistIndex;
+		XsectPoint point = null;
+		int minDistIndex = Integer.MAX_VALUE;
 		int numPoints = _xsect.getNumPoints();
 		if (DEBUG)
 			System.out.println("moving xsect point");
-		xDataCoordInitial = (_graph.getPlot().getAxis(AxisAttr.BOTTOM)).getScale().scaleToDC(_xi);
-		yDataCoordInitial = (_graph.getPlot().getAxis(AxisAttr.LEFT)).getScale().scaleToDC(_yi);
+		
 		xDataCoordFinal = (_graph.getPlot().getAxis(AxisAttr.BOTTOM)).getScale().scaleToDC(_xf);
 		yDataCoordFinal = (_graph.getPlot().getAxis(AxisAttr.LEFT)).getScale().scaleToDC(_yf);
 
-		minDistIndex = _xsect.getNearestPointIndex((float) xDataCoordInitial, (float) yDataCoordInitial);
+		//7/3/2019: The previous approach to finding the closest point used data coordinates. This often resulted in a point being moved
+		//that was not the point the user indended to move. Reason: large differences in x and y axis scales resulted in the closest point
+		//in data coordinates being different from the closest point in pixel coordinates. This new approach uses pixel coordinates to 
+		//determine the closest point to the user's click.
+		int numCurves = _graph.getPlot().getNumberOfCurves();
+//		_graph.getPlot().getAxis(AxisAttr.BOTTOM).getScale().scaleToUC(v);
+		NetworkDataSet networkDataSet = _xsectGraph.getNetworkDataSet();
+		double[] stations = networkDataSet.getXArray();
+		double[] elevations = networkDataSet.getYArray();
+		double minDist = Double.MAX_VALUE;
+		for(int i=0; i<networkDataSet.size(); i++) {
+			double station = stations[i];
+			double elevation = elevations[i];
+			int stationPixels = _graph.getPlot().getAxis(AxisAttr.BOTTOM).getScale().scaleToUC(station);
+			int elevationPixels = _graph.getPlot().getAxis(AxisAttr.LEFT).getScale().scaleToUC(elevation);
+			double dist = CsdpFunctions.pointDist(_xi, _yi, stationPixels, elevationPixels);
+			if(dist<minDist) {
+				minDist = dist;
+				minDistIndex = i;
+			}
+		}
+		
 		point = _xsect.getXsectPoint(minDistIndex);
 
 		point.putStationFeet((float) xDataCoordFinal);

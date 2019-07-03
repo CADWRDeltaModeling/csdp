@@ -985,7 +985,7 @@ public class DataEntryDialog extends JDialog {
 	public void setSelectedCenterlineName(String centerlineName) {
 		this.currentJTextComponent.setText(centerlineName);
 		CsdpFrame csdpFrame = ((CsdpFrame)_frame);
-		csdpFrame.pressArrowButton();
+		csdpFrame.pressSelectCursorAkaArrowButton();
 	}
 	
 	/*

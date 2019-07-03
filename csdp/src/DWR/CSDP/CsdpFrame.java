@@ -116,6 +116,8 @@ public class CsdpFrame extends JFrame {
 			_filterYearIcon, _filterSourceIcon, _filterLabelIcon, _propOpenIcon, _zoomBoxIcon, _zoomBoxIconSelected,
 			_zoomPanIcon, _zoomPanIconSelected, _zoomFitIcon, _zoomFitIconRollover, _zoomUndoIcon;
 
+	ImageIcon _selectPointsFor3dViewIcon, _selectPointsFor3dViewIconSelected,	_specifyCenterlinesFor3dViewIcon;
+	
 	JButton _fileOpenButton, _networkOpenButton, _networkSaveButton, _networkCalculateButton, _propOpenButton,
 			_filterYearButton, _filterSourceButton;
 	JLabel _filterLabel;
@@ -177,7 +179,7 @@ public class CsdpFrame extends JFrame {
 	// _landmarkMoveSelectedButton, _landmarkDeleteSelectedButton;
 	JButton _landmarkOpenButton, _landmarkSaveButton, _landmarkAddButton, _landmarkEditButton, _landmarkMoveButton,
 			_landmarkDeleteButton, _landmarkAddSelectedButton, _landmarkEditSelectedButton, _landmarkMoveSelectedButton,
-			_landmarkDeleteSelectedButton;
+			_landmarkDeleteSelectedButton, _specifyCenterlinesFor3dViewButton;
 
 //	private static final Dimension _iconSize = new Dimension(25, 25);
 //	private static final Dimension _wideIconSize = new Dimension(35, 25);
@@ -203,8 +205,8 @@ public class CsdpFrame extends JFrame {
 			cfZoom, cfWindow, cfHelp;
 	private JPopupMenu cfLandmarkPopup;
 
-	private JMenuItem fNew, fOpen, fClose, fSave, fSaveAs, fSaveAsNAVD88, fSaveZoomed, fMerge, fExtract, fPrintPreview,
-			fPrint, fPrintSetup, fConvert, fExit;
+	private JMenuItem fNew, fOpen, bImportFromAsciiRaster, fClose, fSave, fSaveAs, fSaveAsNAVD88, fSaveZoomed, fSavePointsInsideOutsidePolygon, fMerge, 
+		fExtract, fPrintPreview, fPrint, fPrintSetup, fConvert, fExit;
 	private JMenuItem pLoad, pSave, pSaveAs;
 	private JMenuItem mSource, mYear, mZSign, mErase, mRestore, mPurge, mStatus;
 	private JMenuItem dParameters, dSource, dYear, dColorBy, dErased, oLandmark, cLandmarks, dDigitalLineGraph, clearDigitalLineGraph, 
@@ -229,7 +231,7 @@ public class CsdpFrame extends JFrame {
 
 	private JCheckBoxMenuItem noChannelLengthsOnly;
 	private JMenuItem cCursor, cCreate, cDSMCreate, cRemove, cDisplaySummary, cView3d, cPlotAllCrossSections, cDeletePointsInWindow,
-		cDeletePointsOutsideWindow, cAddXSAtComputationalPoints;
+		cDeletePointsOutsideWindow, cAddXSAtComputationalPoints, cRemoveAllCrossSections;
 	/*
 	 * For adjusting centerlines that are actually representations of polygons used to estimate channel volume
 	 * Will move points to a given centerline, which is actually representing a leveee
@@ -446,6 +448,9 @@ public class CsdpFrame extends JFrame {
 		URL zoomFitIconRolloverUrl = this.getClass().getResource("images/ZoomFitButtonRollover.png");
 		URL zoomUndoIconUrl = this.getClass().getResource("images/Undo24.gif");
 
+		URL selectPointsFor3dViewUrl = this.getClass().getResource("images/SelectPointsFor3dViewButton.png");
+		URL selectPointsFor3dViewSelectedUrl = this.getClass().getResource("images/SelectPointsFor3dViewButtonSelected.png");
+		URL specifyCenterlinesFor3dViewButtonUrl = this.getClass().getResource("images/SpecifyCenterlinesFor3dViewButton.png");
 		// URL landmarkAddUrl =
 		// this.getClass().getResource("images/LAddButton.gif");
 		// URL landmarkEditUrl =
@@ -496,7 +501,10 @@ public class CsdpFrame extends JFrame {
 		_zoomFitIcon = CsdpFunctions.createScaledImageIcon(zoomFitIconUrl,ICON_WIDTH, ICON_HEIGHT);
 		_zoomFitIconRollover = CsdpFunctions.createScaledImageIcon(zoomFitIconRolloverUrl,ICON_WIDTH, ICON_HEIGHT);
 		_zoomUndoIcon = CsdpFunctions.createScaledImageIcon(zoomUndoIconUrl,ICON_WIDTH, ICON_HEIGHT);
-
+		_selectPointsFor3dViewIcon = CsdpFunctions.createScaledImageIcon(selectPointsFor3dViewUrl, ICON_WIDTH, ICON_HEIGHT);
+		_selectPointsFor3dViewIconSelected = CsdpFunctions.createScaledImageIcon(selectPointsFor3dViewSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
+		_specifyCenterlinesFor3dViewIcon = CsdpFunctions.createScaledImageIcon(specifyCenterlinesFor3dViewButtonUrl, ICON_WIDTH, ICON_HEIGHT);
+		
 		_fileOpenButton = new JButton(_fileOpenIcon);
 		_propOpenButton = new JButton(_propOpenIcon);
 		_networkOpenButton = new JButton(_networkOpenIcon);
@@ -533,7 +541,8 @@ public class CsdpFrame extends JFrame {
 		_viewXsectButton = new JRadioButton(_viewIcon);
 		_zoomBoxButton = new JRadioButton(_zoomBoxIcon);
 		//this button currently not added to gui. Eventually add a button.
-		_selectPointsFor3dViewButton = new JRadioButton("Select Points for 3d View");
+		_selectPointsFor3dViewButton = new JRadioButton(_selectPointsFor3dViewIcon);
+		_specifyCenterlinesFor3dViewButton = new JButton(_specifyCenterlinesFor3dViewIcon);
 		_zoomPanButton = new JRadioButton(_zoomPanIcon);
 		_zoomFitButton = new JButton(_zoomFitIcon);
 		_zoomUndoButton = new JButton(_zoomUndoIcon);
@@ -553,6 +562,7 @@ public class CsdpFrame extends JFrame {
 		removeBackgroundAndBorder(_viewXsectButton);
 		removeBackgroundAndBorder(_zoomBoxButton);
 		removeBackgroundAndBorder(_selectPointsFor3dViewButton);
+		removeBackgroundAndBorder(_specifyCenterlinesFor3dViewButton);
 		removeBackgroundAndBorder(_zoomPanButton);
 		removeBackgroundAndBorder(_zoomFitButton);
 		removeBackgroundAndBorder(_zoomUndoButton);
@@ -635,7 +645,8 @@ public class CsdpFrame extends JFrame {
 		_moveXsectButton.setSelectedIcon(_moveXsectIconSelected);
 		_zoomBoxButton.setSelectedIcon(_zoomBoxIconSelected);
 		_zoomPanButton.setSelectedIcon(_zoomPanIconSelected);
-
+		_selectPointsFor3dViewButton.setSelectedIcon(_selectPointsFor3dViewIconSelected);
+		
 		// _landmarkAddButton.setSelectedIcon(_landmarkAddSelectedIcon);
 		// _landmarkEditButton.setSelectedIcon(_landmarkEditSelectedIcon);
 		// _landmarkMoveButton.setSelectedIcon(_landmarkMoveSelectedIcon);
@@ -697,6 +708,8 @@ public class CsdpFrame extends JFrame {
 		btnPanel.add(_viewXsectButton);
 		btnPanel.add(_zoomBoxButton);
 		btnPanel.add(_zoomPanButton);
+		btnPanel.add(_selectPointsFor3dViewButton);
+		btnPanel.add(_specifyCenterlinesFor3dViewButton);
 		// don't use these buttons; better to right click
 		// btnPanel.add(_landmarkAddButton);
 		// btnPanel.add(_landmarkEditButton);
@@ -753,7 +766,11 @@ public class CsdpFrame extends JFrame {
 		_zoomFitButton.setToolTipText("fit all data in window");
 		_viewXsectButton.setToolTipText("view cross-section ");
 		_networkCalculateButton.setToolTipText("Calculate Network");
-
+		_specifyCenterlinesFor3dViewButton.setToolTipText("Specify centerlines for 3d Bathymetry/cross-section plot");
+		_selectPointsFor3dViewButton.setToolTipText("Draw a window to select data for 3d Bathymetry/cross-section plot");
+		_specifyCenterlinesFor3dViewButton.setEnabled(false);
+		_selectPointsFor3dViewButton.setEnabled(false);
+		
 		// _infoPanel = new JToolBar();
 		// _infoPanel.setLayout(new GridLayout(3,4));
 		// _infoPanel.setFloatable(true);
@@ -857,12 +874,14 @@ public class CsdpFrame extends JFrame {
 		 */
 		cfFile = new JMenu("Bathymetry");
 		cfFile.add(fOpen = new JMenuItem("Open File"));
+		cfFile.add(bImportFromAsciiRaster = new JMenuItem("Import Bathymetry from ASCII Raster"));
 		cfFile.add(fClose = new JMenuItem("Close File"));
 		cfFile.addSeparator();
 		cfFile.add(fSave = new JMenuItem("Save File"));
 		cfFile.add(fSaveAs = new JMenuItem("Save File As..."));
 		cfFile.add(fSaveAsNAVD88 = new JMenuItem("Save As NAVD88..."));
 		cfFile.add(fSaveZoomed = new JMenuItem("Save Zoomed data"));
+		cfFile.add(fSavePointsInsideOutsidePolygon = new JMenuItem("Save Points inside/outside polygon"));
 		cfFile.addSeparator();
 		cfFile.add(fConvert = new JMenuItem("Convert Bathymetry File(s)"));
 		// cfFile.add(fMerge = new JMenuItem("Merge"));
@@ -889,11 +908,13 @@ public class CsdpFrame extends JFrame {
 		// create and register action listener objects for the File menu items
 		FileMenu fileMenu = new FileMenu(_app);
 		ActionListener fOpenListener = fileMenu.new FOpen(this);
+		ActionListener bImportFromAsciiRasterListener = fileMenu.new BImportFromAsciiRaster(this);
 		ActionListener fCloseListener = fileMenu.new FClose();
 		ActionListener fSaveListener = fileMenu.new FSave();
 		ActionListener fSaveAsListener = fileMenu.new FSaveAs(this);
 		ActionListener fSaveAsNAVD88Listener = fileMenu.new FSaveAsNAVD88(this);
 		ActionListener fSaveZoomedListener = fileMenu.new FSaveBathZoomed(this);
+		ActionListener fSavePointsInsideOutsidePolygonListener = fileMenu.new FSaveBathInsideOutsidePolygon(this);
 		// ActionListener fMergeListener = fileMenu.new FMerge();
 		// ActionListener fExtractListener = fileMenu.new FExtract();
 		ActionListener fPrintPreviewListener = fileMenu.new FPrintPreview();
@@ -907,11 +928,13 @@ public class CsdpFrame extends JFrame {
 
 		// fNew.addActionListener(fNewListener);
 		fOpen.addActionListener(fOpenListener);
+		bImportFromAsciiRaster.addActionListener(bImportFromAsciiRasterListener);
 		fClose.addActionListener(fCloseListener);
 		fSave.addActionListener(fSaveListener);
 		fSaveAs.addActionListener(fSaveAsListener);
 		fSaveAsNAVD88.addActionListener(fSaveAsNAVD88Listener);
 		fSaveZoomed.addActionListener(fSaveZoomedListener);
+		fSavePointsInsideOutsidePolygon.addActionListener(fSavePointsInsideOutsidePolygonListener);
 		// fMerge.addActionListener(fMergeListener);
 		// fExtract.addActionListener(fExtractListener);
 		// fPrintPreview.addActionListener(fPrintPreviewListener);
@@ -1124,6 +1147,7 @@ public class CsdpFrame extends JFrame {
 		//// nSummary.addActionListener(nSummaryListener);
 		nDisplayReachSummary.addActionListener(nDisplayReachSummaryListener);
 		nDisplay3dReachView.addActionListener(nDisplay3dReachViewListener);
+		_specifyCenterlinesFor3dViewButton.addActionListener(nDisplay3dReachViewListener);
 		nSelectPointsFor3dReachView.addActionListener(nSelectPointsFor3dReachViewListener);
 		nCalculate.addActionListener(nCalculateListener);
 //		nAWDSummaryReport.addActionListener(nAWDSummaryReportListener);
@@ -1249,6 +1273,7 @@ public class CsdpFrame extends JFrame {
 		cfCenterline.add(cDeletePointsInWindow = new JMenuItem("Delete Centerline Points In Window"));
 		cfCenterline.add(cDeletePointsOutsideWindow = new JMenuItem("Delete Centerline Points Outside of Window"));
 		cfCenterline.add(cAddXSAtComputationalPoints = new JMenuItem("Add cross-sections at Computational Pts"));
+		cfCenterline.add(cRemoveAllCrossSections = new JMenuItem("Remove all cross-sections in centerline"));
 		
 		
 		cfCenterline.setMnemonic(KeyEvent.VK_C);
@@ -1277,6 +1302,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener cDeletePointsInWindowListener = _centerlineMenu.new DeleteCenterlinePointsInWindow();
 		ActionListener cDeletePointsOutsideOfWindowListener = _centerlineMenu.new DeleteCenterlinePointsOutsideOfWindow();
 		ActionListener cAddXSAtComputationalPointsListener = _centerlineMenu.new AddXSAtComputationalPoints(_networkInteractor);
+		ActionListener cRemoveAllCrossSectionsListener = _centerlineMenu.new RemoveAllCrossSections();
 		cCursor.addActionListener(cCursorListener);
 		cCreate.addActionListener(cCreateListener);
 		cDSMCreate.addActionListener(cDSMCreateListener);
@@ -1290,7 +1316,7 @@ public class CsdpFrame extends JFrame {
 		cDeletePointsInWindow.addActionListener(cDeletePointsInWindowListener);
 		cDeletePointsOutsideWindow.addActionListener(cDeletePointsOutsideOfWindowListener);
 		cAddXSAtComputationalPoints.addActionListener(cAddXSAtComputationalPointsListener);
-
+		cRemoveAllCrossSections.addActionListener(cRemoveAllCrossSectionsListener);
 
 		_cursorButton.addActionListener(cCursorListener);
 		_moveButton.addActionListener(cMovePointListener);
@@ -1402,7 +1428,7 @@ public class CsdpFrame extends JFrame {
 		cfTools.add(tOpenWaterCalc = new JMenuItem("Open Water Area Calculations"));
 //		cfTools.add(tCreateDSM2ChanPolygons = new JMenuItem("Create DSM2 channel polygons"));
 		cfTools.add(tClosePolygonCenterlines = new JMenuItem("Close All Polygon Centerlines"));
-		cfTools.add(tRemoveAllCrossSections = new JMenuItem("Remove All Cross-Sections"));
+		cfTools.add(tRemoveAllCrossSections = new JMenuItem("Remove All Cross-Sections in network"));
 		cfTools.add(tFindLandmarkDistAlong = new JMenuItem("Find Channel/Distance for Landmarks"));
 		if (_addToolsMenu)
 			menubar.add(cfTools);
@@ -1667,6 +1693,7 @@ public class CsdpFrame extends JFrame {
 			cDeletePointsInWindow.setEnabled(true);
 			cDeletePointsOutsideWindow.setEnabled(true);
 			cAddXSAtComputationalPoints.setEnabled(true);
+			cRemoveAllCrossSections.setEnabled(true);
 			if (getXsectSelected()) {
 				_moveXsectButton.setEnabled(true);
 				_viewXsectButton.setEnabled(true);
@@ -1698,6 +1725,7 @@ public class CsdpFrame extends JFrame {
 			cDeletePointsInWindow.setEnabled(false);
 			cDeletePointsOutsideWindow.setEnabled(false);
 			cAddXSAtComputationalPoints.setEnabled(false);
+			cRemoveAllCrossSections.setEnabled(true);
 		}
 	}// setStopEditingMode
 
@@ -1735,11 +1763,7 @@ public class CsdpFrame extends JFrame {
 		_zoomPanButton.doClick();
 	}
 
-	public void pressCursorButton() {
-		_cursorButton.doClick();
-	}
-	
-	public void pressArrowButton() {
+	public void pressSelectCursorAkaArrowButton() {
 		_cursorButton.doClick();
 	}
 
@@ -1755,7 +1779,7 @@ public class CsdpFrame extends JFrame {
 		setDefaultModesStates();
 		enableCenterlineEditButtons();
 		setCursor(CsdpFunctions._defaultCursor);
-		pressCursorButton();
+		pressSelectCursorAkaArrowButton();
 	}// turnOffEditModes
 
 	/**
@@ -1782,6 +1806,7 @@ public class CsdpFrame extends JFrame {
 		_filterSourceButton.setEnabled(false);
 		_filterYearButton.setEnabled(false);
 
+		fSavePointsInsideOutsidePolygon.setEnabled(false);
 		// _cMovePointMenuItem.setEnabled(false);
 		// _cAddPointMenuItem.setEnabled(false);
 		// _cInsertPointMenuItem.setEnabled(false);
@@ -1844,13 +1869,15 @@ public class CsdpFrame extends JFrame {
 		cView3d.setEnabled(false);
 		nDisplayReachSummary.setEnabled(false);
 		nDisplay3dReachView.setEnabled(false);
+		_selectPointsFor3dViewButton.setEnabled(false);
+		_specifyCenterlinesFor3dViewButton.setEnabled(false);
 		nSelectPointsFor3dReachView.setEnabled(false);
 		cPlotAllCrossSections.setEnabled(false);
 		cDeletePointsInWindow.setEnabled(false);
 		cDeletePointsOutsideWindow.setEnabled(false);
 		cAddXSAtComputationalPoints.setEnabled(false);
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(false);
-		
+		cRemoveAllCrossSections.setEnabled(false);
 //		nAWDSummaryReport.setEnabled(false);
 //		nXSCheckReport.setEnabled(false);
 //		nDConveyanceReport.setEnabled(false);
@@ -1919,6 +1946,7 @@ public class CsdpFrame extends JFrame {
 		// dColorBySourceRadioButton, dColorByYearRadioButton;
 		nOpen.setEnabled(true);
 		nSelectPointsFor3dReachView.setEnabled(true);
+		_selectPointsFor3dViewButton.setEnabled(true);
 		cCreate.setEnabled(true);
 		cDSMCreate.setEnabled(true);
 		cDisplaySummary.setEnabled(false);
@@ -1968,6 +1996,8 @@ public class CsdpFrame extends JFrame {
 		nExportTo3DFormat.setEnabled(true);
 		nDisplayReachSummary.setEnabled(true);
 		nDisplay3dReachView.setEnabled(true);
+		_selectPointsFor3dViewButton.setEnabled(true);
+		_specifyCenterlinesFor3dViewButton.setEnabled(true);
 		nSelectPointsFor3dReachView.setEnabled(true);
 		nCalculate.setEnabled(true);
 		_networkCalculateButton.setEnabled(true);
@@ -2028,6 +2058,7 @@ public class CsdpFrame extends JFrame {
 		nCalculate.setEnabled(false);
 		nDisplayReachSummary.setEnabled(false);
 		nDisplay3dReachView.setEnabled(false);
+		_specifyCenterlinesFor3dViewButton.setEnabled(false);
 //		nSelectPointsFor3dReachView.setEnabled(false);
 		_networkCalculateButton.setEnabled(false);
 		dFitByNetworkMenuItem.setEnabled(false);
@@ -2058,6 +2089,8 @@ public class CsdpFrame extends JFrame {
 		nDisplayReachSummary.setEnabled(true);
 		nDisplay3dReachView.setEnabled(true);
 		nSelectPointsFor3dReachView.setEnabled(true);
+		_selectPointsFor3dViewButton.setEnabled(true);
+		_specifyCenterlinesFor3dViewButton.setEnabled(true);
 		_networkCalculateButton.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
 		tCalcRect.setEnabled(true);
@@ -2103,13 +2136,16 @@ public class CsdpFrame extends JFrame {
 		cView3d.setEnabled(true);
 		nDisplayReachSummary.setEnabled(true);
 		nDisplay3dReachView.setEnabled(true);
+		_selectPointsFor3dViewButton.setEnabled(true);
+		_specifyCenterlinesFor3dViewButton.setEnabled(true);
 		nSelectPointsFor3dReachView.setEnabled(true);
 		cPlotAllCrossSections.setEnabled(true);
 		cDeletePointsInWindow.setEnabled(true);
 		cDeletePointsOutsideWindow.setEnabled(true);
 		cAddXSAtComputationalPoints.setEnabled(true);
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
-
+		fSavePointsInsideOutsidePolygon.setEnabled(true);
+		cRemoveAllCrossSections.setEnabled(true);
 		if (getXsectSelected()) {
 			_removeXsectButton.setEnabled(true);
 			_moveXsectButton.setEnabled(true);
@@ -2146,6 +2182,7 @@ public class CsdpFrame extends JFrame {
 		_moveXsectButton.setEnabled(false);
 		_removeXsectButton.setEnabled(false);
 		_viewXsectButton.setEnabled(false);
+		fSavePointsInsideOutsidePolygon.setEnabled(false);
 
 		// _cMovePointMenuItem.setEnabled(false);
 		// _cAddPointMenuItem.setEnabled(false);
@@ -2289,8 +2326,8 @@ public class CsdpFrame extends JFrame {
 	}// updateInfoPanel
 
 	public void updateInfoPanel(Centerline centerline) {
-		_centerlineLengthLabel.setText("Centerline Length: "+String.format("%.0f", centerline.getLengthFeet()));
-		_centerlineVolumeLabel.setText("Centerline Volume: "+String.format("%.0f", centerline.getChannelVolumeEstimateNoInterp(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS)));
+		_centerlineLengthLabel.setText("Centerline Length: "+String.format("%,.0f", centerline.getLengthFeet()));
+		_centerlineVolumeLabel.setText("Centerline Volume: "+String.format("%,.0f", centerline.getChannelVolumeEstimateNoInterp(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS)));
 		_centerlineMaxAreaRatioLabel.setText("Centerline MAR: " +String.format("%.2f", centerline.getMaxAreaRatio()));
 	}
 	

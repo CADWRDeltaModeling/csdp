@@ -40,6 +40,7 @@
 */
 package DWR.CSDP;
 
+import java.awt.Polygon;
 import java.io.File;
 
 import DWR.CSDP.XsectBathymetryData;
@@ -144,7 +145,37 @@ public abstract class BathymetryOutput {
 	 * write all data
 	 */
 	protected abstract boolean write();
+	
+	protected Polygon getPolygon(Centerline centerline) {
+		Polygon polygon = new Polygon();
+		for(int i=0; i<centerline.getNumCenterlinePoints(); i++) {
+			CenterlinePoint centerlinePoint = centerline.getCenterlinePoint(i);
+			polygon.addPoint((int)CsdpFunctions.feetToMeters(centerlinePoint._x), (int)CsdpFunctions.feetToMeters(centerlinePoint._y));
+		}
+		return polygon;
+	}
 
+	protected int countDataInsideOrOutsidePolygon(Centerline centerline, boolean saveInside) {
+		Polygon polygon = getPolygon(centerline);
+		int numData = 0;
+		for(int i=0; i<_data.getNumLines(); i++) {
+			_data.getPointFeet(i, _point);
+			double x = _point[CsdpFunctions.xIndex];
+			double y = _point[CsdpFunctions.yIndex];
+			if(saveInside) {
+				if(polygon.contains(x, y)) {
+					numData++;
+				}
+			}else {
+				if(!polygon.contains(x, y)) {
+					numData++;
+					
+				}
+			}
+		}
+		return numData;
+	}//countDataInsideOrOutsidePolygon
+	
 	/**
 	 * count number of points to be written (if not writing entire file)
 	 */
@@ -171,88 +202,88 @@ public abstract class BathymetryOutput {
 		return numData;
 	}// countZoomedData
 
-	/**
-	 * Write binary bathymetry data file
-	 */
-	protected int findStartEndIndex(int numData, double[] plotBoundaries, int startOrEnd) {
-		int numWritten = 0;
-		double yMinZoom = CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.minYIndex]);
-		double yMaxZoom = CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.maxYIndex]);
-
-		// data are sorted in ascending y order.
-		// find indexes of first and last y values that are greater than and
-		// less
-		// than the min and max y values of the plotBoundaries
-		int numLines = _data.getNumLines();
-		// The number of lines(points) that are before
-		// and afer the middle of the search region
-		int halfSize = numLines / 2;
-		// The index of the beginning or last bathymetry point whose
-		// y values are ~ the min and max y values of the region.
-		// initialize to middle of the search region
-		int foundIndex = numLines / 2;
-		double valueToFind = -Double.MAX_VALUE;
-		if (startOrEnd == START_INDEX)
-			valueToFind = yMinZoom;
-		else if (startOrEnd == END_INDEX)
-			valueToFind = yMaxZoom;
-
-		// find the foundIndex
-		double yPoint = -Double.MAX_VALUE;
-		double yAfterPoint = -Double.MAX_VALUE;
-		double yBeforePoint = -Double.MAX_VALUE;
-		while (halfSize > 100 || (!(valueToFind > yBeforePoint && valueToFind < yAfterPoint))) {
-			boolean done = false;
-			_data.getPointMetersFeet(foundIndex, _point);
-			yPoint = _point[CsdpFunctions.yIndex];
-			_data.getPointMetersFeet(foundIndex - 1, _point);
-			yBeforePoint = _point[CsdpFunctions.yIndex];
-			_data.getPointMetersFeet(foundIndex + 1, _point);
-			yAfterPoint = _point[CsdpFunctions.yIndex];
-
-			if (DEBUG)
-				System.out.println("valueToFind,ybefore,y,yafter,foundIndex=" + valueToFind + "," + yBeforePoint + ","
-						+ yPoint + "," + yAfterPoint + "," + foundIndex);
-
-			if (valueToFind < yBeforePoint) {
-				// change middle index to middle of second half of region
-				halfSize /= 2;
-				int newStartIndex = foundIndex - halfSize;
-				if (DEBUG)
-					System.out.println("changing foundIndex from " + foundIndex + " to " + newStartIndex);
-				foundIndex = newStartIndex;
-			} else if (valueToFind > yAfterPoint) {
-				// change middle index to middle of first half of region
-				halfSize /= 2;
-				int newStartIndex = foundIndex + halfSize;
-				if (DEBUG)
-					System.out.println("changing foundIndex from " + foundIndex + " to " + newStartIndex);
-				foundIndex = newStartIndex;
-			} else if (valueToFind == yBeforePoint || valueToFind == yAfterPoint) {
-				while (valueToFind == yBeforePoint && foundIndex > 0) {
-					foundIndex--;
-					_data.getPointMetersFeet(foundIndex, _point);
-					yPoint = _point[CsdpFunctions.yIndex];
-					_data.getPointMetersFeet(foundIndex - 1, _point);
-					yBeforePoint = _point[CsdpFunctions.yIndex];
-					_data.getPointMetersFeet(foundIndex + 1, _point);
-					yAfterPoint = _point[CsdpFunctions.yIndex];
-					if (DEBUG)
-						System.out.println("valueToFind,ybefore,y,yafter,foundIndex=" + valueToFind + "," + yBeforePoint
-								+ "," + yPoint + "," + yAfterPoint + "," + foundIndex);
-				}
-				done = true;
-			} else if (valueToFind > yBeforePoint && valueToFind < yAfterPoint) {
-				// we're done!
-				done = true;
-			} else {
-				System.out.println("ERROR in BathymetryOutput.writeBathymetry");
-			}
-			if (done)
-				break;
-		} // while
-		return foundIndex;
-	}// writeBathymetry
+//	/**
+//	 * No longer needed. Gets stuck in infinite loop sometimes.
+//	 */
+//	protected int findStartEndIndex(int numData, double[] plotBoundaries, int startOrEnd) {
+//		int numWritten = 0;
+//		double yMinZoom = CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.minYIndex]);
+//		double yMaxZoom = CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.maxYIndex]);
+//
+//		// data are sorted in ascending y order.
+//		// find indexes of first and last y values that are greater than and
+//		// less
+//		// than the min and max y values of the plotBoundaries
+//		int numLines = _data.getNumLines();
+//		// The number of lines(points) that are before
+//		// and afer the middle of the search region
+//		int halfSize = numLines / 2;
+//		// The index of the beginning or last bathymetry point whose
+//		// y values are ~ the min and max y values of the region.
+//		// initialize to middle of the search region
+//		int foundIndex = numLines / 2;
+//		double valueToFind = -Double.MAX_VALUE;
+//		if (startOrEnd == START_INDEX)
+//			valueToFind = yMinZoom;
+//		else if (startOrEnd == END_INDEX)
+//			valueToFind = yMaxZoom;
+//
+//		// find the foundIndex
+//		double yPoint = -Double.MAX_VALUE;
+//		double yAfterPoint = -Double.MAX_VALUE;
+//		double yBeforePoint = -Double.MAX_VALUE;
+//		while (halfSize > 100 || (!(valueToFind > yBeforePoint && valueToFind < yAfterPoint))) {
+//			boolean done = false;
+//			_data.getPointMetersFeet(foundIndex, _point);
+//			yPoint = _point[CsdpFunctions.yIndex];
+//			_data.getPointMetersFeet(foundIndex - 1, _point);
+//			yBeforePoint = _point[CsdpFunctions.yIndex];
+//			_data.getPointMetersFeet(foundIndex + 1, _point);
+//			yAfterPoint = _point[CsdpFunctions.yIndex];
+//
+//			if (DEBUG)
+//				System.out.println("valueToFind,ybefore,y,yafter,foundIndex=" + valueToFind + "," + yBeforePoint + ","
+//						+ yPoint + "," + yAfterPoint + "," + foundIndex);
+//
+//			if (valueToFind < yBeforePoint) {
+//				// change middle index to middle of second half of region
+//				halfSize /= 2;
+//				int newStartIndex = foundIndex - halfSize;
+//				if (DEBUG)
+//					System.out.println("changing foundIndex from " + foundIndex + " to " + newStartIndex);
+//				foundIndex = newStartIndex;
+//			} else if (valueToFind > yAfterPoint) {
+//				// change middle index to middle of first half of region
+//				halfSize /= 2;
+//				int newStartIndex = foundIndex + halfSize;
+//				if (DEBUG)
+//					System.out.println("changing foundIndex from " + foundIndex + " to " + newStartIndex);
+//				foundIndex = newStartIndex;
+//			} else if (valueToFind == yBeforePoint || valueToFind == yAfterPoint) {
+//				while (valueToFind == yBeforePoint && foundIndex > 0) {
+//					foundIndex--;
+//					_data.getPointMetersFeet(foundIndex, _point);
+//					yPoint = _point[CsdpFunctions.yIndex];
+//					_data.getPointMetersFeet(foundIndex - 1, _point);
+//					yBeforePoint = _point[CsdpFunctions.yIndex];
+//					_data.getPointMetersFeet(foundIndex + 1, _point);
+//					yAfterPoint = _point[CsdpFunctions.yIndex];
+//					if (DEBUG)
+//						System.out.println("valueToFind,ybefore,y,yafter,foundIndex=" + valueToFind + "," + yBeforePoint
+//								+ "," + yPoint + "," + yAfterPoint + "," + foundIndex);
+//				}
+//				done = true;
+//			} else if (valueToFind > yBeforePoint && valueToFind < yAfterPoint) {
+//				// we're done!
+//				done = true;
+//			} else {
+//				System.out.println("ERROR in BathymetryOutput.writeBathymetry");
+//			}
+//			if (done)
+//				break;
+//		} // while
+//		return foundIndex;
+//	}// writeBathymetry
 
 	/*
 	 * write metadata
@@ -287,4 +318,13 @@ public abstract class BathymetryOutput {
 
 	protected static final int START_INDEX = 0;
 	protected static final int END_INDEX = 1;
+
+	protected boolean writeData(Centerline centerline, boolean saveInside) {
+		open();
+		boolean success = write(centerline, saveInside);
+		close();
+		return success;
+	}
+
+	protected abstract boolean write(Centerline centerline, boolean saveInside);
 } // BathymetryOutput

@@ -143,7 +143,7 @@ public class ZoomMenu {
 			if (_gui.getZoomPanMode()) {
 				_gui.pressZoomPanButton();
 			}
-			_gui.pressCursorButton();
+			_gui.pressSelectCursorAkaArrowButton();
 			_gui.getPlanViewCanvas(0).zoomFit();
 		}
 	}// class ZFit
@@ -182,7 +182,7 @@ public class ZoomMenu {
 		}
 
 		public void actionPerformed(ActionEvent arg0) {
-			_gui.pressArrowButton();
+			_gui.pressSelectCursorAkaArrowButton();
 			String response = JOptionPane.showInputDialog(_gui, "Enter centerline name", "Zoom to centerline", JOptionPane.OK_CANCEL_OPTION);
 			if(response!=null && response.length()>0) {
 				NetworkInteractor networkInteractor = _gui.getNetworkInteractor();
@@ -198,7 +198,7 @@ public class ZoomMenu {
 		}
 
 		public void actionPerformed(ActionEvent arg0) {
-			_gui.pressArrowButton();
+			_gui.pressSelectCursorAkaArrowButton();
 			String response = JOptionPane.showInputDialog(_gui, "Enter node name", "Zoom to node", JOptionPane.OK_CANCEL_OPTION);
 			if(response!=null && response.length()>0) {
 				NetworkInteractor networkInteractor = _gui.getNetworkInteractor();

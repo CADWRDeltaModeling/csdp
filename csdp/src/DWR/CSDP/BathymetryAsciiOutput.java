@@ -40,6 +40,8 @@
 */
 package DWR.CSDP;
 
+import java.awt.Polygon;
+import java.awt.Rectangle;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -248,6 +250,14 @@ public class BathymetryAsciiOutput extends BathymetryOutput {
 		return success;
 	}
 
+	@Override
+	protected boolean write(Centerline centerline, boolean saveInside) {
+		int numData = countDataInsideOrOutsidePolygon(centerline, saveInside);
+		boolean success = writeBathymetry(numData, getPolygon(centerline), saveInside);
+		return success;
+	}
+
+	
 	/*
 	 * write all data
 	 */
@@ -264,6 +274,8 @@ public class BathymetryAsciiOutput extends BathymetryOutput {
 		return success;
 	}
 
+
+	
 	/**
 	 * write metadata
 	 */
@@ -301,21 +313,48 @@ public class BathymetryAsciiOutput extends BathymetryOutput {
 		return success;
 	}// writeMetadata
 
+	protected boolean writeBathymetry(int numData, double[] plotBoundaries) {
+		Polygon polygon = new Polygon();
+		int x1 = (int)CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.x1Index]);
+		int y1 = (int)CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.y1Index]);
+		int x2 = (int)CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.x2Index]);
+		int y2 = (int)CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.y2Index]);
+		
+		polygon.addPoint(x1, y2);
+		polygon.addPoint(x2, y2);
+		polygon.addPoint(x2, y2);
+		polygon.addPoint(x1, y1);
+		polygon.addPoint(x1, y2);
+		return writeBathymetry(numData, polygon, true);
+	}
+	
 	/**
 	 * write ascii bathymetry data
+	 * @param saveInside 
 	 */
-	protected boolean writeBathymetry(int numData, double[] plotBoundaries) {
+	protected boolean writeBathymetry(int numData, Polygon polygon, boolean saveInside) {
 		String line = null;
 		short year;
 		String source = null;
 		boolean success = false;
 		int numWritten = 0;
 		try {
-			double xMinZoom = CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.minXIndex]);
-			double xMaxZoom = CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.maxXIndex]);
+//			double xMinZoom = CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.minXIndex]);
+//			double xMaxZoom = CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.maxXIndex]);
 
-			int startIndex = findStartEndIndex(numData, plotBoundaries, START_INDEX);
-			int endIndex = findStartEndIndex(numData, plotBoundaries, END_INDEX);
+			double[] plotBoundaries = new double[4];
+			Rectangle rectangle = polygon.getBounds();
+			double minX = rectangle.getMinX();
+			double maxX = rectangle.getMaxX();
+			double minY = rectangle.getMinY();
+			double maxY = rectangle.getMaxY();
+			plotBoundaries[CsdpFunctions.x1Index] = minX;
+			plotBoundaries[CsdpFunctions.x2Index] = maxX;
+			plotBoundaries[CsdpFunctions.y1Index] = minY;
+			plotBoundaries[CsdpFunctions.y2Index] = maxY;
+			
+//			int startIndex = findStartEndIndex(numData, plotBoundaries, START_INDEX);
+//			int endIndex = findStartEndIndex(numData, plotBoundaries, END_INDEX);
 
 			// write data to temporary file
 			FileWriter tempFW = new FileWriter(_directory + "tempbath" + "." + ASCII_TYPE);
@@ -332,10 +371,29 @@ public class BathymetryAsciiOutput extends BathymetryOutput {
 			final short elevUnitsIn = 1;
 			final short unitsOut = 1;
 			// write data
-			for (int dataNum = startIndex; dataNum < endIndex; dataNum++) {
+//			for (int dataNum = startIndex; dataNum < endIndex; dataNum++) {
+			for(int dataNum=0; dataNum<_data.getNumLines(); dataNum++) {
+				
 				// for(int i=0; i<=_data.getNumLines()-1; i++){
+//				System.out.println("writing point");
 				_data.getPointMetersFeet(dataNum, _point);
-				if (_point[CsdpFunctions.xIndex] > xMinZoom && _point[CsdpFunctions.xIndex] < xMaxZoom) {
+
+				boolean writePoint = true;
+//				if (_point[CsdpFunctions.xIndex] > xMinZoom && _point[CsdpFunctions.xIndex] < xMaxZoom) {
+				if(polygon.contains(_point[CsdpFunctions.xIndex], _point[CsdpFunctions.yIndex])) {
+					if(saveInside) {
+						writePoint = true;
+					}else {
+						writePoint = false;
+					}
+				}if(!polygon.contains(_point[CsdpFunctions.xIndex], _point[CsdpFunctions.yIndex])) {
+					if(saveInside) {
+						writePoint = false;
+					}else {
+						writePoint = true;
+					}
+				}
+				if(writePoint) {
 					if (convertToNAVD88) {
 						_point[CsdpFunctions.zIndex] = CsdpFunctions.getUseSemmscon().ngvd29_to_navd88_utm83(
 								_point[CsdpFunctions.xIndex], _point[CsdpFunctions.yIndex], utm83_zone, utm83_units,
@@ -351,6 +409,9 @@ public class BathymetryAsciiOutput extends BathymetryOutput {
 					// _asciiOut.newLine();
 					numWritten++;
 				} // if
+				else {
+//					System.out.println("not writing point");
+				}
 			} // for
 
 			tempBW.close();
@@ -431,5 +492,7 @@ public class BathymetryAsciiOutput extends BathymetryOutput {
 					+ e.getMessage());
 		} // catch
 	}// close
+
+
 
 } // class BathymetryAsciiInput

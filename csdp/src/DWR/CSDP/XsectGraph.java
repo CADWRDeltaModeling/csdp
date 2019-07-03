@@ -1234,6 +1234,12 @@ public class XsectGraph extends JDialog implements ActionListener {
 	}// make network data set
 	
 	/*
+	 * This is for XsectEditInteractor, which needs to use pixel coordinates in 
+	 * move point mode to determine which point the user wants to move.
+	 */
+	public NetworkDataSet getNetworkDataSet() {return _networkDataSet;}
+	
+	/*
 	 * Makes a network data when there is no bathymetry data and there are no cross-section points.
 	 */
 	protected void makeDummyNetworkDataSet() {

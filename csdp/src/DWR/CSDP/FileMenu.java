@@ -52,11 +52,64 @@ import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
+import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.FileIO;
 import DWR.CSDP.dialog.MultipleFileIO;
 
 public class FileMenu {
 
+	public class FSaveBathInsideOutsidePolygon implements ActionListener {
+
+		private CsdpFrame csdpFrame;
+		public FSaveBathInsideOutsidePolygon(CsdpFrame csdpFrame) {
+			this.csdpFrame = csdpFrame;
+		}
+
+		public void actionPerformed(ActionEvent arg0) {
+			String names[] = new String[2];
+			String initValue[] = new String[2];
+			names[0] = "Output ASCII .prn file";
+			names[1] = "Save points inside polygon?";
+			initValue[0] = "";
+			initValue[1] = "true";
+			
+			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.BOOLEAN_TYPE};
+			String[] tooltips = new String[] {"The output file, which will be a CSDP .prn file", "If selected, save only points inside "
+					+ "centerline polygon. Otherwise, save only points outside."};
+			boolean[] disableIfNull = new boolean[] {true, true};
+			int[] numDecimalPlaces = new int[] {0, 0};
+			String[] extensions = new String[] {"prn", ""};
+			
+			String instructions = 
+					"<HTML><BODY><B>Save bathymetry points inside polygon represented by a centerline.</B><BR>"
+							+ "1. The selected centerline will be assumed to represent a polygon.<BR><BR>"
+							+ "2. Specify the path to an output CSDP .prn file that you wish to create.<BR>"
+							+ "3. Check the box if you wish to save points that are inside the polygon;"
+							+ "uncheck if you wish to save points that are outside the polygon.<BR></font></BODY></HTML>";
+
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(csdpFrame, "Save Bathymetry points inside/outside polygon", instructions, 
+					names, initValue, dataTypes, disableIfNull, numDecimalPlaces, extensions, tooltips, true);
+			
+			int response=dataEntryDialog.getResponse();
+			if(response==DataEntryDialog.OK) {
+				String outputPrnDirectory = dataEntryDialog.getDirectory(names[0]).toString();
+				String outputPrnFilename = dataEntryDialog.getFilename(names[0]).toString();
+				boolean saveInside = Boolean.parseBoolean(dataEntryDialog.getValue(names[1]));
+//				try {
+				
+					Network network = csdpFrame.getNetwork();
+					System.out.println("app, network="+_app+","+network);
+					_app.fSaveBathymetryDataInsideOrOutsidePolygonCenterline(outputPrnDirectory, outputPrnFilename, network.getSelectedCenterline(), saveInside);
+//					JOptionPane.showMessageDialog(csdpFrame, "Ascii Raster Conversion to CSDP .prn file succeeded!", "Success", JOptionPane.INFORMATION_MESSAGE);
+//				} catch (Exception e) {
+//					JOptionPane.showMessageDialog(csdpFrame, "Ascii Raster Conversion to CSDP .prn file failed!", "Failure", JOptionPane.ERROR_MESSAGE);
+//					e.printStackTrace();
+//				}
+				
+			}//if ok clicked.
+		}
+	}//FSaveBathInsideOutsidePolygon
+	
 	public FileMenu(App app) {
 		_app = app;
 		_fOpenFilter = new CsdpFileFilter(_openExtensions, _numOpenExtensions);
@@ -127,6 +180,76 @@ public class FileMenu {
 
 	} // FOpenClass
 
+	public class BImportFromAsciiRaster implements ActionListener {
+		private CsdpFrame csdpFrame;
+		public BImportFromAsciiRaster(CsdpFrame csdpFrame) {
+			this.csdpFrame = csdpFrame;
+		}
+		public void actionPerformed(ActionEvent arg0) {
+			String names[] = new String[6];
+			String initValue[] = new String[6];
+			names[0] = "Input ASCII Raster File";
+			names[1] = "Output ASCII .prn file";
+			names[2] = "year";
+			names[3] = "source";
+			names[4] = "description";
+			names[5] = "Point reduction factor";
+			initValue[0] = null;
+			initValue[1] = null;
+			initValue[2] = "2019";
+			initValue[3] = "DWR";
+			initValue[4] = "New bathymetry data";
+			initValue[5] = "1";
+			
+			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.NUMERIC_TYPE,
+					DataEntryDialog.STRING_TYPE, DataEntryDialog.STRING_TYPE, DataEntryDialog.NUMERIC_TYPE};
+			String[] tooltips = new String[] {"The input file, which is the result of using the ArcGIS 'Raster to Ascii' function", 
+					"The output file, which will be a CSDP .prn file", "The year the data were collected", "The source of the data, usually agency name; keep it short",
+					"A description, usually identifying the name of the body of water", "If the data set is dense, enter a factor greater than 1 to reduce."};
+			boolean[] disableIfNull = new boolean[] {true, true, true, true, false, true};
+			int[] numDecimalPlaces = new int[] {0,0,0,0,0,0};
+			String[] extensions = new String[] {"","prn","","","",""};
+			
+			String instructions = 
+					"<HTML><BODY><B>Import ASCII Raster Bathymetry File</B><BR>"
+							+ "1. Specify the path to an ASCII raster file, created using the ArcGIS 'Raster to Ascii' function."
+							+ "coordinates are assumed to be in meters, UTM Zone 10 NAD 83 and NAVD88<BR><BR>"
+							+ "2. Specify the path to an output CSDP .prn file that you wish to create.<BR>"
+							+ "3. Specify the year the data were collected.<BR>"
+							+ "4. Specify the source of the data (usually agency name, keep it short).<BR>"
+							+ "5. Specify a description (usually the name of the body of water. Not used by CSDP."
+							+ "6. If the data set is dense, enter a factor greater than 1 to reduce density.<BR></font></BODY></HTML>";
+
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(csdpFrame, "Import ASCII Raster Bathymetry File", instructions, 
+					names, initValue, dataTypes, disableIfNull, numDecimalPlaces, extensions, tooltips, true);
+			
+			int response=dataEntryDialog.getResponse();
+			if(response==DataEntryDialog.OK) {
+				String inputRasterDirectory = dataEntryDialog.getDirectory(names[0]).toString();
+				String inputRasterFilename = dataEntryDialog.getFilename(names[0]);
+				String outputPrnDirectory = dataEntryDialog.getDirectory(names[1]).toString();
+				String outputPrnFilename = dataEntryDialog.getFilename(names[1]).toString();
+				String year = dataEntryDialog.getValue(names[2]);
+				String source = dataEntryDialog.getValue(names[3]);
+				String description = dataEntryDialog.getValue(names[4]);
+				int pointReductionFactor = Integer.parseInt(dataEntryDialog.getValue(names[5]));
+				ASCIIGridToCSDPConverter asciiGridToCSDPConverter = new ASCIIGridToCSDPConverter(csdpFrame, inputRasterDirectory+File.separator+inputRasterFilename, outputPrnDirectory+File.separator+outputPrnFilename, 
+						year, source, description, pointReductionFactor);
+				try {
+					asciiGridToCSDPConverter.convert();
+					JOptionPane.showMessageDialog(csdpFrame, "Ascii Raster Conversion to CSDP .prn file succeeded!", "Success", JOptionPane.INFORMATION_MESSAGE);
+				} catch (Exception e) {
+					JOptionPane.showMessageDialog(csdpFrame, "Ascii Raster Conversion to CSDP .prn file failed!", "Failure", JOptionPane.ERROR_MESSAGE);
+					e.printStackTrace();
+				}
+				
+			}//if ok clicked.
+
+		}//actionPerformed
+
+	}//inner class BImportFromAsciiRaster
+
+	
 	public class FConvert extends MultipleFileIO implements ActionListener {
 
 		public FConvert(CsdpFrame gui) {

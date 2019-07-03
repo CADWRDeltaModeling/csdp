@@ -1160,7 +1160,7 @@ public class NetworkInteractor extends ElementInteractor {
 			if (_gui.getZoomBoxMode()) {
 				_drawDragRect = false;
 				if (_zoomRect.width <= 5 || _zoomRect.height <= 5) {
-					_gui.pressCursorButton();
+					_gui.pressSelectCursorAkaArrowButton();
 				} else {
 					_can.zoomInOut(_zoomRect);
 				}
@@ -1168,7 +1168,7 @@ public class NetworkInteractor extends ElementInteractor {
 			if(_gui.getSelectPointsFor3dViewMode()) {
 				_drawDragRect = false;
 				if (_zoomRect.width <= 5 || _zoomRect.height <= 5) {
-					_gui.pressCursorButton();
+					_gui.pressSelectCursorAkaArrowButton();
 				} else {
 					CoordConv cc = zs.getCoordConv();
 					double[] bb = zs.getPlotBoundaries();
@@ -1208,11 +1208,12 @@ public class NetworkInteractor extends ElementInteractor {
 					_can.setUpdateCanvas(true);
 					_can.redoNextPaint();
 					_can.repaint();
+					_gui.pressSelectCursorAkaArrowButton();
 				}
 			}
 			if (_gui.getZoomPanMode()) {
 				if (Math.abs(_xi - _xf) < 5 && Math.abs(_yi - _yf) < 5) {
-					_gui.pressCursorButton();
+					_gui.pressSelectCursorAkaArrowButton();
 				} else {
 					_can.zoomPan(_xi, _yi, _xf, _yf);
 				}
@@ -1242,7 +1243,7 @@ public class NetworkInteractor extends ElementInteractor {
 	public void zoomToCenterline(String centerlineName) {
 		if(_net.centerlineExists(centerlineName)) {
 			try {
-				_gui.pressArrowButton(); //turn off edit modes
+				_gui.pressSelectCursorAkaArrowButton(); //turn off edit modes
 				_gui.setCursor(CsdpFunctions._waitCursor);
 				//find point that is in the middle of all centerline pionts
 				Centerline centerline = _net.getCenterline(centerlineName);
@@ -1307,7 +1308,7 @@ public class NetworkInteractor extends ElementInteractor {
 					_drawDragRect = false;
 					if (_zoomRect.width <= 5 || _zoomRect.height <= 5) {
 						if(DEBUG) System.out.println("Not zooming");
-						_gui.pressCursorButton();
+						_gui.pressSelectCursorAkaArrowButton();
 					} else {
 						if(DEBUG) System.out.println("zooming");
 	
@@ -1339,7 +1340,7 @@ public class NetworkInteractor extends ElementInteractor {
 		Landmark landmark = _gui.getLandmark();
 		if(landmark != null && landmark.containsLandmark(node)) {
 			try {
-				_gui.pressArrowButton(); //turn off edit modes
+				_gui.pressSelectCursorAkaArrowButton(); //turn off edit modes
 				_gui.setCursor(CsdpFunctions._waitCursor);
 				//find point that is in the middle of all centerline pionts
 				double landmarkX = landmark.getXFeet(node);
@@ -1404,12 +1405,12 @@ public class NetworkInteractor extends ElementInteractor {
 					_drawDragRect = false;
 					if (_zoomRect.width <= 5 || _zoomRect.height <= 5) {
 						if(DEBUG) System.out.println("Not zooming");
-						_gui.pressCursorButton();
+						_gui.pressSelectCursorAkaArrowButton();
 					} else {
 						if(DEBUG) System.out.println("zooming");
 						_gui.setCursor(CsdpFunctions._waitCursor);
 						_can.zoomInOut(_zoomRect);
-						_gui.pressCursorButton();
+						_gui.pressSelectCursorAkaArrowButton();
 					}
 				}
 				_mouseDragged = false;
