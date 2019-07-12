@@ -47,6 +47,7 @@ import java.io.File;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JFrame;
@@ -54,17 +55,22 @@ import javax.swing.JOptionPane;
 
 import org.jzy3d.chart.Chart;
 import org.jzy3d.chart.ChartLauncher;
+import org.jzy3d.chart.Settings;
 import org.jzy3d.chart.factories.AWTChartComponentFactory;
 import org.jzy3d.colors.Color;
 import org.jzy3d.colors.ColorMapper;
 import org.jzy3d.colors.colormaps.ColorMapRainbow;
 import org.jzy3d.maths.Coord3d;
 import org.jzy3d.maths.Rectangle;
+import org.jzy3d.plot3d.builder.Builder;
 import org.jzy3d.plot3d.primitives.LineStrip;
 import org.jzy3d.plot3d.primitives.Point;
 import org.jzy3d.plot3d.primitives.Scatter;
 import org.jzy3d.plot3d.primitives.ScatterMultiColor;
+import org.jzy3d.plot3d.primitives.Shape;
+import org.jzy3d.plot3d.primitives.axes.layout.AxeBoxLayout;
 import org.jzy3d.plot3d.rendering.canvas.Quality;
+import org.jzy3d.plot3d.rendering.legends.colorbars.AWTColorbarLegend;
 import org.jzy3d.plot3d.text.align.Halign;
 import org.jzy3d.plot3d.text.drawable.DrawableTextBitmap;
 
@@ -2043,6 +2049,11 @@ public class App {
 	
 	public void viewCenterlinesWithBathymetry3D(double[] centerlineDataDisplayBounds, String[] centerlineNames, String windowTitle, 
 			boolean displayUserDefinedCrossSections) {
+		//This is a very dark grey, which seems to provide good contrast for CSDP users, but makes the axis labels difficult to read
+//		chart.getView().setBackgroundColor(new Color(59,59,59));
+		//This is a good color for reports: a lighter grey. It may also be dark enough for CSDP use. Let's stay with this for a while.		Color chartBackgroundColor = new Color(90, 90, 90);
+		Color chartBackgroundColor = new Color(90, 90, 90);
+		Color legendBackgroundColor = new Color(150, 150, 150);
 		//centerlineNames will be null if user has drawn box to specify region rather than entering centerline names
 		System.out.println("centerlineDataDisplayBounds="+
 				centerlineDataDisplayBounds[CsdpFunctions.x1Index]+","+
@@ -2101,12 +2112,15 @@ public class App {
 		Vector<Integer> bathymetryPointIndexes = _bathymetryData.findPointIndexesInRegionFor3dDisplay(centerlineDataDisplayBounds);
 		int size = bathymetryPointIndexes.size();
 		Coord3d[] bathymetryCoord3dArray = new Coord3d[size];
+		//for delaunay chart
+//		Vector<Coord3d> bathymetryCoord3dVector = new Vector<Coord3d>();
 
 		// Create scatter points
 		double[] point = new double[3];
 		double minZ = Double.MAX_VALUE;
 		double maxZ = -Double.MAX_VALUE;
 		
+		//now get bathymetry data
 		for (int i = 0; i < size; i++) {
 			_bathymetryData.getPointFeet(bathymetryPointIndexes.get(i), point);
 			double x = point[0];
@@ -2115,13 +2129,17 @@ public class App {
 			minZ = Math.min(minZ, z);
 			maxZ = Math.max(maxZ, z);
 			bathymetryCoord3dArray[i] = new Coord3d(x, y, z);
+//			bathymetryCoord3dVector.add(new Coord3d(x,y,z));
 		}
 		ScatterMultiColor scatter = new ScatterMultiColor(bathymetryCoord3dArray, new ColorMapper(new ColorMapRainbow(), minZ, maxZ));
 		//this will change the point width. setting to a value less than 1 seems to have no effect. This would be helpful for dense data sets...
 		//		scatter.setWidth(1.0f);
+		//this one doesn't work...
+//	    scatter.setLegend( new AWTColorbarLegend(scatter, chart.getView().getAxe().getLayout(), Color.WHITE, null));
+		AWTColorbarLegend legend = new AWTColorbarLegend(scatter, new AxeBoxLayout(), Color.BLACK, legendBackgroundColor);
+		scatter.setLegend(legend);
 		scatter.setLegendDisplayed(true);
-		//		chart.getAxeLayout().setMainColor(Color.WHITE);
-		chart.getView().setBackgroundColor(new Color(59,59,59));
+		chart.getView().setBackgroundColor(chartBackgroundColor);
 		chart.getScene().add(scatter);
 
 		//now add the user-created cross-section points 
@@ -2285,6 +2303,8 @@ public class App {
 		chart.addController(new Bathymetry3dAWTCameraMouseController());
 //		chart.addKeyboardCameraController(new AWTLightKeyController(chart));
 		ChartLauncher.openChart(chart, new Rectangle(1000, 800), windowTitle);
+//		Chart chart2 = getDelaunayChart(bathymetryCoord3dVector);
+//		ChartLauncher.openChart(chart2, new Rectangle(1000, 800), windowTitle);
 		_csdpFrame.setCursor(CsdpFunctions._defaultCursor);
 
 		//now write ply file
@@ -2325,4 +2345,33 @@ public class App {
         
 	}//viewCenterlinesWithBathymetry3D
 
+	/**
+	 * This method currently unused, but this may be useful in the future
+	 * copied from this page (good examples here)
+	 * https://www.programcreek.com/java-api-examples/?code=gsi-upm/BARMAS/BARMAS-master/src/main/java/es/upm/dit/gsi/barmas/launcher/utils/plot/Plotter.java
+	 * @param coordinates
+	 * @return
+	 */
+	public Chart getDelaunayChart(List<Coord3d> coordinates) {
+		AWTChartComponentFactory factory = new AWTChartComponentFactory();
+
+		// Create the object to represent the function over the given range.
+		Shape surface = Builder.buildDelaunay(coordinates);
+
+		surface.setColorMapper(new ColorMapper(new ColorMapRainbow(),
+				surface.getBounds().getZmin(), surface.getBounds().getZmax(), new Color(1, 1, 1,
+						0.75f)));
+		surface.setFaceDisplayed(true);
+		surface.setWireframeDisplayed(true);
+		AWTColorbarLegend legend = new AWTColorbarLegend(surface, new AxeBoxLayout());
+		surface.setLegend(legend);
+
+		// Create a chart
+		Chart chart = new Chart(factory, Quality.Nicest, "awt", Settings.getInstance()
+				.getGLCapabilities());
+		chart.setAxeDisplayed(true);
+		chart.getScene().getGraph().add(surface);
+
+		return chart;
+	}
 }// class App
