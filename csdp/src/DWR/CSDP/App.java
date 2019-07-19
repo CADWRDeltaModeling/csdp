@@ -99,7 +99,7 @@ public class App {
 	DigitalLineGraph _dlg;
 	DigitalLineGraphPlot _dlgPlot = null;
 	// XsectGraph _xsectGraph;
-	Hashtable _xsectGraph = new Hashtable();
+	Hashtable<String, XsectGraph> _xsectGraph = new Hashtable<String, XsectGraph>();
 
 	protected String _filename = null;
 	protected String _filetype = null;
@@ -119,6 +119,9 @@ public class App {
 	private Hashtable<String, CenterlineOrReachSummaryWindow> allOpenCenterlineOrReachSummaryWindowsHashtable = 
 			new Hashtable<String, CenterlineOrReachSummaryWindow>();
 
+	public static final int ADDING_XSECT_GRAPH = 10;
+	public static final int REMOVING_XSECT_GRAPH = 20;
+	
 	/**
 	 * used for JOptionPane
 	 */
@@ -1323,22 +1326,57 @@ public class App {
 	}
 	
 	/**
-	 * If name exists in XsectGraph array, then rename...store first...
+	 * If name exists in XsectGraph array, then rename 1) the Hashtable key, and 2) the value of _xsectNum in XsectGraph
+	 * @param addOrRemoveIndex : the index of the cross-section that is being added or removed
+	 * @param addingOrRemoving indicates if addOrRemoveIndex is for adding or removing
+	 * note: moving a cross-section is equivalent to removing one and adding another, so this method will simply be called twice
 	 */
-	public void renameOpenXsectGraphs(String centerlineName, ResizableIntArray xsectIndices) {
+	public void renameOpenXsectGraphs(String centerlineName, ResizableIntArray xsectIndices, int addOrRemoveIndex, int addingOrRemoving) {
 		XsectGraph graph = null;
-		Hashtable sortedGraphs = new Hashtable();
+		Hashtable<String, XsectGraph> sortedGraphs = new Hashtable<String, XsectGraph>();
 
 		for (int i = 0; i <= xsectIndices.getSize() - 1; i++) {
 			graph = getXsectGraph(centerlineName, xsectIndices.get(i));
+			//when adding a cross-section, need to change the cross-section numbers of open XsectGraph windows 
 			if (graph != null) {
-				sortedGraphs.put(centerlineName + "_" + i, graph);
-				graph.updateXsectNum(i);
+				int newIndex = i;
+				if(addingOrRemoving==ADDING_XSECT_GRAPH) {
+					if(i>=addOrRemoveIndex) {
+						newIndex++;
+					}
+				}else if(addingOrRemoving==REMOVING_XSECT_GRAPH) {
+					if(i>addOrRemoveIndex) {
+						newIndex--;
+					}
+				}else {
+					JOptionPane.showMessageDialog(_csdpFrame, "error in App.renameOpenXsectGraphs: addOrRemoveIndex is not ADDING_XSECT_GRAPH or"
+							+ " REMOVING_XSECT_GRAPH.", "ERROR", JOptionPane.ERROR_MESSAGE);
+				}
+				sortedGraphs.put(centerlineName + "_" + newIndex, graph);
+				graph.updateXsectNum(newIndex);
 			}
 		} // for i
 		_xsectGraph = sortedGraphs;
 	}// renameOpenXsectGraphs
 
+	public boolean hasOpenXsectGraph(String centerlineName, int selectedXsectNum) {
+		if(_xsectGraph.containsKey(centerlineName+"_"+selectedXsectNum)) {
+			return true;
+		}else {
+			return false;
+		}
+	}
+
+	/*
+	 * disposes of open xsect graph
+	 */
+	public void disposeXsectGraph(String centerlineName, int selectedXsectNum) {
+		String keyString = centerlineName+"_"+selectedXsectNum;
+		XsectGraph xsectGraph = _xsectGraph.get(keyString);
+		xsectGraph.dispose();
+		_xsectGraph.remove(keyString);
+	}
+	
 	/**
 	 * updates xsect display when its xsect line is moved
 	 */
@@ -2438,5 +2476,4 @@ public class App {
 	public void removeCenterlineOrReachSummaryWindow(String keyString) {
 		this.allOpenCenterlineOrReachSummaryWindowsHashtable.remove(keyString);
 	}
-
 }// class App

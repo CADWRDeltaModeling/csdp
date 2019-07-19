@@ -840,7 +840,9 @@ public class NetworkInteractor extends ElementInteractor {
 			System.out.println("minDist, Double.MAX_VALUE " + minDist + "," + Double.MAX_VALUE);
 
 		if (minDist < Double.MAX_VALUE) {
+			ResizableIntArray xsectIndices = centerline.sortXsectArray();
 			centerline.removeXsect(xsectNum);
+			_app.renameOpenXsectGraphs(centerlineName, xsectIndices, xsectNum, App.REMOVING_XSECT_GRAPH);
 			addXsect();
 			if (xsectPoints != null)
 				xsect.putAllPoints(numPoints, xsectPoints);
@@ -969,56 +971,53 @@ public class NetworkInteractor extends ElementInteractor {
 //				if (DEBUG)
 //					System.out.println("cumDist=" + cumDist);
 			if(minDist < Double.MAX_VALUE) {
-				// find index of last xsect that is closer to first point in
-				// centerline.
-				// Xsect xsect = null;
-				int lastIndex = 0;
-				int numXsects = 0;
-				if (minDist < Double.MAX_VALUE) {
-					numXsects = centerline.getNumXsects();
-					if (numXsects == 0) {
-						centerline.addXsect();
-						xsect = centerline.getXsect(0);
-					} else {
-						for (int i = 0; i <= numXsects - 1; i++) {
-							xsect = centerline.getXsect(i);
-							if (xsect.getDistAlongCenterlineFeet() < cumDist)
-								lastIndex = i;
-						}
-						if (DEBUG)
-							System.out.println("lastindex = " + lastIndex);
-						centerline.addXsectAt(lastIndex + 1);
-						xsect = centerline.getXsect(lastIndex + 1);
-					} // else
-
-					xsect.putDistAlongCenterlineFeet(cumDist);
-					xsect.putXsectLineLengthFeet(minDist * 2.0f);
-
-					// sort
-					xsectIndices = centerline.sortXsectArray();
-					_app.renameOpenXsectGraphs(_net.getSelectedCenterlineName(), xsectIndices);
-
-					_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
-					// removed for conversion to swing
-					_gui.getPlanViewCanvas(0).redoNextPaint();
-					_gui.getPlanViewCanvas(0).repaint();
-
-					if (numXsects == 0)
-						selectedXsectNum = lastIndex;
-					else
-						selectedXsectNum = lastIndex + 1;
-
-					selectedXsectNum = xsectIndices.get(selectedXsectNum);
-
+				// find index of last xsect that is closer to first point centerline.
+				//if user selected a location upstream from the current upstream xs, then -1 indicates that there is no cross-section upstream,
+				//and that all XsectGraph objects need to be updated.
+				int lastIndex = -1;
+				int numXsects = centerline.getNumXsects();
+				if (numXsects == 0) {
+					centerline.addXsect();
+					xsect = centerline.getXsect(0);
+				} else {
+					for (int i = 0; i <= numXsects - 1; i++) {
+						xsect = centerline.getXsect(i);
+						if (xsect.getDistAlongCenterlineFeet() < cumDist)
+							lastIndex = i;
+					}
 					if (DEBUG)
-						System.out.println("selected xsect number =" + selectedXsectNum);
+						System.out.println("lastindex = " + lastIndex);
+					centerline.addXsectAt(lastIndex + 1);
+					xsect = centerline.getXsect(lastIndex + 1);
+				} // else
 
-					_net.setSelectedXsectNum(selectedXsectNum);
-					_net.setSelectedXsect(xsect);
-					_gui.enableAfterXsectSelected();
+				xsect.putDistAlongCenterlineFeet(cumDist);
+				xsect.putXsectLineLengthFeet(minDist * 2.0f);
 
-					_gui.updateInfoPanel(_net.getSelectedXsectNum());
-				} // if
+				// sort
+				xsectIndices = centerline.sortXsectArray();
+				_app.renameOpenXsectGraphs(_net.getSelectedCenterlineName(), xsectIndices, lastIndex+1, App.ADDING_XSECT_GRAPH);
+
+				_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+				// removed for conversion to swing
+				_gui.getPlanViewCanvas(0).redoNextPaint();
+				_gui.getPlanViewCanvas(0).repaint();
+
+				if (numXsects == 0)
+					selectedXsectNum = lastIndex;
+				else
+					selectedXsectNum = lastIndex + 1;
+
+				selectedXsectNum = xsectIndices.get(selectedXsectNum);
+
+				if (DEBUG)
+					System.out.println("selected xsect number =" + selectedXsectNum);
+
+				_net.setSelectedXsectNum(selectedXsectNum);
+				_net.setSelectedXsect(xsect);
+				_gui.enableAfterXsectSelected();
+
+				_gui.updateInfoPanel(_net.getSelectedXsectNum());
 			} // if minDist < BIG_DOUBLE
 		} // if a centerline has been selected
 		_net.setIsUpdated(true);
@@ -1030,12 +1029,23 @@ public class NetworkInteractor extends ElementInteractor {
 		String centerlineName = _net.getSelectedCenterlineName();
 		int selectedXsectNum = _net.getSelectedXsectNum();
 		String xsectName = centerlineName+"_"+selectedXsectNum;
-		//12/19/2018: remove confirmation
-
-		//					int response = JOptionPane.showConfirmDialog(_gui, "Delete selected cross-section line("+xsectName+")?", 
-//				"Are you sure?", JOptionPane.YES_NO_OPTION);
-//		if(response==JOptionPane.YES_OPTION) {
-			_net.getSelectedCenterline().removeXsect(_net.getSelectedXsectNum());
+		boolean proceed = true;
+		if(_app.hasOpenXsectGraph(centerlineName, selectedXsectNum)) {
+			int response = JOptionPane.showConfirmDialog(_gui, "A Cross-Section Editing window is open for the "
+					+ "cross-section you have selected for deletion. Proceed, and discard any edits?", 
+					"Are you sure?", JOptionPane.YES_NO_OPTION);
+			if(response==JOptionPane.YES_OPTION) {
+				proceed = true;
+				_app.disposeXsectGraph(centerlineName, selectedXsectNum);
+			}else {
+				proceed = false;
+			}
+		}
+		if(proceed) {
+			Centerline centerline = _net.getSelectedCenterline();
+			//need to get xsect indices before the deletion
+			ResizableIntArray xsectIndices = centerline.sortXsectArray();
+			centerline.removeXsect(_net.getSelectedXsectNum());
 			_gui.updateInfoPanel(_net.getSelectedCenterlineName());
 			_gui.updateInfoPanel(_net.getSelectedXsectNum());
 			// _gui.setRemoveXsectMode();
@@ -1044,8 +1054,9 @@ public class NetworkInteractor extends ElementInteractor {
 			_can.repaint();
 			_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
 			_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+			_app.renameOpenXsectGraphs(_net.getSelectedCenterlineName(), xsectIndices, _net.getSelectedXsectNum(), App.REMOVING_XSECT_GRAPH);
 
-//		}
+		}
 			//12/19/2018: make it sticky
 //		_gui.turnOffEditModes();
 	}
@@ -1078,7 +1089,7 @@ public class NetworkInteractor extends ElementInteractor {
 	 * equal to the channel length, move so it's not right at the end of the channel.
 	 */
 	private void addXsectAtDistance(Centerline centerline, double distance, double xsectLineLength) {
-		int lastIndex = 0;
+		int lastIndex = -1;
 		Xsect xsect = null;
 		int numXsects = centerline.getNumXsects();
 		if(numXsects == 0){
@@ -1098,7 +1109,7 @@ public class NetworkInteractor extends ElementInteractor {
 
 		// sort
 		ResizableIntArray xsectIndices = centerline.sortXsectArray();
-		_app.renameOpenXsectGraphs(_net.getSelectedCenterlineName(), xsectIndices);
+		_app.renameOpenXsectGraphs(_net.getSelectedCenterlineName(), xsectIndices, lastIndex+1, App.ADDING_XSECT_GRAPH);
 	
 		_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
 		// removed for conversion to swing

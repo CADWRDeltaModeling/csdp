@@ -2343,25 +2343,27 @@ public class CsdpFrame extends JFrame {
 	 */
 	public void updateInfoPanelXSProp() {
 		Xsect xsect = _net.getSelectedXsect();
-		double area = xsect.getAreaSqft(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
-		double width = xsect.getWidthFeet(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
-		double wetp = xsect.getWettedPerimeterFeet(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
-		double hd = xsect.getHydraulicDepthFeet(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
-		double nf = 100.0;
-		if (area >= 0.0f && width >= 0.0f && wetp >= 0.0f && hd >= 0.0f) {
-			String sa = Double.toString((((double) ((int) (area * nf))) / nf));
-			String sw = Double.toString((((double) ((int) (width * nf))) / nf));
-			String sp = Double.toString((((double) ((int) (wetp * nf))) / nf));
-			String shd = Double.toString((((double) ((int) (hd * nf))) / nf));
-			_areaLabel.setText("Xsect Area:  " + sa);
-			_widthLabel.setText("Top Width:  " + sw);
-			_wetPLabel.setText("Wetted Perimeter:  " + sp);
-			_hydraulicDepthLabel.setText("Hydraulic Depth:  " + shd);
-		} else {
-			_areaLabel.setText("Xsect Area:  ");
-			_widthLabel.setText("Top Width:  ");
-			_wetPLabel.setText("Wetted Perimeter:  ");
-			_hydraulicDepthLabel.setText("Hydraulic Depth:  ");
+		if(xsect!=null) {
+			double area = xsect.getAreaSqft(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+			double width = xsect.getWidthFeet(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+			double wetp = xsect.getWettedPerimeterFeet(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+			double hd = xsect.getHydraulicDepthFeet(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+			double nf = 100.0;
+			if (area >= 0.0f && width >= 0.0f && wetp >= 0.0f && hd >= 0.0f) {
+				String sa = Double.toString((((double) ((int) (area * nf))) / nf));
+				String sw = Double.toString((((double) ((int) (width * nf))) / nf));
+				String sp = Double.toString((((double) ((int) (wetp * nf))) / nf));
+				String shd = Double.toString((((double) ((int) (hd * nf))) / nf));
+				_areaLabel.setText("Xsect Area:  " + sa);
+				_widthLabel.setText("Top Width:  " + sw);
+				_wetPLabel.setText("Wetted Perimeter:  " + sp);
+				_hydraulicDepthLabel.setText("Hydraulic Depth:  " + shd);
+			} else {
+				_areaLabel.setText("Xsect Area:  ");
+				_widthLabel.setText("Top Width:  ");
+				_wetPLabel.setText("Wetted Perimeter:  ");
+				_hydraulicDepthLabel.setText("Hydraulic Depth:  ");
+			}
 		}
 	}// updateInfoPanel
 
