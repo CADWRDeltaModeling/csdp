@@ -214,6 +214,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 
 	JButton _restoreButton = new JButton(_restoreIcon);
 	JButton _keepButton = new JButton(_keepIcon);
+	JButton _cloneButton = new JButton("Clone");
+	
 	// JButton _metadataButton = new JButton(_metadataIcon);
 
 	ButtonGroup _colorByButtonGroup, _xsectEditButtonGroup;
@@ -466,6 +468,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		btnPanel.add(_deleteButton);
 		btnPanel.add(_keepButton);
 		btnPanel.add(_restoreButton);
+		btnPanel.add(_cloneButton);
 
 		btnPanel.add(_moveXsectXField);
 		btnPanel.add(_moveXsectXButton);
@@ -504,7 +507,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 		_insertButton.setToolTipText("insert point  ");
 		_deleteButton.setToolTipText("delete point  ");
 		_restoreButton.setToolTipText("undo changes since last keep  ");
-		_keepButton.setToolTipText("store changes in memory (not on disk!) ");
+		_keepButton.setToolTipText("store changes in memory, update values in main application window and centerline/reach summaries (not on disk!) ");
+		_cloneButton.setToolTipText("Replace user-created points in this XS with points from another XS");
 		_moveXsectXButton.setToolTipText("move cross-section in x dir.");
 		_moveXsectYButton.setToolTipText("move cross-section in y dir.");
 		// _metadataButton.setToolTipText("view/edit metadata ");
@@ -735,7 +739,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		if (DEBUG)
 			printGraphInfo("2");
 
-		XsectEditInteractor xei = new XsectEditInteractor(this, _xsect, _gC, _graph);
+		XsectEditInteractor xei = new XsectEditInteractor(_gui, _app, _net, this, _xsect, _gC, _graph);
 		_gC.addMouseListener(xei);
 		_gC.addMouseMotionListener(xei);
 		_gC.addComponentListener(new FontResizeInteractor(_gC));
@@ -974,7 +978,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 
 		// create and register action listener objects for the Xsect menu items
 		// and for the buttons
-		XsectEditMenu xsectEditMenu = new XsectEditMenu(this, _net, _app);
+		XsectEditMenu xsectEditMenu = new XsectEditMenu(this, _gui, _net, _app);
 		ActionListener xReverseListener = xsectEditMenu.new XReverse(_xsect);
 		ActionListener xKeepListener = xsectEditMenu.new XKeep();
 		ActionListener xRestoreListener = xsectEditMenu.new XRestore();
@@ -991,7 +995,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 		ItemListener xStopEditListener = xsectEditMenu.new XStopEdit();
 		ActionListener xMoveXsectXListener = xsectEditMenu.new XMoveXsectX(_moveXsectXField, _xsect);
 		ActionListener xMoveXsectYListener = xsectEditMenu.new XMoveXsectY(_moveXsectYField, _xsect);
-
+		
+		ActionListener xCloneListener = xsectEditMenu.new CloneXsect(_gui, _app, _centerlineName, this);
+		
 		DocumentListener xMetadataListener =
 				// xsectEditMenu.new XMetadata(_centerlineName, _xsectNum,
 				// _xsect,_gui);
@@ -1028,6 +1034,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		_reverseButton.addActionListener(xReverseListener);
 		_restoreButton.addActionListener(xRestoreListener);
 		_keepButton.addActionListener(xKeepListener);
+		_cloneButton.addActionListener(xCloneListener);
 
 		_moveXsectXButton.addActionListener(xMoveXsectXListener);
 		_moveXsectYButton.addActionListener(xMoveXsectYListener);
@@ -1145,7 +1152,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 			if (_oldNetworkDataSet != null && _oldNetworkDataSet.size() > 0) {
 				System.out.println("adding old points back to xsect. size=" + _oldNetworkDataSet.size());
 				for (int i = 0; i <= _oldNetworkDataSet.size() - 1; i++) {
-					System.out.println("restoring: _xsect,x,y=" + _xsect + "," + x + "," + y);
+					System.out.println("restoring: _xsect,x,y=" + _xsect + "," + x[i] + "," + y[i]);
 					_xsect.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, (double) x[i], (double) y[i]);
 				}
 			} else {
@@ -1679,7 +1686,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 	 */
 	public void updateMainWindowInfoPanel() {
 		// TODO Auto-generated method stub
-		_gui.updateInfoPanel(_net.getCenterline(_centerlineName));
+//		_gui.updateInfoPanel(_net.getCenterline(_centerlineName));
+		_gui.updateInfoPanel(_centerlineName);
 	}
 	
 }// class XsectGraph

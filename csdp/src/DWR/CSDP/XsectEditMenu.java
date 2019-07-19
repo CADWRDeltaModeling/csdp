@@ -50,6 +50,7 @@ import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
@@ -59,12 +60,15 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 
+import DWR.CSDP.dialog.DataEntryDialog;
 import vista.graph.GECanvas;
 
 public class XsectEditMenu {
 
-	public XsectEditMenu(XsectGraph xsectGraph, Network net, App app) {
+	private CsdpFrame _csdpFrame;
+	public XsectEditMenu(XsectGraph xsectGraph, CsdpFrame csdpFrame, Network net, App app) {
 		_xsectGraph = xsectGraph;
+		_csdpFrame = csdpFrame;
 		_net = net;
 		_app = app;
 	}
@@ -107,6 +111,8 @@ public class XsectEditMenu {
 			_xsectGraph.keepChanges();
 			_xsectGraph.setIsUpdated(false);
 			_xsectGraph.setChangesKept(true);
+			_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+			_csdpFrame.updateInfoPanel(_net.getSelectedCenterlineName());
 		}// actionPerformed
 
 	}// xKeep
@@ -246,24 +252,12 @@ public class XsectEditMenu {
 	 * close xsect frame
 	 */
 	public class XClose implements ActionListener, WindowListener {
-		public void windowOpened(WindowEvent e) {
-		}
-
-		public void windowActivated(WindowEvent e) {
-		}
-
-		public void windowDeactivated(WindowEvent e) {
-		}
-
-		public void windowIconified(WindowEvent e) {
-		}
-
-		public void windowDeiconified(WindowEvent e) {
-		}
-
-		public void windowClosed(WindowEvent e) {
-		}
-
+		public void windowOpened(WindowEvent e) {}
+		public void windowActivated(WindowEvent e) {}
+		public void windowDeactivated(WindowEvent e) {}
+		public void windowIconified(WindowEvent e) {}
+		public void windowDeiconified(WindowEvent e) {}
+		public void windowClosed(WindowEvent e) {}
 		public void windowClosing(WindowEvent e) {
 			closeWindow();
 		}
@@ -289,6 +283,8 @@ public class XsectEditMenu {
 					_xsectGraph.dispose();
 					_app.removeXsectGraph(_xsectGraph._centerlineName, _xsectGraph._xsectNum);
 					_xsect.setIsUpdated(false);
+					_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+					_csdpFrame.updateInfoPanel(_net.getSelectedCenterlineName());
 				} // if
 				else if(response==JOptionPane.YES_OPTION) {
 					if (DEBUG)
@@ -309,6 +305,9 @@ public class XsectEditMenu {
 					}
 					_xsect.putMetadata(newmd);
 					_xsectGraph.updateMainWindowInfoPanel();
+					_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+					_csdpFrame.updateInfoPanel(_net.getSelectedCenterlineName());
+
 				}else {
 					//Cancel clicked; do nothing.
 				}
@@ -503,6 +502,71 @@ public class XsectEditMenu {
 
 	}
 
+	/**
+	 * Cloning a cross-sections means copying the user-created points from a specified cross-section to the current cross-section window
+	 * @author btom
+	 *
+	 */
+	public class CloneXsect implements ActionListener {
+
+		private String centerlineName;
+		private XsectGraph xsectGraph;
+		private CsdpFrame csdpFrame;
+		private App app;
+
+		public CloneXsect(CsdpFrame csdpFrame, App app, String centerlineName, XsectGraph xsectGraph) {
+			this.csdpFrame = csdpFrame;
+			this.app = app;
+			this.centerlineName = centerlineName;
+			this.xsectGraph = xsectGraph;
+		}
+
+		public void actionPerformed(ActionEvent arg0) {
+			String[] names = new String[] {"Centerline Name", "Cross-Section Index"};
+			String[] defaultValue = new String[] {this.centerlineName, ""};
+			int[] dataType = new int[] {DataEntryDialog.STRING_TYPE, DataEntryDialog.NUMERIC_TYPE};
+			int[] numDecimalPlaces = new int[] {0,0};
+			boolean[] disableIfNull = new boolean[] {true, true};
+			
+			String[] tooltips = new String[] {
+					"Enter the name of the centerline (usually a DSM2 channel number) from which you would like to "
+					+ "copy cross-section points",
+					"Enter the index of the cross-section from which you would like to copy cross-section points. "
+					+ "The index of the first cross-section is 0"
+			};
+			
+			String instructions = "<HTML><BODY>"
+					+ "Cloning a cross-section will remove all of the points in the current cross-section window, and replace them with the<BR>"
+					+ "points from a specified cross-section. <BR><BR>"
+					+ "<B>Centerline Name:</B> This is the name of the centerline that contains the cross-section from which you would <BR>"
+					+ "like to copy points.<BR>"
+					+ "<B>Cross-Section Index:</B> The number of the cross-section from which you would like to copy points. <BR>"
+					+ "Examples: the furthest upstream cross-section has index=0, the next has index=1.<BR></BODY></HTML>";
+
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, "Clone a cross-section", instructions, names, defaultValue, dataType, 
+					disableIfNull, numDecimalPlaces, tooltips, true);
+			int response = dataEntryDialog.getResponse();
+			if(response==DataEntryDialog.OK) {
+				String sourceCenterlineNameString = dataEntryDialog.getValue(names[0]);
+				String sourceXsectIndexString = dataEntryDialog.getValue(names[1]);
+				int sourceXsectIndex = Integer.parseInt(sourceXsectIndexString);
+				Xsect xsect = this.xsectGraph._xsect;
+				xsect.removeAllPoints();
+				Centerline sourceCenterline = _net.getCenterline(sourceCenterlineNameString);
+				Xsect sourceXsect = sourceCenterline.getXsect(sourceXsectIndex);
+				Vector<XsectPoint> xsectPointsVector = sourceXsect.getAllPoints();
+				int numPoints = sourceXsect.getNumPoints();
+				xsect.putAllPoints(numPoints, (Vector<XsectPoint>) xsectPointsVector.clone());
+				this.csdpFrame.updateInfoPanel(this.centerlineName);
+				this.app.updateAllOpenCenterlineOrReachSummaries(this.centerlineName);
+				this.xsectGraph.updateDisplay();
+			}
+		}
+
+	}
+
+
+	
 	Network _net;
 	Xsect _xsect;
 	XsectGraph _xsectGraph;

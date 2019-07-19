@@ -392,8 +392,16 @@ public class NetworkSummary {
 				csdpMaxAreaRatio = centerline.getMaxAreaRatio();
 				csdpHighestBottomElev = centerline.getHighestBottomElevation();
 				csdpLowestBottomElev = centerline.getLowestBottomElevation();
-				double lowestHistStage = this.histMinStageHashtable.get(chan);
-				double minHistStageMinusChanBottom = lowestHistStage - csdpLowestBottomElev;
+				double lowestHistStage = -Double.MAX_VALUE;
+				double minHistStageMinusChanBottom = -Double.MAX_VALUE;
+				if(this.histMinStageHashtable.containsKey(chan)) {
+					lowestHistStage = this.histMinStageHashtable.get(chan);
+					minHistStageMinusChanBottom = lowestHistStage - csdpLowestBottomElev;
+				}else {
+					JOptionPane.showMessageDialog(csdpFrame, "Channel "+chan+" does not exist in historical run. setting channel bottom to -Double.MAX_VALUE", 
+							"WARNING", JOptionPane.WARNING_MESSAGE);
+				}
+				
 				this.minHistStageMinusChanBottomHashtable.put(chan, minHistStageMinusChanBottom);
 				csdpXsWithNoPoints = centerline.getXSWithNoPointsIndices();
 				csdpXsWithinSpecifiedDistanceHashSet = centerline.getXSWithinSpecifiedDistanceIndices(CsdpFunctions.MAXIMUM_SUGGESTED_XS_SPACING);

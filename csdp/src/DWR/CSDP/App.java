@@ -75,6 +75,7 @@ import org.jzy3d.plot3d.text.align.Halign;
 import org.jzy3d.plot3d.text.drawable.DrawableTextBitmap;
 
 import DWR.CSDP.XsectBathymetryData;
+import DWR.CSDP.dialog.CenterlineOrReachSummaryWindow;
 import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.GISSummaryStatisticGraphFrame;
 import DWR.CSDP.dialog.MessageDialog;
@@ -115,6 +116,9 @@ public class App {
 	protected static boolean DEBUG = false;
 	public int _xsectColorOption = 0;
 	public static int _squareDimension = 4;
+	private Hashtable<String, CenterlineOrReachSummaryWindow> allOpenCenterlineOrReachSummaryWindowsHashtable = 
+			new Hashtable<String, CenterlineOrReachSummaryWindow>();
+
 	/**
 	 * used for JOptionPane
 	 */
@@ -1788,6 +1792,9 @@ public class App {
 		_csdpFrame.getPlanViewCanvas(0).repaint();
 	}//movePolygonCenterlinePointsToLeveeCenterline
 
+	/*
+	 * Create the Network Summary Report using input from user.
+	 */
 	public void createNetworkSummaryReport() {
 		String title = "Create Network Summary Report";
 		String instructions = "<HTML><BODY><H2>A network summary report uses the following inputs:</H2><BR>"
@@ -2047,6 +2054,10 @@ public class App {
 		viewCenterlinesWithBathymetry3D(centerlineDataDisplayBounds, centerlineNames, windowTitle, displayUserDefinedCrossSections);
 	}
 	
+	/*
+	 * Use jzy3d to display 3d plot of bathymetry data with cross-section lines.
+	 * assume that all centerlineNames are c
+	 */
 	public void viewCenterlinesWithBathymetry3D(double[] centerlineDataDisplayBounds, String[] centerlineNames, String windowTitle, 
 			boolean displayUserDefinedCrossSections) {
 		//This is a very dark grey, which seems to provide good contrast for CSDP users, but makes the axis labels difficult to read
@@ -2055,17 +2066,18 @@ public class App {
 		Color chartBackgroundColor = new Color(90, 90, 90);
 		Color legendBackgroundColor = new Color(150, 150, 150);
 		//centerlineNames will be null if user has drawn box to specify region rather than entering centerline names
-		System.out.println("centerlineDataDisplayBounds="+
-				centerlineDataDisplayBounds[CsdpFunctions.x1Index]+","+
-				centerlineDataDisplayBounds[CsdpFunctions.y1Index]+","+
-				centerlineDataDisplayBounds[CsdpFunctions.x2Index]+","+
-				centerlineDataDisplayBounds[CsdpFunctions.y2Index]);
-		System.out.println("centerlineDataDisplayBounds meters="+
-				CsdpFunctions.feetToMeters(centerlineDataDisplayBounds[CsdpFunctions.x1Index])+","+
-				CsdpFunctions.feetToMeters(centerlineDataDisplayBounds[CsdpFunctions.y1Index])+","+
-				CsdpFunctions.feetToMeters(centerlineDataDisplayBounds[CsdpFunctions.x2Index])+","+
-				CsdpFunctions.feetToMeters(centerlineDataDisplayBounds[CsdpFunctions.y2Index]));
-		
+		if(DEBUG) {
+			System.out.println("centerlineDataDisplayBounds="+
+					centerlineDataDisplayBounds[CsdpFunctions.x1Index]+","+
+					centerlineDataDisplayBounds[CsdpFunctions.y1Index]+","+
+					centerlineDataDisplayBounds[CsdpFunctions.x2Index]+","+
+					centerlineDataDisplayBounds[CsdpFunctions.y2Index]);
+			System.out.println("centerlineDataDisplayBounds meters="+
+					CsdpFunctions.feetToMeters(centerlineDataDisplayBounds[CsdpFunctions.x1Index])+","+
+					CsdpFunctions.feetToMeters(centerlineDataDisplayBounds[CsdpFunctions.y1Index])+","+
+					CsdpFunctions.feetToMeters(centerlineDataDisplayBounds[CsdpFunctions.x2Index])+","+
+					CsdpFunctions.feetToMeters(centerlineDataDisplayBounds[CsdpFunctions.y2Index]));
+		}		
 		
 		double x1 = centerlineDataDisplayBounds[CsdpFunctions.x1Index];
 		double y1 = centerlineDataDisplayBounds[CsdpFunctions.y1Index];
@@ -2374,4 +2386,57 @@ public class App {
 
 		return chart;
 	}
+
+	public void createCenterlineOrReachSummaryWindow(CsdpFrame csdpFrame, Network net, int centerlineStartingEnd) {
+		_csdpFrame = csdpFrame;
+		_net = net;
+		String keyString = net.getSelectedCenterlineName();
+		if(!this.allOpenCenterlineOrReachSummaryWindowsHashtable.containsKey(keyString)) {
+			CenterlineOrReachSummaryWindow centerlineOrReachSummaryWindow = 
+					new CenterlineOrReachSummaryWindow(csdpFrame, this, _net, centerlineStartingEnd);
+			this.allOpenCenterlineOrReachSummaryWindowsHashtable.put(keyString, centerlineOrReachSummaryWindow);
+		}else {
+			JOptionPane.showMessageDialog(_csdpFrame, "A centerline summary window for this channel is already open.", "MESSAGE", JOptionPane.INFORMATION_MESSAGE);
+		}
+	}
+
+	public void createCenterlineOrReachSummaryWindow(CsdpFrame csdpFrame, Network net, String reachTitle,
+			String channelNumbersString, int centerlineStartingEnd) {
+		_csdpFrame = csdpFrame;
+		_net = net;
+		
+		String keyString = channelNumbersString;
+		if(!this.allOpenCenterlineOrReachSummaryWindowsHashtable.containsKey(keyString)) {
+			CenterlineOrReachSummaryWindow centerlineOrReachSummaryWindow = 
+					new CenterlineOrReachSummaryWindow(csdpFrame, this, net, reachTitle, channelNumbersString, centerlineStartingEnd);
+			this.allOpenCenterlineOrReachSummaryWindowsHashtable.put(keyString, centerlineOrReachSummaryWindow);
+		}else {
+			JOptionPane.showMessageDialog(_csdpFrame, "A reach summary window for given channel numbers specification is already open.", 
+					"MESSAGE", JOptionPane.INFORMATION_MESSAGE);
+		}
+	}
+
+	/*
+	 * Called when xsectGraph object is updated or centerline updated
+	 */
+	public void updateAllOpenCenterlineOrReachSummaries(String centerlineName) {
+		Enumeration<String> keysEnumeration = this.allOpenCenterlineOrReachSummaryWindowsHashtable.keys(); 
+		while(keysEnumeration.hasMoreElements()) {
+			String keyString = keysEnumeration.nextElement();
+			System.out.println("keyString="+keyString);
+			CenterlineOrReachSummaryWindow centerlineOrReachSummaryWindow = this.allOpenCenterlineOrReachSummaryWindowsHashtable.get(keyString);
+			if(centerlineOrReachSummaryWindow.containsCenterline(centerlineName)) {
+				centerlineOrReachSummaryWindow.updateWindow();
+				System.out.println("Updated Window for key "+keyString);
+			}
+		}
+	}
+	
+	/*
+	 * Called when window closes
+	 */
+	public void removeCenterlineOrReachSummaryWindow(String keyString) {
+		this.allOpenCenterlineOrReachSummaryWindowsHashtable.remove(keyString);
+	}
+
 }// class App

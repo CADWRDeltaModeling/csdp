@@ -370,7 +370,7 @@ public class NetworkInteractor extends ElementInteractor {
 						_gui.disableIfNoXsectSelected();
 						_net.setNewCenterlineName(cFoundName.get(selectIndex));
 						_gui.updateInfoPanel(cFoundName.get(selectIndex));
-						_gui.updateInfoPanel(centerline);
+//						_gui.updateInfoPanel(centerline);
 
 						// removed for conversion to swing
 
@@ -439,12 +439,11 @@ public class NetworkInteractor extends ElementInteractor {
 							_net.setSelectedXsect(centerline.getXsect(_net.getSelectedXsectNum()));
 							_gui.enableAfterXsectSelected();
 							_gui.updateInfoPanel(_net.getSelectedXsectNum());
-							double elev = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
+//							double elev = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
 							if(xsect.getNumPoints()>0) {
-								_gui.updateInfoPanel(xsect.getAreaSqft(elev), xsect.getWidthFeet(elev),
-										xsect.getWettedPerimeterFeet(elev), xsect.getHydraulicDepthFeet(elev));
+								_gui.updateInfoPanelXSProp();
 							}else {
-								_gui.updateInfoPanel(0.0, 0.0, 0.0, 0.0);
+								_gui.updateInfoPanelXSProp();
 							}
 							// removed for conversion to swing
 							_can.redoNextPaint();
@@ -452,8 +451,7 @@ public class NetworkInteractor extends ElementInteractor {
 						} else {
 							// if xsect found
 							_gui.updateInfoPanel(-Integer.MAX_VALUE);
-							_gui.updateInfoPanel(-Integer.MAX_VALUE, -Integer.MAX_VALUE, -Integer.MAX_VALUE,
-									-Integer.MAX_VALUE);
+							_gui.updateInfoPanelXSProp();
 						}
 						//// }//if it's the same centerline
 						// added for conversion to swing
@@ -472,8 +470,7 @@ public class NetworkInteractor extends ElementInteractor {
 							_gui.disableIfNoXsectSelected();
 							_gui.updateInfoPanel("");
 							_gui.updateInfoPanel(-Integer.MAX_VALUE);
-							_gui.updateInfoPanel(-Integer.MAX_VALUE, -Integer.MAX_VALUE, -Integer.MAX_VALUE,
-									-Integer.MAX_VALUE);
+							_gui.updateInfoPanelXSProp();
 							_net.setNewCenterlineName(cFoundName.get(selectIndex));
 	
 							// removed for conversion to swing
@@ -556,6 +553,8 @@ public class NetworkInteractor extends ElementInteractor {
 				_gui.getPlanViewCanvas(0).redoNextPaint();
 				_gui.getPlanViewCanvas(0).repaint();
 				_net.setIsUpdated(true);
+				_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+				_gui.updateInfoPanel(_net.getSelectedCenterlineName());
 			}
 		} // if centerlineName not null
 	}// addPoint
@@ -646,6 +645,9 @@ public class NetworkInteractor extends ElementInteractor {
 				//
 				_gui.getPlanViewCanvas(0).redoNextPaint();
 				_gui.getPlanViewCanvas(0).repaint();
+				_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+				_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+
 				// _gui.getPlanViewCanvas(0).validate();
 			} else {
 				if (DEBUG)
@@ -683,6 +685,9 @@ public class NetworkInteractor extends ElementInteractor {
 			// removed for conversion to swing
 			_gui.getPlanViewCanvas(0).redoNextPaint();
 			_gui.getPlanViewCanvas(0).repaint();
+			_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+			_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+
 		} // if centerlineName not null
 		_net.setIsUpdated(true);
 	}// insertPoint
@@ -726,6 +731,9 @@ public class NetworkInteractor extends ElementInteractor {
 			// removed for conversion to swing
 			_gui.getPlanViewCanvas(0).redoNextPaint();
 			_gui.getPlanViewCanvas(0).repaint();
+			_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+			_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+
 		} // if centerlineName not null
 		_net.setIsUpdated(true);
 	}
@@ -770,6 +778,9 @@ public class NetworkInteractor extends ElementInteractor {
 			// removed for conversion to swing
 			_gui.getPlanViewCanvas(0).redoNextPaint();
 			_gui.getPlanViewCanvas(0).repaint();
+			_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+			_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+
 		} // if centerlineName not null
 		_net.setIsUpdated(true);
 	}
@@ -843,6 +854,9 @@ public class NetworkInteractor extends ElementInteractor {
 //		_gui.setDefaultModesStates();
 
 		_app.updateXsect(centerlineName, xsectNum);
+		_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+		_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+
 	}// moveXsect
 
 	/**
@@ -1028,6 +1042,9 @@ public class NetworkInteractor extends ElementInteractor {
 			_net.setIsUpdated(true);
 			_can.redoNextPaint();
 			_can.repaint();
+			_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+			_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+
 //		}
 			//12/19/2018: make it sticky
 //		_gui.turnOffEditModes();
@@ -1320,7 +1337,7 @@ public class NetworkInteractor extends ElementInteractor {
 						_gui.disableIfNoXsectSelected();
 						_net.setNewCenterlineName(centerlineName);
 						_gui.updateInfoPanel(centerlineName);
-						_gui.updateInfoPanel(_net.getCenterline(centerlineName));
+//						_gui.updateInfoPanel(_net.getCenterline(centerlineName));
 						_gui.setCursor(CsdpFunctions._waitCursor);
 						_can.zoomInOut(_zoomRect);
 					}

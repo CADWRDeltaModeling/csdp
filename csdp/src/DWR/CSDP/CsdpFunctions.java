@@ -2108,7 +2108,7 @@ public class CsdpFunctions {
 	 * duplicate station values in a cross-section
 	 * area ratio in centerline exceeds maximum recommended value 
 	 */
-	public static boolean NETWORK_COLORING = true;
+	public static boolean NETWORK_COLORING = false;
 	
 	/*
 	 * The maximum recommended ratio of largest to smallest cross-sectional areas in a channel, evaluated at 
@@ -2237,7 +2237,7 @@ public class CsdpFunctions {
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "2.6_20190703";
+	private static final String _version = "2.6_20190719";
 
 	public static void display3dPlotInfoMessage(CsdpFrame csdpFrame) {
 		if(CsdpFunctions.DISPLAY_3D_PLOT_INFO_MSG) {

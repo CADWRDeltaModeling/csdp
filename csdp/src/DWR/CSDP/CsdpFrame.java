@@ -2323,18 +2323,30 @@ public class CsdpFrame extends JFrame {
 	 */
 	public void updateInfoPanel(String centerlineName) {
 		_centerlineLabel.setText("Selected Centerline:  " + centerlineName);
+		updateInfoPanel(_net.getCenterline(centerlineName));
 	}// updateInfoPanel
 
-	public void updateInfoPanel(Centerline centerline) {
-		_centerlineLengthLabel.setText("Centerline Length: "+String.format("%,.0f", centerline.getLengthFeet()));
-		_centerlineVolumeLabel.setText("Centerline Volume: "+String.format("%,.0f", centerline.getChannelVolumeEstimateNoInterp(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS)));
-		_centerlineMaxAreaRatioLabel.setText("Centerline MAR: " +String.format("%.2f", centerline.getMaxAreaRatio()));
+	private void updateInfoPanel(Centerline centerline) {
+		if(centerline==null) {
+			_centerlineLengthLabel.setText("Centerline Length: ");
+			_centerlineVolumeLabel.setText("Centerline Volume: ");
+			_centerlineMaxAreaRatioLabel.setText("Centerline MAR: ");
+		}else {
+			_centerlineLengthLabel.setText("Centerline Length: "+String.format("%,.0f", centerline.getLengthFeet()));
+			_centerlineVolumeLabel.setText("Centerline Volume: "+String.format("%,.0f", centerline.getChannelVolumeEstimateNoInterp(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS)));
+			_centerlineMaxAreaRatioLabel.setText("Centerline MAR: " +String.format("%.2f", centerline.getMaxAreaRatio()));
+		}
 	}
 	
 	/**
 	 * updates displayed value of cross-section properties
 	 */
-	public void updateInfoPanel(double area, double width, double wetp, double hd) {
+	public void updateInfoPanelXSProp() {
+		Xsect xsect = _net.getSelectedXsect();
+		double area = xsect.getAreaSqft(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+		double width = xsect.getWidthFeet(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+		double wetp = xsect.getWettedPerimeterFeet(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+		double hd = xsect.getHydraulicDepthFeet(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
 		double nf = 100.0;
 		if (area >= 0.0f && width >= 0.0f && wetp >= 0.0f && hd >= 0.0f) {
 			String sa = Double.toString((((double) ((int) (area * nf))) / nf));

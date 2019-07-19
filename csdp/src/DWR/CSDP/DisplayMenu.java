@@ -247,8 +247,7 @@ public class DisplayMenu {
 					if(_net != null) {
 						Xsect xsect = _net.getSelectedXsect();
 						if(xsect != null) {
-							_gui.updateInfoPanel(xsect.getAreaSqft(newElevation), xsect.getWidthFeet(newElevation),
-									xsect.getWettedPerimeterFeet(newElevation), xsect.getHydraulicDepthFeet(newElevation));
+							_gui.updateInfoPanelXSProp();
 						}
 					}
 				}

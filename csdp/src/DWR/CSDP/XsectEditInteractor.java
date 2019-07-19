@@ -68,13 +68,75 @@ public class XsectEditInteractor extends ElementInteractor {
 	 * for debugging
 	 */
 	public static final boolean DEBUG = false;
+	/**
+	 * Buffers image so as to avoid flickering while selecting zoom region
+	 */
+	protected Image _gCImage;
+	/**
+	 * Graph canvas
+	 */
+	/// protected ElementContext _gC;
+	protected GECanvas _gC;
+	/**
+	 * Stores flag to indicate if double buffering was being used before
+	 */
+	protected boolean _previouslyDoubleBuffered = false;
+	/**
+	 * Flag to indicate zoom region selection is in progress.
+	 */
+	protected boolean _drawDragRect = true;
+	/**
+	 * Flag to indicate whether mouse was dragged after mouse button was
+	 * pressed.
+	 */
+	protected boolean _mouseDragged = false;
+	/**
+	 * Initial point's x value
+	 */
+	protected int _xi = 0;
+	/**
+	 * Initial point's y value
+	 */
+	protected int _yi = 0;
+	/**
+	 * Final point's x value
+	 */
+	protected int _xf = 0;
+	/**
+	 * Final point's y value
+	 */
+	protected int _yf = 0;
+	/**
+	 * Current zooming region
+	 */
+	protected Rectangle _zoomRect = new Rectangle(0, 0, 0, 0);
+	/**
+	 * color used to draw the zoom rectangle
+	 */
+	protected Color _zoomRectColor = Color.black;
+	/**
+	 * Plot object
+	 */
+	protected Plot _plot;
+	/**
+	 * XsectGraph object
+	 */
+	protected XsectGraph _xsectGraph;
+	protected Xsect _xsect;
+	private Graph _graph;
+	private App _app;
+	private CsdpFrame _gui;
+	private Network _net;
 
 	/**
 	 * constructor
 	 */
 	/// public XsectEditInteractor(XsectGraph xg, Xsect xsect, ElementContext
 	/// gC, Graph[] graphs){
-	public XsectEditInteractor(XsectGraph xg, Xsect xsect, GECanvas gC, Graph graph) {
+	public XsectEditInteractor(CsdpFrame csdpFrame, App app, Network network, XsectGraph xg, Xsect xsect, GECanvas gC, Graph graph) {
+		this._gui = csdpFrame;
+		this._app = app;
+		this._net = network;
 		_xsectGraph = xg;
 		_xsect = xsect;
 		_gC = gC;
@@ -252,6 +314,10 @@ public class XsectEditInteractor extends ElementInteractor {
 		// _xsectGraph.updateNetworkDataSet();
 		_xsectGraph.updateDisplay();
 		_xsect.setIsUpdated(true);
+		System.out.println("_app, _net="+_app+","+_net);
+		_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+		_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+
 	}// movePoint
 
 	/**
@@ -274,6 +340,9 @@ public class XsectEditInteractor extends ElementInteractor {
 		// _xsectGraph.updateNetworkDataSet();
 		_xsectGraph.updateDisplay();
 		_xsect.setIsUpdated(true);
+		_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+		_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+
 	}// deletePoint
 
 	/**
@@ -291,6 +360,9 @@ public class XsectEditInteractor extends ElementInteractor {
 		// _xsectGraph.updateNetworkDataSet();
 		_xsectGraph.updateDisplay();
 		_xsect.setIsUpdated(true);
+		_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+		_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+
 	}
 
 	/**
@@ -314,62 +386,10 @@ public class XsectEditInteractor extends ElementInteractor {
 		// _xsectGraph.updateNetworkDataSet();
 		_xsectGraph.updateDisplay();
 		_xsect.setIsUpdated(true);
+		_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+		_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+
 	}// addPoint
 
-	/**
-	 * Buffers image so as to avoid flickering while selecting zoom region
-	 */
-	protected Image _gCImage;
-	/**
-	 * Graph canvas
-	 */
-	/// protected ElementContext _gC;
-	protected GECanvas _gC;
-	/**
-	 * Stores flag to indicate if double buffering was being used before
-	 */
-	protected boolean _previouslyDoubleBuffered = false;
-	/**
-	 * Flag to indicate zoom region selection is in progress.
-	 */
-	protected boolean _drawDragRect = true;
-	/**
-	 * Flag to indicate whether mouse was dragged after mouse button was
-	 * pressed.
-	 */
-	protected boolean _mouseDragged = false;
-	/**
-	 * Initial point's x value
-	 */
-	protected int _xi = 0;
-	/**
-	 * Initial point's y value
-	 */
-	protected int _yi = 0;
-	/**
-	 * Final point's x value
-	 */
-	protected int _xf = 0;
-	/**
-	 * Final point's y value
-	 */
-	protected int _yf = 0;
-	/**
-	 * Current zooming region
-	 */
-	protected Rectangle _zoomRect = new Rectangle(0, 0, 0, 0);
-	/**
-	 * color used to draw the zoom rectangle
-	 */
-	protected Color _zoomRectColor = Color.black;
-	/**
-	 * Plot object
-	 */
-	protected Plot _plot;
-	/**
-	 * XsectGraph object
-	 */
-	protected XsectGraph _xsectGraph;
-	protected Xsect _xsect;
-	private Graph _graph;
+
 }

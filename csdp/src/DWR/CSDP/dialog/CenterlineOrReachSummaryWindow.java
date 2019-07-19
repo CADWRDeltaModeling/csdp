@@ -43,6 +43,9 @@ package DWR.CSDP.dialog;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -57,6 +60,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import DWR.CSDP.App;
 import DWR.CSDP.Centerline;
 import DWR.CSDP.CsdpFrame;
 import DWR.CSDP.CsdpFunctions;
@@ -70,7 +74,7 @@ import DWR.CSDP.Xsect;
  * @author btom
  *
  */
-public class CenterlineSummaryWindow extends JFrame {
+public class CenterlineOrReachSummaryWindow extends JFrame {
 	
 	public static final int START_AT_DOWNSTREAM_END = 10;
 	public static final int START_AT_UPSTREAM_END = 20;
@@ -84,16 +88,19 @@ public class CenterlineSummaryWindow extends JFrame {
 	private String reachName;
 	private CsdpFrame csdpFrame;
 	private String centerlineNames;
+	private App app;
 	
 	/*
 	 * Constructor for single centerline summary window
 	 */
-	public CenterlineSummaryWindow(CsdpFrame csdpFrame, Network network, int startingEnd) {
+	public CenterlineOrReachSummaryWindow(CsdpFrame csdpFrame, App app, Network network, int startingEnd) {
 		super("Summary for Channel "+network.getSelectedCenterlineName());
 		this.chanNumbersVector.addElement(network.getSelectedCenterlineName());
 		this.csdpFrame = csdpFrame;
+		this.app = app;
 		this.network = network;
 		this.startingEnd = startingEnd;
+		this.centerlineNames = null;
 		addContent();
 	}
 	
@@ -101,10 +108,11 @@ public class CenterlineSummaryWindow extends JFrame {
 	 * Constructor for creating a Reach Summary window for multiple centerlines, which will be specified as a string 
 	 * in one of the following formats: 1-21,23,385 or 385,23,21-1 for reverse order
 	 */
-	public CenterlineSummaryWindow(CsdpFrame csdpFrame, Network network, String reachName, String centerlineNames,
+	public CenterlineOrReachSummaryWindow(CsdpFrame csdpFrame, App app, Network network, String reachName, String centerlineNames,
 			int startingEnd) {
 		super("Reach Summary for "+reachName);
 		this.csdpFrame = csdpFrame;
+		this.app = app;
 		this.reachName = reachName;
 		this.centerlineNames = centerlineNames;
 		this.network = network;
@@ -114,8 +122,58 @@ public class CenterlineSummaryWindow extends JFrame {
 		this.startingEnd = startingEnd;
 		addContent();
 	}//CenterlineSummaryWindow
+
+	/**
+	 * When user closes window, will be removed from Vector or Hashtable storing all instances of this class.
+	 * @author btom
+	 *
+	 */
+	private class CloseWindowListener implements WindowListener {
+		private App app;
+		private CenterlineOrReachSummaryWindow parent;
+		public CloseWindowListener(CenterlineOrReachSummaryWindow parent) {
+			this.parent = parent;
+			this.app = this.parent.app;
+		}
+		public void windowClosing(WindowEvent arg0) {
+			String keyString = null;
+			if(this.parent.centerlineNames==null) {
+				keyString = this.parent.chanNumbersVector.get(0);
+			}else {
+				keyString = this.parent.centerlineNames;
+			}
+			this.app.removeCenterlineOrReachSummaryWindow(keyString);
+		}
+		public void windowActivated(WindowEvent arg0) {}
+		public void windowClosed(WindowEvent arg0) {}
+		public void windowDeactivated(WindowEvent arg0) {}
+		public void windowDeiconified(WindowEvent arg0) {}
+		public void windowIconified(WindowEvent arg0) {}
+		public void windowOpened(WindowEvent arg0) {}
+	}
+	
+	/*
+	 * returns true if this instance includes the given centerline.
+	 */
+	public boolean containsCenterline(String centerlineName) {
+		boolean returnValue = false;
+		for(int i=0; i<this.chanNumbersVector.size(); i++) {
+			if(this.chanNumbersVector.get(i).equals(centerlineName)){
+				returnValue = true;
+				break;
+			}
+		}
+		return returnValue;
+	}//containsCenterline
+
+	public void updateWindow() {
+		this.getContentPane().removeAll();
+		addContent();
+	}
 	
 	private void addContent(){
+		this.addWindowListener(new CloseWindowListener(this));
+		
 		if(startingEnd!=START_AT_DOWNSTREAM_END && startingEnd!=START_AT_UPSTREAM_END) {
 			JOptionPane.showMessageDialog(this.csdpFrame, "Starting end was not specified correctly. Starting at downstream end.", "Warning", JOptionPane.INFORMATION_MESSAGE);
 			startingEnd = START_AT_DOWNSTREAM_END;

@@ -58,7 +58,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 
-import DWR.CSDP.dialog.CenterlineSummaryWindow;
+import DWR.CSDP.dialog.CenterlineOrReachSummaryWindow;
 import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.DialogLegendFactory;
 import DWR.CSDP.dialog.FileIO;
@@ -758,11 +758,12 @@ public class NetworkMenu {
 				boolean downstreamToUpstream = Boolean.parseBoolean(dataEntryDialog.getValue(names[2]));
 				int downstreamToUpstreamInt = -Integer.MAX_VALUE;
 				if(downstreamToUpstream) {
-					downstreamToUpstreamInt = CenterlineSummaryWindow.START_AT_DOWNSTREAM_END;
+					downstreamToUpstreamInt = CenterlineOrReachSummaryWindow.START_AT_DOWNSTREAM_END;
 				}else {
-					downstreamToUpstreamInt = CenterlineSummaryWindow.START_AT_UPSTREAM_END;
+					downstreamToUpstreamInt = CenterlineOrReachSummaryWindow.START_AT_UPSTREAM_END;
 				}
-				new CenterlineSummaryWindow(gui, net, reachTitle, channelNumbersString, downstreamToUpstreamInt);
+				_app.createCenterlineOrReachSummaryWindow(gui, net, reachTitle, channelNumbersString, downstreamToUpstreamInt);
+//				new CenterlineSummaryWindow(gui, net, reachTitle, channelNumbersString, downstreamToUpstreamInt);
 			}
 		}
 	}//inner class DisplayReachSummaryWindow
