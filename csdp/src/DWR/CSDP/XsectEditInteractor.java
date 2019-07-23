@@ -314,7 +314,7 @@ public class XsectEditInteractor extends ElementInteractor {
 		// _xsectGraph.updateNetworkDataSet();
 		_xsectGraph.updateDisplay();
 		_xsect.setIsUpdated(true);
-		System.out.println("_app, _net="+_app+","+_net);
+//		System.out.println("_app, _net="+_app+","+_net);
 		_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
 		_gui.updateInfoPanel(_net.getSelectedCenterlineName());
 

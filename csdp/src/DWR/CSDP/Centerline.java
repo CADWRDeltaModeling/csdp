@@ -1254,18 +1254,32 @@ public class Centerline {
 	 * Returns the area of the maximum 
 	 */
 	public double getMaxAreaRatio() {
+		return getMaxArea()/getMinArea();
+	}//getMaxAreaRatio
+
+	public double getMinArea() {
 		double minArea = Double.MAX_VALUE;
+		for(int i=0; i<getNumXsects(); i++) {
+			Xsect xsect = getXsect(i);
+			if(xsect.getNumPoints()>0) {
+				double area = xsect.getAreaSqft(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
+				minArea = Math.min(minArea, area);
+			}
+		}
+		return minArea;
+	}
+
+	public double getMaxArea() {
 		double maxArea = -Double.MAX_VALUE;
 		for(int i=0; i<getNumXsects(); i++) {
 			Xsect xsect = getXsect(i);
 			if(xsect.getNumPoints()>0) {
 				double area = xsect.getAreaSqft(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
-				if(area<minArea) minArea = area;
-				if(area>maxArea) maxArea = area;
+				maxArea = Math.max(maxArea, area);
 			}
 		}
-		return maxArea/minArea;
-	}//getMaxAreaRatio
+		return maxArea;
+	}
 
 	/*
 	 * Return the highest bottom elevation of all the cross-sections in the channel.

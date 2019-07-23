@@ -40,6 +40,8 @@
 */
 package DWR.CSDP;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -798,6 +800,7 @@ public class NetworkInteractor extends ElementInteractor {
 		int xsectNum = _net.getSelectedXsectNum();
 		Xsect xsect = _net.getSelectedXsect();
 		Vector xsectPoints = null;
+		String xsectMetadataString = null;
 		int numPoints = 0;
 		double x1 = 0.0;
 		double x2 = 0.0;
@@ -819,6 +822,7 @@ public class NetworkInteractor extends ElementInteractor {
 		// }
 
 		if (xsect != null) {
+			xsectMetadataString = xsect.getMetadata();
 			xsectPoints = xsect.getAllPoints();
 			numPoints = xsect.getNumPoints();
 		}
@@ -842,10 +846,15 @@ public class NetworkInteractor extends ElementInteractor {
 		if (minDist < Double.MAX_VALUE) {
 			ResizableIntArray xsectIndices = centerline.sortXsectArray();
 			centerline.removeXsect(xsectNum);
+//			_net.setSelectedCenterline(null);
+//			_net.setSelectedCenterlineName(null);
+			_net.setSelectedXsectNum(0);
 			_app.renameOpenXsectGraphs(centerlineName, xsectIndices, xsectNum, App.REMOVING_XSECT_GRAPH);
-			addXsect();
+			xsect = addXsect();
 			if (xsectPoints != null)
 				xsect.putAllPoints(numPoints, xsectPoints);
+			if(xsectMetadataString!=null)
+				xsect.putMetadata(xsectMetadataString);
 		}
 		// centerline.sortXsects();
 		_net.setIsUpdated(true);
@@ -864,7 +873,7 @@ public class NetworkInteractor extends ElementInteractor {
 	/**
 	 * add cross-section line to existing centerline
 	 */
-	protected void addXsect() {
+	private Xsect addXsect() {
 		int selectedXsectNum = 0;
 		Xsect xsect = null;
 		double xDataCoord = 0.0;
@@ -1004,7 +1013,7 @@ public class NetworkInteractor extends ElementInteractor {
 				_gui.getPlanViewCanvas(0).repaint();
 
 				if (numXsects == 0)
-					selectedXsectNum = lastIndex;
+					selectedXsectNum = 0;
 				else
 					selectedXsectNum = lastIndex + 1;
 
@@ -1023,6 +1032,7 @@ public class NetworkInteractor extends ElementInteractor {
 		_net.setIsUpdated(true);
 		//12/19/2018: make the mode sticky
 //		_gui.setDefaultModesStates();
+		return xsect;
 	}// addXsect
 
 	private void removeXsect() {
@@ -1046,6 +1056,7 @@ public class NetworkInteractor extends ElementInteractor {
 			//need to get xsect indices before the deletion
 			ResizableIntArray xsectIndices = centerline.sortXsectArray();
 			centerline.removeXsect(_net.getSelectedXsectNum());
+			_net.setSelectedXsectNum(0);
 			_gui.updateInfoPanel(_net.getSelectedCenterlineName());
 			_gui.updateInfoPanel(_net.getSelectedXsectNum());
 			// _gui.setRemoveXsectMode();
@@ -1055,7 +1066,7 @@ public class NetworkInteractor extends ElementInteractor {
 			_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
 			_gui.updateInfoPanel(_net.getSelectedCenterlineName());
 			_app.renameOpenXsectGraphs(_net.getSelectedCenterlineName(), xsectIndices, _net.getSelectedXsectNum(), App.REMOVING_XSECT_GRAPH);
-
+			_gui.disableIfNoXsectSelected();
 		}
 			//12/19/2018: make it sticky
 //		_gui.turnOffEditModes();

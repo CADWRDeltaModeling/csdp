@@ -2461,11 +2461,11 @@ public class App {
 		Enumeration<String> keysEnumeration = this.allOpenCenterlineOrReachSummaryWindowsHashtable.keys(); 
 		while(keysEnumeration.hasMoreElements()) {
 			String keyString = keysEnumeration.nextElement();
-			System.out.println("keyString="+keyString);
+//			System.out.println("keyString="+keyString);
 			CenterlineOrReachSummaryWindow centerlineOrReachSummaryWindow = this.allOpenCenterlineOrReachSummaryWindowsHashtable.get(keyString);
 			if(centerlineOrReachSummaryWindow.containsCenterline(centerlineName)) {
 				centerlineOrReachSummaryWindow.updateWindow();
-				System.out.println("Updated Window for key "+keyString);
+//				System.out.println("Updated Window for key "+keyString);
 			}
 		}
 	}

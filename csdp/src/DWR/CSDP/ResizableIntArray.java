@@ -79,10 +79,11 @@ public class ResizableIntArray {
 
 	// return element for read without checks
 	public int get(int index) {
-		if (index < 0 || index >= arrayLength)
-			throw new ArrayIndexOutOfBoundsException("Illegal access to ResizableIntArray element");
-		else
+		if (index < 0 || index >= arrayLength) {
+			throw new ArrayIndexOutOfBoundsException("Illegal access to ResizableIntArray element. index="+index);
+		}else {
 			return (array[index]);
+		}
 	}
 
 	// return element for read/write: put value

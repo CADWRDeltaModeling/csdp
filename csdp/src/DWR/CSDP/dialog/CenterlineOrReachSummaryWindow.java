@@ -325,12 +325,13 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 				channelVolumeLabel = new JLabel("Reach Volume, ft3");
 				channelWettedAreaLabel = new JLabel("Reach Wetted Area, ft2");
 				channelSurfaceAreaLabel = new JLabel("Reach Surface Area, ft2");
+				maxAreaRatioLabel = new JLabel("Reach Max Area Ratio");
 			}else {
 				centerlineLengthLabel = new JLabel("Centerline Length, ft");
 				channelVolumeLabel = new JLabel("Channel Volume, ft3");
 				channelWettedAreaLabel = new JLabel("Channel Wetted Area, ft2");
 				channelSurfaceAreaLabel = new JLabel("Channel Surface Area, ft2");
-				maxAreaRatioLabel = new JLabel("Max Area Ratio");
+				maxAreaRatioLabel = new JLabel("Channel Max Area Ratio");
 			}
 			double length = 0.0;
 			double volume = 0.0;
@@ -338,6 +339,8 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 			double surfaceArea = 0.0;
 			double maxAreaRatio = -Double.MAX_VALUE;
 
+			double reachMinArea = Double.MAX_VALUE;
+			double reachMaxArea = -Double.MAX_VALUE;
 			for(int i=0; i<this.chanNumbersVector.size(); i++) {
 				String centerlineName = this.chanNumbersVector.get(i);
 				Centerline centerline = this.network.getCenterline(centerlineName);
@@ -347,6 +350,10 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 				surfaceArea += centerline.getChannelSurfaceAreaEstimateNoInterp(elevation);
 				if(this.chanNumbersVector.size()==1 && i==0) {
 					maxAreaRatio = centerline.getMaxAreaRatio();
+				}else {
+					reachMinArea = Math.min(centerline.getMinArea(), reachMinArea);
+					reachMaxArea = Math.max(centerline.getMaxArea(), reachMaxArea);
+					maxAreaRatio = reachMaxArea/reachMinArea;
 				}
 			}		
 			JLabel elevValueLabel = new JLabel(String.format("%,.2f", elevation), SwingConstants.RIGHT);
@@ -366,10 +373,8 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 			conveyanceCharacteristicsPanel.add(wetAreaValueLabel);
 			conveyanceCharacteristicsPanel.add(channelSurfaceAreaLabel);
 			conveyanceCharacteristicsPanel.add(surfAreaValueLabel);
-			if(this.chanNumbersVector.size()==1) {
-				conveyanceCharacteristicsPanel.add(maxAreaRatioLabel);
-				conveyanceCharacteristicsPanel.add(maxAreaRatioValueLabel);
-			}
+			conveyanceCharacteristicsPanel.add(maxAreaRatioLabel);
+			conveyanceCharacteristicsPanel.add(maxAreaRatioValueLabel);
 			
 			JPanel topValuesPanel = new JPanel(new GridLayout(0,1,5,5));
 			topValuesPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
