@@ -252,7 +252,8 @@ public class CsdpFrame extends JFrame {
 	private ActionListener _nSaveAsListener = null;
 	private ActionListener _nSaveSpeficiedChannelsAsListener = null;
 	private ActionEvent _nullActionEvent = new ActionEvent(this, 0, null);
-
+	private ActionListener LSaveLandmarksListener;
+	private ActionListener LSaveLandmarksAsListener;
 	private static final int COLOR_BY_DEPTH = 0;
 	private static final int COLOR_BY_SOURCE = 1;
 	private static final int COLOR_BY_YEAR = 2;
@@ -1175,8 +1176,8 @@ public class CsdpFrame extends JFrame {
 		LandmarkMenu landmarkMenu = new LandmarkMenu(_app, this);
 		_oLandmarkListener = landmarkMenu.new LOpen(this);
 		ActionListener LClearLandmarksListener = landmarkMenu.new LClear();
-		ActionListener LSaveLandmarksListener = landmarkMenu.new LSave(this);
-		ActionListener LSaveLandmarksAsListener = landmarkMenu.new LSaveAs(this);
+		LSaveLandmarksListener = landmarkMenu.new LSave(this);
+		LSaveLandmarksAsListener = landmarkMenu.new LSaveAs(this);
 		ActionListener LExportLandmarksToWKTListener = landmarkMenu.new LExportToWKT(this);
 		ActionListener LAddListener = landmarkMenu.new LAdd();
 		// these may not need listeners?
@@ -1597,6 +1598,14 @@ public class CsdpFrame extends JFrame {
 
 	public NetworkInteractor getNetworkInteractor() {
 		return _networkInteractor;
+	}
+	
+	public void saveLandmark() {
+		if(CsdpFunctions.getLandmarkFilename()==null) {
+			LSaveLandmarksAsListener.actionPerformed(_nullActionEvent);
+		}else {
+			LSaveLandmarksListener.actionPerformed(_nullActionEvent);
+		}
 	}
 	
 	/**

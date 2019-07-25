@@ -66,6 +66,11 @@ public abstract class FileIO {
 //		_successDialog = new OkDialog(_gui, _successMessage, true);
 //		_failureDialog = new OkDialog(_gui, _failureMessage, true);
 	}
+	
+	/*
+	 * If necessary, will check to see if there are unsaved edits before taking actions that would replace unsaved edits.
+	 */
+	public abstract void checkAndSaveUnsavedEdits();
 
 	/**
 	 * call methods to open, read, and store data files, and to plot/display
@@ -75,6 +80,7 @@ public abstract class FileIO {
 		_cancel = false;
 		boolean success = false;
 		String filename = null;
+		checkAndSaveUnsavedEdits();
 		while (filename == null && _cancel == false) {
 			String fname = getFilename();
 			if (_cancel == false) {

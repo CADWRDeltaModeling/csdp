@@ -47,6 +47,8 @@ import javax.swing.JFrame;
 /**
  * This is the superclass of all classes that implement a file-open feature that
  * checks to see if a similar filetype is already open.
+ * 
+ * currently unused
  *
  * @author
  * @version $Id:

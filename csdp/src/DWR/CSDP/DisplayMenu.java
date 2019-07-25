@@ -401,6 +401,10 @@ public class DisplayMenu {
 			}
 			return filename;
 		}
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			// no need
+		}
 
 		/**
 		 * open dlg file

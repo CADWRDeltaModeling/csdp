@@ -121,6 +121,12 @@ public class PropertiesMenu {
 			((CsdpFrame) _gui).enableAfterProperties();
 			return true; // no need to warn if it fails.
 		}// accessFile
+		
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			//not needed
+		}
+
 
 	} // PLoad class
 
@@ -178,6 +184,12 @@ public class PropertiesMenu {
 			((CsdpFrame) _gui).enableAfterProperties();
 			return success;
 		}// accessFile
+		
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			//not needed
+		}
+
 	}// PSaveAs
 
 	/**
@@ -227,6 +239,11 @@ public class PropertiesMenu {
 			boolean success = _app.pSaveAs(CsdpFunctions.getPropertiesDirectory().getPath(), filename);
 			return success;
 		}// accessFile
+
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			//not needed
+		}
 
 	}// PSave
 

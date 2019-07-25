@@ -81,11 +81,17 @@ public class LandmarkMenu {
 			_jfc.setFileFilter(_lOpenFilter);
 		}
 
-		/**
-		 * not needed here. Use if you want to save something before continuing.
-		 */
-		public void warnUserIfNecessary() {
-		}// warnUserIfNecessary
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			if(_landmark != null) {
+				if(_landmark.isUpdated()) {
+					int response = JOptionPane.showConfirmDialog(_gui, "Landmark file has unsaved changes.  Save before loading another file (y/n)?", "save landmark?",
+							JOptionPane.YES_NO_OPTION);
+					if(response == JOptionPane.YES_OPTION)
+						((CsdpFrame) _gui).saveLandmark();
+				}
+			} // if landmark isn't null
+		}
 
 		/**
 		 * uses dialog box to get filename from user
@@ -197,6 +203,11 @@ public class LandmarkMenu {
 		public boolean accessFile(String filename) {
 			return _app.lSaveAs(CsdpFunctions.getLandmarkDirectory().getPath(), filename);
 		}
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			// no need
+		}
+
 	}// LSave
 
 	/**
@@ -256,6 +267,11 @@ public class LandmarkMenu {
 			return saved;
 		}
 
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			//not needed
+		}
+
 	} // LSaveAs
 
 	public class LExportToWKT extends FileIO implements ActionListener {
@@ -311,6 +327,11 @@ public class LandmarkMenu {
 			} // if
 			return filename;
 		}// getFilename
+
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			//not needed
+		}
 	}//class LExportToWKT
 
 	

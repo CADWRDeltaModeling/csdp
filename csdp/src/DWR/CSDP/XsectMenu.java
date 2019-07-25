@@ -158,6 +158,12 @@ public class XsectMenu {
 					CsdpFunctions.getXsectThickness());
 			return success;
 		}// extractXsect
+		
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			//not needed
+		}
+
 	} // class XView
 
 	/**

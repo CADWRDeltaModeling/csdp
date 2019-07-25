@@ -62,6 +62,7 @@ import DWR.CSDP.dialog.CenterlineOrReachSummaryWindow;
 import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.DialogLegendFactory;
 import DWR.CSDP.dialog.FileIO;
+import DWR.CSDP.dialog.FileOpen;
 import DWR.CSDP.dialog.FileSave;
 
 public class NetworkMenu {
@@ -97,7 +98,7 @@ public class NetworkMenu {
 		/**
 		 * Option to save network before continuing.
 		 */
-		public void warnUserIfNecessary() {
+		public void checkAndSaveUnsavedEdits() {
 			_net = ((CsdpFrame) _gui).getNetwork();
 			if (_net != null) {
 				if (_net.isUpdated()) {
@@ -229,6 +230,11 @@ public class NetworkMenu {
 		public boolean accessFile(String filename) {
 			return _app.nSaveAs(CsdpFunctions.getNetworkDirectory().getPath(), filename);
 		}
+
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			// no need
+		}
 	}// NSave
 
 	/**
@@ -286,6 +292,12 @@ public class NetworkMenu {
 			}
 			return saved;
 		}
+		
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			// no need
+		}
+
 
 	} // NSaveAs
 
@@ -525,6 +537,10 @@ public class NetworkMenu {
 			((CsdpFrame) _gui).enableAfterNetwork();
 			return saved;
 		}
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			// no need
+		}
 
 	} // NExportToSEFormat
 
@@ -575,6 +591,11 @@ public class NetworkMenu {
 			((CsdpFrame) _gui).enableAfterNetwork();
 			return saved;
 		}
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			// no need
+		}
+
 
 	} // NExportTo3DFormat
 

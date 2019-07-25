@@ -178,6 +178,11 @@ public class FileMenu {
 			return true; // no need to warn user if fails
 		}
 
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			//not needed
+		}
+
 	} // FOpenClass
 
 	public class BImportFromAsciiRaster implements ActionListener {
@@ -249,7 +254,11 @@ public class FileMenu {
 
 	}//inner class BImportFromAsciiRaster
 
-	
+	/**
+	 * Convert bathymetry file: prn to cdp
+	 * @author btom
+	 *
+	 */
 	public class FConvert extends MultipleFileIO implements ActionListener {
 
 		public FConvert(CsdpFrame gui) {
@@ -307,8 +316,12 @@ public class FileMenu {
 			_app.convertPrnToCdp(_gui, CsdpFunctions.getBathymetryDirectory().getPath(), filename, filetype);
 			return true; // no need to warn user if fails
 		}
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			//not needed
+		}
 
-	}
+	}//inner class FConvert
 
 	
 	/**
@@ -498,6 +511,12 @@ public class FileMenu {
 			} // if
 			return success;
 		}// accessFile
+		
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			//not needed
+		}
+
 	}// FSaveAs
 
 	/**
@@ -558,6 +577,12 @@ public class FileMenu {
 			} // if
 			return success;
 		}// accessFile
+		
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			//not needed
+		}
+
 	}// FSaveAsNAVD88
 
 	/**
@@ -616,6 +641,12 @@ public class FileMenu {
 			} // if
 			return success;
 		}// accessFile
+		
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			//not needed
+		}
+
 	}// class FSaveBathZoomed
 
 	/**

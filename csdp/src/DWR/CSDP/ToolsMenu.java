@@ -483,6 +483,12 @@ public class ToolsMenu {
 					_outputFilename, _outputFiletype, _outputDirectory);
 			return success;
 		}// accessFile
+		
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			//not needed
+		}
+
 
 	}// TCompareNetwork
 
@@ -1011,6 +1017,11 @@ public class ToolsMenu {
 			System.out.println("Done.  _owaNet=" + _owaNet);
 			return true; // no need to warn if it fails.]
 		}// accessFile
+
+		@Override
+		public void checkAndSaveUnsavedEdits() {
+			//not needed
+		}
 
 	} // TOpenWaterCalc class
 
