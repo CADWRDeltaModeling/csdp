@@ -391,5 +391,9 @@ public class XsectEditInteractor extends ElementInteractor {
 
 	}// addPoint
 
+	public void updateXsect(Xsect xsect) {
+		this._xsect = xsect;
+	}
+
 
 }

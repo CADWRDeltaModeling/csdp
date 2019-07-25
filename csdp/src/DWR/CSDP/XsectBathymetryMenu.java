@@ -61,7 +61,7 @@ public class XsectBathymetryMenu {
 		public void itemStateChanged(ItemEvent e) {
 			if(e.getStateChange()==ItemEvent.SELECTED) {
 				_xsectGraph.updateGraphCanvas();
-				_xsectGraph._gC.redoNextPaint();
+				_xsectGraph.redoNextPaint();
 				_xsectGraph.validate();
 				// removed for conversion to swing
 				// _xsectGraph._gC.repaint();
@@ -76,7 +76,7 @@ public class XsectBathymetryMenu {
 		public void itemStateChanged(ItemEvent e) {
 			if(e.getStateChange()==ItemEvent.SELECTED) {
 				_xsectGraph.updateGraphCanvas();
-				_xsectGraph._gC.redoNextPaint();
+				_xsectGraph.redoNextPaint();
 				_xsectGraph.validate();
 				// removed for conversion to swing
 				// _xsectGraph._gC.repaint();
@@ -91,7 +91,7 @@ public class XsectBathymetryMenu {
 		public void itemStateChanged(ItemEvent e) {
 			if(e.getStateChange()==ItemEvent.SELECTED) {
 				_xsectGraph.updateGraphCanvas();
-				_xsectGraph._gC.redoNextPaint();
+				_xsectGraph.redoNextPaint();
 				_xsectGraph.validate();
 				// removed for conversion to swing
 				// _xsectGraph._gC.repaint();
@@ -111,7 +111,7 @@ public class XsectBathymetryMenu {
 				System.out.println("Changing value");
 				_xsectGraph.setPointSize(nin);
 				_xsectGraph.updateGraphCanvas();
-				_xsectGraph._gC.redoNextPaint();
+				_xsectGraph.redoNextPaint();
 				_xsectGraph.validate();
 				// removed for conversion to swing
 				// _xsectGraph._gC.repaint();

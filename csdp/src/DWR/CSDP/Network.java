@@ -539,6 +539,7 @@ public class Network {
 		Centerline centerline = getCenterline(centerlineName);
 		Xsect xsect = centerline.getXsect(xsectNum);
 		double dist = xsect.getDistAlongCenterlineFeet();
+		if(dist<0.0) dist=0.0;
 		double length = xsect.getXsectLineLengthFeet();
 
 		if (DEBUG)

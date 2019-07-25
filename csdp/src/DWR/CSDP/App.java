@@ -1419,7 +1419,7 @@ public class App {
 		while (e.hasMoreElements()) {
 			XsectGraph xg = (XsectGraph) (e.nextElement());
 			xg.updateGraphCanvas();
-			xg._gC.redoNextPaint();
+			xg.redoNextPaint();
 			xg.validate();
 
 			// removed for conversion to swing
@@ -1434,7 +1434,7 @@ public class App {
 			while(e.hasMoreElements()) {
 				XsectGraph xg=(XsectGraph) e.nextElement();
 				System.out.println("_xsectGraph.size(), xg="+_xsectGraph.size()+","+xg);
-				if (xg._xsect._isUpdated || xg.getChangesKept()) {			
+				if (xg.getXsect()._isUpdated || xg.getChangesKept()) {			
 					returnValue = true;
 					break;
 				}
@@ -1456,7 +1456,7 @@ public class App {
 			// System.out.println(xg._gC.getGraph().getPlot().getAttributes());
 
 			xg.updateGraphCanvas();
-			xg._gC.redoNextPaint();
+			xg.redoNextPaint();
 			xg.validate();
 			// removed for conversion to swing
 			// xg._gC.repaint();

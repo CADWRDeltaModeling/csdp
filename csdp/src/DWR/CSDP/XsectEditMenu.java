@@ -150,7 +150,7 @@ public class XsectEditMenu {
 			double nf = Double.parseDouble(elevString);
 			_xsectGraph.setXSPropElevation(nf);
 			_xsectGraph.updateDisplay();
-			_xsectGraph._gC.redoNextPaint();
+			_xsectGraph.redoNextPaint();
 			_xsectGraph.validate();
 			// removed for conversion to swing
 			// _xsectGraph._gC.repaint();
@@ -268,7 +268,7 @@ public class XsectEditMenu {
 		}
 
 		private void closeWindow() {
-			if (_xsectGraph._xsect._isUpdated || _xsectGraph.getChangesKept()) {
+			if (_xsectGraph.getXsect()._isUpdated || _xsectGraph.getChangesKept()) {
 				int response = JOptionPane.showConfirmDialog(_xsectGraph, "Keep changes?", "Question", JOptionPane.YES_NO_CANCEL_OPTION);
 				if(response==JOptionPane.NO_OPTION) {
 					if (DEBUG)
@@ -277,11 +277,11 @@ public class XsectEditMenu {
 					// _xsectGraph.updateNetworkDataSet();
 					_xsectGraph.updateDisplay();
 
-					_xsectGraph._gC.redoNextPaint();
+					_xsectGraph.redoNextPaint();
 					// removed for conversion to swing
 					// _xsectGraph._gC.repaint();
 					_xsectGraph.dispose();
-					_app.removeXsectGraph(_xsectGraph._centerlineName, _xsectGraph._xsectNum);
+					_app.removeXsectGraph(_xsectGraph.getCenterlineName(), _xsectGraph.getXsectNum());
 					_xsect.setIsUpdated(false);
 					_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
 					_csdpFrame.updateInfoPanel(_net.getSelectedCenterlineName());
@@ -290,7 +290,7 @@ public class XsectEditMenu {
 					if (DEBUG)
 						System.out.println("keeping changes");
 					_xsectGraph.dispose();
-					_app.removeXsectGraph(_xsectGraph._centerlineName, _xsectGraph._xsectNum);
+					_app.removeXsectGraph(_xsectGraph.getCenterlineName(), _xsectGraph.getXsectNum());
 					_net.setIsUpdated(true);
 					_xsect.setIsUpdated(false);
 					_app.repaintNetwork();
@@ -314,7 +314,7 @@ public class XsectEditMenu {
 			} // if xsect changes haven't been saved
 			else {
 				_xsectGraph.dispose();
-				_app.removeXsectGraph(_xsectGraph._centerlineName, _xsectGraph._xsectNum);
+				_app.removeXsectGraph(_xsectGraph.getCenterlineName(), _xsectGraph.getXsectNum());
 				_xsect.setIsUpdated(false);
 			} // else
 		}// closeWindow
@@ -550,13 +550,19 @@ public class XsectEditMenu {
 				String sourceCenterlineNameString = dataEntryDialog.getValue(names[0]);
 				String sourceXsectIndexString = dataEntryDialog.getValue(names[1]);
 				int sourceXsectIndex = Integer.parseInt(sourceXsectIndexString);
-				Xsect xsect = this.xsectGraph._xsect;
+				Xsect xsect = this.xsectGraph.getXsect();
 				xsect.removeAllPoints();
 				Centerline sourceCenterline = _net.getCenterline(sourceCenterlineNameString);
 				Xsect sourceXsect = sourceCenterline.getXsect(sourceXsectIndex);
 				Vector<XsectPoint> xsectPointsVector = sourceXsect.getAllPoints();
 				int numPoints = sourceXsect.getNumPoints();
-				xsect.putAllPoints(numPoints, (Vector<XsectPoint>) xsectPointsVector.clone());
+				//Tried cloning the Vector object, but that fails to create a separate instance, so clone the XsectPoint objects instead
+				Vector<XsectPoint> newXsectPointsVector = new Vector<XsectPoint>();
+				for(int i=0; i<xsectPointsVector.size(); i++) {
+					newXsectPointsVector.add(xsectPointsVector.get(i).clone());
+				}
+					
+				xsect.putAllPoints(numPoints, newXsectPointsVector);
 				this.csdpFrame.updateInfoPanel(this.centerlineName);
 				this.app.updateAllOpenCenterlineOrReachSummaries(this.centerlineName);
 				this.xsectGraph.updateDisplay();

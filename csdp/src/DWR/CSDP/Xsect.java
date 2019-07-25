@@ -157,7 +157,7 @@ public class Xsect {
 			}
 		}else {
 			//this is the default...because it will not be reversed if cross-section is drawn 
-			//right to left. But it will behave inconsistently if user creates a strane shape that looks
+			//right to left. But it will behave inconsistently if user creates a strange shape that looks
 			//nothing like a cross-section
 			if(getNumPoints()>1) {
 				XsectPoint firstPoint = getXsectPoint(0);

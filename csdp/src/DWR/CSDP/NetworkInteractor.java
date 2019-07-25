@@ -40,8 +40,6 @@
 */
 package DWR.CSDP;
 
-import static org.junit.Assert.assertNotNull;
-
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
@@ -979,7 +977,7 @@ public class NetworkInteractor extends ElementInteractor {
 //
 //				if (DEBUG)
 //					System.out.println("cumDist=" + cumDist);
-			if(minDist < Double.MAX_VALUE) {
+			if(minDist < Double.MAX_VALUE && minDist > -Double.MAX_VALUE) {
 				// find index of last xsect that is closer to first point centerline.
 				//if user selected a location upstream from the current upstream xs, then -1 indicates that there is no cross-section upstream,
 				//and that all XsectGraph objects need to be updated.
@@ -1005,7 +1003,6 @@ public class NetworkInteractor extends ElementInteractor {
 
 				// sort
 				xsectIndices = centerline.sortXsectArray();
-				_app.renameOpenXsectGraphs(_net.getSelectedCenterlineName(), xsectIndices, lastIndex+1, App.ADDING_XSECT_GRAPH);
 
 				_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
 				// removed for conversion to swing
@@ -1024,6 +1021,7 @@ public class NetworkInteractor extends ElementInteractor {
 
 				_net.setSelectedXsectNum(selectedXsectNum);
 				_net.setSelectedXsect(xsect);
+				_app.renameOpenXsectGraphs(_net.getSelectedCenterlineName(), xsectIndices, lastIndex+1, App.ADDING_XSECT_GRAPH);
 				_gui.enableAfterXsectSelected();
 
 				_gui.updateInfoPanel(_net.getSelectedXsectNum());
@@ -1345,24 +1343,17 @@ public class NetworkInteractor extends ElementInteractor {
 						_minY = bb[CsdpFunctions.minYIndex];
 					}
 					_drawDragRect = false;
-					if (_zoomRect.width <= 5 || _zoomRect.height <= 5) {
-						if(DEBUG) System.out.println("Not zooming");
-						_gui.pressSelectCursorAkaArrowButton();
-					} else {
-						if(DEBUG) System.out.println("zooming");
-	
-						_net.setSelectedCenterlineName(centerlineName);
-						_net.setSelectedCenterline(centerline);
-						_net.setSelectedXsectNum(0);
-						_net.setSelectedXsect(null);
-						_gui.enableAfterCenterlineSelected();
-						_gui.disableIfNoXsectSelected();
-						_net.setNewCenterlineName(centerlineName);
-						_gui.updateInfoPanel(centerlineName);
+					_net.setSelectedCenterlineName(centerlineName);
+					_net.setSelectedCenterline(centerline);
+					_net.setSelectedXsectNum(0);
+					_net.setSelectedXsect(null);
+					_gui.enableAfterCenterlineSelected();
+					_gui.disableIfNoXsectSelected();
+					_net.setNewCenterlineName(centerlineName);
+					_gui.updateInfoPanel(centerlineName);
 //						_gui.updateInfoPanel(_net.getCenterline(centerlineName));
-						_gui.setCursor(CsdpFunctions._waitCursor);
-						_can.zoomInOut(_zoomRect);
-					}
+					_gui.setCursor(CsdpFunctions._waitCursor);
+					_can.zoomInOut(_zoomRect);
 				}
 				_mouseDragged = false;
 			}catch (Exception e) {
@@ -1442,15 +1433,10 @@ public class NetworkInteractor extends ElementInteractor {
 						_minY = bb[CsdpFunctions.minYIndex];
 					}
 					_drawDragRect = false;
-					if (_zoomRect.width <= 5 || _zoomRect.height <= 5) {
-						if(DEBUG) System.out.println("Not zooming");
-						_gui.pressSelectCursorAkaArrowButton();
-					} else {
-						if(DEBUG) System.out.println("zooming");
-						_gui.setCursor(CsdpFunctions._waitCursor);
-						_can.zoomInOut(_zoomRect);
-						_gui.pressSelectCursorAkaArrowButton();
-					}
+					if(DEBUG) System.out.println("zooming");
+					_gui.setCursor(CsdpFunctions._waitCursor);
+					_can.zoomInOut(_zoomRect);
+					_gui.pressSelectCursorAkaArrowButton();
 				}
 				_mouseDragged = false;
 			}catch (Exception e) {

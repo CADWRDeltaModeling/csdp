@@ -354,8 +354,7 @@ public class FileMenu {
 					int response = JOptionPane.showConfirmDialog(_gui, "Network file is not saved.  Save(y/n)?", "Save?", JOptionPane.YES_NO_CANCEL_OPTION);
 					if(response==JOptionPane.YES_OPTION) {
 						_gui.saveNetwork();
-						if (CsdpFunctions._cancelSaveNetwork == false)
-							System.exit(0);
+						System.exit(0);
 					}else if(response==JOptionPane.NO_OPTION) {
 						System.exit(0);
 					} else {

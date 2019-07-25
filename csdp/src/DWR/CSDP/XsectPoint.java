@@ -73,6 +73,13 @@ public class XsectPoint {
 	public void putElevationFeet(double value) {
 		_elevation = value;
 	}
+	
+	public XsectPoint clone() {
+		XsectPoint xsectPoint = new XsectPoint();
+		xsectPoint.putStationFeet(getStationFeet());
+		xsectPoint.putElevationFeet(getElevationFeet());
+		return xsectPoint;
+	}
 
 	protected double _station = 0.0f;
 	protected double _elevation = 0.0f;
