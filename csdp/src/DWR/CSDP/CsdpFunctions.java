@@ -2234,10 +2234,6 @@ public class CsdpFunctions {
 	 */
 	public static boolean DISPLAY_3D_PLOT_INFO_MSG = true;
 
-	/**
-	 * version number-displayed at top of frame
-	 */
-	private static final String _version = "2.6_20190725";
 
 	public static void display3dPlotInfoMessage(CsdpFrame csdpFrame) {
 		if(CsdpFunctions.DISPLAY_3D_PLOT_INFO_MSG) {
@@ -2264,4 +2260,10 @@ public class CsdpFunctions {
 			}
 		}
 	}
+
+	/**
+	 * version number-displayed at top of frame
+	 */
+	private static final String _version = "2.6_20190726";
+
 }// class CsdpFunctions

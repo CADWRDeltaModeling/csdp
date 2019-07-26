@@ -1169,6 +1169,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 			_networkDataSet = null;
 
 		}
+		//need to update reach summaries and info panels after restoring
+		_app.updateAllOpenCenterlineOrReachSummaries(_centerlineName);
+		_gui.updateInfoPanel(_centerlineName);
 	}// restoreXsect
 
 	/**
