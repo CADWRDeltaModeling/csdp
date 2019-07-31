@@ -1125,11 +1125,7 @@ public class NetworkInteractor extends ElementInteractor {
 		_gui.getPlanViewCanvas(0).redoNextPaint();
 		_gui.getPlanViewCanvas(0).repaint();
 	
-		int selectedXsectNum = 0;
-		if (numXsects == 0)
-			selectedXsectNum = lastIndex;
-		else
-			selectedXsectNum = lastIndex + 1;
+		int selectedXsectNum = lastIndex + 1;
 	
 		selectedXsectNum = xsectIndices.get(selectedXsectNum);
 	

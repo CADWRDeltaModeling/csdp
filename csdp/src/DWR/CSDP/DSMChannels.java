@@ -47,6 +47,50 @@ import java.util.Vector;
  * Stores channel connectivity information
  */
 public class DSMChannels {
+	private final String CHAN_HEADER = "CHAN";
+	private final String LENGTH_HEADER = "LENGTH";
+	private final String DOWNNODE_HEADER = "DOWNNODE";
+	private final String UPNODE_HEADER = "UPNODE";
+	private final String XSECT_HEADER = "XSECT";
+	private final String DIST_HEADER = "DIST";
+//	private int _numChannels;
+
+	private Vector<String> _chanNum = new Vector<String>();
+	private Hashtable<String, Integer> _length = new Hashtable<String, Integer>();
+	private Hashtable<String, String> _manning = new Hashtable<String, String>();
+	private Hashtable<String, String> _dispersion = new Hashtable<String, String>();
+	private Hashtable<String, Integer> _downnode = new Hashtable<String, Integer>();
+	private Hashtable<String, Integer> _upnode = new Hashtable<String, Integer>();
+	
+	private Hashtable<String, Integer> _xsect1 = new Hashtable<String, Integer>();
+	private Hashtable<String, Integer> _dist1 = new Hashtable<String, Integer>();
+	private Hashtable<String, Integer> _xsect2 = new Hashtable<String, Integer>();
+	private Hashtable<String, Integer> _dist2 = new Hashtable<String, Integer>();
+
+//	private int _numXsectLayers = 0;
+	private Vector<String> _xsectLayerID = new Vector<String>();
+	private Hashtable<String, String> _xsectLayerDist = new Hashtable<String, String>();
+	private Hashtable<String, String> _xsectLayerElev = new Hashtable<String, String>();
+	private Hashtable<String, String> _xsectLayerArea = new Hashtable<String, String>();
+	private Hashtable<String, String> _xsectLayerWidth = new Hashtable<String, String>();
+	private Hashtable<String, String> _xsectLayerWetPerim = new Hashtable<String, String>();
+	
+	private final String ELEV_HEADER = "ELEV";
+	private final String AREA_HEADER = "AREA";
+	private final String WIDTH_HEADER = "WIDTH";
+	private final String WET_PERIM_HEADER = "WET_PERIM";
+
+//	/*
+//	 * Key is node num, value is the number of channels connected to it.
+//	 */
+//	private Hashtable<Integer, Integer> nodeToNumChannelsHashtable = new Hashtable<Integer, Integer>();
+//	/*
+//	 * The goal is for user to be able to determine 
+//	 */
+//	public static final int UPSTREAM_CONNECTION = 10;
+//	public static final int DOWNSTREAM_CONNECTION = 20;
+	
+	private static final boolean DEBUG = false;
 
 	/**
 	 * add a DSM channel.
@@ -263,39 +307,5 @@ public class DSMChannels {
 		return exists;
 	}
 
-	private final String CHAN_HEADER = "CHAN";
-	private final String LENGTH_HEADER = "LENGTH";
-	private final String DOWNNODE_HEADER = "DOWNNODE";
-	private final String UPNODE_HEADER = "UPNODE";
-	private final String XSECT_HEADER = "XSECT";
-	private final String DIST_HEADER = "DIST";
-//	private int _numChannels;
-
-	private Vector<String> _chanNum = new Vector<String>();
-	private Hashtable<String, Integer> _length = new Hashtable<String, Integer>();
-	private Hashtable<String, String> _manning = new Hashtable<String, String>();
-	private Hashtable<String, String> _dispersion = new Hashtable<String, String>();
-	private Hashtable<String, Integer> _downnode = new Hashtable<String, Integer>();
-	private Hashtable<String, Integer> _upnode = new Hashtable<String, Integer>();
-	
-	private Hashtable<String, Integer> _xsect1 = new Hashtable<String, Integer>();
-	private Hashtable<String, Integer> _dist1 = new Hashtable<String, Integer>();
-	private Hashtable<String, Integer> _xsect2 = new Hashtable<String, Integer>();
-	private Hashtable<String, Integer> _dist2 = new Hashtable<String, Integer>();
-
-//	private int _numXsectLayers = 0;
-	private Vector<String> _xsectLayerID = new Vector<String>();
-	private Hashtable<String, String> _xsectLayerDist = new Hashtable<String, String>();
-	private Hashtable<String, String> _xsectLayerElev = new Hashtable<String, String>();
-	private Hashtable<String, String> _xsectLayerArea = new Hashtable<String, String>();
-	private Hashtable<String, String> _xsectLayerWidth = new Hashtable<String, String>();
-	private Hashtable<String, String> _xsectLayerWetPerim = new Hashtable<String, String>();
-	
-	private final String ELEV_HEADER = "ELEV";
-	private final String AREA_HEADER = "AREA";
-	private final String WIDTH_HEADER = "WIDTH";
-	private final String WET_PERIM_HEADER = "WET_PERIM";
-	
-	private static final boolean DEBUG = false;
 
 }// DSMChannels
