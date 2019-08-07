@@ -2553,7 +2553,7 @@ public class CsdpFrame extends JFrame {
 		System.out.println("setDefaultColors: " + numColors);
 		_colorsVector.clear();
 
-		for(int i=colorsList.size()-1; i>0; i--) {
+		for(int i=colorsList.size()-1; i>=0; i--) {
 			_colorsVector.add(colorsList.get(i));
 		}
 		//		float increment = (float) (0.8 / ((float) numColors - 1));

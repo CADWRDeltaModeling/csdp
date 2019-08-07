@@ -154,12 +154,13 @@ public class BathymetryBinaryOutput extends BathymetryOutput {
 		int y1 = (int)CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.y1Index]);
 		int x2 = (int)CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.x2Index]);
 		int y2 = (int)CsdpFunctions.feetToMeters(plotBoundaries[CsdpFunctions.y2Index]);
-		
+
 		polygon.addPoint(x1, y2);
 		polygon.addPoint(x2, y2);
-		polygon.addPoint(x2, y2);
+		polygon.addPoint(x2, y1);
 		polygon.addPoint(x1, y1);
 		polygon.addPoint(x1, y2);
+		
 		return writeBathymetry(numData, polygon, true);
 	}
 	

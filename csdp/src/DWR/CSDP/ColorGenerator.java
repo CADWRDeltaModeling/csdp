@@ -11,7 +11,7 @@ import java.util.List;
 public class ColorGenerator {
 	public static List<Color> pick(int num) {
 	    List<Color> colors = new ArrayList<Color>();
-	    if (num < 2)
+	    if (num < 1)
 	        return colors;
 	    float dx = 1.0f / (float) (num - 1);
 	    for (int i = 0; i < num; i++) {

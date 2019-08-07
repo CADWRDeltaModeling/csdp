@@ -322,7 +322,7 @@ public class BathymetryAsciiOutput extends BathymetryOutput {
 		
 		polygon.addPoint(x1, y2);
 		polygon.addPoint(x2, y2);
-		polygon.addPoint(x2, y2);
+		polygon.addPoint(x2, y1);
 		polygon.addPoint(x1, y1);
 		polygon.addPoint(x1, y2);
 		return writeBathymetry(numData, polygon, true);

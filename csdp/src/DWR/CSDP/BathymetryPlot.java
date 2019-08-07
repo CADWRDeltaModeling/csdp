@@ -276,7 +276,7 @@ public class BathymetryPlot extends PlanViewPlot {
 	 */
 	public Color getLegendItemColor(int index) {
 		Color c = null;
-		if (index < _gui.getNumColors())
+		if (index <= _gui.getNumColors())
 			c = _gui.getColor(index);
 		else
 			c = _gui.getColor(_gui.getNumColors() - 1);
