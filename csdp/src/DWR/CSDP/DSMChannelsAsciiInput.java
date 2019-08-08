@@ -156,7 +156,7 @@ public class DSMChannelsAsciiInput extends DSMChannelsInput {
 		StringTokenizer t = new StringTokenizer(unparsedLine, " ,\011\042");
 		String firstToken = null;
 		try {
-			firstToken = t.nextToken();
+			firstToken = t.nextToken().trim();
 		} catch (NoSuchElementException e) {
 			System.out.println("error in parseDSMChannelsData.  linenum, unparsedLine=" + linenum + "," + unparsedLine);
 		}
@@ -176,7 +176,7 @@ public class DSMChannelsAsciiInput extends DSMChannelsInput {
 		boolean foundXsectWidth = false;
 		boolean foundXsectWetPerim = false;
 		
-		if (firstToken.equals("#")) {
+		if (firstToken.indexOf("#")==0) {
 			if (DEBUG)
 				System.out.println("comment line ignored");
 		} else {
