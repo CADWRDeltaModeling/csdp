@@ -395,7 +395,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		// add("South",_xsPropPanel);
 		// use this instead for JFrame
 
-		_metadataJTextArea = new JTextArea(_xsect.getMetadata());
+		_metadataJTextArea = new UndoableJTextArea(_xsect.getMetadata());
 //		_metadataScrollPane = new JScrollPane(_metadata, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 //				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		_metadataJTextArea.setLineWrap(true);
