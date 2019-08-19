@@ -1699,5 +1699,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 	public Xsect getXsect() {return _xsect;}
 	public void redoNextPaint() {_gC.redoNextPaint();}
 	public String getCenterlineName() {return _centerlineName;}
+
+	public JPanel getGraphGECanvas() {return _gC;}
+	public JTextPane getConveyanceCharacteristicsJPanel() {return _dConveyanceTextPane;}
 	
 }// class XsectGraph

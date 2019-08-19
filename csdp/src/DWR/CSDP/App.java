@@ -79,6 +79,7 @@ import DWR.CSDP.dialog.CenterlineOrReachSummaryWindow;
 import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.GISSummaryStatisticGraphFrame;
 import DWR.CSDP.dialog.MessageDialog;
+import DWR.CSDP.dialog.XsectSlideshowDialog;
 
 /**
  * Main application class
@@ -2013,23 +2014,36 @@ public class App {
 				+ "		a. Save-As to save the network file to a different name.<BR>"
 				+ "     b. Tools-Remove all cross-sections<BR>"
 				+ "     c. Save the network file.<BR>"
-				+ "2. If the routine is selecting wrong centerlines, consider deleting some centerlines</BODY></HTML>";
+				+ "2. If the routine is selecting wrong centerlines, consider deleting some centerlines"
+				+ "3. Specify the output file path, and the values for the fields in the OUTPUT_CHANNEL section.</BODY></HTML>";
 
 		//Create dialog to get input from user.
-		String[] names = new String[] {"Output file (.txt)"};
-		String[] defaultValues = new String[1];
-		defaultValues[0] = CsdpFunctions.getOpenDirectory().toString()+File.separator+"landmarkChanDist.txt";
-
+		String[] names = new String[] {"Output file (.inp)","Variable(s)", "Interval", "Period Op", "File"};
+		String[] defaultValues = new String[5];
+		defaultValues[0] = CsdpFunctions.getOpenDirectory().toString()+File.separator+"landmarkChanDist.inp";
+		defaultValues[1] = "flow/stage";
+		defaultValues[2] = "${FINE_OUT}";
+		defaultValues[3] = "inst";
+		defaultValues[4] = "${HYDROOUTDSSFILE}";
+		
 		int[] dataTypes = new int[] {
-				DataEntryDialog.FILE_SPECIFICATION_TYPE
+				DataEntryDialog.FILE_SPECIFICATION_TYPE,
+				DataEntryDialog.STRING_TYPE,
+				DataEntryDialog.STRING_TYPE,
+				DataEntryDialog.STRING_TYPE,
+				DataEntryDialog.STRING_TYPE
 				};
-		String[] extensions = new String[] {"txt"};
-		String[] tooltips = new String[1];
+		String[] extensions = new String[] {"inp","","","",""};
+		String[] tooltips = new String[5];
 		tooltips[0] = "Output file will contain landmark name, channel number, and distance";
+		tooltips[1] = "Value(s) for DSM2 OUTPUT_CHANNEL VARIABLE field, separated by slashes";
+		tooltips[2] = "Value for DSM2 OUTPUT_CHANNEL INTERVAL field";
+		tooltips[3] = "Value for DSM2 OUTPUT_CHANNEL PERIOD_OP field";
+		tooltips[4] = "Value for DSM2 OUTPUT_CHANNEL FILE field";
 //		tooltips[1] = "If checked, will create a cross-section line on the nearest channel that intersects the landmark point";
 		
 		//require channels.inp and output file name, but not hof file
-		boolean[] disableIfNull = new boolean[] {true}; 
+		boolean[] disableIfNull = new boolean[] {true,true,true,true,true}; 
 		DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, title, instructions, names, defaultValues, dataTypes, disableIfNull, 
 				extensions, tooltips, true);
 		int response = dataEntryDialog.getResponse();
@@ -2042,6 +2056,11 @@ public class App {
 			
 			File outputFileDirectory = dataEntryDialog.getDirectory(names[0]);
 			String outputFileFilename = dataEntryDialog.getFilename(names[0]);
+			String variableFieldString = dataEntryDialog.getValue(names[1]);
+			String intervalFieldString = dataEntryDialog.getValue(names[2]);
+			String periodOpFieldString = dataEntryDialog.getValue(names[3]);
+			String fileFieldString = dataEntryDialog.getValue(names[4]);
+			
 			CsdpFunctions.setOpenDirectory(outputFileDirectory.toString());
 //			boolean createCrossSectionLines = Boolean.parseBoolean(dataEntryDialog.getValue(names[1]));
 			
@@ -2050,10 +2069,24 @@ public class App {
 			
 
 			AsciiFileWriter asciiFileWriter= new AsciiFileWriter(csdpFrame, outputFileDirectory.toString()+File.separator+outputFileFilename);
+			asciiFileWriter.writeLine("############################################################################################");
+			asciiFileWriter.writeLine("# Created automatically by CSDP, using the following network and landmark files,");
+			asciiFileWriter.writeLine("# with the Find Channel/Distance for Landmarks function");
+			asciiFileWriter.writeLine("# Network file: "+CsdpFunctions.getNetworkDirectory()+File.separator+CsdpFunctions.getNetworkFilename());
+			asciiFileWriter.writeLine("# Landmark file: "+CsdpFunctions.getLandmarkDirectory()+File.separator+CsdpFunctions.getLandmarkFilename());
+			asciiFileWriter.writeLine("############################################################################################");
+			asciiFileWriter.writeLine("OUTPUT_CHANNEL");
+			asciiFileWriter.writeLine(String.format("%-18s", "NAME")+
+					String.format("%8s", "CHAN_NO")+
+					String.format("%10s", "DISTANCE")+
+					String.format("%-9s", " VARIABLE")+
+					String.format("%-12s", " INTERVAL")+
+					String.format("%-10s", " PERIOD_OP")+
+					" FILE");
 			Enumeration<String> landmarkNamesEnum = landmark.getLandmarkNames();
-			double minDist = Double.MAX_VALUE;
 			try {
 				while(landmarkNamesEnum.hasMoreElements()) {
+					double minDist = Double.MAX_VALUE;
 					String landmarkName = landmarkNamesEnum.nextElement();
 					double landmarkX = landmark.getXFeet(landmarkName);
 					double landmarkY = landmark.getYFeet(landmarkName);
@@ -2065,13 +2098,28 @@ public class App {
 						double cumDist = cumAndMinDist[0];
 						double minCenterlineDist = cumAndMinDist[1];
 						if(minCenterlineDist>0 && minCenterlineDist < minDist) {
-							
+							minDist = minCenterlineDist;
 							closestChanHashtable.put(landmarkName, centerlineName);
 							closestChanDistHashtable.put(landmarkName, cumDist);
 						}
 					}//for each centerline
-					asciiFileWriter.writeLine(landmarkName+","+closestChanHashtable.get(landmarkName)+","+closestChanDistHashtable.get(landmarkName));
+					if(closestChanDistHashtable.containsKey(landmarkName) && closestChanDistHashtable.get(landmarkName)!=null &&
+							closestChanHashtable.containsKey(landmarkName) && closestChanHashtable.get(landmarkName)!=null) {
+						String[] variableParts=variableFieldString.split("/");
+						for(int i=0; i<variableParts.length; i++) {
+							String vString = variableParts[i];
+							asciiFileWriter.writeLine(String.format("%-18s", landmarkName)+
+									String.format("%8s", closestChanHashtable.get(landmarkName))+
+									String.format("%10.0f", closestChanDistHashtable.get(landmarkName))+
+									String.format("%-9s", " "+vString)+
+									String.format("%-12s", " "+intervalFieldString)+
+									String.format("%-10s", " "+periodOpFieldString)+
+									" "+fileFieldString);
+						}
+						//					asciiFileWriter.writeLine(landmarkName+","+closestChanHashtable.get(landmarkName)+","+closestChanDistHashtable.get(landmarkName));
+					}
 				}//for each landmark
+				asciiFileWriter.writeLine("END");
 				asciiFileWriter.close();
 				JOptionPane.showMessageDialog(csdpFrame, "File written", "Success", JOptionPane.INFORMATION_MESSAGE);
 			}catch(Exception e) {			
@@ -2475,5 +2523,48 @@ public class App {
 	 */
 	public void removeCenterlineOrReachSummaryWindow(String keyString) {
 		this.allOpenCenterlineOrReachSummaryWindowsHashtable.remove(keyString);
+	}
+
+	/*
+	 * User specifies one or two network files. First will be currently loaded network file by default, but can be changed
+	 * Looping through the centerlines in file #1, display a series of windows. 
+	 * Pressing a key will dispose the current window and open the next.
+	 * Each window will display
+	 * 1. on the left, the bathymetry and cross-section drawing for a cross-section in file #1. 
+	 * 2. one the right, the same for file #2. The cross-section with the closest distance will be displayed. 
+	 * Above Both plots will be cross-section index, distance along centerline, and centerline length.
+	 */
+	public void crossSectionSlideshow(String networkDirectory0, String networkFilename0, String networkDirectory1, String networkFilename1) {
+		NetworkInput ninput0 = NetworkInput.getInstance(_csdpFrame, networkDirectory0, networkFilename0, NETWORK_TYPE);
+		Network network0 = ninput0.readData();
+		NetworkInput ninput1 = NetworkInput.getInstance(_csdpFrame, networkDirectory1, networkFilename1, NETWORK_TYPE);
+		Network network1 = ninput1.readData();
+		
+		int numCenterlines0 = network0.getNumCenterlines();
+		int numCenterlines1 = network1.getNumCenterlines();
+		for(int i=0; i<numCenterlines0; i++) {
+			String centerlineName0 = network0.getCenterlineName(i);
+			Centerline centerline0 = network0.getCenterline(centerlineName0);
+			boolean matchingCenterline = network1.centerlineExists(centerlineName0);
+			if(matchingCenterline) {
+				//display cross-sections from both networks
+				Centerline centerline1 = network1.getCenterline(centerlineName0);
+				for(int j=0; j<centerline0.getNumXsects(); j++) {
+					Xsect xsect0 = centerline0.getXsect(j);
+					double dist0 = xsect0.getDistAlongCenterlineFeet();
+					int closestXsectIndex = centerline1.getClosestXsectIndex(dist0);
+					Xsect xsect1 = centerline1.getXsect(closestXsectIndex);
+					double dist1 = xsect1.getDistAlongCenterlineFeet();
+//					XsectSlideshowDialog xsectSlideshowDialog = new XsectSlideshowDialog(_csdpFrame, this, _bathymetryData, 
+//							networkDirectory0, networkFilename0, networkDirectory1, networkFilename1, 
+//							centerlineName0, j, xsect0, dist0, xsect1, dist1);
+//					int response = 
+				}
+			}else {
+				//just display cross-sections from centerline0
+				
+			}
+			
+		}
 	}
 }// class App

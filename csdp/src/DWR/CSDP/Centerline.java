@@ -1560,4 +1560,24 @@ public class Centerline {
 		return maxLength;
 	}
 
+	public int getClosestXsectIndex(double dist0) {
+		int closestXsectIndex = 0;
+		if(getNumXsects()<=0) {
+			closestXsectIndex = -Integer.MAX_VALUE;
+		}else {
+			double currentXsectDist = getXsect(0).getDistAlongCenterlineFeet();
+			double distDifference = Math.abs(currentXsectDist-dist0);
+			for(int i=0; i<getNumXsects(); i++) {
+				double newDistDifference = Math.abs(dist0-getXsect(i).getDistAlongCenterlineFeet());
+				if(newDistDifference>distDifference) {
+					break;
+				}else {
+					distDifference = newDistDifference;
+					closestXsectIndex = i;
+				}
+			}
+		}
+		return closestXsectIndex;
+	}//getClosestXsectIndex
+
 }// class Centerline

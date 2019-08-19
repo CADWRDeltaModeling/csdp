@@ -37,7 +37,7 @@
     Chung@water.ca.gov
 
     or see our home page: http://wwwdelmod.water.ca.gov/
-*/
+ */
 package DWR.CSDP;
 
 import java.awt.event.ActionEvent;
@@ -56,11 +56,9 @@ import DWR.CSDP.dialog.FileIO;
 
 public class ToolsMenu {
 
-
-
 	public static final int ENTER_CENTERLINE_NAMES = 10;
 	public static final int READ_CENTERLINE_NAMES_FROM_FILE = 20;
-	
+
 	public ToolsMenu(App app, CsdpFrame gui) {
 		_app = app;
 		_gui = gui;
@@ -75,6 +73,50 @@ public class ToolsMenu {
 	}
 
 	/**
+	 * User specifies one or two network files. First will be currently loaded network file by default, but can be changed
+	 * Looping through the centerlines in file #1, display a series of windows. 
+	 * Pressing a key will dispose the current window and open the next.
+	 * Each window will display
+	 * 1. on the left, the bathymetry and cross-section drawing for a cross-section in file #1. 
+	 * 2. one the right, the same for file #2. The cross-section with the closest distance will be displayed. 
+	 * Above Both plots will be cross-section index, distance along centerline, and centerline length.
+	 * 
+	 * @author btom
+	 *
+	 */
+	public class TCrossSectionSlideshow implements ActionListener {
+		public void actionPerformed(ActionEvent arg0) {
+			Network network = _gui.getNetwork();
+			Centerline centerline = network.getSelectedCenterline();
+			String title = "Cross-Section slideshow";
+			String instructions = "<HTML><BODY>"
+					+ "Display cross-section(s) for one or two network files, one at a time.<BR>"
+					+ "This can be used to compare cross-sections in two network files.<BR>"
+					+ "</HTML></BODY>";
+
+			final String[] names = new String[]{"First Network File","Second Network File"};
+			String[] defaultValues = new String[] {CsdpFunctions.getNetworkDirectory()+File.separator+CsdpFunctions.getNetworkFilename(), ""};
+			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.FILE_SPECIFICATION_TYPE};
+			boolean[] disableIfNull = new boolean [] {true, false};
+			String[] extensions = new String[] {"cdn", "cdn"};
+			String[] tooltips = new String[] {"First network file", "Second network file"}; 
+			boolean modal = true;
+
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names,
+					defaultValues, dataTypes, disableIfNull, extensions, tooltips, modal);
+
+			int response = dataEntryDialog.getResponse();
+			if(response==DataEntryDialog.OK) {
+				String directory0 = dataEntryDialog.getDirectory(names[0]).toString();
+				String directory1 = dataEntryDialog.getDirectory(names[1]).toString();
+				String filename0 = dataEntryDialog.getFilename(names[0]);
+				String filename1 = dataEntryDialog.getFilename(names[1]);
+				_app.crossSectionSlideshow(directory0, filename0, directory1, filename1);
+			}
+		}
+	}//TCrossSectionSlideshow
+
+	/**
 	 * For each landmark, determines nearest Centerline and distance from the upstream end of the nearest point on the centerline
 	 * to the landmark. Optionally draws a cross-section line, which can be useful for verification.
 	 * @author btom
@@ -86,7 +128,7 @@ public class ToolsMenu {
 		}
 	}
 
-	
+
 	public class TRemoveAllCrossSections implements ActionListener {
 
 		public void actionPerformed(ActionEvent arg0) {
@@ -112,7 +154,7 @@ public class ToolsMenu {
 	}//inner class TClosePolygonCenterlines
 
 
-	
+
 	/**
 	 * Given 3 centerlines:
 	 * 1. The channel centerline
@@ -136,7 +178,7 @@ public class ToolsMenu {
 			if(!CsdpFunctions.movePolygonCenterlinePointsToLeveeCenterlineDialogOpen()) {
 				Network network = _gui.getNetwork();
 				Centerline centerline = network.getSelectedCenterline();
-				
+
 				if(this.centerlineNameSource==ENTER_CENTERLINE_NAMES) {
 					String title = "Move Polygon Centerline Points to Levee Centerline";
 					String instructions = "<HTML><BODY>"
@@ -147,13 +189,13 @@ public class ToolsMenu {
 							+ "Move some of the points in the polygon centerline to the levee centerline, using the channel centerline <BR>"
 							+ "to identify which points are on the same side of the channel as the levee centerline."
 							+ "</HTML></BODY>";
-					
+
 					final String[] names = new String[]{"Polygon Centerline Name", "Channel Centerline Name", "Levee Centerline Name"};
 					String[] defaultValues = new String[] {"", "",""};
 					//centerline selection type doesn't work for canceling.
-	//				int[] dataTypes = new int[] {DataEntryDialog.CENTERLINE_SELECTION_TYPE, 
-	//						DataEntryDialog.CENTERLINE_SELECTION_TYPE, 
-	//						DataEntryDialog.CENTERLINE_SELECTION_TYPE};
+					//				int[] dataTypes = new int[] {DataEntryDialog.CENTERLINE_SELECTION_TYPE, 
+					//						DataEntryDialog.CENTERLINE_SELECTION_TYPE, 
+					//						DataEntryDialog.CENTERLINE_SELECTION_TYPE};
 					int[] dataTypes = new int[] {DataEntryDialog.STRING_TYPE,
 							DataEntryDialog.NUMERIC_TYPE,
 							DataEntryDialog.STRING_TYPE};
@@ -161,12 +203,12 @@ public class ToolsMenu {
 					int[] numDecimalPlaces = new int[] {0,0,0};
 					String[] tooltips = new String[] {"Click button to select the channel centerline", 
 							"Click button to select the polygon centerline", 
-							"Click button to select the levee centerline"};
+					"Click button to select the levee centerline"};
 					boolean modal = true;
-	
+
 					final DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names,
 							defaultValues, dataTypes, disableIfNull, numDecimalPlaces, tooltips, modal);
-	
+
 					int response = dataEntryDialog.getResponse();
 					if(response==DataEntryDialog.OK) {
 						String polygonCenterlineName = dataEntryDialog.getValue(names[0]).trim();
@@ -174,13 +216,13 @@ public class ToolsMenu {
 						System.out.println("response==OK: polygonCenterlineName, leveeCenterlineName="
 								+polygonCenterlineName+","+leveeCenterlineName);
 						Vector<String> errorMessages = null; 
-//						if(channelCenterlineName.equals(polygonCenterlineName) || channelCenterlineName.equals(leveeCenterlineName) 
-//								|| polygonCenterlineName.equals(leveeCenterlineName)){
-//							if(errorMessages==null) {
-//								errorMessages = new Vector<String>();
-//							}
-//							errorMessages.add("Your selections must all be different");
-//						}
+						//						if(channelCenterlineName.equals(polygonCenterlineName) || channelCenterlineName.equals(leveeCenterlineName) 
+						//								|| polygonCenterlineName.equals(leveeCenterlineName)){
+						//							if(errorMessages==null) {
+						//								errorMessages = new Vector<String>();
+						//							}
+						//							errorMessages.add("Your selections must all be different");
+						//						}
 						if(!network.centerlineExists(polygonCenterlineName) || !network.centerlineExists(leveeCenterlineName)) {
 							if(errorMessages==null) {
 								errorMessages = new Vector<String>();
@@ -199,53 +241,53 @@ public class ToolsMenu {
 									new String[] {leveeCenterlineName});
 						}
 					}else{
-	//					dataEntryDialog.removeWindowListener(this);
-	//					dataEntryDialog.disposeDialog();
+						//					dataEntryDialog.removeWindowListener(this);
+						//					dataEntryDialog.disposeDialog();
 						_gui.pressSelectCursorAkaArrowButton();
 						CsdpFunctions.setPolygonCenterlinePointsToLeveeCenterlineDialogOpen(false);
 					}
-	
+
 					//this would be better way to do it if it worked. It allows the dialog to disappear and user clicks on centerline,
 					//then selected centerline name gets put into dialog. Problem is the dialog is not disposing properly
 					//when ok or cancel clicked--it will go away, but will come back when user selects a centerline.
 					//this is necessary because the dialog is set to invisible while centerline selection is made.
-	//				dataEntryDialog.addWindowListener(new WindowListener() {
-	//					public void windowOpened(WindowEvent arg0) {}
-	//					public void windowIconified(WindowEvent arg0) {}
-	//					public void windowDeiconified(WindowEvent arg0) {}
-	//					public void windowDeactivated(WindowEvent arg0) {}
-	//					public void windowClosing(WindowEvent arg0) {}
-	//					
-	//					public void windowClosed(WindowEvent arg0) {
-	//						int response = dataEntryDialog.getResponse();
-	//						if(response==DataEntryDialog.OK) {
-	//							String channelCenterlineName = dataEntryDialog.getValue(names[0]);
-	//							String polygonCenterlineName = dataEntryDialog.getValue(names[1]);
-	//							String leveeCenterlineName = dataEntryDialog.getValue(names[2]);
-	//							System.out.println("response==OK: channelCenterlineName, polygonCenterlineName, leveeCenterlineName="
-	//									+ channelCenterlineName+","+polygonCenterlineName+","+leveeCenterlineName);
-	//							if(channelCenterlineName.equals(polygonCenterlineName) || channelCenterlineName.equals(leveeCenterlineName) 
-	//									|| polygonCenterlineName.equals(leveeCenterlineName)){
-	//								JOptionPane.showMessageDialog(_gui, "Your selections must all be different!",
-	//										"Error", JOptionPane.ERROR_MESSAGE);
-	//							}else {
-	//								dataEntryDialog.disposeDialog();
-	//								_gui.pressArrowButton();
-	//								_app.movePolygonCenterlinePointsToLeveeCenterline(_net, polygonCenterlineName, channelCenterlineName, 
-	//										leveeCenterlineName);
-	//							}
-	//						}else{
-	////							dataEntryDialog.removeWindowListener(this);
-	//							dataEntryDialog.disposeDialog();
-	//							_gui.pressArrowButton();
-	//							CsdpFunctions.setPolygonCenterlinePointsToLeveeCenterlineDialogOpen(false);
-	//						}
-	//						CsdpFunctions.setPolygonCenterlinePointsToLeveeCenterlineDialogOpen(false);
-	//						_gui.pressArrowButton();
-	//					}//windowClosed
-	//					
-	//					public void windowActivated(WindowEvent arg0) {}
-	//				});
+					//				dataEntryDialog.addWindowListener(new WindowListener() {
+					//					public void windowOpened(WindowEvent arg0) {}
+					//					public void windowIconified(WindowEvent arg0) {}
+					//					public void windowDeiconified(WindowEvent arg0) {}
+					//					public void windowDeactivated(WindowEvent arg0) {}
+					//					public void windowClosing(WindowEvent arg0) {}
+					//					
+					//					public void windowClosed(WindowEvent arg0) {
+					//						int response = dataEntryDialog.getResponse();
+					//						if(response==DataEntryDialog.OK) {
+					//							String channelCenterlineName = dataEntryDialog.getValue(names[0]);
+					//							String polygonCenterlineName = dataEntryDialog.getValue(names[1]);
+					//							String leveeCenterlineName = dataEntryDialog.getValue(names[2]);
+					//							System.out.println("response==OK: channelCenterlineName, polygonCenterlineName, leveeCenterlineName="
+					//									+ channelCenterlineName+","+polygonCenterlineName+","+leveeCenterlineName);
+					//							if(channelCenterlineName.equals(polygonCenterlineName) || channelCenterlineName.equals(leveeCenterlineName) 
+					//									|| polygonCenterlineName.equals(leveeCenterlineName)){
+					//								JOptionPane.showMessageDialog(_gui, "Your selections must all be different!",
+					//										"Error", JOptionPane.ERROR_MESSAGE);
+					//							}else {
+					//								dataEntryDialog.disposeDialog();
+					//								_gui.pressArrowButton();
+					//								_app.movePolygonCenterlinePointsToLeveeCenterline(_net, polygonCenterlineName, channelCenterlineName, 
+					//										leveeCenterlineName);
+					//							}
+					//						}else{
+					////							dataEntryDialog.removeWindowListener(this);
+					//							dataEntryDialog.disposeDialog();
+					//							_gui.pressArrowButton();
+					//							CsdpFunctions.setPolygonCenterlinePointsToLeveeCenterlineDialogOpen(false);
+					//						}
+					//						CsdpFunctions.setPolygonCenterlinePointsToLeveeCenterlineDialogOpen(false);
+					//						_gui.pressArrowButton();
+					//					}//windowClosed
+					//					
+					//					public void windowActivated(WindowEvent arg0) {}
+					//				});
 				}else if(this.centerlineNameSource==READ_CENTERLINE_NAMES_FROM_FILE) {
 					String title = "Snap Polygon Centerline Points to Levee Centerline";
 					String instructions = "<HTML><BODY>"
@@ -265,7 +307,7 @@ public class ToolsMenu {
 							+ "Levee centerline indices begin with a number; you only need to specify the number.<BR>"
 							+ "if more than one index needs to be specified for one side of the channel, values should be comma separated<BR><BR>"
 							+ "</HTML></BODY>";
-					
+
 					final String[] names = new String[]{"Centerline specification filename"};
 					String[] defaultValues = new String[] {""};
 					int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE};
@@ -273,47 +315,47 @@ public class ToolsMenu {
 					String[] extensions = new String[] {"txt"};
 					String[] tooltips = new String[] {""}; 
 					boolean modal = true;
-	
+
 					DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names,
 							defaultValues, dataTypes, disableIfNull, extensions, tooltips, modal);
-	
+
 					int response = dataEntryDialog.getResponse();
 					if(response==DataEntryDialog.OK) {
 						String directory = dataEntryDialog.getDirectory(names[0]).toString();
 						String filename = dataEntryDialog.getFilename(names[0]);
 						AsciiFileReader asciiFileReader = new AsciiFileReader(directory+File.separator+filename);
-//						Vector<String> channelCenterlineNamesVector = new Vector<String>();
+						//						Vector<String> channelCenterlineNamesVector = new Vector<String>();
 						Vector<String> polygonCenterlineNamesVector = new Vector<String>();
 						Vector<String> leveeCenterlineIndicesVector = new Vector<String>();
 						//The file will have a 4th column, which contains a second levee value (one levee for each bank)
 						Vector<String> secondLeveeCenterlineIndicesVector = new Vector<String>();
-						
+
 						int i=0;
 						while(true){
 							//skip header line
 							if(i>0) {
 								String line = asciiFileReader.getNextLine();
 								if(line==null) break;
-							    String parts[] = line.split("\t");
-							    try {
-//							    	channelCenterlineNamesVector.addElement(parts[0]);
-							    	//skip column 1
-							    	polygonCenterlineNamesVector.addElement(parts[2]);
-							    	leveeCenterlineIndicesVector.addElement(parts[3]);
-							    	secondLeveeCenterlineIndicesVector.addElement(parts[4]);
-							    }catch(Exception e) {
-							    	System.out.println("skipping line: "+line);
-//							    	e.printStackTrace();
-//							    	JOptionPane.showMessageDialog(_gui, "File format error", "Error", JOptionPane.ERROR_MESSAGE);
-							    }
-						 	}
-					    	i++;
+								String parts[] = line.split("\t");
+								try {
+									//							    	channelCenterlineNamesVector.addElement(parts[0]);
+									//skip column 1
+									polygonCenterlineNamesVector.addElement(parts[2]);
+									leveeCenterlineIndicesVector.addElement(parts[3]);
+									secondLeveeCenterlineIndicesVector.addElement(parts[4]);
+								}catch(Exception e) {
+									System.out.println("skipping line: "+line);
+									//							    	e.printStackTrace();
+									//							    	JOptionPane.showMessageDialog(_gui, "File format error", "Error", JOptionPane.ERROR_MESSAGE);
+								}
+							}
+							i++;
 						}
-					 	asciiFileReader.close();
+						asciiFileReader.close();
 						for(int j=0; j<polygonCenterlineNamesVector.size(); j++) {
 							_gui.pressSelectCursorAkaArrowButton();
 							String leveeCenterlineIndicesString = leveeCenterlineIndicesVector.get(j).trim().replaceAll("\"", "");
-//							System.out.println("leveeCenterlineIndicesString="+leveeCenterlineIndicesString);
+							//							System.out.println("leveeCenterlineIndicesString="+leveeCenterlineIndicesString);
 							if(!leveeCenterlineIndicesString.equals("no adj needed") && leveeCenterlineIndicesString.length()>0) {
 								String[] parts = leveeCenterlineIndicesString.split(",");
 								String[] leveeCenterlineIndicesArray = new String[parts.length];
@@ -324,14 +366,14 @@ public class ToolsMenu {
 									}
 									leveeCenterlineIndicesArray[k]= centerlineNameOrIndex; 
 								}
-//								System.out.println("about to call movePolygonCenterlinePoints: j, polygonName, channelCenterlineName, leveeCenterlineIndices=" + 
-//										j+","+polygonCenterlineNamesVector.get(j)+","+channelCenterlineNamesVector.get(j)+","+leveeCenterlineIndicesArray);
+								//								System.out.println("about to call movePolygonCenterlinePoints: j, polygonName, channelCenterlineName, leveeCenterlineIndices=" + 
+								//										j+","+polygonCenterlineNamesVector.get(j)+","+channelCenterlineNamesVector.get(j)+","+leveeCenterlineIndicesArray);
 								_app.snapPolygonCenterlinePointsToLeveeCenterline(polygonCenterlineNamesVector.get(j),  
 										leveeCenterlineIndicesArray);
 							}
-							
+
 							String secondLeveeCenterlineIndicesString = secondLeveeCenterlineIndicesVector.get(j).trim().replaceAll("\"", "");
-//							System.out.println("secondLeveeCenterlineIndicesString="+secondLeveeCenterlineIndicesString);
+							//							System.out.println("secondLeveeCenterlineIndicesString="+secondLeveeCenterlineIndicesString);
 							if(!secondLeveeCenterlineIndicesString.equals("no adj needed") &&
 									secondLeveeCenterlineIndicesString.length()>0) {
 								String[] secondLeveeParts = secondLeveeCenterlineIndicesString.split(",");
@@ -343,15 +385,15 @@ public class ToolsMenu {
 									}
 									secondLeveeCenterlineIndicesArray[k]= centerlineNameOrIndex; 
 								}
-//								System.out.println("about to call movePolygonCenterlinePoints: j, polygonName, channelCenterlineName, leveeCenterlineIndices=" + 
-//										j+","+polygonCenterlineNamesVector.get(j)+","+channelCenterlineNamesVector.get(j)+","+secondLeveeCenterlineIndicesArray);
+								//								System.out.println("about to call movePolygonCenterlinePoints: j, polygonName, channelCenterlineName, leveeCenterlineIndices=" + 
+								//										j+","+polygonCenterlineNamesVector.get(j)+","+channelCenterlineNamesVector.get(j)+","+secondLeveeCenterlineIndicesArray);
 								_app.snapPolygonCenterlinePointsToLeveeCenterline(polygonCenterlineNamesVector.get(j), 
 										secondLeveeCenterlineIndicesArray);
 							}
 						}
 					}
 				}else {
-					
+
 				}
 			}else {
 				JOptionPane.showMessageDialog(_gui, "A Move centerline points dialog is already open!\n"
@@ -360,7 +402,7 @@ public class ToolsMenu {
 		}
 	}//inner class SnapPolygonCenterlinepointsToLeveeCenterline
 
-	
+
 	/**
 	 * Compares two network files. Summarizes differences, comparing every point
 	 * in every centerline. Writes summary info to a file.
@@ -372,7 +414,7 @@ public class ToolsMenu {
 		// the two networks to be compared
 		Network _net1, _net2;
 		String _networkFilename1, _networkFilename2, _outputFilename, _networkFiletype1, _networkFiletype2,
-				_outputFiletype;
+		_outputFiletype;
 		String _directory1, _directory2, _outputDirectory;
 
 		public TCompareNetwork(CsdpFrame gui) {
@@ -483,7 +525,7 @@ public class ToolsMenu {
 					_outputFilename, _outputFiletype, _outputDirectory);
 			return success;
 		}// accessFile
-		
+
 		@Override
 		public void checkAndSaveUnsavedEdits() {
 			//not needed
@@ -624,7 +666,7 @@ public class ToolsMenu {
 
 				if (DSMFilename != null) {
 					CsdpFunctions
-							.setOpenDirectory(_jfcDSMChan.getCurrentDirectory().getAbsolutePath() + File.separator);
+					.setOpenDirectory(_jfcDSMChan.getCurrentDirectory().getAbsolutePath() + File.separator);
 					parseFilename(DSMFilename);
 				}
 
@@ -654,7 +696,7 @@ public class ToolsMenu {
 
 				if (irregXsectsFilename != null) {
 					CsdpFunctions
-							.setOpenDirectory(_jfcIrregXsects.getCurrentDirectory().getAbsolutePath() + File.separator);
+					.setOpenDirectory(_jfcIrregXsects.getCurrentDirectory().getAbsolutePath() + File.separator);
 					parseFilename(irregXsectsFilename);
 				}
 
@@ -684,7 +726,7 @@ public class ToolsMenu {
 
 				if (xsectsInpFilename != null) {
 					CsdpFunctions
-							.setOpenDirectory(_jfcXsectsInp.getCurrentDirectory().getAbsolutePath() + File.separator);
+					.setOpenDirectory(_jfcXsectsInp.getCurrentDirectory().getAbsolutePath() + File.separator);
 					parseFilename(xsectsInpFilename);
 				}
 
@@ -976,7 +1018,7 @@ public class ToolsMenu {
 						filenamesOk = false;
 					}
 				} // not cancelling
-					// filename = fname;
+				// filename = fname;
 			} // while
 
 			if (filenamesOk && _cancel == false) {

@@ -80,6 +80,7 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
+import DWR.CSDP.ToolsMenu.TCrossSectionSlideshow;
 import DWR.CSDP.dialog.DataEntryDialog;
 
 /**
@@ -220,7 +221,7 @@ public class CsdpFrame extends JFrame {
 			oUseToeDrainRestriction, oEchoToeDrainInput;
 	private JMenu tOpenWaterOptionsMenu, nExport, nExportOptions;
 	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc, tCreateDSM2ChanPolygons, tClosePolygonCenterlines,
-		tRemoveAllCrossSections, tFindLandmarkDistAlong;
+		tRemoveAllCrossSections, tFindLandmarkDistAlong, tCrossSectionSlideshow;
 	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
 	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nList, nSummary, nClearNetwork, 
 		nDisplayReachSummary, nDisplay3dReachView, nSelectPointsFor3dReachView, nCalculate, nExportToSEFormat, nExportTo3DFormat, 
@@ -1431,6 +1432,7 @@ public class CsdpFrame extends JFrame {
 		cfTools.add(tClosePolygonCenterlines = new JMenuItem("Close All Polygon Centerlines"));
 		cfTools.add(tRemoveAllCrossSections = new JMenuItem("Remove All Cross-Sections in network"));
 		cfTools.add(tFindLandmarkDistAlong = new JMenuItem("Find Channel/Distance for Landmarks"));
+		cfTools.add(tCrossSectionSlideshow = new JMenuItem("Cross-Section Slideshow"));
 		if (_addToolsMenu)
 			menubar.add(cfTools);
 		cfTools.add(cMovePolygonCenterlinePointsToLeveeCenterline = 
@@ -1485,6 +1487,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener tClosePolygonCenterlinesListener = _toolsMenu.new TClosePolygonCenterlines();
 		ActionListener tRemoveAllCrossSectionsListener = _toolsMenu.new TRemoveAllCrossSections();
 		ActionListener tFindLandmarkDistAlongListener = _toolsMenu.new TFindChanDistForLandmarks();
+		ActionListener tCrossSectionSlideshowListener = _toolsMenu.new TCrossSectionSlideshow();
 		// removed temporarily(?) options now appear in dialog
 		// EventListener oEchoTimeSeriesInputListener = _toolsMenu.new
 		// TEchoTimeSeriesInput();
