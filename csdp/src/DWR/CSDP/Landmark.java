@@ -57,21 +57,22 @@ import DWR.CSDP.semmscon.UseSemmscon;
 public class Landmark {
 
 	private CsdpFrame _gui;
+	protected Hashtable<String, LandmarkPoint> _landmarkTable = new Hashtable<String, LandmarkPoint>();
+	protected double _minX = 0.0;
+	protected double _maxX = 0.0;
+	protected double _minY = 0.0;
+	protected double _maxY = 0.0;
+
+	private boolean _isUpdated = false;
+	private static final boolean DEBUG = false;
+	private String _selectedLandmarkName;
+
 	/**
 	 * Constructor
 	 */
 	public Landmark(CsdpFrame gui) {
 		this._gui = gui;
 	}
-
-	// /**
-	// * Returns name of landmark
-	// */
-	// protected String getLandmarkName(int index){
-	// // Enumeration keys = _landmarkTable.keys();
-
-	// //return _landmarkNames.get(index);
-	// }
 
 	public Enumeration<String> getLandmarkNames() {
 		return _landmarkTable.keys();
@@ -85,15 +86,8 @@ public class Landmark {
 	 * Returns number of Landmarks
 	 */
 	public int getNumLandmarks() {
-		return _numLandmarks;
+		return _landmarkTable.size();
 	}// getNumLandmarks
-
-	/**
-	 * Stores number of Landmarks
-	 */
-	public void putNumLandmarks(int value) {
-		_numLandmarks = value;
-	}// putNumLandmarks
 
 	/**
 	 * adds a landmark
@@ -105,7 +99,6 @@ public class Landmark {
 			point.setXFeet(CsdpFunctions.metersToFeet(x));
 			point.setYFeet(CsdpFunctions.metersToFeet(y));
 			_landmarkTable.put(name, point);
-			_numLandmarks++;
 			setIsUpdated(true);
 			success = true;
 		} else {
@@ -129,7 +122,6 @@ public class Landmark {
 			point.setXFeet(x);
 			point.setYFeet(y);
 			_landmarkTable.put(name, point);
-			_numLandmarks++;
 			setIsUpdated(true);
 			success = true;
 		} else {
@@ -190,13 +182,6 @@ public class Landmark {
 			System.out.println("findMaxMin called. MinX,MaxX,MinY,MaxY=" + getMinXMeters() + " " + getMaxXMeters() + " "
 					+ getMinYMeters() + " " + getMaxYMeters());
 	}// findMaxMin
-
-	// /**
-	// * return LandmarkPoint object from hashtable
-	// */
-	// private LandmarkPoint getLandmarkPoint(int i){
-	// return (LandmarkPoint)(_landmarkTable.get(getLandmarkName(i)));
-	// }
 
 	/**
 	 * compare metadata object to default metadata values. If different, convert
@@ -559,15 +544,6 @@ public class Landmark {
 		return CsdpFunctions.qsort(returnRSA, 0, returnRSA.getSize()-1);
 	}//getSortedLandmarkNameRSA
 
-	protected int _numLandmarks = 0;
-	protected Hashtable<String, LandmarkPoint> _landmarkTable = new Hashtable<String, LandmarkPoint>();
-	protected double _minX = 0.0;
-	protected double _maxX = 0.0;
-	protected double _minY = 0.0;
-	protected double _maxY = 0.0;
-
-	private boolean _isUpdated = false;
-	private static final boolean DEBUG = false;
 
 	public class LandmarkPoint {
 		/*
@@ -629,6 +605,5 @@ public class Landmark {
 		return _selectedLandmarkName;
 	}
 
-	String _selectedLandmarkName;
 
 }// class Landmark

@@ -756,7 +756,7 @@ public class App {
 	/*
 	 * Export network to WKT format for importing into GIS 
 	 */
-	public boolean nExportToWKT(Network net, String wktPath, boolean createPolygonObjects) {
+	public boolean nExportToWKT(Network net, String wktPath, boolean createPolygonObjects, boolean saveFirstLastPointsOnly) {
 		System.out.println("wktPath="+wktPath);
 		AsciiFileWriter afw = new AsciiFileWriter(_csdpFrame, wktPath);
 		afw.writeLine("id;wkt");
@@ -775,11 +775,22 @@ public class App {
 
 				int numPoints = centerline.getNumCenterlinePoints();
 				for(int j=0; j<numPoints; j++) {
-					if(j>0) {
-						lineToWrite += ",";
-					}
 					CenterlinePoint cp = centerline.getCenterlinePoint(j);
-					lineToWrite+=CsdpFunctions.feetToMeters(cp.getXFeet())+" "+CsdpFunctions.feetToMeters(cp.getYFeet());
+					boolean writePoint = false;
+					//if writing straight lines (useful for gridmaps) or not
+					if(saveFirstLastPointsOnly) {
+						if(j==0 || j==numPoints-1) {
+							writePoint = true;
+						}
+					}else {
+						writePoint = true;
+					}
+					if(writePoint) {
+						if(j>0) {
+							lineToWrite += ",";
+						}
+						lineToWrite+=CsdpFunctions.feetToMeters(cp.getXFeet())+" "+CsdpFunctions.feetToMeters(cp.getYFeet());
+					}
 				}
 				lineToWrite += ")"; 
 				if(createPolygonObjects) {
@@ -996,7 +1007,8 @@ public class App {
 	 * optionally replace manning's n with constant value--perhaps useful for geometry updates.
 	 */
 	public void nCalculateDSM2V8Format(String channelsInputDirectory, String channelsInputFilename, 
-			String outputChannelsPath, boolean replaceManningsN, double manningsNReplacementValue) {
+			String outputChannelsPath, boolean replaceManningsN, double manningsNReplacementValue, 
+			boolean replaceDispersionFactor, double dispersionFactorReplacementValue) {
 		AsciiFileWriter afw = new AsciiFileWriter(_csdpFrame, outputChannelsPath);
 		
 		String filename = null;
@@ -1029,11 +1041,17 @@ public class App {
 			}else {
 				manning = String.format("%-10s", _DSMChannels.getManning(centerlineName)); 
 			}
+			String dispersionFactor = null;
+			if(replaceDispersionFactor) {
+				dispersionFactor = String.format("%-12s", dispersionFactorReplacementValue);
+			}else {
+				dispersionFactor = String.format("%-12s", _DSMChannels.getDispersion(centerlineName));
+			}
 			String lineToWrite = 
 					String.format("%-9s", centerlineName) + 
 					String.format("%-8.0f", length) + 
 					manning + 
-					String.format("%-12s", _DSMChannels.getDispersion(centerlineName)) +
+					dispersionFactor +
 					String.format("%-8d", _DSMChannels.getUpnode(centerlineName))+
 					String.format("%-8d", _DSMChannels.getDownnode(centerlineName));
 			afw.writeLine(lineToWrite);
@@ -2021,7 +2039,7 @@ public class App {
 		String[] names = new String[] {"Output file (.inp)","Variable(s)", "Interval", "Period Op", "File"};
 		String[] defaultValues = new String[5];
 		defaultValues[0] = CsdpFunctions.getOpenDirectory().toString()+File.separator+"landmarkChanDist.inp";
-		defaultValues[1] = "flow/stage";
+		defaultValues[1] = "flow/stage/ec";
 		defaultValues[2] = "${FINE_OUT}";
 		defaultValues[3] = "inst";
 		defaultValues[4] = "${HYDROOUTDSSFILE}";
@@ -2120,10 +2138,11 @@ public class App {
 					}
 				}//for each landmark
 				asciiFileWriter.writeLine("END");
-				asciiFileWriter.close();
 				JOptionPane.showMessageDialog(csdpFrame, "File written", "Success", JOptionPane.INFORMATION_MESSAGE);
 			}catch(Exception e) {			
 				JOptionPane.showMessageDialog(csdpFrame, "Error occurred when trying to write to file", "Error", JOptionPane.ERROR_MESSAGE);
+			}finally {
+				asciiFileWriter.close();
 			}
 		}//if Ok button clicked
 	}//findChanDistForLandmarks

@@ -122,7 +122,7 @@ public class ToolsMenu {
 	 * @author btom
 	 *
 	 */
-	public class TFindChanDistForLandmarks implements ActionListener {
+	public class TCreateDSM2OutputLocationsForLandmarks implements ActionListener {
 		public void actionPerformed(ActionEvent arg0) {
 			_app.findChanDistForLandmarks(_gui);
 		}

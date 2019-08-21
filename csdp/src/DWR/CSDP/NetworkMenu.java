@@ -313,16 +313,19 @@ public class NetworkMenu {
 			
 			String title = "Export Network to WKT for importing into GIS";
 			String instructions = "<HTML><BODY>1. Specify a *.wkt filename.<BR>"
-					+ "2. Check the box if you want the results to be identified as POLYGON objects. Default is LINESTRING.<BR><BR>"
+					+ "2. Check the box if you want the results to be identified as POLYGON objects. Default is LINESTRING."
+					+ "3. Check the box if you want to only save the first and last points in each centerline. This is useful<BR>"
+					+ "for creating a straight line gridmap<BR><BR>"
 					+ "</BODY></HTML>";
-			String[] names = new String[] {"WKT filename", "Create POLYGON objects?"};
-			String[] defaultValues = new String[]{"", "true"};
-			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.BOOLEAN_TYPE};
-			boolean[] disableIfNull = new boolean[] {true, false};
-			int[] numDecimalPlaces = new int[] {0,0};
-			String[] extensions = new String[] {"wkt", ""};
+			String[] names = new String[] {"WKT filename", "Create POLYGON objects?", "Save only first and last points?"};
+			String[] defaultValues = new String[]{"", "true", "false"};
+			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.BOOLEAN_TYPE, DataEntryDialog.BOOLEAN_TYPE};
+			boolean[] disableIfNull = new boolean[] {true, false, false};
+			int[] numDecimalPlaces = new int[] {0,0,0};
+			String[] extensions = new String[] {"wkt", "", ""};
 			String[] tooltips = new String[] {"The full path to the .wkt file to be created", 
-					"if selected, create POLYGON objects. If not, create LINESTRING objects"};
+					"If selected, create POLYGON objects. If not, create LINESTRING objects",
+					"If selected, only save first and last points (for creating straight line gridmap)"};
 			boolean modal = true;
 			
 			DataEntryDialog dataEntryDialog = new DataEntryDialog(this.gui, title, instructions, names, 
@@ -340,7 +343,14 @@ public class NetworkMenu {
 				}else {
 					createPolygonObjects = false;
 				}
-				boolean success = _app.nExportToWKT(net, wktPath, createPolygonObjects);
+				String saveFirstLastPointsOnlyString = dataEntryDialog.getValue(names[2]);
+				boolean saveFirstLastPointsOnly = true;
+				if(saveFirstLastPointsOnlyString.equalsIgnoreCase("true")) {
+					saveFirstLastPointsOnly = true;
+				}else {
+					saveFirstLastPointsOnly = false;
+				}
+				boolean success = _app.nExportToWKT(net, wktPath, createPolygonObjects, saveFirstLastPointsOnly);
 				if(success) {
 					JOptionPane.showMessageDialog(gui, "Export to wkt complete.", "Success", JOptionPane.OK_OPTION);
 				}else {
@@ -810,13 +820,14 @@ public class NetworkMenu {
 					+ "You must also specify a <B>DSM2 channels file</B> (i.e. 'channel_std_delta_grid_NAVD_20150129.inp'),<BR>"
 					+ "and an <B>directory</B> in which you would like the DSM2 geometry files to be written<BR>"
 					+ "Entering a value for Manning's n will replace all Manning's n values with the specfied value<BR>"
+					+ "Entering a value for dispersion factor will replace all dispersion factors with the specified value<BR>"
 					+ "You may also create DSM2 geometry files in the pre-DSM2 v8 format. <BR>"
 					+ "You may also create a CSDP landmark file called xsects.cdl, which labels all of the cross-section lines<BR>"
 					+ "in the network<BR>"
 					+ "A landmark file called xsects.cdl, which labels all cross-sections, will also be created in the <BR>"
 					+ "specified output directory."
 					+ "</BODY></HTML>";
-			String[] names = new String[] {"DSM2 Channels File", "Output Directory", "Manning's n replacement", 
+			String[] names = new String[] {"DSM2 Channels File", "Output Directory", "Manning's n replacement", "dispersion factor replacement",
 					"Create pre-DSM2 v8 files", "Create xsects.cdl file"};
 
 			String defaultChannelsInp = "";
@@ -836,24 +847,26 @@ public class NetworkMenu {
 				defaultNetworkCalculateDirectory=CsdpFunctions.getNetworkCalculateDirectory().toString();
 			}
 
-			String[] defaultValues = new String[] {defaultChannelsInp, defaultNetworkCalculateDirectory, "", "false", "false"};
+			String[] defaultValues = new String[] {defaultChannelsInp, defaultNetworkCalculateDirectory, "", "", "false", "false"};
 			int[] dataTypes = new int[] {
 					DataEntryDialog.FILE_SPECIFICATION_TYPE, 
 					DataEntryDialog.DIRECTORY_SPECIFICATION_TYPE, 
 					DataEntryDialog.NUMERIC_TYPE,
+					DataEntryDialog.NUMERIC_TYPE,
 					DataEntryDialog.BOOLEAN_TYPE,
 					DataEntryDialog.BOOLEAN_TYPE};
-			boolean[] disableIfNull = new boolean[] {true, true, false, true, true};
-			String[] extensions = new String[] {"inp", null, null, null, null};
+			boolean[] disableIfNull = new boolean[] {true, true, false, false, true, true};
+			String[] extensions = new String[] {"inp", null, null, null, null, null};
 			String[] tooltips = new String[] {
 					"A DSM2 channels file, i.e. 'channel_std_delta_grid_NAVD_20150129.inp'",
 					"The directory where you would like the DSM2 geometry files should be written",
 					"Enter a value here if you would like to replace all Manning's n values with the specified value",
+					"Enter a value here if you would like to replace all dispersion factors with the specified value",
 					"Create DSM2 geometry files in the pre-DSM2 v8 format",
 					"Create a CSDP landmark file (xsects.cdl) which labels all of the cross-section lines in the network"
 					};
 			boolean modal = true;
-			int[] numDecimalPlaces = new int[] {0,0,4,0,0};
+			int[] numDecimalPlaces = new int[] {0,0,4,4,0,0};
 			DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, "Calculate Network", instructions, names, 
 					defaultValues, dataTypes, disableIfNull, numDecimalPlaces, 
 					extensions, tooltips, modal);
@@ -871,12 +884,20 @@ public class NetworkMenu {
 					manningsReplacementValue = Double.parseDouble(manningsReplacementString);
 					replaceMannings = true;
 				}
+				String dispersionFactorReplacementString = dataEntryDialog.getValue(names[3]);
+				double dispersionFactorReplacementValue = -Double.MAX_VALUE;
+				boolean replaceDispersionFactor = false;
+				if(dispersionFactorReplacementString!=null && dispersionFactorReplacementString.length()>0) {
+					dispersionFactorReplacementValue = Double.parseDouble(dispersionFactorReplacementString);
+					replaceDispersionFactor = true;
+				}
+				
 				boolean calculatePreDsm2V8Files = Boolean.valueOf(dataEntryDialog.getValue(names[3]));
 				boolean createCrossSectionLandmarkFile = Boolean.valueOf(dataEntryDialog.getValue(names[4]));
 				
 				_app.nCalculateDSM2V8Format(channelsDirectory, channelsFilename, calculateDirectory+
 						File.separator+"channel_std_delta_grid_from_CSDP_NAVD.inp", replaceMannings, 
-						manningsReplacementValue);
+						manningsReplacementValue, replaceDispersionFactor, dispersionFactorReplacementValue);
 				// The old calculations. Uncomment these lines to create files in the old format.
 				if(calculatePreDsm2V8Files) {
 					_app.nCalculate(calculateDirectory);

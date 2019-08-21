@@ -2264,6 +2264,6 @@ public class CsdpFunctions {
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "2.6_20190819";
+	private static final String _version = "3.0_20190821";
 
 }// class CsdpFunctions

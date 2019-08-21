@@ -221,7 +221,7 @@ public class CsdpFrame extends JFrame {
 			oUseToeDrainRestriction, oEchoToeDrainInput;
 	private JMenu tOpenWaterOptionsMenu, nExport, nExportOptions;
 	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc, tCreateDSM2ChanPolygons, tClosePolygonCenterlines,
-		tRemoveAllCrossSections, tFindLandmarkDistAlong, tCrossSectionSlideshow;
+		tRemoveAllCrossSections, tCreateDSM2OutputLocations, tCrossSectionSlideshow;
 	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
 	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nList, nSummary, nClearNetwork, 
 		nDisplayReachSummary, nDisplay3dReachView, nSelectPointsFor3dReachView, nCalculate, nExportToSEFormat, nExportTo3DFormat, 
@@ -1431,7 +1431,7 @@ public class CsdpFrame extends JFrame {
 //		cfTools.add(tCreateDSM2ChanPolygons = new JMenuItem("Create DSM2 channel polygons"));
 		cfTools.add(tClosePolygonCenterlines = new JMenuItem("Close All Polygon Centerlines"));
 		cfTools.add(tRemoveAllCrossSections = new JMenuItem("Remove All Cross-Sections in network"));
-		cfTools.add(tFindLandmarkDistAlong = new JMenuItem("Find Channel/Distance for Landmarks"));
+		cfTools.add(tCreateDSM2OutputLocations = new JMenuItem("Create DSM2 output locations file"));
 		cfTools.add(tCrossSectionSlideshow = new JMenuItem("Cross-Section Slideshow"));
 		if (_addToolsMenu)
 			menubar.add(cfTools);
@@ -1445,7 +1445,7 @@ public class CsdpFrame extends JFrame {
 		tCalcRect.setEnabled(false);
 		tClosePolygonCenterlines.setEnabled(false);
 		tRemoveAllCrossSections.setEnabled(false);
-		tFindLandmarkDistAlong.setEnabled(false);
+		tCreateDSM2OutputLocations.setEnabled(false);
 		
 		cfTools.setMnemonic(KeyEvent.VK_T);
 
@@ -1486,7 +1486,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener tCreateDSM2ChanPolygonsListener = _toolsMenu.new TCreateDSM2ChanPolygons();
 		ActionListener tClosePolygonCenterlinesListener = _toolsMenu.new TClosePolygonCenterlines();
 		ActionListener tRemoveAllCrossSectionsListener = _toolsMenu.new TRemoveAllCrossSections();
-		ActionListener tFindLandmarkDistAlongListener = _toolsMenu.new TFindChanDistForLandmarks();
+		ActionListener tCreateDSM2OutputLocationsListener = _toolsMenu.new TCreateDSM2OutputLocationsForLandmarks();
 		ActionListener tCrossSectionSlideshowListener = _toolsMenu.new TCrossSectionSlideshow();
 		// removed temporarily(?) options now appear in dialog
 		// EventListener oEchoTimeSeriesInputListener = _toolsMenu.new
@@ -1516,7 +1516,7 @@ public class CsdpFrame extends JFrame {
 				_toolsMenu.new SnapPolygonCenterlinePointsToLeveeCenterline(ToolsMenu.READ_CENTERLINE_NAMES_FROM_FILE);
 		tClosePolygonCenterlines.addActionListener(tClosePolygonCenterlinesListener);
 		tRemoveAllCrossSections.addActionListener(tRemoveAllCrossSectionsListener);
-		tFindLandmarkDistAlong.addActionListener(tFindLandmarkDistAlongListener);
+		tCreateDSM2OutputLocations.addActionListener(tCreateDSM2OutputLocationsListener);
 		enterCenterlineNames.addActionListener(tMovePolygonCenterlinePointsToLeveeCenterlineEnterCoordListener);		
 		readCenterlineNamesFromFile.addActionListener(tMovePolygonCenterlinePointsToLeveeCenterlineReadFileListener);
 //		tCreateDSM2ChanPolygons.addActionListener(tCreateDSM2ChanPolygonsListener);
@@ -1897,7 +1897,7 @@ public class CsdpFrame extends JFrame {
 		
 		tClosePolygonCenterlines.setEnabled(false);
 		tRemoveAllCrossSections.setEnabled(false);
-		tFindLandmarkDistAlong.setEnabled(false);
+		tCreateDSM2OutputLocations.setEnabled(false);
 		tCalcRect.setEnabled(false);
 
 		// xMove.setEnabled(false);
@@ -2018,7 +2018,7 @@ public class CsdpFrame extends JFrame {
 		tClosePolygonCenterlines.setEnabled(true);
 		tRemoveAllCrossSections.setEnabled(true);
 		if(_landmark!=null) {
-			tFindLandmarkDistAlong.setEnabled(true);
+			tCreateDSM2OutputLocations.setEnabled(true);
 		}
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 //		nAWDSummaryReport.setEnabled(true);
@@ -2048,7 +2048,9 @@ public class CsdpFrame extends JFrame {
 		lDeletePopup.setEnabled(true);
 		cLandmarks.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
-		tFindLandmarkDistAlong.setEnabled(true);
+		if(_net!=null) {
+			tCreateDSM2OutputLocations.setEnabled(true);
+		}
 		tCalcRect.setEnabled(true);
 	}// enableAfterNetwork
 
@@ -2077,7 +2079,7 @@ public class CsdpFrame extends JFrame {
 		tCalcRect.setEnabled(false);
 		tClosePolygonCenterlines.setEnabled(false);
 		tRemoveAllCrossSections.setEnabled(false);
-		tFindLandmarkDistAlong.setEnabled(false);
+		tCreateDSM2OutputLocations.setEnabled(false);
 //		nAWDSummaryReport.setEnabled(false);
 //		nXSCheckReport.setEnabled(false);
 //		nDConveyanceReport.setEnabled(false);
@@ -2109,7 +2111,7 @@ public class CsdpFrame extends JFrame {
 		tClosePolygonCenterlines.setEnabled(true);
 		tRemoveAllCrossSections.setEnabled(true);
 		if(_landmark!=null) {
-			tFindLandmarkDistAlong.setEnabled(true);
+			tCreateDSM2OutputLocations.setEnabled(true);
 		}
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 //		nAWDSummaryReport.setEnabled(true);
@@ -2127,7 +2129,7 @@ public class CsdpFrame extends JFrame {
 		dFitByLandmarkMenuItem.setEnabled(false);
 		zZoomToNode.setEnabled(false);
 		cLandmarks.setEnabled(false);
-		tFindLandmarkDistAlong.setEnabled(false);
+		tCreateDSM2OutputLocations.setEnabled(false);
 	}
 
 	/**
