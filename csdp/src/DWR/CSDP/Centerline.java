@@ -548,7 +548,18 @@ public class Centerline {
 		for (int i = 0; i <= getNumCenterlinePoints() - 1; i++) {
 			_centerlinePoints.setElementAt(temp.elementAt(i), i);
 		}
-	}
+		
+		int numXsects = getNumXsects();
+		if(numXsects>0) {
+			double[] xsectDistances = new double[numXsects];
+			for(int i=0; i<numXsects; i++) {
+				xsectDistances[i] = getXsect(i).getDistAlongCenterlineFeet();
+			}
+			for(int i=0; i<numXsects; i++) {
+				getXsect(i).putDistAlongCenterlineFeet(getLengthFeet()-xsectDistances[numXsects-i-1]);
+			}
+		}		
+	}//reserveOrder
 
 	/**
 	 * returns number of cross-sections in the centerline
@@ -1579,5 +1590,24 @@ public class Centerline {
 		}
 		return closestXsectIndex;
 	}//getClosestXsectIndex
+
+	/*
+	 * Finds centroid of all centerline points
+	 */
+	public double[] getCentroid() {
+		int numCenterlinePoints = getNumCenterlinePoints();
+		double x = 0.0;
+		double y = 0.0;
+		
+		for(int i=0; i<getNumCenterlinePoints(); i++) {
+			CenterlinePoint centerlinePoint = getCenterlinePoint(i);
+			x += centerlinePoint._x/(double)numCenterlinePoints;
+			y += centerlinePoint._y/(double)numCenterlinePoints;
+		}
+		double[] returnValues = new double[2];
+		returnValues[CsdpFunctions.xIndex] = x;
+		returnValues[CsdpFunctions.yIndex] = y;
+		return returnValues;
+	}//getCentroid
 
 }// class Centerline

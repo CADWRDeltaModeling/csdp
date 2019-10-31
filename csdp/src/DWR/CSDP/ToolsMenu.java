@@ -56,6 +56,7 @@ import DWR.CSDP.dialog.FileIO;
 
 public class ToolsMenu {
 
+
 	public static final int ENTER_CENTERLINE_NAMES = 10;
 	public static final int READ_CENTERLINE_NAMES_FROM_FILE = 20;
 
@@ -72,6 +73,65 @@ public class ToolsMenu {
 		_xsectsInpFilter = new CsdpFileFilter(_dsmOpenExtensions, _dsmNumOpenExtensions);
 	}
 
+	public class TManningsDispersionSpatialDistribution implements ActionListener {
+
+		public void actionPerformed(ActionEvent arg0) {
+			// TODO Auto-generated method stub
+			String title = "Manning's n or Dispersion Spatial Distribution";
+			String instructions = "<HTML><BODY>"
+					+ "Using existing network file and a DSM channels file (channels.inp), create a file with 3 columns, containing:<BR>"
+					+ "1. The centerline name<BR>"
+					+ "2. The centerline centroid easting<BR>"
+					+ "3. The centerline centroid northing<BR>"
+					+ "4. The Manning's n value, if requested<BR>"
+					+ "5. The Dispersion factor, if requested<BR>"
+					+ "</BODY></HTML>";
+
+			final String[] names = new String[]{"Output filename (.txt)", "write Manning's n", "write Dispersion Factor"};
+			String[] defaultValues = new String[] {"", "true", "true"};
+			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.BOOLEAN_TYPE, DataEntryDialog.BOOLEAN_TYPE};
+			boolean[] disableIfNull = new boolean [] {true, false, false};
+			String[] extensions = new String[] {"txt","",""};
+			String[] tooltips = new String[] {"output filename", "check to include Manning's n in output", "check to include Dispersion Factor in output"}; 
+			boolean modal = true;
+
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names,
+					defaultValues, dataTypes, disableIfNull, extensions, tooltips, modal);
+
+			int response = dataEntryDialog.getResponse();
+			if(response==DataEntryDialog.OK) {
+				String outputDirectory = dataEntryDialog.getDirectory(names[0]).toString();
+				String outputFilename = dataEntryDialog.getFilename(names[0]);
+				String writeManningString = dataEntryDialog.getValue(names[1]);
+				String writeDispersionString = dataEntryDialog.getValue(names[2]);
+				boolean writeManning = Boolean.parseBoolean(writeManningString);
+				boolean writeDispersion = Boolean.parseBoolean(writeDispersionString);
+				_DSMChannels = _app.getDSMChannels();
+				Network network = _gui.getNetwork();
+
+				AsciiFileWriter asciiFileWriter = new AsciiFileWriter(_gui, outputDirectory+File.separator+outputFilename);
+				for(int i=0; i<network.getNumCenterlines(); i++) {
+					String centerlineName = network.getCenterlineName(i);
+					Centerline centerline = network.getCenterline(centerlineName);
+					double[] centroidCoord = centerline.getCentroid();
+					double centroidX = CsdpFunctions.feetToMeters(centroidCoord[CsdpFunctions.xIndex]);					
+					double centroidY = CsdpFunctions.feetToMeters(centroidCoord[CsdpFunctions.yIndex]);
+					String line = centerlineName+","+centroidX+","+centroidY;
+					if(writeManning) {
+						line += ","+_DSMChannels.getManning(centerlineName);
+					}
+					if(writeDispersion) {
+						line += ","+_DSMChannels.getDispersion(centerlineName);
+					}
+					asciiFileWriter.writeLine(line);
+				}
+				asciiFileWriter.close();
+				JOptionPane.showMessageDialog(_gui, "Manning and/or dispersion spatial distribution file written", "Success", JOptionPane.OK_OPTION);
+			}
+		}//actionPerformed
+	}//inner class TManningsDispersionSpatialDistribution
+
+	
 	/**
 	 * User specifies one or two network files. First will be currently loaded network file by default, but can be changed
 	 * Looping through the centerlines in file #1, display a series of windows. 
@@ -87,19 +147,26 @@ public class ToolsMenu {
 	public class TCrossSectionSlideshow implements ActionListener {
 		public void actionPerformed(ActionEvent arg0) {
 			Network network = _gui.getNetwork();
-			Centerline centerline = network.getSelectedCenterline();
+//			Centerline centerline = network.getSelectedCenterline();
 			String title = "Cross-Section slideshow";
 			String instructions = "<HTML><BODY>"
 					+ "Display cross-section(s) for one or two network files, one at a time.<BR>"
 					+ "This can be used to compare cross-sections in two network files.<BR>"
 					+ "</HTML></BODY>";
 
-			final String[] names = new String[]{"First Network File","Second Network File"};
-			String[] defaultValues = new String[] {CsdpFunctions.getNetworkDirectory()+File.separator+CsdpFunctions.getNetworkFilename(), ""};
-			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.FILE_SPECIFICATION_TYPE};
-			boolean[] disableIfNull = new boolean [] {true, false};
-			String[] extensions = new String[] {"cdn", "cdn"};
-			String[] tooltips = new String[] {"First network file", "Second network file"}; 
+			final String[] names = new String[]{"First Network File","Second Network File", 
+					"Folder for saving images", "Include Xsect Conveyance Characteristics", "Include Xsect Metadata"};
+//					"Automatically create images for all cross-sections"};
+			String[] defaultValues = new String[] {CsdpFunctions.getNetworkDirectory()+File.separator+
+					CsdpFunctions.getNetworkFilename(), "", "", "false", "true"};
+			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.FILE_SPECIFICATION_TYPE,
+					DataEntryDialog.DIRECTORY_SPECIFICATION_TYPE, DataEntryDialog.BOOLEAN_TYPE, DataEntryDialog.BOOLEAN_TYPE};
+			boolean[] disableIfNull = new boolean [] {true, true, false, true, true};
+			String[] extensions = new String[] {"cdn", "cdn", "","",""};
+			String[] tooltips = new String[] {"First network file", "Second network file", "A folder for storing saved slideshow images",
+					"If true, include conveyance characteristics in slideshow frames",
+					"If true, include Metadata in slideshow frames"};
+//					"If true, disable interactive mode, and save an image of each frame in the slideshow to disk"}; 
 			boolean modal = true;
 
 			DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names,
@@ -111,7 +178,26 @@ public class ToolsMenu {
 				String directory1 = dataEntryDialog.getDirectory(names[1]).toString();
 				String filename0 = dataEntryDialog.getFilename(names[0]);
 				String filename1 = dataEntryDialog.getFilename(names[1]);
-				_app.crossSectionSlideshow(directory0, filename0, directory1, filename1);
+				File directorySaveImage = dataEntryDialog.getDirectory(names[2]);
+				String directorySaveImageString = null;
+				if(directorySaveImage != null) directorySaveImageString = directorySaveImage.toString().trim();
+				String includeXsectConveyanceCharacteristicsString = dataEntryDialog.getValue(names[3]);
+				String includeMetadataString = dataEntryDialog.getValue(names[4]);
+//				String autoSaveString = dataEntryDialog.getValue(names[5]);
+				boolean includeXsectConveyanceCharacteristics = Boolean.parseBoolean(includeXsectConveyanceCharacteristicsString);
+				boolean includeMetadata = Boolean.parseBoolean(includeMetadataString);
+//				boolean autoSave = Boolean.parseBoolean(autoSaveString);
+				//auto save won't work until I can find a way to make a dialog close itself. Currently, the saving works fine but 
+				//the automatic window closing doesn't.
+				boolean autoSave = false;
+				boolean reReadFile0 = false;
+				if((directory0.trim()+File.separator+filename0).equalsIgnoreCase(defaultValues[0])){
+					reReadFile0 = false;
+				}else {
+					reReadFile0 = true;
+				}
+				_app.xsectSlideshow(directory0, filename0, reReadFile0, directory1, filename1, directorySaveImageString, 
+						includeXsectConveyanceCharacteristics, includeMetadata, autoSave);
 			}
 		}
 	}//TCrossSectionSlideshow
@@ -124,7 +210,7 @@ public class ToolsMenu {
 	 */
 	public class TCreateDSM2OutputLocationsForLandmarks implements ActionListener {
 		public void actionPerformed(ActionEvent arg0) {
-			_app.findChanDistForLandmarks(_gui);
+			_app.createDSM2OutputLocationsForLandmarks(_gui);
 		}
 	}
 
@@ -153,8 +239,78 @@ public class ToolsMenu {
 		}
 	}//inner class TClosePolygonCenterlines
 
+	/**
+	 * Create a WKT file containing a straight line for each channel connecting two nodes.
+	 * @author btom
+	 *
+	 */
+	public class TCreateStraightlineGridmapConnectingNodes implements ActionListener {
+		
+		public void actionPerformed(ActionEvent arg0) {
+			Network network = _gui.getNetwork();
+			Landmark landmark = _gui.getLandmark();
+			_DSMChannels = _app.getDSMChannels();
 
+			
+			String title = "Create WKT file containing straight lines connecting nodes for importing into GIS";
+			String instructions = "<HTML><BODY>1. Specify a *.wkt filename.<BR></BODY></HTML>";
+			String[] names = new String[] {"WKT filename"};
+			String[] defaultValues = new String[]{""};
+			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE};
+			boolean[] disableIfNull = new boolean[] {true};
+			int[] numDecimalPlaces = new int[] {0};
+			String[] extensions = new String[] {"wkt"};
+			String[] tooltips = new String[] {"The full path to the .wkt file to be created"};
+			boolean modal = true;
+			
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names, 
+					defaultValues, dataTypes, disableIfNull, numDecimalPlaces, 
+					extensions, tooltips, modal);
+			int response = dataEntryDialog.getResponse();
+			if(response==DataEntryDialog.OK) {
+				String wktPathString = dataEntryDialog.getDirectory(names[0])+File.separator+dataEntryDialog.getFilename(names[0]);
+				_app.createStraightlineWKTGridmapFile(wktPathString, network, landmark, _DSMChannels);
+			}
+		}
+	}//inner class TCreateStraightlineGridmapConnectingNodes
 
+	
+	public class TExtendCenterlinesToNodes implements ActionListener {
+
+		public void actionPerformed(ActionEvent arg0) {
+			// TODO Auto-generated method stub
+			Network network = _gui.getNetwork();
+			Landmark landmark = _gui.getLandmark();
+			for(int i=0; i<network.getNumCenterlines(); i++) {
+				String centerlineName = network.getCenterlineName(i);
+				Centerline centerline = network.getCenterline(centerlineName);
+				_DSMChannels = _app.getDSMChannels();
+				int upnode = _DSMChannels.getUpnode(centerlineName);
+				int downnode = _DSMChannels.getDownnode(centerlineName);
+				double upnodeX = landmark.getXFeet(Integer.toString(upnode));
+				double upnodeY = landmark.getYFeet(Integer.toString(upnode));
+				double downnodeX = landmark.getXFeet(Integer.toString(downnode));
+				double downnodeY = landmark.getYFeet(Integer.toString(downnode));
+				CenterlinePoint upPoint = centerline.getCenterlinePoint(0);
+				CenterlinePoint downPoint = centerline.getCenterlinePoint(centerline.getNumCenterlinePoints()-1);
+				double upPointX = upPoint.getXFeet();
+				double upPointY = upPoint.getYFeet();
+				double downPointX = downPoint.getXFeet();
+				double downPointY = downPoint.getYFeet();
+				double upDist = CsdpFunctions.pointDist(upnodeX, upnodeY, upPointX, upPointY);
+				double downDist = CsdpFunctions.pointDist(downnodeX, downnodeY, downPointX, downPointY);
+				if(upDist>1.0) {
+					centerline.addUpstreamCenterlinePointFeet(upnodeX, upnodeY);
+				}
+				if(downDist>1.0) {
+					centerline.addDownstreamCenterlinePointFeet(downnodeX, downnodeY);
+				}
+			}
+			JOptionPane.showMessageDialog(_gui, "Centerlines have been extended to nodes.", "Success", JOptionPane.OK_OPTION);
+		}//actionPerformed
+
+	}//class TExtendCenterlinesToNodes
+	
 	/**
 	 * Given 3 centerlines:
 	 * 1. The channel centerline

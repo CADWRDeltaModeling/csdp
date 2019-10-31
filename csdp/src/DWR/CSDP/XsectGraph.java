@@ -42,6 +42,7 @@ package DWR.CSDP;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -1701,6 +1702,10 @@ public class XsectGraph extends JDialog implements ActionListener {
 	public String getCenterlineName() {return _centerlineName;}
 
 	public JPanel getGraphGECanvas() {return _gC;}
-	public JTextPane getConveyanceCharacteristicsJPanel() {return _dConveyanceTextPane;}
+	public JPanel getConveyanceCharacteristicsAndMetadataPanel() {return _eastPanel;}
+
+	public JTextPane getConveyanceCharacteristicsPanel() {return _dConveyanceTextPane;}
+	public JScrollPane getMetadataPanel() {return _metadataScrollPane;}
+	public Component getDConveyancePanel() {return _dConveyanceTextPane;}
 	
 }// class XsectGraph

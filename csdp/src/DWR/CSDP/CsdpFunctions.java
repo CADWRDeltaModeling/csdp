@@ -2262,8 +2262,27 @@ public class CsdpFunctions {
 	}
 
 	/**
+	 * separates filename into prefix and extension
+	 * Adapted from method in NetworkInput
+	 */
+	public static String[] parseFilename(String filename) {
+		String[] returnValues = new String[2];
+
+		// int dotIndex = filename.indexOf(".",0);
+		int dotIndex = filename.lastIndexOf(".");
+		if (dotIndex >= 0) {
+			returnValues[0] = filename.substring(0, dotIndex);
+			returnValues[1] = filename.substring(dotIndex + 1);
+		} else {
+			returnValues[0] = filename;
+			returnValues[1] = null;
+		}
+		return returnValues;
+	}// parseFilename
+	
+	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "3.0_20190821";
+	private static final String _version = "3.0_20191031";
 
 }// class CsdpFunctions

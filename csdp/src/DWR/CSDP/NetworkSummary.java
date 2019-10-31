@@ -398,7 +398,7 @@ public class NetworkSummary {
 					lowestHistStage = this.histMinStageHashtable.get(chan);
 					minHistStageMinusChanBottom = lowestHistStage - csdpLowestBottomElev;
 				}else {
-					JOptionPane.showMessageDialog(csdpFrame, "Channel "+chan+" does not exist in historical run. setting channel bottom to -Double.MAX_VALUE", 
+					JOptionPane.showMessageDialog(csdpFrame, "Channel "+chan+" does not exist in historical run; unable to determine the minimum historical stage.", 
 							"WARNING", JOptionPane.WARNING_MESSAGE);
 				}
 				

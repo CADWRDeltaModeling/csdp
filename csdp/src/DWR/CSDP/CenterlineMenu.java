@@ -222,11 +222,11 @@ public class CenterlineMenu {
 	 * @author
 	 * @version
 	 */
-	public class CDSMCreate implements ActionListener {
+	public class CDSM2Create implements ActionListener {
 		/**
 		 * assign instances of application and gui classes to class variables
 		 */
-		public CDSMCreate(App app, CsdpFrame gui) {
+		public CDSM2Create(App app, CsdpFrame gui) {
 			
 			_app = app;
 			_gui = gui;
@@ -453,6 +453,21 @@ public class CenterlineMenu {
 		}// actionPerformed
 	}// class CRename
 
+	public class ReverseCenterline implements ActionListener {
+		public void actionPerformed(ActionEvent arg0) {
+			_net = _gui.getNetwork();
+			if (_net != null) {
+				Centerline centerline = _net.getSelectedCenterline();
+				centerline.reverseOrder();
+				_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+				_gui.getPlanViewCanvas(0).redoNextPaint();
+				_gui.getPlanViewCanvas(0).repaint();
+			} // if there is a network
+		}
+	}//class ReverseCenterline
+
+
+	
 	/**
 	 * move point in centerline
 	 */

@@ -123,7 +123,7 @@ public class Network {
 
 	public boolean centerlineExists(String name) {
 		boolean returnValue = false;
-		if (_centerlines.containsKey(name)) {
+		if (_centerlines!=null && _centerlines.containsKey(name)) {
 			returnValue = true;
 		} else {
 			returnValue = false;
@@ -408,7 +408,7 @@ public class Network {
 	 * xsect also finds the distance from the first pt in the centerline to the
 	 * point that is upstream of the xsect
 	 */
-	private double[] findCenterlineSegmentCoord(String centerlineName, int xsectNum) {
+	public double[] findCenterlineSegmentCoord(String centerlineName, int xsectNum) {
 		double[] returnValues = new double[5];
 		Centerline centerline = getCenterline(centerlineName);
 		Xsect xsect = centerline.getXsect(xsectNum);
@@ -1163,4 +1163,34 @@ public class Network {
 		
 		return returnValues;
 	}
+
+	/*
+	 * returns the coordinates of the point that is in the middle of the cross-section line
+	 */
+	public double[] getXsectOriginCoord(String centerlineName, int xsectIndex) {
+		double[] centerlineSegmentEndpoints = findCenterlineSegmentCoord(centerlineName, xsectIndex);
+		double[] returnValues = new double[2];
+		double x1 = centerlineSegmentEndpoints[CsdpFunctions.x1Index];
+		double x2 = centerlineSegmentEndpoints[CsdpFunctions.x2Index];
+		double y1 = centerlineSegmentEndpoints[CsdpFunctions.y1Index];
+		double y2 = centerlineSegmentEndpoints[CsdpFunctions.y2Index];
+		double x = (x2+x1)/2.0;
+		double y = (y2+y1)/2.0;
+		returnValues[CsdpFunctions.xIndex] = x;
+		returnValues[CsdpFunctions.yIndex] = y;
+		return returnValues;
+	}
+
+	public int getCenterlineIndex(String requestedCenterlineNameString) {
+		int returnValue = -Integer.MAX_VALUE;
+		for(int i=0; i<getNumCenterlines(); i++) {
+			String centerlineNameString = getCenterlineName(i);
+			if(centerlineNameString.equalsIgnoreCase(requestedCenterlineNameString)){
+				returnValue = i;
+				break;
+			}
+		}
+		return returnValue;
+	}//getCenterlineIndex
+	
 } // class Network

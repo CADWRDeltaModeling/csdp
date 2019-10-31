@@ -80,7 +80,11 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
+import DWR.CSDP.CenterlineMenu.ReverseCenterline;
+import DWR.CSDP.ToolsMenu.TCreateStraightlineGridmapConnectingNodes;
 import DWR.CSDP.ToolsMenu.TCrossSectionSlideshow;
+import DWR.CSDP.ToolsMenu.TExtendCenterlinesToNodes;
+import DWR.CSDP.ToolsMenu.TManningsDispersionSpatialDistribution;
 import DWR.CSDP.dialog.DataEntryDialog;
 
 /**
@@ -221,7 +225,8 @@ public class CsdpFrame extends JFrame {
 			oUseToeDrainRestriction, oEchoToeDrainInput;
 	private JMenu tOpenWaterOptionsMenu, nExport, nExportOptions;
 	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc, tCreateDSM2ChanPolygons, tClosePolygonCenterlines,
-		tRemoveAllCrossSections, tCreateDSM2OutputLocations, tCrossSectionSlideshow;
+		tRemoveAllCrossSections, tCreateDSM2OutputLocations, tCrossSectionSlideshow, tManningsDispersionSpatialDistribution, tExtendCenterlinesToNodes,
+		tCreateStraightlineGridmapConnectingNodes;
 	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
 	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nList, nSummary, nClearNetwork, 
 		nDisplayReachSummary, nDisplay3dReachView, nSelectPointsFor3dReachView, nCalculate, nExportToSEFormat, nExportTo3DFormat, 
@@ -231,7 +236,7 @@ public class CsdpFrame extends JFrame {
 	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;
 
 	private JCheckBoxMenuItem noChannelLengthsOnly;
-	private JMenuItem cCursor, cCreate, cDSMCreate, cRemove, cDisplaySummary, cView3d, cPlotAllCrossSections, cDeletePointsInWindow,
+	private JMenuItem cCursor, cCreate, cDSMCreate, cRemove, cDisplaySummary, cView3d, cReverseCenterline, cPlotAllCrossSections, cDeletePointsInWindow,
 		cDeletePointsOutsideWindow, cAddXSAtComputationalPoints, cRemoveAllCrossSections;
 	/*
 	 * For adjusting centerlines that are actually representations of polygons used to estimate channel volume
@@ -1238,7 +1243,7 @@ public class CsdpFrame extends JFrame {
 		 */
 		cfCenterline = new JMenu("Centerline");
 		cfCenterline.add(cCreate = new JMenuItem("Create"));
-		cfCenterline.add(cDSMCreate = new JMenuItem("Create DSM Chan"));
+		cfCenterline.add(cDSMCreate = new JMenuItem("Create DSM2 Chan"));
 		cfCenterline.add(cCursor = new JMenuItem("Done Editing"));
 		cfCenterline.add(cRemove = new JMenuItem("Remove Centerline"));
 
@@ -1271,6 +1276,7 @@ public class CsdpFrame extends JFrame {
 		// cfCenterline.add(cSummary = new JMenuItem("Summary"));
 		cfCenterline.add(cDisplaySummary = new JMenuItem("View Centerline Summary"));
 		cfCenterline.add(cView3d = new JMenuItem("Centerline 3D View"));
+		cfCenterline.add(cReverseCenterline = new JMenuItem("Reverse Centerline"));
 		cfCenterline.add(cPlotAllCrossSections = new JMenuItem("Multiple Cross-Section Graph"));
 		cfCenterline.add(cDeletePointsInWindow = new JMenuItem("Delete Centerline Points In Window"));
 		cfCenterline.add(cDeletePointsOutsideWindow = new JMenuItem("Delete Centerline Points Outside of Window"));
@@ -1286,7 +1292,7 @@ public class CsdpFrame extends JFrame {
 		_centerlineMenu = new CenterlineMenu(this);
 		ActionListener cCursorListener = _centerlineMenu.new CCursor(this);
 		ActionListener cCreateListener = _centerlineMenu.new CCreate(_app, this);
-		ActionListener cDSMCreateListener = _centerlineMenu.new CDSMCreate(_app, this);
+		ActionListener cDSM2CreateListener = _centerlineMenu.new CDSM2Create(_app, this);
 		ActionListener cRemoveListener = _centerlineMenu.new CRemove(this);
 		//// ActionListener cRenameListener = _centerlineMenu.new CRename();
 		// ActionListener cRestoreListener = _centerlineMenu.new CRestore();
@@ -1300,6 +1306,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener cMoveXsectListener = _centerlineMenu.new CMoveXsect();
 		ActionListener cDisplaySummaryListener = _centerlineMenu.new DisplayCenterlineSummaryWindow();
 		ActionListener cView3dListener = _centerlineMenu.new DisplayCenterline3DView(); 
+		ActionListener cReverseCenterlineListener = _centerlineMenu.new ReverseCenterline();
 		ActionListener cPlotAllCrossSectionsListener = _centerlineMenu.new PlotAllCrossSections();
 		ActionListener cDeletePointsInWindowListener = _centerlineMenu.new DeleteCenterlinePointsInWindow();
 		ActionListener cDeletePointsOutsideOfWindowListener = _centerlineMenu.new DeleteCenterlinePointsOutsideOfWindow();
@@ -1307,13 +1314,14 @@ public class CsdpFrame extends JFrame {
 		ActionListener cRemoveAllCrossSectionsListener = _centerlineMenu.new RemoveAllCrossSections();
 		cCursor.addActionListener(cCursorListener);
 		cCreate.addActionListener(cCreateListener);
-		cDSMCreate.addActionListener(cDSMCreateListener);
+		cDSMCreate.addActionListener(cDSM2CreateListener);
 		cRemove.addActionListener(cRemoveListener);
 		//// cRename.addActionListener(cRenameListener);
 		// cRestore.addActionListener(cRestoreListener);
 		// cKeep.addActionListener(cKeepListener);
 		cDisplaySummary.addActionListener(cDisplaySummaryListener);
 		cView3d.addActionListener(cView3dListener);
+		cReverseCenterline.addActionListener(cReverseCenterlineListener);
 		cPlotAllCrossSections.addActionListener(cPlotAllCrossSectionsListener);
 		cDeletePointsInWindow.addActionListener(cDeletePointsInWindowListener);
 		cDeletePointsOutsideWindow.addActionListener(cDeletePointsOutsideOfWindowListener);
@@ -1433,6 +1441,11 @@ public class CsdpFrame extends JFrame {
 		cfTools.add(tRemoveAllCrossSections = new JMenuItem("Remove All Cross-Sections in network"));
 		cfTools.add(tCreateDSM2OutputLocations = new JMenuItem("Create DSM2 output locations file"));
 		cfTools.add(tCrossSectionSlideshow = new JMenuItem("Cross-Section Slideshow"));
+		cfTools.add(tManningsDispersionSpatialDistribution = new JMenuItem("Manning's & Dispersion Spatial Distribution"));
+		cfTools.add(tExtendCenterlinesToNodes = new JMenuItem("Extend Centerlines to Nodes"));
+		cfTools.add(tCreateStraightlineGridmapConnectingNodes = new JMenuItem("Create Straightline Gridmap Connecting Nodes"));
+		tExtendCenterlinesToNodes.setToolTipText("Extend centerlines to nodes. One possibility for creating GIS gridmap.");
+		tCreateStraightlineGridmapConnectingNodes.setToolTipText("Create a WKT file containing lines connecting nodes in landmark file");
 		if (_addToolsMenu)
 			menubar.add(cfTools);
 		cfTools.add(cMovePolygonCenterlinePointsToLeveeCenterline = 
@@ -1488,6 +1501,9 @@ public class CsdpFrame extends JFrame {
 		ActionListener tRemoveAllCrossSectionsListener = _toolsMenu.new TRemoveAllCrossSections();
 		ActionListener tCreateDSM2OutputLocationsListener = _toolsMenu.new TCreateDSM2OutputLocationsForLandmarks();
 		ActionListener tCrossSectionSlideshowListener = _toolsMenu.new TCrossSectionSlideshow();
+		ActionListener tManningsDispersionSpatialDistributionListener = _toolsMenu.new TManningsDispersionSpatialDistribution();
+		ActionListener tExtendCenterlinesToNodesListener = _toolsMenu.new TExtendCenterlinesToNodes();
+		ActionListener tCreateStraightlineGridmapConnectingNodesListener = _toolsMenu.new TCreateStraightlineGridmapConnectingNodes();
 		// removed temporarily(?) options now appear in dialog
 		// EventListener oEchoTimeSeriesInputListener = _toolsMenu.new
 		// TEchoTimeSeriesInput();
@@ -1520,7 +1536,10 @@ public class CsdpFrame extends JFrame {
 		enterCenterlineNames.addActionListener(tMovePolygonCenterlinePointsToLeveeCenterlineEnterCoordListener);		
 		readCenterlineNamesFromFile.addActionListener(tMovePolygonCenterlinePointsToLeveeCenterlineReadFileListener);
 //		tCreateDSM2ChanPolygons.addActionListener(tCreateDSM2ChanPolygonsListener);
-		
+		tCrossSectionSlideshow.addActionListener(tCrossSectionSlideshowListener);
+		tManningsDispersionSpatialDistribution.addActionListener(tManningsDispersionSpatialDistributionListener);
+		tExtendCenterlinesToNodes.addActionListener(tExtendCenterlinesToNodesListener);
+		tCreateStraightlineGridmapConnectingNodes.addActionListener(tCreateStraightlineGridmapConnectingNodesListener);
 		// tCompareNetwork.setEnabled(_addCompareNetworkOption);
 
 		/*
@@ -1705,6 +1724,7 @@ public class CsdpFrame extends JFrame {
 			cDeletePointsInWindow.setEnabled(true);
 			cDeletePointsOutsideWindow.setEnabled(true);
 			cAddXSAtComputationalPoints.setEnabled(true);
+			cReverseCenterline.setEnabled(true);
 			cRemoveAllCrossSections.setEnabled(true);
 			if (getXsectSelected()) {
 				_moveXsectButton.setEnabled(true);
@@ -1736,6 +1756,7 @@ public class CsdpFrame extends JFrame {
 			cPlotAllCrossSections.setEnabled(false);
 			cDeletePointsInWindow.setEnabled(false);
 			cDeletePointsOutsideWindow.setEnabled(false);
+			cReverseCenterline.setEnabled(false);
 			cAddXSAtComputationalPoints.setEnabled(false);
 			cRemoveAllCrossSections.setEnabled(true);
 		}
@@ -1888,6 +1909,7 @@ public class CsdpFrame extends JFrame {
 		cDeletePointsInWindow.setEnabled(false);
 		cDeletePointsOutsideWindow.setEnabled(false);
 		cAddXSAtComputationalPoints.setEnabled(false);
+		cReverseCenterline.setEnabled(false);
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(false);
 		cRemoveAllCrossSections.setEnabled(false);
 //		nAWDSummaryReport.setEnabled(false);
@@ -1899,7 +1921,10 @@ public class CsdpFrame extends JFrame {
 		tRemoveAllCrossSections.setEnabled(false);
 		tCreateDSM2OutputLocations.setEnabled(false);
 		tCalcRect.setEnabled(false);
-
+		tCrossSectionSlideshow.setEnabled(false);
+		tManningsDispersionSpatialDistribution.setEnabled(false);
+		tExtendCenterlinesToNodes.setEnabled(false);
+		tCreateStraightlineGridmapConnectingNodes.setEnabled(false);
 		// xMove.setEnabled(false);
 		// xCreate.setEnabled(false);
 		xView.setEnabled(false);
@@ -1965,7 +1990,10 @@ public class CsdpFrame extends JFrame {
 		cView3d.setEnabled(false);
 //		cPlotAllCrossSections.setEnabled(false);
 		cAddXSAtComputationalPoints.setEnabled(false);
+		cReverseCenterline.setEnabled(false);
 
+		tCrossSectionSlideshow.setEnabled(true);
+		
 		// xMove.setEnabled(true);
 		// xInfo.setEnabled(true);xSummary.setEnabled(true);
 		zPan.setEnabled(_addZoomWindowOption);
@@ -2019,9 +2047,12 @@ public class CsdpFrame extends JFrame {
 		tRemoveAllCrossSections.setEnabled(true);
 		if(_landmark!=null) {
 			tCreateDSM2OutputLocations.setEnabled(true);
+			tExtendCenterlinesToNodes.setEnabled(true);
+			tCreateStraightlineGridmapConnectingNodes.setEnabled(true);
 		}
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
-//		nAWDSummaryReport.setEnabled(true);
+		tManningsDispersionSpatialDistribution.setEnabled(true);
+		//		nAWDSummaryReport.setEnabled(true);
 //		nXSCheckReport.setEnabled(true);
 //		nDConveyanceReport.setEnabled(true);
 		nNetworkSummaryReport.setEnabled(true);
@@ -2050,9 +2081,11 @@ public class CsdpFrame extends JFrame {
 		dFitByNetworkMenuItem.setEnabled(true);
 		if(_net!=null) {
 			tCreateDSM2OutputLocations.setEnabled(true);
+			tExtendCenterlinesToNodes.setEnabled(true);
+			tCreateStraightlineGridmapConnectingNodes.setEnabled(true);
 		}
 		tCalcRect.setEnabled(true);
-	}// enableAfterNetwork
+	}// enableAfterLandmark
 
 	/**
 	 * disable buttons and menu items which should be disabled when network is
@@ -2085,6 +2118,9 @@ public class CsdpFrame extends JFrame {
 //		nDConveyanceReport.setEnabled(false);
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(false);
 		nNetworkSummaryReport.setEnabled(false);
+		tManningsDispersionSpatialDistribution.setEnabled(false);
+		tExtendCenterlinesToNodes.setEnabled(false);
+		tCreateStraightlineGridmapConnectingNodes.setEnabled(false);
 	}
 
 	/**
@@ -2112,13 +2148,15 @@ public class CsdpFrame extends JFrame {
 		tRemoveAllCrossSections.setEnabled(true);
 		if(_landmark!=null) {
 			tCreateDSM2OutputLocations.setEnabled(true);
+			tCreateStraightlineGridmapConnectingNodes.setEnabled(true);
 		}
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 //		nAWDSummaryReport.setEnabled(true);
 //		nXSCheckReport.setEnabled(true);
 //		nDConveyanceReport.setEnabled(true);
 		nNetworkSummaryReport.setEnabled(true);
-
+		tManningsDispersionSpatialDistribution.setEnabled(true);
+		tExtendCenterlinesToNodes.setEnabled(true);
 	}
 
 	/**
@@ -2130,6 +2168,8 @@ public class CsdpFrame extends JFrame {
 		zZoomToNode.setEnabled(false);
 		cLandmarks.setEnabled(false);
 		tCreateDSM2OutputLocations.setEnabled(false);
+		tExtendCenterlinesToNodes.setEnabled(false);
+		tCreateStraightlineGridmapConnectingNodes.setEnabled(false);
 	}
 
 	/**
@@ -2157,6 +2197,7 @@ public class CsdpFrame extends JFrame {
 		cDeletePointsInWindow.setEnabled(true);
 		cDeletePointsOutsideWindow.setEnabled(true);
 		cAddXSAtComputationalPoints.setEnabled(true);
+		cReverseCenterline.setEnabled(true);
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 		fSavePointsInsideOutsidePolygon.setEnabled(true);
 		cRemoveAllCrossSections.setEnabled(true);

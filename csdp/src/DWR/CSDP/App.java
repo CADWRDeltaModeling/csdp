@@ -41,6 +41,9 @@
 package DWR.CSDP;
 
 
+import java.awt.GridLayout;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -50,12 +53,17 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import org.jzy3d.chart.Chart;
 import org.jzy3d.chart.ChartLauncher;
 import org.jzy3d.chart.Settings;
+import org.jzy3d.chart.controllers.camera.AbstractCameraController;
+import org.jzy3d.chart.controllers.mouse.camera.AWTCameraMouseController;
+import org.jzy3d.chart.controllers.thread.camera.CameraThreadController;
 import org.jzy3d.chart.factories.AWTChartComponentFactory;
 import org.jzy3d.colors.Color;
 import org.jzy3d.colors.ColorMapper;
@@ -74,12 +82,15 @@ import org.jzy3d.plot3d.rendering.legends.colorbars.AWTColorbarLegend;
 import org.jzy3d.plot3d.text.align.Halign;
 import org.jzy3d.plot3d.text.drawable.DrawableTextBitmap;
 
+import com.jogamp.newt.event.MouseListener;
+
 import DWR.CSDP.XsectBathymetryData;
 import DWR.CSDP.dialog.CenterlineOrReachSummaryWindow;
+import DWR.CSDP.dialog.XsectSlideshowDialog;
 import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.GISSummaryStatisticGraphFrame;
 import DWR.CSDP.dialog.MessageDialog;
-import DWR.CSDP.dialog.XsectSlideshowDialog;
+import vista.graph.GECanvas;
 
 /**
  * Main application class
@@ -2018,14 +2029,14 @@ public class App {
 	 * For each landmark, determines nearest Centerline and distance from the upstream end of the nearest point on the centerline
 	 * to the landmark. Optionally draws a cross-section line, which can be useful for verification.
 	 */
-	public void findChanDistForLandmarks(CsdpFrame csdpFrame) {
-		String title = "Calculate nearest chan/dist for landmarks";
-		String instructions = "<HTML><BODY><H2>Find nearest channel/distance for each landmark</H2><BR>"
+	public void createDSM2OutputLocationsForLandmarks(CsdpFrame csdpFrame) {
+		String title = "Create DSM2 Output Locations Specification file (output.inp) for landmarks";
+		String instructions = "<HTML><BODY><H2>Finds the nearest channel/distance for each landmark</H2><BR>"
 				+ "Using the currently loaded network and landmark files (with landmarks representing <BR>"
 				+ "stations/output locations, for example), for each landmark:<BR>"
 				+ "1. Identify the closest channel centerline and the distance along the centerline from the upstream end <BR>"
 				+ "of the closest point on the centerline to the landmark<BR>"
-				+ "2. Write the results to a .txt file<BR>"
+				+ "2. Write the results to a DSM2 output.inp file<BR>"
 				+ "3. Create cross-section lines, which can be used for verification<BR><BR>"
 				+ "Notes:"
 				+ "1. You may want to remove all existing cross-section lines in the network. To do so:<BR>"
@@ -2417,10 +2428,34 @@ public class App {
 		//Ctrl-MouseWheel: zoom x axis
 		//Alt-MouseWheel:  zoom y axis
 		//MouseWheel:      zoom z axis
-		chart.addController(new Bathymetry3dAWTCameraMouseController());
+		AWTCameraMouseController awtCameraMouseController = new Bathymetry3dAWTCameraMouseController();
+		chart.addController(awtCameraMouseController);
 //		chart.addKeyboardCameraController(new AWTLightKeyController(chart));
 		ChartLauncher.openChart(chart, new Rectangle(1000, 800), windowTitle);
-//		Chart chart2 = getDelaunayChart(bathymetryCoord3dVector);
+
+		//For some reason, the plot won't display correctly until user right-drags on the window.
+		//Sending a right-drag event could help eliminate this problem.
+		//but need to figure out how to create a MouseEvent object programmatically. Code below is not working.
+		//The chart object only takes awt MouseEvent objects, but the MouseEvent constructor needs a Component, and the chart object is not a Component.
+//		short eventType = MouseEvent.MOUSE_DRAGGED;
+//		long when = System.currentTimeMillis();
+//		short clickCount = 1;
+//		int x = 100;
+//		int y = 100;
+//		int modifiers = InputEvent.BUTTON2_DOWN_MASK;
+//		short button = MouseEvent.BUTTON2;
+//		
+//		float[] rotationXYZ = new float[] {0f, 0f, 0f};
+//		float rotationScale = 1f;
+//
+//		MouseEvent rightDragEvent = new MouseEvent(eventType, chart, when, 
+//				modifiers, x, y, clickCount, button, rotationXYZ, rotationScale);
+//		
+//		for(AbstractCameraController cameraController: chart.getControllers()) {
+//			((AWTCameraMouseController)cameraController).mouseDragged(rightDragEvent);
+//		}
+		
+		//		Chart chart2 = getDelaunayChart(bathymetryCoord3dVector);
 //		ChartLauncher.openChart(chart2, new Rectangle(1000, 800), windowTitle);
 		_csdpFrame.setCursor(CsdpFunctions._defaultCursor);
 
@@ -2552,38 +2587,173 @@ public class App {
 	 * 1. on the left, the bathymetry and cross-section drawing for a cross-section in file #1. 
 	 * 2. one the right, the same for file #2. The cross-section with the closest distance will be displayed. 
 	 * Above Both plots will be cross-section index, distance along centerline, and centerline length.
+	 * 
+	 * The first file may be the currently loaded network file. If this is the case, do not re-read it.
 	 */
-	public void crossSectionSlideshow(String networkDirectory0, String networkFilename0, String networkDirectory1, String networkFilename1) {
-		NetworkInput ninput0 = NetworkInput.getInstance(_csdpFrame, networkDirectory0, networkFilename0, NETWORK_TYPE);
-		Network network0 = ninput0.readData();
-		NetworkInput ninput1 = NetworkInput.getInstance(_csdpFrame, networkDirectory1, networkFilename1, NETWORK_TYPE);
+	public void xsectSlideshow(String networkDirectory0, String networkFilename0, boolean reReadFile0, 
+			String networkDirectory1, String networkFilename1, 
+			String directorySaveImageString, boolean includeXsectConveyanceCharacteristics, boolean includeMetadata, boolean autoSave) {
+		// need to remove extension from filenames, because NetworkInput adds it for you
+		Network network0 = null;
+		if(reReadFile0) {
+			String[] filenameParts = CsdpFunctions.parseFilename(networkFilename0);
+			String filenameWithoutExtension0 = filenameParts[0];
+			NetworkInput ninput0 = NetworkInput.getInstance(_csdpFrame, networkDirectory0, filenameWithoutExtension0, NETWORK_TYPE);
+			network0 = ninput0.readData();
+		}else {
+			network0 = _net;
+		}
+		
+		String[] filenameParts = CsdpFunctions.parseFilename(networkFilename1);
+		String filenameWithoutExtension1 = filenameParts[0];
+		NetworkInput ninput1 = NetworkInput.getInstance(_csdpFrame, networkDirectory1, filenameWithoutExtension1, NETWORK_TYPE);
 		Network network1 = ninput1.readData();
 		
-		int numCenterlines0 = network0.getNumCenterlines();
-		int numCenterlines1 = network1.getNumCenterlines();
-		for(int i=0; i<numCenterlines0; i++) {
-			String centerlineName0 = network0.getCenterlineName(i);
-			Centerline centerline0 = network0.getCenterline(centerlineName0);
-			boolean matchingCenterline = network1.centerlineExists(centerlineName0);
-			if(matchingCenterline) {
-				//display cross-sections from both networks
-				Centerline centerline1 = network1.getCenterline(centerlineName0);
-				for(int j=0; j<centerline0.getNumXsects(); j++) {
-					Xsect xsect0 = centerline0.getXsect(j);
-					double dist0 = xsect0.getDistAlongCenterlineFeet();
-					int closestXsectIndex = centerline1.getClosestXsectIndex(dist0);
-					Xsect xsect1 = centerline1.getXsect(closestXsectIndex);
-					double dist1 = xsect1.getDistAlongCenterlineFeet();
-//					XsectSlideshowDialog xsectSlideshowDialog = new XsectSlideshowDialog(_csdpFrame, this, _bathymetryData, 
-//							networkDirectory0, networkFilename0, networkDirectory1, networkFilename1, 
-//							centerlineName0, j, xsect0, dist0, xsect1, dist1);
-//					int response = 
+		boolean quitSlideshow = false;
+
+		if(autoSave) {
+			//non-interactively open an XsectSlideshowWindow and save to image.
+			for(int i=0; i<network0.getNumCenterlines(); i++) {
+				String centerlineName0 = network0.getCenterlineName(i);
+				Centerline centerline0 = network0.getCenterline(centerlineName0);
+				if(network1.centerlineExists(centerlineName0)) {
+					Centerline centerline1 = network1.getCenterline(centerlineName0);
+					for(int j=0; j<centerline0.getNumXsects(); j++) {
+						int xsectIndex0 = j;
+						Xsect xsect0 = centerline0.getXsect(j);
+						double xsectDist0 = xsect0.getDistAlongCenterlineFeet();
+						int xsectIndex1 = centerline1.getClosestXsectIndex(xsectDist0);
+						XsectSlideshowDialog xsectSlideshowDialog = 
+								new XsectSlideshowDialog(_csdpFrame, this, _bathymetryData, _xsectColorOption, 
+										network0, centerlineName0, xsectIndex0, 
+										network1, xsectIndex1, networkDirectory0, networkFilename0, networkDirectory1, networkFilename1,
+										directorySaveImageString, includeXsectConveyanceCharacteristics, includeMetadata,
+										autoSave);
+					}
 				}
-			}else {
-				//just display cross-sections from centerline0
-				
 			}
-			
+		}else {
+		
+			int centerlineIndex=0;
+			while(true) {
+				String centerlineName0 = network0.getCenterlineName(centerlineIndex);
+				//both centerlines have the same name 
+				Centerline centerline0 = network0.getCenterline(centerlineName0);
+				boolean matchingCenterline = network1.centerlineExists(centerlineName0);
+				if(matchingCenterline) {
+					//display cross-sections from both networks
+					Centerline centerline1 = network1.getCenterline(centerlineName0);
+					int j = 0;
+					while(true) {
+						boolean noPreviousCenterline = false;
+						boolean noNextCenterline = false;
+						boolean noNextXsect = false;
+						boolean noPreviousXsect = false;
+						if(j<=0) noPreviousXsect = true;
+						if(j>=centerline0.getNumXsects()-1) noNextXsect = true;
+						if(centerlineIndex<=0) noPreviousCenterline = true;
+						if(centerlineIndex>=network0.getNumCenterlines()-1) noNextCenterline = true;
+						
+						Xsect xsect0 = centerline0.getXsect(j);
+						double xsectDist0 = xsect0.getDistAlongCenterlineFeet();
+						int xsectIndex0 = j;
+						int xsectIndex1 = centerline1.getClosestXsectIndex(xsectDist0);
+						
+						XsectSlideshowDialog xsectSlideshowDialog = 
+								new XsectSlideshowDialog(_csdpFrame, this, _bathymetryData, _xsectColorOption, 
+										network0, centerlineName0, xsectIndex0, 
+										network1, xsectIndex1, networkDirectory0, networkFilename0, networkDirectory1, networkFilename1,
+										directorySaveImageString, includeXsectConveyanceCharacteristics, includeMetadata,
+										noPreviousCenterline, noNextCenterline, noPreviousXsect, noNextXsect);
+	
+						int response = xsectSlideshowDialog.getResponse();
+						if(response==XsectSlideshowDialog.PREVIOUS_OPTION) {
+							if(j>0) j--;
+						}else if(response==XsectSlideshowDialog.NEXT_OPTION) {
+							if(j<centerline0.getNumXsects()-1) j++;
+						}else if(response==XsectSlideshowDialog.PREVIOUS_CENTERLINE_OPTION) {
+							centerlineIndex--;
+							centerlineName0 = network0.getCenterlineName(centerlineIndex);
+							while(!network1.centerlineExists(centerlineName0) && centerlineIndex > 0) {
+								centerlineIndex--;
+							}
+							centerline0 = network0.getCenterline(centerlineName0);
+							centerline1 = network1.getCenterline(centerlineName0);
+							j=0;
+						}else if(response==XsectSlideshowDialog.NEXT_CENTERLINE_OPTION) {
+							centerlineIndex++;
+							centerlineName0 = network0.getCenterlineName(centerlineIndex);
+							while(!network1.centerlineExists(centerlineName0) && 
+									centerlineIndex<network0.getNumCenterlines()-1 && centerlineIndex<network1.getNumCenterlines()-1) {
+								centerlineIndex++;
+							}
+							centerline0 = network0.getCenterline(centerlineName0);
+							centerline1 = network1.getCenterline(centerlineName0);
+							j=0;
+						}else if(response==XsectSlideshowDialog.JUMP_TO_CENTERLINE_OPTION) {
+							String requestedCenterlineNameString = xsectSlideshowDialog.getRequestedCenterlineName();
+							if(network0.centerlineExists(requestedCenterlineNameString)) {
+								if(network1.centerlineExists(requestedCenterlineNameString)) {
+									centerlineIndex = network0.getCenterlineIndex(requestedCenterlineNameString);
+									centerlineName0 = network0.getCenterlineName(centerlineIndex);
+									//both centerlines have the same name 
+									centerline0 = network0.getCenterline(centerlineName0);
+									//display cross-sections from both networks
+									centerline1 = network1.getCenterline(centerlineName0);
+									j=0;
+								}
+							}else {
+								JOptionPane.showMessageDialog(_csdpFrame, "Centerline "+requestedCenterlineNameString+ " does not exist in network", 
+										"Error", JOptionPane.OK_OPTION);
+							}
+						}else {
+							//response is next centerline or quit
+							if(response==XsectSlideshowDialog.QUIT_OPTION) {
+								quitSlideshow = true;
+							}
+							break;
+						}
+					}//while
+					if(quitSlideshow) {
+						break;
+					}
+				}else {
+					//just display cross-sections from centerline0
+				}
+			}//while
+		}//if autoSave or not
+	}//xsectSlideshow
+
+	/*
+	 * Create a WKT file containing a straight line for each channel connecting two nodes.
+	 */
+	public boolean createStraightlineWKTGridmapFile(String wktPath, Network net, Landmark landmark, DSMChannels _DSMChannels2) {
+		System.out.println("wktPath="+wktPath);
+		AsciiFileWriter afw = new AsciiFileWriter(_csdpFrame, wktPath);
+		afw.writeLine("id;wkt");
+		boolean success = true;
+		try{
+			int numCenterlines = net.getNumCenterlines();
+			for(int i=0; i<numCenterlines; i++) {
+				String centerlineName = net.getCenterlineName(i);
+				String lineToWrite = centerlineName+";LINESTRING(";
+				int upnode = _DSMChannels.getUpnode(centerlineName);
+				int downnode = _DSMChannels.getDownnode(centerlineName);
+				double upnodeX = landmark.getXFeet(Integer.toString(upnode));
+				double upnodeY = landmark.getYFeet(Integer.toString(upnode));
+				double downnodeX = landmark.getXFeet(Integer.toString(downnode));
+				double downnodeY = landmark.getYFeet(Integer.toString(downnode));
+				lineToWrite+=CsdpFunctions.feetToMeters(upnodeX)+" "+CsdpFunctions.feetToMeters(upnodeY) + ","+
+						CsdpFunctions.feetToMeters(downnodeX)+" "+CsdpFunctions.feetToMeters(downnodeY);
+				lineToWrite += ")"; 
+				afw.writeLine(lineToWrite);
+			}
+			afw.close();
+			success = true;
+		}catch(Exception exception) {
+			success = false;
 		}
-	}
+		return success;
+	}//createStraightlineWKTGridmapFile
+
 }// class App

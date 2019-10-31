@@ -138,7 +138,12 @@ public class DSM2VirtualCrossSectionVolume{
 					if(parts[0].equals("Channel")) {
 						//sometimes the areas are all zero because the bottoms are above elevation
 						currentChan = parts[1];
-						currentVsec = Integer.parseInt(parts[4]);
+						//DSM2 v8.2 adds a space before the comma on this line, creating an extra delimiter
+						if(line.indexOf(" ,")>0) {
+							currentVsec = Integer.parseInt(parts[5]);
+						}else {
+							currentVsec = Integer.parseInt(parts[4]);
+						}
 						if(DEBUG) System.out.println("currentChan, currentVec="+currentChan+","+currentVsec);
 						chanLength = Double.parseDouble(intToLengthHashtable.get(currentChan));
 						numComputationalPoints = getNumComputationalPoints(chanLength);
@@ -203,10 +208,8 @@ public class DSM2VirtualCrossSectionVolume{
 		DSM2Chan dsm2Chan = new  DSM2Chan(lastChanLength, numComputationalPoints, areaValues, widthValues, wetPValues);
 		extToDSM2ChanHashtable.put(extChanNum, dsm2Chan); 
 		externalChannelNumbers.addElement(extChanNum);
-
 		afr.close();
-
-	}
+	}//readFileAndCalculateChannelConveyanceCharacteristics
 	
 	public Vector<String> getExternalChannelNumbers(){
 		return externalChannelNumbers;
