@@ -1,0 +1,306 @@
+Version 2.6, 10/17/2018
+	Fixed bug that was preventing .cdp files from being loaded (it was trying to use readFloat for x,y,z, but the values are stored as doubles.
+	Modified csdp-launch4j-config.xml file for new jre, 64 bit only. Coordinate conversion will no longer work, but more memory will be available.
+	Added CenterlineSummaryWindow class, which has profile plots for channel area, wetted perimeter, and width. Also displayed are centerline length, channel volume, channel wetted area, and channel surface area.
+	Added to Display-Parameters/CsdpFunctions class: elevation to use for volume calculations, deltax to use to determine computational point spacing, manning's n to use for dconveyance calculation, cross-section line length to use for drawing cross-section lines at each computational point.
+	Added dConveyance display to XsectGraph class.
+	Added feature to draw cross-section lines at all computational points in a channel.
+	Updated network-calculate function to create DSM2 input file in current format (results not verified yet).
+	Added confirmation dialog for cross-section line removal.
+	Fix bug in changing bathymetry point colors
+	Added AsciiFileReader and AsciiFileWriter classes, which simplify ASCII file I/O.
+
+Version 2.6_20181019
+	Fixed bug in previous version of Xsect class which was moving all points up when cross-section was added. Replaced instances of custom dialogs with JOptionPane dialogs. This was done to simply code, but also because the custom dialogs were being instantiated in the constructors of the classes that were using them, causing them to be positioned always in the upper left corner of the left monitor, rather than relative to the parent window.
+	Changed XsectGraph from a JFrame to a JDialog for the same reason. One result is the the main application window cannot be placed in front of cross-section graph windows, but that's probably ok.
+
+Version 2.6_20181022
+	Add a confirmation dialog which appears if user tries to close application when there are open cross-section graph windows which may have unsaved edits.
+	Also modified confirmation dialog for closing an individual cross-section window with unsaved edits to include a Cancel option.
+
+Version 2.6_20181023
+	Added CHANNEL output section to network calculate results.
+	Adjusted CHANNEL input to include manning's n and dispersion, and to exclude xsect and dist, which are not used any more. (Network calculate calculations are not verified yet).
+	Increased CSDPFrame and XsectGraph window sizes.
+	Changed confirmation dialog for closing cross-section with unsaved changes from Yes/No to Yes/No/Cancel
+
+Version 2.6_20181026
+	Added "Network-Save Specified Channels", which will create a network file containing only specified channel numbers.
+	Modified OKDialog to use for text input (for getting list of channel numbers to export)
+	Allow creation of new cross-section when there are no bathymetry data. This is done by creating a dummy cross-section, which can then be modified. If no changes are made to the dummy cross-section, dummy will not be saved.
+	Added bottom elevation scatter plot to CenterlineSummaryWindow.
+
+Version 2.6_20181029
+	Added export Network and Landmark to WKT format.
+	Modified Create DSM Chan: only need to load channels input file once.
+	Fixed error in OkDialog: was displaying title in JTextArea.
+
+Version 2.6_20181101
+	Added Centerline-Plot all cross-sections feature, which plots all cross-sections for the selected centerline on a single graph, each with a different color.
+	Added Network-zoom to centerline, which zooms in to a specified centerline name and selects it.
+	Added Network-zoom to node, which zooms in to a specified node name.
+
+Version 2.6_20181102
+	ColorSourceButton.png filename was lower camel case, should be upper
+	Increased sizes of icons used to create buttons in CsdpFrame and XsectGraph.
+	Fixed bug in XsectGraph class: was drawing dummy cross-section when changing from color by distance to color by source or year.
+	Changed legend descriptions in multiple cross-section plot from cross section number to "Cross-Section"+Number
+
+Version 2.6_20181105
+	Checks bitness of JRE: if 64, don't print message for testing coordinate conversion.
+	Fixed bug in NetworkInteractor which was not allowing deletion of cross-section line if cross-section contained no points.
+	Added save-to-image to Cross-section graphs.
+
+Version 2.6_20181106
+	Fixed two bugs related to the centerline summary window and the multiple cross-section graph. Both processes were not working with centerlines with cross-sections with no points, or if the first cross-section contains no points.
+	Changed Pan cursor.
+	Added Cancel button to DataFilterCheckbox dialog, and enabled the window close button, which has same effect as Cancel.
+
+Version 2.6_20181107
+	Added Display-Clear Digital Line Graph (Channel outlines)
+	Renamed File menu to Bathymetry
+	Fixed bug: In cross-section view, after changing elevation cross-section conveyance characteristics, couldn't change it back to zero.
+
+Version 2.6_20181108
+	Increased the size of points that are drawn to indicate that a centerline and/or cross-section line are selected.
+	Added this value to the Display-Parameters dialog, so it can be modified by the user
+
+Version 2.6_20181113
+	When saving network, results will now be sorted by centerline name.
+	When calculating network (creating DSM2 input files), old DSM2 input files will no longer be created.
+	Renamed _metadata variable in XsectGraph class to _metadataJTextArea.
+	In XsectGraph window, turned off metadata horizontal scrolling, and added line and word wrapping.
+
+Version 2.6_20181115
+	Fixed bug: previously, when multiple cross-section windows were open for the same centerline, changing the bathymetry point coloring option for a cross-section window that was not the first to be opened was resulting in loss of bathymetry data from the display. This bug was fixed by creating a new class called XsectBathymetryData, which contains some data and methods that were previously contained within the BathymetryData class.
+	Fixed DSM2 input file creation (when using Network-Calculate). Will now add channel and cross-section lines from the existing channels input file for those channels which have no corresponding centerline in the network file.
+	Modified LandmarkPlot class, so that landmark names will be displayed to the northwest of their points rather than the northwast. When centerline endpoints are in the same location as a landmark, this will mean that the "D" or "U" will not be superimposed upon the landmark name.
+	In the previous version, creation of the cross-section files and the irregular_xsects.inp file were no longer created by Network-Calculate. Now, they are created. Eventually this will be optional.
+
+Version 2.6_20181116
+	Landmarks are now sorted before saving. This will help with version control.
+
+Version 2.6_20181120
+	Fixed bug in MessageDialog, which was causing instances to disappear when resized.
+	Added a "Reports" menu item which includes AWDSummary, cross-section error check, and new negative dConveyance reports.
+	When a centerline is selected, its length will now be displayed in the information panel at the bottom of the main application window.
+
+Version 2.6_20181206
+	Moved XsectBathymetryData into its own file.
+	In cross-section view, 
+		when points are colored by distance from the cross-section line, the closer points are not plotted on top of the further points, which is the opposite of the way it was before.
+		Area, width, and wetted perimeter are now displayed for each elevation in the panel that previously only displayed dConveyance
+	Added menu item “Bathymetry-Convert Bathymetry Files(s)” which allows you to select one or more (by control clicking or shift clicking) ASCII bathymetry (.prn) files, and then converts them to binary bathymetry (.cdp) files.
+
+Version 2.6_20181212
+	Replaced TextFieldDialog with DataEntryDialog, which uses formatted text fields to prevent invalid input.
+	Fixed bug in Centerline Summary Graphs: volume, wetted area, and surface area are now calculated for specified elevation. Previously was only 0.
+
+Version 2.6_20181219
+	Added Network Summary Report.
+	Added Reach Summary Report.
+	Corrected error in Channel Surface area calculation.
+	Added method to CsdpFunctions to simplify getting path.
+	Network editing: make move cross-section, add cross-section, delete cross-section sticky (stay in move/add/delete mode after noving/adding/deleting, rather than turning off the editing mode).
+	Removed confirmation "are you sure" dialog when deleting cross-section lines.
+	Improved dialogs: added instructions and tooltips, increased font size.
+	Changed methods in a few classes from protected to private
+	Added export all channels except those that are specified (this will be useful for merging different versions of network files).
+	Fixed cross-section area calculation to return 0.0 if lowest point in cross-section is above specified elevation (previously was returning a negative number).
+	Added "copy to clipboard" button to MessageDialog.
+	
+Version 2.6_20190107
+	Improvements to DataEntryDialog:
+	  added legend.
+	  Coloring field labels to identify as required vs optional.
+	  Added constructors for different combinations of data types.
+	  HTML is now allowed. Biggest benefit is probably boldface.
+	Improvements to Network Summary Report:
+	  .hof file is now optional.
+	  identifies cross-sections with duplicate stations
+	  Added Virtual Cross-section calculations
+	AsciiFileWriter: errors will create dialogs instead of executing print statements.
+	Improved layout of Reach Summary Window.
+
+Version 2.6_20190107
+	Added to Network Summary Report:
+		CSDP highest bottom elevation
+		CSDP XS within a specified distance of each other
+	Added Network Coloring, which is coloring of centerlines and cross-section lines based on various issues, such as -dConveyance, max area ratio, etc. Network coloring can be toggled on and off using the Display Parameters menu. 
+	Also in the Display Parameters menu, the Intertidal Low and High tides can be adjusted. These values are used to warn the user about -dConveyance issues.
+	Added a legend panel which describes what these colors mean
+	In cross-section plot window, -dConvenance values are now displayed in red. The background will be yellow if the elevation is near or in the intertidal zone.
+	Changed Multiple cross-section plot: cross-section plots are centered based on x centroid at a higher elevation (3/4 of the way from the bottom to the top). This fixes a bug, which was preventing the display of cross-sections with bottom elevations above zero.
+	Modified Reach Summary: if you specify a range of channels that includes a non-existent channel, a dialog will appear asking you to continue or not. 
+	Network-Calculate now uses an improved dialog, which gives you the option of creating dsm2 input files in the pre-v8 format, and allows you to specify a manning's n value that will be used for every channel.
+	
+Version 2.6_20190114
+
+	Centerline/cross-section line edit modes are now turned off before creating a new centerline, viewing a cross-section, creating reports, etc., reducing the likelihood of errors.
+	Zoom to centerline can now be accessed by pressing ctrl-c
+	In cross-section view, cross-section conveyance characteristics table is scrolled to the top by default.
+	
+Version 2.6_20190125
+
+	New features:
+	Delete centerline points inside/outside window drawn by user.
+	Given 3 centerlines representing
+	  A DSM2 channel
+	  A polygon representing the channel
+	  A levee
+	move points in polygon that are on the same side as the levee to the levee.
+	
+Version 2.6_20190214
+
+	Added features for working with centerline representations of levees and
+	polygons (used to calculate GIS DSM2 channel volumes). Features include:
+		snap polygon points to levee centerline
+		Modified export to WKT to include POLYGON vs LINESTRING option
+	CenterlineSummaryWindow: changed text in data identification labels to
+	indicate whether the values are for a channel or for a reach.
+	
+Version 2.6_20190307
+
+Add average width to network summry report--if a channel is too narrow relative to the grid size of the DEM used, GIS volume results should not be used.
+Changes to centerline and cross-section editing: 
+	Points can now be added to either end of a centerline, and to either end of a cross-section drawing. THe add buttons are replaced with two add buttons, one for each end of the centerline/cross-section. 
+	When adding, deleting, and moving centerline points, the CSDP will try to keep cross-sections in about the same location. (Insert behavior is not changed, but could be in a later release. Until then, best practice would be to avoid inserting points too far away from the centerline). Previously, any change in the length of a centerline upstream from a cross-section resulted in cross-sections being moved or deleted.
+Added Tools-Close Polygon centerlines, which makes sure that the upstream and downstream ends of a polygon centerline have the same coordinates. 
+Added NetworkEditingInfo class, which will be used to store information about centerline and cross-section line editing to support undo/redo, which is not yet implemented.
+Moved zoom-to-centerline and zoom-to-node from Network Menu to Zoom Menu.
+	
+Version 2.6_20190326
+
+Moved NetworkSummary code from App class to new NetworkSummary class. 
+Added GIS vs DSM2 volume comparison statistics and plots. 
+Added and modified methods to CsdpFunctions to create JFreeChart chart objects.
+Added some code to support undo/redo of centerline and cross-section line editing actions, but not working yet, so it's not enabled.
+Added warning when loading network file and there are duplicate centerline names.
+Modified DataEntryDialog to read/write values from/to a file.
+
+Version 2.6_20190410
+
+Added plots to network summary to compare GIS vs DSM2 volume.
+Network Summary now has option to include difference plots in graph window or now.
+Added "Find channel/distance for landmarks", which should make it easier to determine channel/distance for stations and corresponding output locations.
+Added Centerline-remove all cross-sections
+Centerline Summary window makes contour plots from downstream to upstream by default; can be changed.
+Removed background and border for CsdpFrame buttons that use icons.
+Added more summary statistics to Network Summary report.
+Added help button to DataEntryDialog, which displays window with instructions. Moved instructions out of DataEntryDialog window.
+
+Version 2.6_20190522
+
+Added 3d plotting for centerlines and reaches, which displays bathymetry data and user-created cross-sections in 3d view, which can be rotated.
+Added a new ColorGenerator class to replace existing color generator which was in CsdpFrame class.
+Added GIS volume calculations to Network Summary Report.
+Moved Network Summary data and calculations to a new NetworkSummary class
+Reach summaries can now handle channel numbers in reverse order.
+Dialogs now have minimum text entry field width. Previously, some fields were way too narrow.
+Added GISSummaryStatisticGraphFrame, which creates graphs comparing DSM2 volume to GIS volume.
+Dialogs now have a separate window for displaying instructions, which appears when the question mark button is clicked.
+
+Version 2.6_20190530
+
+Added histMinStage and histMinStage-channel bottom to Network Summary Report.
+Fixed problem with 3d plotting: Add linestrips after all scatters are added to prevent error in jzy3d library.
+In 3d plots, added zooming in x and y directions. Ctrl-MouseWheel zooms
+in x direction, Alt-MouseWheel zooms in y direction, MouseWheel zooms in
+z direction.
+
+Version 2.6_20190605
+
+In 3D plot, Ctrl-Alt-MouseWheel zooms in x and y directions simultaneously. Changed network coloring: -dk is now blue and MAR>2.0 is now 
+red (the two traded colors).
+In 3D plot, added panning in x and y directions (ctrl- or alt- right drag).
+
+Version 2.6_20190703
+
+Added SaveBathymetryDataInsideOrOutsidePolygonCenterline, which will save bathymetry data that is either inside or outside a polygon, which is defined by a centerline object.
+Added button for creating 3d plot for range of centerlines or within window drawn by user.
+Added import AsciiRaster, to import files exported from GIS.
+Fixed problem with XsectEditInteractor: the wrong point was sometimes being moved when in Move Point mode.
+Added Centerline-Remove All Cross-Sections
+In NetworkInteractor, after performing a number of operations, the CSDP main application window will exit edit mode and return to select mode.
+
+Version 2.6_20190712
+
+Added legend to 3D plot.
+
+Version 2.6_20190719
+
+Only one instance of Centerline/Reach Summary Window is allowed for 
+each unique channel number string. Centerline/Reach Summary Windows and CSDPFrame info panel 
+are updated whenever a centerline or cross-section is updated.
+Network Coloring is now turned off by default.
+Renamed CenterlineSummaryWindow class to CenterlineOrReachSummaryWindow
+Modified NetworkSummary to handle situations where there is no GIS estimate for a given channel. This was necessary for the addition 
+of channel 200, connecting two branches of Paradise Cut.
+Added Cross-Section cloning. This displays a Clone button in the XsectGraph window, which will replace all user-created points in the 
+cross-sections with points from another cross-section. Used to prevent DSM2 inter-channel interpolation.
+Making XsectGraph non-modal has complicated things. When XsectGraph windows are open, they must sometimes be renamed when other 
+cross-sections are added, moved, or deleted. This release makes this happen.
+
+Version 2.6_20190723
+
+Removed a few print statements
+Reach summary window now includes Max Area Ratio for the reach, which as far as I know does not directly affect DSM2, but it can help smooth things out.
+Fixed cross-section moving. User created metadata and points are retained.
+
+Version 2.6_20190724
+
+XsectGraph has a number of class variables with no access modifier, and some of these were being accessed directly by other classes. Made these variables private and added get methods to other classes.
+Quitting application when there were unsaved network updates wasn't working. Fixed this.
+Fixed bug in add cross-section (hopefully). Was sometimes creating cross-sections with negative Double.MAX_VALUE as the length and Infinity as the distance.
+Fixed bug in cross-section cloning--was not creating a separate instance of the Vector containing the XsectPoint objects. Added clone() method to XsectPoint.
+
+Version 2.6_20190725
+
+Check for unsaved network and landmark edits before loading another file. If unsaved edits, prompt user and give option to save unsaved edits.
+
+Version 2.6_20190726
+
+In XsectGraph, restore will trigger update of all open Centerline/Reach summary windows (that include the channel), and the CsdpFrame info panel values.
+
+Version 2.6_20190731
+
+Fixed bug in NetworkInteractor, which was affecting Create Cross-Sections at computational points
+In DSMChannels class, moved class variable declarations from the end to the beginning of the class.
+
+Version 2.6_20190807
+
+Fixed bug which was preventing display of bathymetry when only one color is required. Started fixing bug in export zoomed bathymetry, but still not working properly.
+
+Version 2.6_20190808
+
+DSMChannelsAsciiInput class was not ignoring commented out lines if the comment character (#) at the beginning of a line was not following by a space. Fixed.
+
+Version 2.6_20190809
+
+Added undo/redo (Ctrl-Z/Ctrl-Y) to XsectGraph metadata JTextArea.
+
+Version 2.6_20190819
+
+For Tools-Find Chan/Dist for Landmarks: fixed bug. Improved dialog options, and output file is now readable by DSM2.
+Began implementing cross-section slideshow, but it's not done yet.
+In XsectGraph, can use ctrl-z and ctrl-y to undo/redo metadata edits.
+
+3.0_20190821
+
+Added straight line option for exporting network to WKT. This may be useful for georeferenced straight line gridmaps.
+Network-Calculate: can now specify constant dispersion factor
+CsdpFrame: create DSM2 output locations file is now enabled only when network and landmark files are loaded. 
+Landmark: fixed bug: numLandmarks was not being decremented when landmark deleted. Removed this variable; getNumLandmarks now returns the hashtable size.
+
+Version 3.0_20191030 
+
+renamed App.findChanDistForLandmarks to createDSM2OutputLocationsForLandmarks. Added create straightlineWKTGridmapFile, to create shapefile for channels using only
+first and last points in centerline. Changes to handling of mouse events in Cross-Section slideshow. ctrl-left or -right will now change
+centerlines if at first/last cross-section. Made some changes to cross-section reverse. Still may need some work--sometimes points get
+messed up. Added reverse centerline to correct centerline with points defined in the wrong order. Added features: Manning's & Dispersion
+spatial distribution, Extend Centerlines to nodes. Modified DSM2VirtualCrossSectionVolume class to work with dsm2 v8.2 .hof files,
+which have a slightly different format.
+
+3.0_20191212
+
+Some changes to XsectSlideshowDialog: User can now specify optionally a "left bathymetry file", which will be displayed on the left graph in the slideshow window. Still has some bugs--null pointer exception when switching to certain channels.
