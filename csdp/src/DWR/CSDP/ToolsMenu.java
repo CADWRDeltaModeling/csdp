@@ -151,19 +151,26 @@ public class ToolsMenu {
 			String title = "Cross-Section slideshow";
 			String instructions = "<HTML><BODY>"
 					+ "Display cross-section(s) for one or two network files, one at a time.<BR>"
+					+ "A second bathymetry file can optionally be specified, if so, the first <BR>"
+					+ "cross-section plot will display data from the first file, and the second <BR>"
+					+ "from the second file. <BR>"
 					+ "This can be used to compare cross-sections in two network files.<BR>"
 					+ "</HTML></BODY>";
 
-			final String[] names = new String[]{"First Network File","Second Network File", 
+			final String[] names = new String[]{"Left Network File","Right Network File", "Left Bathymetry File",
 					"Folder for saving images", "Include Xsect Conveyance Characteristics", "Include Xsect Metadata"};
 //					"Automatically create images for all cross-sections"};
 			String[] defaultValues = new String[] {CsdpFunctions.getNetworkDirectory()+File.separator+
-					CsdpFunctions.getNetworkFilename(), "", "", "false", "true"};
+					CsdpFunctions.getNetworkFilename(), "", "", "", "false", "true"};
 			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.FILE_SPECIFICATION_TYPE,
-					DataEntryDialog.DIRECTORY_SPECIFICATION_TYPE, DataEntryDialog.BOOLEAN_TYPE, DataEntryDialog.BOOLEAN_TYPE};
-			boolean[] disableIfNull = new boolean [] {true, true, false, true, true};
-			String[] extensions = new String[] {"cdn", "cdn", "","",""};
-			String[] tooltips = new String[] {"First network file", "Second network file", "A folder for storing saved slideshow images",
+					DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.DIRECTORY_SPECIFICATION_TYPE, 
+					DataEntryDialog.BOOLEAN_TYPE, DataEntryDialog.BOOLEAN_TYPE};
+			boolean[] disableIfNull = new boolean [] {true, true, false, false, true, true};
+			String[] extensions = new String[] {"cdn", "cdn", "prn|cdp", "","",""};
+			String[] tooltips = new String[] {"network file used for cross-section data to be displayed on left hand side ", 
+					"network file used for cross-section data to be displayed on right hand side", 
+					"First Bathymetry file. Will be used for left hand plot", 
+					"A folder for storing saved slideshow images",
 					"If true, include conveyance characteristics in slideshow frames",
 					"If true, include Metadata in slideshow frames"};
 //					"If true, disable interactive mode, and save an image of each frame in the slideshow to disk"}; 
@@ -178,25 +185,33 @@ public class ToolsMenu {
 				String directory1 = dataEntryDialog.getDirectory(names[1]).toString();
 				String filename0 = dataEntryDialog.getFilename(names[0]);
 				String filename1 = dataEntryDialog.getFilename(names[1]);
-				File directorySaveImage = dataEntryDialog.getDirectory(names[2]);
+				String bathymetryDirectory0 = dataEntryDialog.getDirectory(names[2]).toString();
+				String bathymetryFilename0 = dataEntryDialog.getFilename(names[2]);
+				if(bathymetryFilename0.trim().length()<=0) {
+					bathymetryFilename0 = null;
+				}
+				
+				File directorySaveImage = dataEntryDialog.getDirectory(names[3]);
 				String directorySaveImageString = null;
 				if(directorySaveImage != null) directorySaveImageString = directorySaveImage.toString().trim();
-				String includeXsectConveyanceCharacteristicsString = dataEntryDialog.getValue(names[3]);
-				String includeMetadataString = dataEntryDialog.getValue(names[4]);
-//				String autoSaveString = dataEntryDialog.getValue(names[5]);
+				String includeXsectConveyanceCharacteristicsString = dataEntryDialog.getValue(names[4]);
+				String includeMetadataString = dataEntryDialog.getValue(names[5]);
+//				String autoSaveString = dataEntryDialog.getValue(names[6]);
 				boolean includeXsectConveyanceCharacteristics = Boolean.parseBoolean(includeXsectConveyanceCharacteristicsString);
 				boolean includeMetadata = Boolean.parseBoolean(includeMetadataString);
 //				boolean autoSave = Boolean.parseBoolean(autoSaveString);
 				//auto save won't work until I can find a way to make a dialog close itself. Currently, the saving works fine but 
 				//the automatic window closing doesn't.
 				boolean autoSave = false;
+//				boolean autoSave = Boolean.parseBoolean(dataEntryDialog.getValue(names[5]));
 				boolean reReadFile0 = false;
 				if((directory0.trim()+File.separator+filename0).equalsIgnoreCase(defaultValues[0])){
 					reReadFile0 = false;
 				}else {
 					reReadFile0 = true;
 				}
-				_app.xsectSlideshow(directory0, filename0, reReadFile0, directory1, filename1, directorySaveImageString, 
+				_app.xsectSlideshow(directory0, filename0, reReadFile0, directory1, filename1, 
+						bathymetryDirectory0, bathymetryFilename0, directorySaveImageString, 
 						includeXsectConveyanceCharacteristics, includeMetadata, autoSave);
 			}
 		}

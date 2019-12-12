@@ -925,7 +925,8 @@ public class DataEntryDialog extends JDialog {
 		}
 
 		public void actionPerformed(ActionEvent arg0) {
-			String[] filePath = CsdpFunctions.selectFilePath(this.csdpFrame, this.dialogTitle, new String[] {this.extension}, 
+			String[] parts = this.extension.split("\\|");
+			String[] filePath = CsdpFunctions.selectFilePath(this.csdpFrame, this.dialogTitle, parts, 
 					this.startingDirectory, this.multipleSelection);
 			boolean updateText = true;
 			if(filePath!=null) {

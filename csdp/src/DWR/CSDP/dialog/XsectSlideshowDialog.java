@@ -2,6 +2,7 @@ package DWR.CSDP.dialog;
 
 import java.awt.AWTException;
 import java.awt.Color;
+import java.awt.EventQueue;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -36,10 +37,11 @@ import DWR.CSDP.Network;
 import DWR.CSDP.Xsect;
 import DWR.CSDP.XsectBathymetryData;
 import DWR.CSDP.XsectGraph;
+import DWR.CSDP.Test.DialogClose;
 import vista.graph.GECanvas;
 
 public class XsectSlideshowDialog extends JDialog{
-	
+
 	public static int NEXT_OPTION = 10;
 	public static int PREVIOUS_OPTION = 20;
 	public static int PREVIOUS_CENTERLINE_OPTION = 30;
@@ -60,34 +62,41 @@ public class XsectSlideshowDialog extends JDialog{
 	 * alt-left arrow:   move to first xsect in previous centerline, if any
 	 * alt-right arrow:  move to first xsect in next centerline, if any
 	 */
-	public XsectSlideshowDialog(CsdpFrame csdpFrame, App app, BathymetryData bathymetryData, int xsectColorOption, 
+	public XsectSlideshowDialog(CsdpFrame csdpFrame, App app, BathymetryData bathymetryData0, BathymetryData bathymetryData1, 
+			int xsectColorOption, 
 			Network network0, String centerlineName, int xsectIndex0, Network network1, int xsectIndex1, 
 			String networkDirectory0, String networkFilename0, String networkDirectory1, String networkFilename1, 
 			String saveImageDirectory, boolean includeConveyanceCharacteristics, boolean includeMetadata,
 			boolean noPreviousCenterline, boolean noNextCenterline, boolean noPreviousXsect, boolean noNextXsect) {
 		super(csdpFrame, "Cross-Section Comparison for Centerline "+centerlineName, true);
 		this.autoSave = false;
-		initialize(csdpFrame, app, bathymetryData, xsectColorOption, network0, centerlineName, xsectIndex0, network1, xsectIndex1, 
+		initialize(csdpFrame, app, bathymetryData0, bathymetryData1, xsectColorOption, network0, centerlineName, xsectIndex0, network1, xsectIndex1, 
 				networkDirectory0, networkFilename0, networkDirectory1, networkFilename1, saveImageDirectory, includeConveyanceCharacteristics, 
 				includeMetadata, noPreviousCenterline, noNextCenterline, noPreviousXsect, noNextXsect);
 	}
 
 	/*
+	 * DOESN'T WORK YET
 	 * Constructor for autosave mode. Will display window, save to file, and dispose.
 	 */
-	public XsectSlideshowDialog(CsdpFrame csdpFrame, App app, BathymetryData bathymetryData, int xsectColorOption, 
-			Network network0, String centerlineName, int xsectIndex0, Network network1, int xsectIndex1, 
-			String networkDirectory0, String networkFilename0, String networkDirectory1, String networkFilename1, 
-			String saveImageDirectory, boolean includeConveyanceCharacteristics, boolean includeMetadata, boolean autoSave) {
+	public XsectSlideshowDialog(final CsdpFrame csdpFrame, final App app, final BathymetryData bathymetryData0, final BathymetryData bathymetryData1, 
+			final int xsectColorOption, 
+			final Network network0, final String centerlineName, final int xsectIndex0, final Network network1, final int xsectIndex1, 
+			final String networkDirectory0, final String networkFilename0, final String networkDirectory1, final String networkFilename1, 
+			final String saveImageDirectory, final boolean includeConveyanceCharacteristics, final boolean includeMetadata, final boolean autoSave) {
 		super(csdpFrame, "Cross-Section Comparison for Centerline "+centerlineName, true);
 		this.autoSave = autoSave;
-		boolean noPreviousCenterline = true;
-		boolean noNextCenterline = true;
-		boolean noPreviousXsect = true;
-		boolean noNextXsect = true;
-		initialize(csdpFrame, app, bathymetryData, xsectColorOption, network0, centerlineName, xsectIndex0, network1, xsectIndex1, 
-				networkDirectory0, networkFilename0, networkDirectory1, networkFilename1, saveImageDirectory, includeConveyanceCharacteristics, 
-				includeMetadata, noPreviousCenterline, noNextCenterline, noPreviousXsect, noNextXsect);
+		final boolean noPreviousCenterline = true;
+		final boolean noNextCenterline = true;
+		final boolean noPreviousXsect = true;
+		final boolean noNextXsect = true;
+
+//		EventQueue.invokeLater(new Runnable() {
+//			public void run() {
+				initialize(csdpFrame, app, bathymetryData0, bathymetryData1, xsectColorOption, network0, centerlineName, xsectIndex0, network1, xsectIndex1, 
+						networkDirectory0, networkFilename0, networkDirectory1, networkFilename1, saveImageDirectory, includeConveyanceCharacteristics, 
+						includeMetadata, noPreviousCenterline, noNextCenterline, noPreviousXsect, noNextXsect);
+//			}});
 		saveImage(saveImageDirectory, centerlineName+"_"+xsectIndex0);
 		dispose();
 	}//constructor
@@ -95,7 +104,8 @@ public class XsectSlideshowDialog extends JDialog{
 	/*
 	 * adds components to window
 	 */
-	private void initialize(CsdpFrame csdpFrame, App app, BathymetryData bathymetryData, int xsectColorOption, 
+	private void initialize(CsdpFrame csdpFrame, App app, BathymetryData bathymetryData0, BathymetryData bathymetryData1, 
+			int xsectColorOption, 
 			Network network0, String centerlineName, int xsectIndex0, Network network1, int xsectIndex1, 
 			String networkDirectory0, String networkFilename0, String networkDirectory1, String networkFilename1, 
 			String saveImageDirectory, boolean includeConveyanceCharacteristics, boolean includeMetadata,
@@ -106,7 +116,7 @@ public class XsectSlideshowDialog extends JDialog{
 		Centerline centerline1 = network1.getCenterline(centerlineName);
 		Xsect xsect0 = centerline0.getXsect(xsectIndex0);
 		Xsect xsect1 = centerline1.getXsect(xsectIndex1);
-		
+
 		double[] xsectOriginCoord0 = network0.getXsectOriginCoord(centerlineName, xsectIndex0);
 		double[] xsectOriginCoord1 = network1.getXsectOriginCoord(centerlineName, xsectIndex1);
 		JLabel labelForBothXSJLabel = new JLabel("<HTML>Distance between cross-sections: "+ 
@@ -115,63 +125,65 @@ public class XsectSlideshowDialog extends JDialog{
 		labelForBothXSJLabel.setFont(labelForBothXSJLabel.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
 		labelForBothXSJLabel.setForeground(Color.BLUE);
 		JLabel xsectLabel0 = new JLabel("<HTML>"+networkDirectory0+File.separator+networkFilename0+"<BR>"
+				+ "Number of XS in Centerline = "+centerline0.getNumXsectsWithPoints()+"<BR>"
 				+ "Distance along centerline, feet="+String.format("%.0f", xsect0.getDistAlongCenterlineFeet())+"<BR>"
 				+ "origin coordinates: "+String.format("%.0f", CsdpFunctions.feetToMeters(xsectOriginCoord0[CsdpFunctions.xIndex]))+","+
 				String.format("%.0f", CsdpFunctions.feetToMeters(xsectOriginCoord0[CsdpFunctions.yIndex]))
 				+ "</HTML>");
 		JLabel xsectLabel1 = new JLabel("<HTML>"+networkDirectory1+File.separator+networkFilename1+"<BR>"
+				+ "Number of XS in Centerline = "+centerline1.getNumXsectsWithPoints()+"<BR>"
 				+ "Distance along centerline, feet="+String.format("%.0f", xsect1.getDistAlongCenterlineFeet())+"<BR>"
 				+ "origin coordinates: "+String.format("%.0f", CsdpFunctions.feetToMeters(xsectOriginCoord1[CsdpFunctions.xIndex]))+","+
 				String.format("%.0f", CsdpFunctions.feetToMeters(xsectOriginCoord1[CsdpFunctions.yIndex]))
 				+ "</HTML>");
-		
+
 		Hashtable xsectDisplayData0 = network0.findXsectDisplayRegion(centerlineName, xsectIndex0, CsdpFunctions.getXsectThickness());
-		XsectBathymetryData xsectBathymetryData0 = bathymetryData.findXsectData(xsectDisplayData0);
-		
-		XsectGraph xsectGraph0 = new XsectGraph(csdpFrame, app, bathymetryData, xsectBathymetryData0, 
+		XsectBathymetryData xsectBathymetryData0 = bathymetryData0.findXsectData(xsectDisplayData0);
+
+		XsectGraph xsectGraph0 = new XsectGraph(csdpFrame, app, bathymetryData0, xsectBathymetryData0, 
 				network0, centerlineName, xsectIndex0, CsdpFunctions.getXsectThickness(), xsectColorOption);
 
 		Hashtable xsectDisplayData1 = network1.findXsectDisplayRegion(centerlineName, xsectIndex1, CsdpFunctions.getXsectThickness());
-		XsectBathymetryData xsectBathymetryData1 = bathymetryData.findXsectData(xsectDisplayData1);
-		
-		XsectGraph xsectGraph1 = new XsectGraph(csdpFrame, app, bathymetryData, xsectBathymetryData1, 
+		XsectBathymetryData xsectBathymetryData1 = bathymetryData1.findXsectData(xsectDisplayData1);
+
+		XsectGraph xsectGraph1 = new XsectGraph(csdpFrame, app, bathymetryData1, xsectBathymetryData1, 
 				network1, centerlineName, xsectIndex1, CsdpFunctions.getXsectThickness(), xsectColorOption);
 
 		GECanvas graphCanvas0 = xsectGraph0.getGC();
 		GECanvas graphCanvas1 = xsectGraph1.getGC();
-		
+
 		GridBagLayout mainWindowGridBagLayout = new GridBagLayout();
 		GridBagConstraints mainWindowGridBagConstraints = new GridBagConstraints();
 		mainWindowGridBagConstraints.gridx=0;
 		mainWindowGridBagConstraints.gridy=0;
-//		mainWindowGridBagConstraints.weighty=1;
-		
+		//		mainWindowGridBagConstraints.weighty=1;
+
 		getContentPane().setLayout(mainWindowGridBagLayout);
-		
+
 		GridBagLayout mainPanelLayout = new GridBagLayout();
 		GridBagConstraints mainPanelLayoutConstraints = new GridBagConstraints();
 		JPanel mainPanel = new JPanel(mainPanelLayout);
 		mainPanelLayoutConstraints.anchor=GridBagConstraints.PAGE_END;
 		mainPanel.setLayout(mainPanelLayout);
-//		JPanel instructionsAndLegendPanel = new JPanel(dialogLayout);
+		//		JPanel instructionsAndLegendPanel = new JPanel(dialogLayout);
 		mainPanelLayoutConstraints.insets = new Insets(5, 5, 5, 5);
 		//natural height, maximum width
 		mainPanelLayoutConstraints.fill = GridBagConstraints.HORIZONTAL;
 		mainPanelLayoutConstraints.weighty=1.0;
-//		dialogLayoutConstraints.gridwidth=1;
+		//		dialogLayoutConstraints.gridwidth=1;
 		//add labels
 		mainPanelLayoutConstraints.gridx=0;
 		mainPanelLayoutConstraints.gridy=0;
 		mainPanelLayoutConstraints.gridwidth = 2;
-//		mainPanelLayoutConstraints.ipadx = 400;
+		//		mainPanelLayoutConstraints.ipadx = 400;
 		mainPanel.add(labelForBothXSJLabel, mainPanelLayoutConstraints);
 		mainPanelLayoutConstraints.gridwidth = 1;
 		mainPanelLayoutConstraints.ipadx = 0;
-		
+
 		mainPanelLayoutConstraints.gridx=0;
 		mainPanelLayoutConstraints.gridy=1;
 		mainPanel.add(xsectLabel0, mainPanelLayoutConstraints);
-		
+
 		mainPanelLayoutConstraints.gridx=1;
 		mainPanelLayoutConstraints.gridy=1;
 		mainPanel.add(xsectLabel1, mainPanelLayoutConstraints);
@@ -201,7 +213,7 @@ public class XsectSlideshowDialog extends JDialog{
 			mainPanelLayoutConstraints.gridx=1;
 			mainPanelLayoutConstraints.gridy=5;
 			mainPanel.add(xsectGraph1.getMetadataPanel(), mainPanelLayoutConstraints);
-			
+
 		}
 		//reset to default
 		mainPanelLayoutConstraints.ipady=0;
@@ -222,18 +234,18 @@ public class XsectSlideshowDialog extends JDialog{
 		if(noNextCenterline) nextCenterlineButton.setEnabled(false);
 		if(noPreviousXsect) previousButton.setEnabled(false);
 		if(noNextXsect) nextButton.setEnabled(false);
-		
+
 		GridBagLayout buttonPanelLayout = new GridBagLayout();
 		GridBagConstraints buttonPanelLayoutConstraints = new GridBagConstraints();
 		buttonPanelLayoutConstraints.anchor=GridBagConstraints.PAGE_END;
 		getContentPane().setLayout(buttonPanelLayout);
-//		JPanel instructionsAndLegendPanel = new JPanel(dialogLayout);
+		//		JPanel instructionsAndLegendPanel = new JPanel(dialogLayout);
 		buttonPanelLayoutConstraints.insets = new Insets(5, 5, 5, 5);
 		//natural height, maximum height
 		buttonPanelLayoutConstraints.fill = GridBagConstraints.VERTICAL;
 		buttonPanelLayoutConstraints.weighty=1.0;
 		buttonPanelLayoutConstraints.gridwidth=1;
-		
+
 		JPanel buttonPanel = new JPanel(buttonPanelLayout);
 		buttonPanelLayoutConstraints.gridx=0;
 		buttonPanelLayoutConstraints.gridy=0;
@@ -253,14 +265,14 @@ public class XsectSlideshowDialog extends JDialog{
 		buttonPanelLayoutConstraints.gridx=5;
 		buttonPanelLayoutConstraints.gridy=0;
 		buttonPanel.add(quitButton, buttonPanelLayoutConstraints);
-		
+
 		if(!this.autoSave) {
 			mainPanelLayoutConstraints.gridx=0;
 			mainPanelLayoutConstraints.gridy=6;
 			mainPanelLayoutConstraints.gridwidth=2;
 			mainPanel.add(buttonPanel, mainPanelLayoutConstraints);
 		}
-		
+
 		getContentPane().add(mainPanel, mainWindowGridBagConstraints);
 		if(!this.autoSave) {
 			KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new SlideshowKeyListener(saveImageDirectory,
@@ -323,7 +335,6 @@ public class XsectSlideshowDialog extends JDialog{
 						}
 					}else if(e.getKeyCode()==KeyEvent.VK_RIGHT) {
 						//Ctrl-right arrow
-						System.out.println("noNextXsect, noNextCenterline="+this.noNextXsect+","+this.noNextCenterline);
 						if(this.noNextXsect) {
 							//if displaying the last xsect, then go to the next centerline if there is one
 							if(!this.noNextCenterline) {
@@ -355,30 +366,30 @@ public class XsectSlideshowDialog extends JDialog{
 			return keyHandled;
 		}//dispatchKeyEvent
 	}//class SlideshowKeyListener
-	
+
 	/*
 	 * Save screenshot of dialog to file
 	 * adapted from one of the examples in https://stackoverflow.com/questions/19621105/save-image-from-jpanel-after-draw
 	 */
 	private void saveImage(String saveImageDirectory, String saveImageFilename){
-	    BufferedImage imagebuf=null;
-	    try {
-	        imagebuf = new Robot().createScreenCapture(bounds());
-	    } catch (AWTException e1) {
-	        // TODO Auto-generated catch block
-	        e1.printStackTrace();
-	    }  
-	     Graphics2D graphics2D = imagebuf.createGraphics();
-	     paint(graphics2D);
-	     try {
-	        ImageIO.write(imagebuf,"jpeg", new File(saveImageDirectory+File.separator+saveImageFilename+".jpg"));
-//	        System.out.println("saved image: "+saveImageDirectory+File.separator+saveImageFilename);
-	    } catch (Exception e) {
-	        // TODO Auto-generated catch block
-	        System.out.println("error");
-	    }
+		BufferedImage imagebuf=null;
+		try {
+			imagebuf = new Robot().createScreenCapture(bounds());
+		} catch (AWTException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}  
+		Graphics2D graphics2D = imagebuf.createGraphics();
+		paint(graphics2D);
+		try {
+			ImageIO.write(imagebuf,"jpeg", new File(saveImageDirectory+File.separator+saveImageFilename+".jpg"));
+			System.out.println("saved image: "+saveImageDirectory+File.separator+saveImageFilename);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			System.out.println("error");
+		}
 	}//saveImage
-	
+
 	private class ButtonListener implements ActionListener{
 
 		public void actionPerformed(ActionEvent arg0) {
@@ -400,7 +411,7 @@ public class XsectSlideshowDialog extends JDialog{
 				boolean[] disableIfNull = new boolean[] {true};
 				int[] numDecimalPlaces = new int[] {0};
 				String[] tooltipStrings = new String[] {""};
-				
+
 				DataEntryDialog dataEntryDialog = new DataEntryDialog(csdpFrame, title, instructions, names, defaultValueStrings, dataTypes,
 						disableIfNull, numDecimalPlaces, tooltipStrings, true);
 				int response = dataEntryDialog.getResponse();
@@ -414,11 +425,11 @@ public class XsectSlideshowDialog extends JDialog{
 			dispose();
 		}
 	}//class ButtonListener
-	
+
 	public int getResponse() {return _response;}
 
 	public String getRequestedCenterlineName() {
 		return this.requestedCenterlineName;
 	}
-	
+
 }

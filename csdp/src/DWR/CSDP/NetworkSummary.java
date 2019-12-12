@@ -457,7 +457,10 @@ public class NetworkSummary {
 					double dsm2Minus2mVol = dsm2Volume - twoMeterVolume;
 					double twoMeterVolPercentDiff = 100.0 * (dsm2Minus2mVol/twoMeterVolume);
 					double twoMeterWidthRatio = csdpAvgWidth / CsdpFunctions.metersToFeet(2.0);
-					double centerlineMaxBotElv = centerline.getHighestBottomElevation();
+					double centerlineMaxBotElv = -Double.MAX_VALUE;
+					if(centerline!=null) {
+						centerlineMaxBotElv = centerline.getHighestBottomElevation();
+					}
 					boolean twoMeterDEMValidity = this.twoMeterDEMValidityHashtable.get(chan) && 
 							twoMeterWidthRatio >= MAX_WIDTH_RATIO && 
 							centerlineMaxBotElv <= MAX_VALID_BOTTOM_ELEVATION; 

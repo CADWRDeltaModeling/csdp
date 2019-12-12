@@ -43,7 +43,9 @@ package DWR.CSDP;
 
 import java.awt.GridLayout;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -58,6 +60,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
+import org.apache.commons.io.filefilter.AndFileFilter;
+import org.jfree.data.resources.DataPackageResources;
 import org.jzy3d.chart.Chart;
 import org.jzy3d.chart.ChartLauncher;
 import org.jzy3d.chart.Settings;
@@ -134,10 +138,15 @@ public class App {
 	public static final int ADDING_XSECT_GRAPH = 10;
 	public static final int REMOVING_XSECT_GRAPH = 20;
 	
-	/**
+	/*
 	 * used for JOptionPane
 	 */
 	private Object[] _options = { "OK" };
+	
+	/*
+	 *  A bathymetry data object used not for display in plan view, but in one side of a XsectSlideshow window 
+	 */
+	private BathymetryData xsectSlideshowAlternateBathymetryData;
 
 	public App() {
 	}
@@ -174,6 +183,29 @@ public class App {
 		bOutput.writeData();
 	}
 
+	/*
+	 * Creates a BathymetryData object not for display in Plan view; only for use in XsectSlideshowDialog instances.
+	 * 
+	 */
+	private void createXsectSlideshowAlternateBathymetryData(String directory, String filename) {
+		xsectSlideshowAlternateBathymetryData = null;
+		BathymetryInput binput = null;
+//		_csdpFrame = (CsdpFrame) gui;
+//		boolean bWrite = true;
+		int numLines = 0;
+		// read bathymetry file and store in BathymetryPlot object
+		System.out.println("before error: filename="+filename);
+		String[] parts = filename.split("\\.");
+		String filetype = parts[parts.length-1];
+		int extIndex = filename.lastIndexOf(".cdp");
+		String filenameNoExtensionString = filename.substring(0, extIndex);
+		
+		binput = BathymetryInput.getInstance(_csdpFrame, directory, filenameNoExtensionString + "." + filetype);
+		xsectSlideshowAlternateBathymetryData = binput.readData();
+		xsectSlideshowAlternateBathymetryData.sortYearIndices();
+		if (filetype.equals("prn"))
+			xsectSlideshowAlternateBathymetryData.sortBathymetryData();
+	}
 	
 	/**
 	 * Open ascii or binary bathymetry data file and store data in arrays
@@ -2588,10 +2620,12 @@ public class App {
 	 * 2. one the right, the same for file #2. The cross-section with the closest distance will be displayed. 
 	 * Above Both plots will be cross-section index, distance along centerline, and centerline length.
 	 * 
+	 * bathyetryDirectory1 and bathymetryFilename1 can be null. If not null, they specify a bathymetry data file
+	 * that is to be used for the plots on the right hand side of the window.
 	 * The first file may be the currently loaded network file. If this is the case, do not re-read it.
 	 */
 	public void xsectSlideshow(String networkDirectory0, String networkFilename0, boolean reReadFile0, 
-			String networkDirectory1, String networkFilename1, 
+			String networkDirectory1, String networkFilename1, String bathymetryDirectory0, String bathymetryFilename0,
 			String directorySaveImageString, boolean includeXsectConveyanceCharacteristics, boolean includeMetadata, boolean autoSave) {
 		// need to remove extension from filenames, because NetworkInput adds it for you
 		Network network0 = null;
@@ -2602,6 +2636,14 @@ public class App {
 			network0 = ninput0.readData();
 		}else {
 			network0 = _net;
+		}
+		
+		BathymetryData bathymetryData0 = null;
+		if(bathymetryDirectory0!=null && bathymetryFilename0!=null) {
+			createXsectSlideshowAlternateBathymetryData(bathymetryDirectory0, bathymetryFilename0);
+			bathymetryData0 = xsectSlideshowAlternateBathymetryData;
+		}else {
+			bathymetryData0 = _bathymetryData;
 		}
 		
 		String[] filenameParts = CsdpFunctions.parseFilename(networkFilename1);
@@ -2624,11 +2666,13 @@ public class App {
 						double xsectDist0 = xsect0.getDistAlongCenterlineFeet();
 						int xsectIndex1 = centerline1.getClosestXsectIndex(xsectDist0);
 						XsectSlideshowDialog xsectSlideshowDialog = 
-								new XsectSlideshowDialog(_csdpFrame, this, _bathymetryData, _xsectColorOption, 
+								new XsectSlideshowDialog(_csdpFrame, this, bathymetryData0, _bathymetryData, _xsectColorOption, 
 										network0, centerlineName0, xsectIndex0, 
 										network1, xsectIndex1, networkDirectory0, networkFilename0, networkDirectory1, networkFilename1,
 										directorySaveImageString, includeXsectConveyanceCharacteristics, includeMetadata,
 										autoSave);
+						xsectSlideshowDialog.requestFocusInWindow();
+						xsectSlideshowDialog.dispatchEvent(new WindowEvent(xsectSlideshowDialog, WindowEvent.WINDOW_CLOSING));
 					}
 				}
 			}
@@ -2656,11 +2700,13 @@ public class App {
 						
 						Xsect xsect0 = centerline0.getXsect(j);
 						double xsectDist0 = xsect0.getDistAlongCenterlineFeet();
+						System.out.println("before exception: centerlineExists, centerline1="+
+								network1.centerlineExists(centerlineName0)+","+centerline1);
 						int xsectIndex0 = j;
 						int xsectIndex1 = centerline1.getClosestXsectIndex(xsectDist0);
 						
 						XsectSlideshowDialog xsectSlideshowDialog = 
-								new XsectSlideshowDialog(_csdpFrame, this, _bathymetryData, _xsectColorOption, 
+								new XsectSlideshowDialog(_csdpFrame, this, bathymetryData0, _bathymetryData, _xsectColorOption, 
 										network0, centerlineName0, xsectIndex0, 
 										network1, xsectIndex1, networkDirectory0, networkFilename0, networkDirectory1, networkFilename1,
 										directorySaveImageString, includeXsectConveyanceCharacteristics, includeMetadata,
