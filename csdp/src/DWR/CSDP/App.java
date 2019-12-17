@@ -2700,10 +2700,14 @@ public class App {
 						
 						Xsect xsect0 = centerline0.getXsect(j);
 						double xsectDist0 = xsect0.getDistAlongCenterlineFeet();
-						System.out.println("before exception: centerlineExists, centerline1="+
-								network1.centerlineExists(centerlineName0)+","+centerline1);
+						
+//						System.out.println("before exception: centerlineName, centerlineExists, centerline1="+
+//								centerlineName0+","+network1.centerlineExists(centerlineName0)+","+centerline1);
 						int xsectIndex0 = j;
-						int xsectIndex1 = centerline1.getClosestXsectIndex(xsectDist0);
+						int xsectIndex1 = -Integer.MAX_VALUE;
+						if(centerline1!=null) {
+							xsectIndex1 = centerline1.getClosestXsectIndex(xsectDist0);
+						}
 						
 						XsectSlideshowDialog xsectSlideshowDialog = 
 								new XsectSlideshowDialog(_csdpFrame, this, bathymetryData0, _bathymetryData, _xsectColorOption, 

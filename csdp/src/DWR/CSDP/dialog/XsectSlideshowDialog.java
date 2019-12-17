@@ -114,43 +114,63 @@ public class XsectSlideshowDialog extends JDialog{
 		setLayout(new GridLayout(0, 2));
 		Centerline centerline0 = network0.getCenterline(centerlineName);
 		Centerline centerline1 = network1.getCenterline(centerlineName);
-		Xsect xsect0 = centerline0.getXsect(xsectIndex0);
-		Xsect xsect1 = centerline1.getXsect(xsectIndex1);
 
-		double[] xsectOriginCoord0 = network0.getXsectOriginCoord(centerlineName, xsectIndex0);
-		double[] xsectOriginCoord1 = network1.getXsectOriginCoord(centerlineName, xsectIndex1);
-		JLabel labelForBothXSJLabel = new JLabel("<HTML>Distance between cross-sections: "+ 
-				String.format("%.0f", CsdpFunctions.pointDist(xsectOriginCoord0[CsdpFunctions.xIndex], xsectOriginCoord0[CsdpFunctions.yIndex], 
-						xsectOriginCoord1[CsdpFunctions.xIndex], xsectOriginCoord1[CsdpFunctions.yIndex]))+" ft");
+		Xsect xsect0 = null;
+		double[] xsectOriginCoord0 = null;
+		JLabel xsectLabel0 = null;
+		Hashtable xsectDisplayData0 = null;
+		XsectBathymetryData xsectBathymetryData0 = null;
+		XsectGraph xsectGraph0 = null;
+		GECanvas graphCanvas0 = null;
+		if(xsectIndex0>=0) {
+			xsect0 = centerline0.getXsect(xsectIndex0);
+			xsectOriginCoord0 = network0.getXsectOriginCoord(centerlineName, xsectIndex0);
+			xsectLabel0 = new JLabel("<HTML>"+networkDirectory0+File.separator+networkFilename0+"<BR>"
+					+ "Number of XS in Centerline = "+centerline0.getNumXsectsWithPoints()+"<BR>"
+					+ "Distance along centerline, feet="+String.format("%.0f", xsect0.getDistAlongCenterlineFeet())+"<BR>"
+					+ "origin coordinates: "+String.format("%.0f", CsdpFunctions.feetToMeters(xsectOriginCoord0[CsdpFunctions.xIndex]))+","+
+					String.format("%.0f", CsdpFunctions.feetToMeters(xsectOriginCoord0[CsdpFunctions.yIndex]))
+					+ "</HTML>");
+			xsectDisplayData0 = network0.findXsectDisplayRegion(centerlineName, xsectIndex0, CsdpFunctions.getXsectThickness());
+			xsectBathymetryData0 = bathymetryData0.findXsectData(xsectDisplayData0);
+
+			xsectGraph0 = new XsectGraph(csdpFrame, app, bathymetryData0, xsectBathymetryData0, 
+					network0, centerlineName, xsectIndex0, CsdpFunctions.getXsectThickness(), xsectColorOption);
+			graphCanvas0 = xsectGraph0.getGC();
+
+		}
+		Xsect xsect1 = null;
+		double[] xsectOriginCoord1 = null;
+		JLabel xsectLabel1 = null;
+		Hashtable xsectDisplayData1 = null;
+		XsectBathymetryData xsectBathymetryData1 = null;
+		XsectGraph xsectGraph1 = null;
+		GECanvas graphCanvas1 = null;
+		if(xsectIndex1>=0) {
+			xsect1 = centerline1.getXsect(xsectIndex1);
+			xsectOriginCoord1 = network1.getXsectOriginCoord(centerlineName, xsectIndex1);
+			xsectLabel1 = new JLabel("<HTML>"+networkDirectory1+File.separator+networkFilename1+"<BR>"
+					+ "Number of XS in Centerline = "+centerline1.getNumXsectsWithPoints()+"<BR>"
+					+ "Distance along centerline, feet="+String.format("%.0f", xsect1.getDistAlongCenterlineFeet())+"<BR>"
+					+ "origin coordinates: "+String.format("%.0f", CsdpFunctions.feetToMeters(xsectOriginCoord1[CsdpFunctions.xIndex]))+","+
+					String.format("%.0f", CsdpFunctions.feetToMeters(xsectOriginCoord1[CsdpFunctions.yIndex]))
+					+ "</HTML>");
+			xsectDisplayData1 = network1.findXsectDisplayRegion(centerlineName, xsectIndex1, CsdpFunctions.getXsectThickness());
+			xsectBathymetryData1 = bathymetryData1.findXsectData(xsectDisplayData1);
+
+			xsectGraph1 = new XsectGraph(csdpFrame, app, bathymetryData1, xsectBathymetryData1, 
+					network1, centerlineName, xsectIndex1, CsdpFunctions.getXsectThickness(), xsectColorOption);
+			graphCanvas1 = xsectGraph1.getGC();
+		}
+
+		JLabel labelForBothXSJLabel = new JLabel("<HTML>Distance between cross-sections: N/A");
+		if(xsectIndex0>=0 && xsectIndex1>=0) {
+			labelForBothXSJLabel = new JLabel("<HTML>Distance between cross-sections: "+ 
+					String.format("%.0f", CsdpFunctions.pointDist(xsectOriginCoord0[CsdpFunctions.xIndex], xsectOriginCoord0[CsdpFunctions.yIndex], 
+							xsectOriginCoord1[CsdpFunctions.xIndex], xsectOriginCoord1[CsdpFunctions.yIndex]))+" ft");
+		}
 		labelForBothXSJLabel.setFont(labelForBothXSJLabel.getFont().deriveFont(CsdpFunctions.DIALOG_FONT_SIZE));
 		labelForBothXSJLabel.setForeground(Color.BLUE);
-		JLabel xsectLabel0 = new JLabel("<HTML>"+networkDirectory0+File.separator+networkFilename0+"<BR>"
-				+ "Number of XS in Centerline = "+centerline0.getNumXsectsWithPoints()+"<BR>"
-				+ "Distance along centerline, feet="+String.format("%.0f", xsect0.getDistAlongCenterlineFeet())+"<BR>"
-				+ "origin coordinates: "+String.format("%.0f", CsdpFunctions.feetToMeters(xsectOriginCoord0[CsdpFunctions.xIndex]))+","+
-				String.format("%.0f", CsdpFunctions.feetToMeters(xsectOriginCoord0[CsdpFunctions.yIndex]))
-				+ "</HTML>");
-		JLabel xsectLabel1 = new JLabel("<HTML>"+networkDirectory1+File.separator+networkFilename1+"<BR>"
-				+ "Number of XS in Centerline = "+centerline1.getNumXsectsWithPoints()+"<BR>"
-				+ "Distance along centerline, feet="+String.format("%.0f", xsect1.getDistAlongCenterlineFeet())+"<BR>"
-				+ "origin coordinates: "+String.format("%.0f", CsdpFunctions.feetToMeters(xsectOriginCoord1[CsdpFunctions.xIndex]))+","+
-				String.format("%.0f", CsdpFunctions.feetToMeters(xsectOriginCoord1[CsdpFunctions.yIndex]))
-				+ "</HTML>");
-
-		Hashtable xsectDisplayData0 = network0.findXsectDisplayRegion(centerlineName, xsectIndex0, CsdpFunctions.getXsectThickness());
-		XsectBathymetryData xsectBathymetryData0 = bathymetryData0.findXsectData(xsectDisplayData0);
-
-		XsectGraph xsectGraph0 = new XsectGraph(csdpFrame, app, bathymetryData0, xsectBathymetryData0, 
-				network0, centerlineName, xsectIndex0, CsdpFunctions.getXsectThickness(), xsectColorOption);
-
-		Hashtable xsectDisplayData1 = network1.findXsectDisplayRegion(centerlineName, xsectIndex1, CsdpFunctions.getXsectThickness());
-		XsectBathymetryData xsectBathymetryData1 = bathymetryData1.findXsectData(xsectDisplayData1);
-
-		XsectGraph xsectGraph1 = new XsectGraph(csdpFrame, app, bathymetryData1, xsectBathymetryData1, 
-				network1, centerlineName, xsectIndex1, CsdpFunctions.getXsectThickness(), xsectColorOption);
-
-		GECanvas graphCanvas0 = xsectGraph0.getGC();
-		GECanvas graphCanvas1 = xsectGraph1.getGC();
 
 		GridBagLayout mainWindowGridBagLayout = new GridBagLayout();
 		GridBagConstraints mainWindowGridBagConstraints = new GridBagConstraints();
@@ -182,37 +202,70 @@ public class XsectSlideshowDialog extends JDialog{
 
 		mainPanelLayoutConstraints.gridx=0;
 		mainPanelLayoutConstraints.gridy=1;
-		mainPanel.add(xsectLabel0, mainPanelLayoutConstraints);
+		if(xsectGraph0 != null) {
+			mainPanel.add(xsectLabel0, mainPanelLayoutConstraints);
+		}else {
+			mainPanel.add(new JLabel(""), mainPanelLayoutConstraints);
+		}
 
 		mainPanelLayoutConstraints.gridx=1;
 		mainPanelLayoutConstraints.gridy=1;
-		mainPanel.add(xsectLabel1, mainPanelLayoutConstraints);
+		if(xsectGraph1 != null) {
+			mainPanel.add(xsectLabel1, mainPanelLayoutConstraints);
+		}else {
+			mainPanel.add(new JLabel(""), mainPanelLayoutConstraints);
+		}
 
 		mainPanelLayoutConstraints.gridx=0;
 		mainPanelLayoutConstraints.gridy=2;
-		mainPanel.add(graphCanvas0, mainPanelLayoutConstraints);
+		if(xsectGraph0 != null) {
+			mainPanel.add(graphCanvas0, mainPanelLayoutConstraints);
+		}else {
+			mainPanel.add(new JLabel("no cross-section"), mainPanelLayoutConstraints);
+		}
 		mainPanelLayoutConstraints.gridx=1;
 		mainPanelLayoutConstraints.gridy=2;
-		mainPanel.add(graphCanvas1, mainPanelLayoutConstraints);
+		if(xsectGraph1!=null) {
+			mainPanel.add(graphCanvas1, mainPanelLayoutConstraints);
+		}else {
+			mainPanel.add(new JLabel(""), mainPanelLayoutConstraints);
+		}
 
 		//allocate more vertical space to these components
 		if(includeConveyanceCharacteristics) {
 			mainPanelLayoutConstraints.ipady=30;
 			mainPanelLayoutConstraints.gridx=0;
 			mainPanelLayoutConstraints.gridy=3;
-			mainPanel.add(xsectGraph0.getConveyanceCharacteristicsPanel(), mainPanelLayoutConstraints);
+			if(xsectGraph0 !=null) {
+				mainPanel.add(xsectGraph0.getConveyanceCharacteristicsPanel(), mainPanelLayoutConstraints);
+			}else {
+				mainPanel.add(new JLabel("no cross-section"), mainPanelLayoutConstraints);
+			}
 			mainPanelLayoutConstraints.gridx=1;
 			mainPanelLayoutConstraints.gridy=3;
-			mainPanel.add(xsectGraph1.getConveyanceCharacteristicsPanel(), mainPanelLayoutConstraints);
+			if(xsectGraph1 !=null) {
+				mainPanel.add(xsectGraph1.getConveyanceCharacteristicsPanel(), mainPanelLayoutConstraints);
+			}else {
+				mainPanel.add(new JLabel("no cross-section"), mainPanelLayoutConstraints);
+			}
 		}
 		if(includeMetadata) {
 			mainPanelLayoutConstraints.ipady=100;
 			mainPanelLayoutConstraints.gridx=0;
 			mainPanelLayoutConstraints.gridy=5;
-			mainPanel.add(xsectGraph0.getMetadataPanel(), mainPanelLayoutConstraints);
+			if(xsectGraph0 != null) {
+				mainPanel.add(xsectGraph0.getMetadataPanel(), mainPanelLayoutConstraints);
+			}else {
+				mainPanel.add(new JLabel("no cross-section"), mainPanelLayoutConstraints);
+			}
+			
 			mainPanelLayoutConstraints.gridx=1;
 			mainPanelLayoutConstraints.gridy=5;
-			mainPanel.add(xsectGraph1.getMetadataPanel(), mainPanelLayoutConstraints);
+			if(xsectGraph1 != null) {
+				mainPanel.add(xsectGraph1.getMetadataPanel(), mainPanelLayoutConstraints);
+			}else {
+				mainPanel.add(new JLabel("no cross-section"), mainPanelLayoutConstraints);
+			}
 
 		}
 		//reset to default

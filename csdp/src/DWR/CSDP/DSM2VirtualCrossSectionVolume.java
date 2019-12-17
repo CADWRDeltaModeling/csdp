@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import DWR.CSDP.dialog.MessageDialog;
@@ -33,13 +34,18 @@ public class DSM2VirtualCrossSectionVolume{
 	int _filechooserState = -Integer.MAX_VALUE;
 	String _directory = null;
 	String _filename = null;
+	/*
+	 * Will likely be instance of CSDPFrame
+	 */
+	private JFrame _parentFrame;
 	
 	public static void main(String[] args) {
-		DSM2VirtualCrossSectionVolume c = new DSM2VirtualCrossSectionVolume("E:/delta/dsm2_v8.2beta/studies/historical/output/", "historical_v82.hof");
+		DSM2VirtualCrossSectionVolume c = new DSM2VirtualCrossSectionVolume(null, "E:/delta/dsm2_v8.2beta/studies/historical/output/", "historical_v82.hof");
 		c.printResults();
 	}
 	
-	public DSM2VirtualCrossSectionVolume(String directory, String filename) {
+	public DSM2VirtualCrossSectionVolume(JFrame parentFrame, String directory, String filename) {
+		_parentFrame = parentFrame;
 		_directory = directory;
 		_filename = filename;
 		readFileAndCalculateChannelConveyanceCharacteristics();
@@ -197,6 +203,11 @@ public class DSM2VirtualCrossSectionVolume{
 		    i++;
 		}
 		//last channel results
+		if(lastHeaderFound!=VIRTUAL_CROSS_SECTION || currentChan.length()<=0) {
+			JOptionPane.showMessageDialog(_parentFrame, "<HTML>Error in DSM2VirtualCrossSectionVolume.readFileAndCalculateChannelConveyanceCharacteristics: <BR>"
+					+ "VIRTUAL CROSS-SECTION LOOKUP TABLE not found in DSM2 .hof file, or for some other reason, currentChan is not specified. <BR>"
+					+ "DSM2 needs to be run with printlevel>=5</HTML>", "Error!", JOptionPane.ERROR_MESSAGE);
+		}
 		String extChanNum = intToExtHashtable.get(currentChan);
 		System.out.println("Adding results for last chan="+extChanNum);
 		if(areaValues==null) {
@@ -206,6 +217,7 @@ public class DSM2VirtualCrossSectionVolume{
 			wetPValues = new double[getNumComputationalPoints(chanLength)];
 		}
 		DSM2Chan dsm2Chan = new  DSM2Chan(lastChanLength, numComputationalPoints, areaValues, widthValues, wetPValues);
+		System.out.println("before null pointer: extChanNum, dsm2Chan, extToDSM2ChanHashtable="+extChanNum+","+dsm2Chan+","+extToDSM2ChanHashtable);
 		extToDSM2ChanHashtable.put(extChanNum, dsm2Chan); 
 		externalChannelNumbers.addElement(extChanNum);
 		afr.close();

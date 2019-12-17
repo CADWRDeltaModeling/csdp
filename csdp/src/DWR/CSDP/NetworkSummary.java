@@ -305,7 +305,7 @@ public class NetworkSummary {
 	public void createNetworkSummary() {
 		DSM2VirtualCrossSectionVolume dsm2VirtualCrossSectionVolume = null;
 		if(this.dsm2HofFileSpecified) {
-			dsm2VirtualCrossSectionVolume = new DSM2VirtualCrossSectionVolume(dsm2HofDirectory.toString(), dsm2HofFilename);
+			dsm2VirtualCrossSectionVolume = new DSM2VirtualCrossSectionVolume(csdpFrame, dsm2HofDirectory.toString(), dsm2HofFilename);
 			this.dsm2VolumeHashtable = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.VOLUME_RESULTS);
 			this.dsm2WettedAreaHashtable = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.WETTED_AREA_RESULTS);
 			this.dsm2SurfAreaHashtable = dsm2VirtualCrossSectionVolume.getResults(DSM2VirtualCrossSectionVolume.SURFACE_AREA_RESULTS);

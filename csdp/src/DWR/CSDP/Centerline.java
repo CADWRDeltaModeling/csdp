@@ -1300,7 +1300,10 @@ public class Centerline {
 		for(int i=0; i<getNumXsects(); i++) {
 			Xsect xsect = getXsect(i);
 			double minElev = xsect.getMinimumElevationFeet();
-			returnValue = Math.max(returnValue, minElev);
+			//if xsect has no points, minElev will be Double.MAX_VALUE;
+			if(minElev<Double.MAX_VALUE) {
+				returnValue = Math.max(returnValue, minElev);
+			}
 		}
 		return returnValue;
 	}
@@ -1313,7 +1316,10 @@ public class Centerline {
 		for(int i=0; i<getNumXsects(); i++) {
 			Xsect xsect = getXsect(i);
 			double minElev = xsect.getMinimumElevationFeet();
-			returnValue = Math.min(returnValue, minElev);
+			//if xsect has no points, minElev will be Double.MAX_VALUE;
+			if(minElev<Double.MAX_VALUE) {
+				returnValue = Math.min(returnValue, minElev);
+			}
 		}
 		return returnValue;
 	}
