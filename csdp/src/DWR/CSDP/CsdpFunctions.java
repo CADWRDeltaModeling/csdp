@@ -2280,9 +2280,14 @@ public class CsdpFunctions {
 		return returnValues;
 	}// parseFilename
 	
+	public static void appendGitHashToVersionNumber(String gitHash) {
+		_version += "_#"+gitHash;
+	}
+	
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static final String _version = "3.0_20191212";
+	private static String _version = "3.0_20200102";
+
 
 }// class CsdpFunctions

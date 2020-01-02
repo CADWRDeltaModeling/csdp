@@ -533,7 +533,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 				_oldNetworkDataSet = new NetworkDataSet("old", x, y);
 		}
 
-		updateGraphCanvas();
+		boolean newDummyXsect = updateGraphCanvas();
 
 		Plot plot = _graph.getPlot();
 		if(plot!=null) {
@@ -577,6 +577,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 			_xsCloseButton.doClick();
 		}
 		setCursor(CsdpFunctions._defaultCursor);
+		if(newDummyXsect) {
+			getXsect().setIsUpdated(true);
+		}
 	}// constructor
 
 	private void printGraphInfo(String a) {
@@ -595,8 +598,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 	/**
 	 * updates graph in xsect window
 	 */
-	public void updateGraphCanvas() {
-
+	public boolean updateGraphCanvas() {
+		boolean newDummyXsect = false;
 		if (DEBUG)
 			printGraphInfo("beginning of updateGraphCanvas");
 
@@ -670,6 +673,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 			_refs = new DataReference[1];
 			makeDummyNetworkDataSet();
 			_refs[0]= new DefaultReference((NetworkDataSet)_networkDataSet); 
+			newDummyXsect = true;
 		}
 		
 		_info = new GraphBuilderInfo(_refs, MainProperties.getProperties());
@@ -737,16 +741,10 @@ public class XsectGraph extends JDialog implements ActionListener {
 		_graph.setInsets(new Insets(5, 5, 5, 5));
 		// add editing, listeners
 
-		if (DEBUG)
-			printGraphInfo("2");
-
 		_xei = new XsectEditInteractor(_gui, _app, _net, this, _xsect, _gC, _graph);
 		_gC.addMouseListener(_xei);
 		_gC.addMouseMotionListener(_xei);
 		_gC.addComponentListener(new FontResizeInteractor(_gC));
-
-		if (DEBUG)
-			printGraphInfo("3");
 
 		PlotAttr pattr = (PlotAttr) plot.getAttributes();
 
@@ -767,7 +765,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		getContentPane().add("Center", _gC);
 		// this doesn't work right in swing--it just hides the window
 		// enableEvents(WindowEvent.WINDOW_CLOSING);
-
+		return newDummyXsect;
 	}// updateGraphCanvas
 
 	/**

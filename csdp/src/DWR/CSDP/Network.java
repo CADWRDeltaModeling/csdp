@@ -1066,9 +1066,10 @@ public class Network {
 	}
 
 	/*
-	 * Find coord of smallest rectangle containing all centerline points and all cross-section line endpoints 
+	 * Find coord of smallest rectangle containing all centerline points and all cross-section line endpoints.
+	 * Rectangle will be used to identify data to display in 3D plot.
 	 * Probably need to modify to include xsect thickness, but this involves some complex trig functions, 
-	 * so won't be easy maybe do later.
+	 * so won't be easy, maybe do later.
 	 */
 	public double[] findCenterline3DDisplayRegion(String[] centerlineNames, double xsectThickness) {
 		double minX = Double.MAX_VALUE;

@@ -37,11 +37,10 @@
     chung@water.ca.gov
 
     or see our home page: http://wwwdelmod.water.ca.gov/
-*/
+ */
 package DWR.CSDP;
 
 import org.apache.log4j.BasicConfigurator;
-
 import DWR.CSDP.semmscon.UseSemmscon;
 
 /**
@@ -61,6 +60,9 @@ public class Csdp {
 
 		try {
 			App app = new App();
+			if(args.length > 0) {
+				readGitHashAndUpdateVersionNumber(args[0]);
+			}
 			// if(args.length > 0){
 			// CsdpFunctions._csdpHome=args[0];
 			// }else{
@@ -98,19 +100,19 @@ public class Csdp {
 			} catch (java.lang.UnsatisfiedLinkError e) {
 				System.out.println("java.lang.UnsatisfiedLinkError caught. e=" + e);
 			} // try/catch
-	
+
 			final short utm83_units = 3;
 			final short utm83_zone = 10;
 			final short utm27_zone = 10;
 			final short utm27_units = 3;
-	
+
 			final double utm27x = 629355.0;
 			final double utm27y = 4.199384e6;
 			/**
 			 * IMPORTANT: It seems that utm83ToUtm27 must be called first in order
 			 * for utm28ToUtm83 to work properly
 			 */
-	
+
 			double[] utm83 = us.utm83ToUtm27(utm27x, utm27y, utm27_zone, utm27_units, utm83_zone, utm83_units);
 			utm83 = us.utm27ToUtm83(utm27x, utm27y, utm27_zone, utm27_units, utm83_zone, utm83_units);
 			System.out.println("---------- Semmscon Test Results -----------");
@@ -130,5 +132,28 @@ public class Csdp {
 			System.out.println("All input files must use the same datum/units.");
 		}
 	}// main
+
+	/*
+	 * Read git hash from specified file and append to version number.
+	 */
+	private static void readGitHashAndUpdateVersionNumber(String path) {
+		try {
+			AsciiFileReader asciiFileReader = new AsciiFileReader(path);
+			int i=0;
+			String gitHash = "";
+			while(true){
+				String line = asciiFileReader.getNextLine();
+				if(line==null) break;
+				String parts[] = line.split("\\t+");
+				gitHash = parts[0];
+				i++;
+			}
+			CsdpFunctions.appendGitHashToVersionNumber(gitHash);
+			asciiFileReader.close();
+		}catch(Exception e) {
+			System.out.println("Error in Csdp.readGitHashAndUpdateVersionNumber: "+e.getMessage());
+			System.out.println("Git hash will not be appended to version number.");
+		}
+	}//readGitHash
 
 }// class Csdp
