@@ -139,8 +139,9 @@ public class Csdp {
 	private static void readGitHashAndUpdateVersionNumber(String path) {
 		try {
 			AsciiFileReader asciiFileReader = new AsciiFileReader(path);
-			int i=0;
+			int i = 0;
 			String gitHash = "";
+
 			while(true){
 				String line = asciiFileReader.getNextLine();
 				if(line==null) break;
