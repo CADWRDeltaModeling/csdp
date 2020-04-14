@@ -201,8 +201,6 @@ public class CsdpFunctions {
 			} // if
 		} // for i
 	
-		System.out.println("CsdpFunctions.getXsectDistAndPointDist: minDist="+minDist);
-
 		if (DEBUG)
 			System.out.println("minDistIndex, min dist=" + minDistIndex + "," + minDist);
 		if (minDist < Double.MAX_VALUE) {
@@ -2287,7 +2285,7 @@ public class CsdpFunctions {
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static String _version = "3.0_20200102";
+	private static String _version = "3.0_20200414";
 
 
 }// class CsdpFunctions

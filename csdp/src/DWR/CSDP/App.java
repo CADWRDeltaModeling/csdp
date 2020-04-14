@@ -53,6 +53,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.Vector;
 
 import javax.swing.JDialog;
@@ -62,6 +63,7 @@ import javax.swing.JOptionPane;
 
 import org.apache.commons.io.filefilter.AndFileFilter;
 import org.jfree.data.resources.DataPackageResources;
+import org.junit.experimental.theories.Theories;
 import org.jzy3d.chart.Chart;
 import org.jzy3d.chart.ChartLauncher;
 import org.jzy3d.chart.Settings;
@@ -2076,35 +2078,39 @@ public class App {
 				+ "     b. Tools-Remove all cross-sections<BR>"
 				+ "     c. Save the network file.<BR>"
 				+ "2. If the routine is selecting wrong centerlines, consider deleting some centerlines"
-				+ "3. Specify the output file path, and the values for the fields in the OUTPUT_CHANNEL section.</BODY></HTML>";
+				+ "3. Specify the output file path, and the values for the fields in the OUTPUT_CHANNEL section.<BR>"
+				+ "4. Check the box if you wish to also output the distance from the centerline to the landmar</BODY></HTML>";
 
 		//Create dialog to get input from user.
-		String[] names = new String[] {"Output file (.inp)","Variable(s)", "Interval", "Period Op", "File"};
-		String[] defaultValues = new String[5];
+		String[] names = new String[] {"Output file (.inp)","Variable(s)", "Interval", "Period Op", "File", "Output dist to centerline"};
+		String[] defaultValues = new String[6];
 		defaultValues[0] = CsdpFunctions.getOpenDirectory().toString()+File.separator+"landmarkChanDist.inp";
 		defaultValues[1] = "flow/stage/ec";
 		defaultValues[2] = "${FINE_OUT}";
 		defaultValues[3] = "inst";
 		defaultValues[4] = "${HYDROOUTDSSFILE}";
+		defaultValues[5] = "false";
 		
 		int[] dataTypes = new int[] {
 				DataEntryDialog.FILE_SPECIFICATION_TYPE,
 				DataEntryDialog.STRING_TYPE,
 				DataEntryDialog.STRING_TYPE,
 				DataEntryDialog.STRING_TYPE,
-				DataEntryDialog.STRING_TYPE
+				DataEntryDialog.STRING_TYPE,
+				DataEntryDialog.BOOLEAN_TYPE
 				};
-		String[] extensions = new String[] {"inp","","","",""};
-		String[] tooltips = new String[5];
+		String[] extensions = new String[] {"inp","","","","",""};
+		String[] tooltips = new String[6];
 		tooltips[0] = "Output file will contain landmark name, channel number, and distance";
 		tooltips[1] = "Value(s) for DSM2 OUTPUT_CHANNEL VARIABLE field, separated by slashes";
 		tooltips[2] = "Value for DSM2 OUTPUT_CHANNEL INTERVAL field";
 		tooltips[3] = "Value for DSM2 OUTPUT_CHANNEL PERIOD_OP field";
 		tooltips[4] = "Value for DSM2 OUTPUT_CHANNEL FILE field";
+		tooltips[5] = "Output file will contain, at the end of each line, a commented out value that is the distance between the landmark point and the centerline";
 //		tooltips[1] = "If checked, will create a cross-section line on the nearest channel that intersects the landmark point";
 		
 		//require channels.inp and output file name, but not hof file
-		boolean[] disableIfNull = new boolean[] {true,true,true,true,true}; 
+		boolean[] disableIfNull = new boolean[] {true,true,true,true,true,true}; 
 		DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, title, instructions, names, defaultValues, dataTypes, disableIfNull, 
 				extensions, tooltips, true);
 		int response = dataEntryDialog.getResponse();
@@ -2121,7 +2127,7 @@ public class App {
 			String intervalFieldString = dataEntryDialog.getValue(names[2]);
 			String periodOpFieldString = dataEntryDialog.getValue(names[3]);
 			String fileFieldString = dataEntryDialog.getValue(names[4]);
-			
+			boolean includeDistToCenterline = Boolean.parseBoolean(dataEntryDialog.getValue(names[5]));
 			CsdpFunctions.setOpenDirectory(outputFileDirectory.toString());
 //			boolean createCrossSectionLines = Boolean.parseBoolean(dataEntryDialog.getValue(names[1]));
 			
@@ -2135,6 +2141,12 @@ public class App {
 			asciiFileWriter.writeLine("# with the Find Channel/Distance for Landmarks function");
 			asciiFileWriter.writeLine("# Network file: "+CsdpFunctions.getNetworkDirectory()+File.separator+CsdpFunctions.getNetworkFilename());
 			asciiFileWriter.writeLine("# Landmark file: "+CsdpFunctions.getLandmarkDirectory()+File.separator+CsdpFunctions.getLandmarkFilename());
+			if(includeDistToCenterline) {
+				asciiFileWriter.writeLine("# \n# The commented out value at end of each line is the distance to the centerline (ft). ");
+				asciiFileWriter.writeLine("# This distance should be small. If it is not, this may mean that the network file used");
+				asciiFileWriter.writeLine("# to create this file was missing the matching channel. If so, the output location");
+				asciiFileWriter.writeLine("# should not be used.");
+			}
 			asciiFileWriter.writeLine("############################################################################################");
 			asciiFileWriter.writeLine("OUTPUT_CHANNEL");
 			asciiFileWriter.writeLine(String.format("%-18s", "NAME")+
@@ -2169,21 +2181,24 @@ public class App {
 						String[] variableParts=variableFieldString.split("/");
 						for(int i=0; i<variableParts.length; i++) {
 							String vString = variableParts[i];
-							asciiFileWriter.writeLine(String.format("%-18s", landmarkName)+
+							String lineToWrite = String.format("%-18s", landmarkName)+
 									String.format("%8s", closestChanHashtable.get(landmarkName))+
 									String.format("%10.0f", closestChanDistHashtable.get(landmarkName))+
 									String.format("%-9s", " "+vString)+
 									String.format("%-12s", " "+intervalFieldString)+
 									String.format("%-10s", " "+periodOpFieldString)+
-									" "+fileFieldString);
+									" "+fileFieldString;
+									// also write minDist, which is the minimum perpendicular distance from the landmark point to the centerline
+									if(includeDistToCenterline) lineToWrite += "  # " + String.format("%-20.1f", minDist);
+							asciiFileWriter.writeLine(lineToWrite);
 						}
-						//					asciiFileWriter.writeLine(landmarkName+","+closestChanHashtable.get(landmarkName)+","+closestChanDistHashtable.get(landmarkName));
 					}
 				}//for each landmark
 				asciiFileWriter.writeLine("END");
 				JOptionPane.showMessageDialog(csdpFrame, "File written", "Success", JOptionPane.INFORMATION_MESSAGE);
 			}catch(Exception e) {			
-				JOptionPane.showMessageDialog(csdpFrame, "Error occurred when trying to write to file", "Error", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(csdpFrame, "Error occurred when trying to write to file: "+e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				e.printStackTrace();
 			}finally {
 				asciiFileWriter.close();
 			}
