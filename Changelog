@@ -304,3 +304,25 @@ which have a slightly different format.
 3.0_20191212
 
 Some changes to XsectSlideshowDialog: User can now specify optionally a "left bathymetry file", which will be displayed on the left graph in the slideshow window. Still has some bugs--null pointer exception when switching to certain channels.
+
+Version 3.0_20191217
+
+Fixed bug in App.xsectSlideshow: couldn't handle null centerlines. Now it can. If one network file does not contain a centerline that the other does contain, a "no cross-section" JLabel will be displayed in the slideshow window.
+Fixed bug in Centerline.getHighestBottomElevation and getLowestBottomElevation. These methods call Xsect.getMinimumElevationFeet, which when looking for minimum elevation, will return Double.MAX_VALUE. Modified these methods so that a return value of MAX_VALUE will not be ignored.
+Added a warning dialog to DSM2VirtualCrossSectionVolume if when reading a DSM2 .hof file it doesn't find virtual cross-sections.
+
+Version 3.0_20200102
+
+Csdp main class (Csdp) will optionally read a file (path specified as argument to application), which should contain a string that 
+will be appended to the version number. This should be the git hash. The file containing the git hash will not be checked in, but will be 
+included in the distribution.
+Started modifying XsectGraph to not retain unedited dummy cross-sections (created if no bathymetry data) unless user wishes to retain them.
+
+Version 3.0_20200414
+
+When creating output location for DSM2, optionally include the distance from each station to the corresponding centerline.
+
+Version 3.0_20200428
+
+Fixed bug in landmark creation: null pointer exception when clearing landmarks and then trying to create new landmarks.
+ 

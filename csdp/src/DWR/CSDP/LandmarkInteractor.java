@@ -66,8 +66,8 @@ public class LandmarkInteractor extends ElementInteractor {
 	/*
 	 * Constructor
 	 */
-	public LandmarkInteractor(CsdpFrame gui, PlanViewCanvas can, App app) {
-		_gui = gui;
+	public LandmarkInteractor(CsdpFrame csdpFrame, PlanViewCanvas can, App app) {
+		_csdpFrame = csdpFrame;
 		_can = can;
 		_app = app;
 	}// constructor
@@ -162,14 +162,14 @@ public class LandmarkInteractor extends ElementInteractor {
 			System.out
 					.println("LandmarkInteractor: mouse pressed:  setting initial point " + e.getX() + "," + e.getY());
 		boolean landmarkSelected = false;
-		if (!_gui.getMoveLandmarkMode())
+		if (!_csdpFrame.getMoveLandmarkMode())
 			landmarkSelected = selectLandmark(e);
 		int button = e.getModifiers();
 		// If the popup menu is visible when the user clicks on window, do
 		// nothing
 		// otherwise, check to see which edit mode we're in.
-		if (_gui.landmarkMenuIsVisible()) {
-			_gui.turnOffEditModes();
+		if (_csdpFrame.landmarkMenuIsVisible()) {
+			_csdpFrame.turnOffEditModes();
 		} else {
 			switch (button) {
 			case MouseEvent.BUTTON1_MASK: // left button
@@ -180,10 +180,10 @@ public class LandmarkInteractor extends ElementInteractor {
 				if (_bathymetryPlot != null) {
 					if (_landmark == null || !landmarkSelected) {
 						// show only "Add Landmark" option
-						_gui.showEditLandmarkMenu(false, e);
+						_csdpFrame.showEditLandmarkMenu(false, e);
 					} else {
 						// show only landmark editing options
-						_gui.showEditLandmarkMenu(true, e);
+						_csdpFrame.showEditLandmarkMenu(true, e);
 					}
 				}
 			}
@@ -192,13 +192,13 @@ public class LandmarkInteractor extends ElementInteractor {
 
 	private void updateLandmarkDisplay() {
 		_lPlotter = _can._landmarkPlotter;
-		_gui.getPlanViewCanvas(0).setUpdateLandmark(true);
+		_csdpFrame.getPlanViewCanvas(0).setUpdateLandmark(true);
 		_landmark.setIsUpdated(true);
 		// removed for conversion to swing
-		_gui.getPlanViewCanvas(0).redoNextPaint();
-		_gui.getPlanViewCanvas(0).repaint();
-		_gui.setStopEditingMode();
-		_gui.setCursor(CsdpFunctions._defaultCursor);
+		_csdpFrame.getPlanViewCanvas(0).redoNextPaint();
+		_csdpFrame.getPlanViewCanvas(0).repaint();
+		_csdpFrame.setStopEditingMode();
+		_csdpFrame.setCursor(CsdpFunctions._defaultCursor);
 	}
 
 	/**
@@ -225,7 +225,7 @@ public class LandmarkInteractor extends ElementInteractor {
 	public void mouseMoved(MouseEvent e) {
 		if (DEBUG)
 			System.out.println("Component Event: " + e.toString());
-		_gui.updateInfoPanel(e.getX(), e.getY());
+		_csdpFrame.updateInfoPanel(e.getX(), e.getY());
 	}
 
 	/*
@@ -233,20 +233,20 @@ public class LandmarkInteractor extends ElementInteractor {
 	 */
 	public boolean editLandmark() {
 		boolean tryAgain = false;
-		String newLandmarkName = JOptionPane.showInputDialog(_gui, EDIT_LANDMARK_TITLE, _landmark.getSelectedLandmarkName());
+		String newLandmarkName = JOptionPane.showInputDialog(_csdpFrame, EDIT_LANDMARK_TITLE, _landmark.getSelectedLandmarkName());
 		if (!newLandmarkName.equalsIgnoreCase(_landmark.getSelectedLandmarkName())) {
 			boolean success = _landmark.renameLandmark(_landmark.getSelectedLandmarkName(), newLandmarkName);
 			if (success) {
 				updateLandmarkDisplay();
-				_gui.turnOffEditModes();
+				_csdpFrame.turnOffEditModes();
 			} else {
-				int response = JOptionPane.showConfirmDialog(_gui, "A landmark already exists with that name. Try again?", 
+				int response = JOptionPane.showConfirmDialog(_csdpFrame, "A landmark already exists with that name. Try again?", 
 						"Landmark name exists!", JOptionPane.YES_NO_OPTION);
 				if(response==JOptionPane.YES_OPTION) {
 					tryAgain = true;
 				} else {
 					tryAgain = false;
-					_gui.turnOffEditModes();
+					_csdpFrame.turnOffEditModes();
 				} // if
 			} // if
 		} // if
@@ -256,7 +256,7 @@ public class LandmarkInteractor extends ElementInteractor {
 	public void deleteLandmark() {
 		_landmark.deleteSelectedLandmarkPoint();
 		updateLandmarkDisplay();
-		_gui.turnOffEditModes();
+		_csdpFrame.turnOffEditModes();
 	}// deleteLandmark
 
 	/**
@@ -269,24 +269,25 @@ public class LandmarkInteractor extends ElementInteractor {
 		_lPlotter = _can._landmarkPlotter;
 		ZoomState zs = _bathymetryPlot.getCurrentZoomState();
 		CoordConv cc = zs.getCoordConv();
-		String landmarkName = JOptionPane.showInputDialog(_gui, ADD_LANDMARK_TITLE);
+		String landmarkName = JOptionPane.showInputDialog(_csdpFrame, ADD_LANDMARK_TITLE);
 
 		cc.pixelsToLength(_xi, _yi, _minX, _minY, _lengthI);
 		if (DEBUG)
 			System.out.println("adding landmark: name, x,y=" + landmarkName + "," + _lengthI[0] + "," + _lengthI[1]);
+		if(_landmark==null) _landmark = new Landmark(_csdpFrame);
 		boolean success = _landmark.addLandmarkFeet(landmarkName, _lengthI[0], _lengthI[1]);
 		if (success) {
 			_landmark.setSelectedLandmarkName(landmarkName);
 			updateLandmarkDisplay();
-			_gui.turnOffEditModes();
+			_csdpFrame.turnOffEditModes();
 		} else {
-			int response = JOptionPane.showConfirmDialog(_gui, "A landmark already exists with that name. Try again?", 
+			int response = JOptionPane.showConfirmDialog(_csdpFrame, "A landmark already exists with that name. Try again?", 
 					"Landmark name exists!", JOptionPane.YES_NO_OPTION);
 			if(response==JOptionPane.YES_OPTION) {
 				tryAgain = true;
 			} else {
 				tryAgain = false;
-				_gui.turnOffEditModes();
+				_csdpFrame.turnOffEditModes();
 			} // if
 		} // if
 		return tryAgain;
@@ -314,10 +315,10 @@ public class LandmarkInteractor extends ElementInteractor {
 			_landmark.putXFeet(selectedLandmarkName, xDataCoord);
 			_landmark.putYFeet(selectedLandmarkName, yDataCoord);
 			updateLandmarkDisplay();
-			_gui.turnOffEditModes();
+			_csdpFrame.turnOffEditModes();
 		} else {
 			System.out.println("selected landmark name is null. not moving landmark.");
-			_gui.turnOffEditModes();
+			_csdpFrame.turnOffEditModes();
 		} // if centerlineName not null
 		_landmark.setIsUpdated(true);
 	}// movePoint
@@ -329,10 +330,10 @@ public class LandmarkInteractor extends ElementInteractor {
 		setFinalPoint(e.getX(), e.getY());
 		if (DEBUG)
 			System.out.println("LandmarkInteractor.mouseReleased. about to call moveLandmark? landmark mode="
-					+ _gui.getMoveLandmarkMode());
-		if (_gui.getMoveLandmarkMode()) {
+					+ _csdpFrame.getMoveLandmarkMode());
+		if (_csdpFrame.getMoveLandmarkMode()) {
 			moveLandmark();
-			_gui.turnOffEditModes();
+			_csdpFrame.turnOffEditModes();
 		}
 		_mouseDragged = false;
 	}// mouseReleased
@@ -414,11 +415,11 @@ public class LandmarkInteractor extends ElementInteractor {
 	 */
 	protected int _yf = 0;
 	public static final boolean DEBUG = false;
-	PlanViewCanvas _can;
-	Landmark _landmark;
-	CsdpFrame _gui;
-	BathymetryPlot _bathymetryPlot;
-	LandmarkPlot _lPlotter;
+	private PlanViewCanvas _can;
+	private Landmark _landmark;
+	private CsdpFrame _csdpFrame;
+	private BathymetryPlot _bathymetryPlot;
+	private LandmarkPlot _lPlotter;
 	/*
 	 * number of pixels to search for landmark
 	 */

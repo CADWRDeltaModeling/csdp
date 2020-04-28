@@ -73,6 +73,12 @@ public class ToolsMenu {
 		_xsectsInpFilter = new CsdpFileFilter(_dsmOpenExtensions, _dsmNumOpenExtensions);
 	}
 
+	/**
+	 * Writes coordinates of centroids of all centerlines to a file. Used externally for calculating 
+	 * smoothed Manning's n and dispersion values using curve fit. 
+	 * @author btom
+	 *
+	 */
 	public class TManningsDispersionSpatialDistribution implements ActionListener {
 
 		public void actionPerformed(ActionEvent arg0) {
@@ -85,6 +91,7 @@ public class ToolsMenu {
 					+ "3. The centerline centroid northing<BR>"
 					+ "4. The Manning's n value, if requested<BR>"
 					+ "5. The Dispersion factor, if requested<BR>"
+					+ "<BR><BR>This can be used to create smoothed Manning's n and dispersion values using a 3D curve fit."
 					+ "</BODY></HTML>";
 
 			final String[] names = new String[]{"Output filename (.txt)", "write Manning's n", "write Dispersion Factor"};

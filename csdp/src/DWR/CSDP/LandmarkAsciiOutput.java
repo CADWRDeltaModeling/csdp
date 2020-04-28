@@ -109,10 +109,12 @@ public class LandmarkAsciiOutput extends LandmarkOutput {
 			Integer numLines = null;
 			for(int i=0; i<_landmarkNamesRSA.getSize(); i++) {
 				String name = _landmarkNamesRSA.get(i);
-				double x = _landmark.getXMeters(name);
-				double y = _landmark.getYMeters(name);
-				String line = x + "," + y + "," + name;
-				_asciiOut.write(line + "\n");
+				if(name!=null && name.length()>0) {
+					double x = _landmark.getXMeters(name);
+					double y = _landmark.getYMeters(name);
+					String line = x + "," + y + "," + name;
+					_asciiOut.write(line + "\n");
+				}
 			} // for i
 			_landmark.setIsUpdated(false);
 			success = true;

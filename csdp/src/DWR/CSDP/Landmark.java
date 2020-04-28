@@ -535,13 +535,18 @@ public class Landmark {
 	 */
 	public ResizableStringArray getSortedLandmarkNameRSA() {
 		Enumeration<String> landmarkKeysEnum = _landmarkTable.keys();
-		ResizableStringArray returnRSA = new ResizableStringArray(_landmarkTable.size());
+		
+		int numLandmarks = _landmarkTable.size();
+		ResizableStringArray returnRSA = new ResizableStringArray(numLandmarks);
 		int i=0;
 		while(landmarkKeysEnum.hasMoreElements()) {
 			returnRSA.put(i, landmarkKeysEnum.nextElement());
 			i++;
 		}
-		return CsdpFunctions.qsort(returnRSA, 0, returnRSA.getSize()-1);
+		if(_landmarkTable.size()>1) {
+			returnRSA = CsdpFunctions.qsort(returnRSA, 0, returnRSA.getSize()-1);
+		}
+		return returnRSA;
 	}//getSortedLandmarkNameRSA
 
 

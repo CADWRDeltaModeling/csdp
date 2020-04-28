@@ -1296,7 +1296,7 @@ public class App {
 		if (DEBUG)
 			System.out.println("landmarkFilename, landmarkFiletype=" + CsdpFunctions.getLandmarkFilename() + ","
 					+ CsdpFunctions.getLandmarkFiletype());
-
+		if(_landmark==null) _landmark = new Landmark(_csdpFrame);
 		LandmarkOutput loutput = LandmarkOutput.getInstance(directory, CsdpFunctions.getLandmarkFilename(),
 				CsdpFunctions.getLandmarkFiletype(), _landmark);
 		success = loutput.writeData();
