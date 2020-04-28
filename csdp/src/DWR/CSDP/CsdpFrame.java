@@ -1970,8 +1970,8 @@ public class CsdpFrame extends JFrame {
 		dDigitalLineGraph.setEnabled(true);
 		clearDigitalLineGraph.setEnabled(true);
 		oLandmark.setEnabled(true);
-		lSave.setEnabled(true);
-		lSaveAs.setEnabled(true);
+//		lSave.setEnabled(true);
+//		lSaveAs.setEnabled(true);
 		lExportToWKT.setEnabled(true);
 		
 		lAddPopup.setEnabled(true);
@@ -2164,6 +2164,8 @@ public class CsdpFrame extends JFrame {
 	 * cleared
 	 */
 	public void disableWhenLandmarkCleared() {
+		lSave.setEnabled(false);
+		lSaveAs.setEnabled(false);
 		dFitByLandmarkMenuItem.setEnabled(false);
 		zZoomToNode.setEnabled(false);
 		cLandmarks.setEnabled(false);

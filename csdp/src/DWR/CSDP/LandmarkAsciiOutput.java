@@ -90,20 +90,22 @@ public class LandmarkAsciiOutput extends LandmarkOutput {
 		try {
 			// write metadata
 			String nl = Integer.toString(_landmark.getNumLandmarks());
-			_asciiOut.write(";HorizontalDatum:  " + lMeta.getHDatumString());
-			_asciiOut.newLine();
-			_asciiOut.write(";HorizontalZone:   " + lMeta.getHZone());
-			_asciiOut.newLine();
-			_asciiOut.write(";HorizontalUnits:  " + lMeta.getHUnitsString());
-			_asciiOut.newLine();
-			_asciiOut.write(";VerticalDatum:    " + lMeta.getVDatumString());
-			_asciiOut.newLine();
-			_asciiOut.write(";VerticalUnits:    " + lMeta.getVUnitsString());
-			_asciiOut.newLine();
-			_asciiOut.write(";Filetype:          landmark");
-			_asciiOut.newLine();
-			_asciiOut.write(";NumElements:      " + nl);
-			_asciiOut.newLine();
+			if(lMeta!=null) {
+				_asciiOut.write(";HorizontalDatum:  " + lMeta.getHDatumString());
+				_asciiOut.newLine();
+				_asciiOut.write(";HorizontalZone:   " + lMeta.getHZone());
+				_asciiOut.newLine();
+				_asciiOut.write(";HorizontalUnits:  " + lMeta.getHUnitsString());
+				_asciiOut.newLine();
+				_asciiOut.write(";VerticalDatum:    " + lMeta.getVDatumString());
+				_asciiOut.newLine();
+				_asciiOut.write(";VerticalUnits:    " + lMeta.getVUnitsString());
+				_asciiOut.newLine();
+				_asciiOut.write(";Filetype:          landmark");
+				_asciiOut.newLine();
+				_asciiOut.write(";NumElements:      " + nl);
+				_asciiOut.newLine();
+			}
 			// write data
 			String versionLine = null;
 			Integer numLines = null;
