@@ -583,6 +583,8 @@ public class NetworkInteractor extends ElementInteractor {
 	 * move centerline point
 	 * 
 	 * Adjust Xsect distances to try to keep them in the same location 
+	 * 
+	 * Don't allow move if a cross-section line will be outside the centerline.
 	 */
 	protected void movePoint() {
 		if (DEBUG)
@@ -592,6 +594,7 @@ public class NetworkInteractor extends ElementInteractor {
 		double xDataCoordFinal = -Double.MAX_VALUE;
 		double yDataCoordFinal = -Double.MAX_VALUE;
 		Centerline centerline = null;
+		// The index of the nearest centerline point to the initial point of the click/drag input
 		int minDistIndex = -Integer.MAX_VALUE;
 		double distToNearestPoint = 0.0;
 		CenterlinePoint point = null;
@@ -635,20 +638,32 @@ public class NetworkInteractor extends ElementInteractor {
 			// double maxSearchDist = minDimension/100.0;
 			double maxSearchDist = minDimension / 10.0;
 
+			//if the initial point of the click/drag input is within the calculated 
+			//tolerance of the nearest centerline point, move the point.
 			if (distToNearestPoint < maxSearchDist) {
-//				point.putXFeet(xDataCoordFinal);
-//				point.putYFeet(yDataCoordFinal);
-				centerline.moveCenterlinePointFeet(minDistIndex, xDataCoordFinal, yDataCoordFinal);
-				
-				_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
-				// removed for conversion to swing
-				//
-				_gui.getPlanViewCanvas(0).redoNextPaint();
-				_gui.getPlanViewCanvas(0).repaint();
-				_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
-				_gui.updateInfoPanel(_net.getSelectedCenterlineName());
-
-				// _gui.getPlanViewCanvas(0).validate();
+//				//check: if the nearest point is one of the centerline endpoints, then don't allow move if there 
+				//is a cross-section on the line segment, and the updated line segment would be too short to include the cross-section.
+				boolean okToMove = true;
+				if(minDistIndex==0 || minDistIndex==centerline.getNumCenterlinePoints()-1) {
+					okToMove = centerline.endpointMovementIsOk(minDistIndex, xDataCoordFinal, yDataCoordFinal);
+				}
+				if(okToMove) {
+					point.putXFeet(xDataCoordFinal);
+	//				point.putYFeet(yDataCoordFinal);
+					centerline.moveCenterlinePointFeet(minDistIndex, xDataCoordFinal, yDataCoordFinal);
+					
+					_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+					// removed for conversion to swing
+					//
+					_gui.getPlanViewCanvas(0).redoNextPaint();
+					_gui.getPlanViewCanvas(0).repaint();
+					_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+					_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+	
+					// _gui.getPlanViewCanvas(0).validate();
+				}else {
+					JOptionPane.showMessageDialog(_gui, "The specified endpoint movement would exclude a cross-section.", "Error", JOptionPane.ERROR_MESSAGE);
+				}
 			} else {
 				if (DEBUG)
 					System.out.println("not changing point coord: distToNearestPoint =" + distToNearestPoint);

@@ -240,31 +240,6 @@ public class NetworkPlot extends PlanViewPlot {
 				pt2 = cc.utmToPixels(nextCenterlinePoint.getXFeet(), nextCenterlinePoint.getYFeet(), minX, minY);
 				_x2Pixels = pt2[0];
 				_y2Pixels = pt2[1];
-				// if(useZoomPan){
-				// _x1Pixels+=_xZoomPanOffset;
-				// _y1Pixels+=_yZoomPanOffset;
-				// _x2Pixels+=_xZoomPanOffset;
-				// _y2Pixels+=_yZoomPanOffset;
-				// }
-				// }else{
-				// pt1 = cc.utmToPixels(centerlinePoint.getXFeet()+_centerX,
-				// centerlinePoint.getYFeet()+_centerY,
-				// minX,minY);
-				// _x1Pixels = pt1[0];
-				// _y1Pixels = pt1[1];
-				// pt2 = cc.utmToPixels(nextCenterlinePoint.getXFeet()+_centerX,
-				// nextCenterlinePoint.getYFeet()+_centerY,
-				// minX,minY);
-				// _x2Pixels = pt2[0];
-				// _y2Pixels = pt2[1];
-				// }
-
-				// if(DEBUG)System.out.println
-				// ("centerline: x1,y1,x2,y2(meters)="+
-				// centerlinePoint.getXFeet()+_centerX+","+
-				// centerlinePoint.getYFeet()+_centerY+" "+
-				// nextCenterlinePoint.getXFeet()+_centerX+","+
-				// nextCenterlinePoint.getYFeet()+_centerY);
 				if (DEBUG)
 					System.out.println("centerline: x1,y1,x2,y2(pixels)=" + _x1Pixels + "," + _y1Pixels + " "
 							+ _x2Pixels + "," + _y2Pixels);
@@ -283,17 +258,7 @@ public class NetworkPlot extends PlanViewPlot {
 					centerlinePoint = centerline.getCenterlinePoint(p);
 
 					int[] pt;
-					// if(zs.getUseZoomBox()){
 					pt = cc.utmToPixels(centerlinePoint.getXFeet(), centerlinePoint.getYFeet(), minX, minY);
-					// if(useZoomPan){
-					// pt[0]+=_xZoomPanOffset;
-					// pt[1]+=_yZoomPanOffset;
-					// }
-					// }else{
-					// pt = cc.utmToPixels(centerlinePoint.getXFeet()+_centerX,
-					// centerlinePoint.getYFeet()+_centerY,
-					// minX,minY);
-					// }
 					_x1Pixels = pt[0];
 					_y1Pixels = pt[1];
 
@@ -334,27 +299,6 @@ public class NetworkPlot extends PlanViewPlot {
 				pt2 = cc.utmToPixels(xy[x2Index], xy[y2Index], minX, minY);
 				_x2Pixels = pt2[0];
 				_y2Pixels = pt2[1];
-				// if(useZoomPan){
-				// _x1Pixels+=_xZoomPanOffset;
-				// _y1Pixels+=_yZoomPanOffset;
-				// _x2Pixels+=_xZoomPanOffset;
-				// _y2Pixels+=_yZoomPanOffset;
-				// }
-				// }else{
-				// pt1 = cc.utmToPixels(xy[x1Index]+_centerX,
-				// xy[y1Index]+_centerY,minX,minY);
-				// _x1Pixels = pt1[0];
-				// _y1Pixels = pt1[1];
-				// pt2 = cc.utmToPixels(xy[x2Index]+_centerX,
-				// xy[y2Index]+_centerY,minX,minY);
-				// _x2Pixels = pt2[0];
-				// _y2Pixels = pt2[1];
-				// }
-
-				// if(DEBUG)System.out.println("Cross-section line coord:
-				// x1,y1,x2,y2="+
-				// xy[x1Index]+_centerX+","+xy[y1Index]+_centerX+" "+
-				// xy[x2Index]+_centerY+","+xy[y2Index]+_centerY);
 				if (DEBUG)
 					System.out.println("Cross-section line coord: x1,y1,x2,y2=" + _x1Pixels + "," + _y1Pixels + " "
 							+ _x2Pixels + "," + _y2Pixels);

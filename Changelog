@@ -326,3 +326,6 @@ Version 3.0_20200428
 
 Fixed bug in landmark creation: null pointer exception when clearing landmarks and then trying to create new landmarks.
  
+Version 3.0_20200505
+
+Fixed bug in move centerline point: when moving an endpoint would exclude a cross-section, an exception was being thrown. Now, a warning dialog will be displayed, and movement will not be attempted.

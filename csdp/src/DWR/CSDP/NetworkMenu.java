@@ -411,7 +411,7 @@ public class NetworkMenu {
 			String instructions = "<HTML><BODY><B>Save Specified Channels</B><BR><BR>"
 					+ "Click the button below to specify a <B>network file name</B> for writing results. <BR>"
 					+ "If file exists, it will be overwritten.<BR>"
-					+ "Enter a <B>list of channel numbers</B> separated by commas, spaces, or tabs.<BR>"
+					+ "Enter a <B>list of channel numbers or names</B> separated by commas, spaces, or tabs.<BR>"
 					+ "Examples:<BR>"
 					+ "'*_chanpoly' to include/exclude all centerlines ending in '_chanpoly'<BR>"
 					+ "'*_chanpoly, *_levee* to include/exclude all centerlines ending in '_chanpoly' or containing '_levee'<BR>"
@@ -423,7 +423,7 @@ public class NetworkMenu {
 			"Check box if you want to export all channels EXCEPT those with the specified numbers."};
 			boolean[] disableIfNull = new boolean[] {true, true, false};
 			String[] extensions = new String[]{"cdn", null, null};
-			String[] names = new String[] {"New Network Filename", "Channel Numbers", "Don't export specified channels"};
+			String[] names = new String[] {"New Network Filename", "Channel Numbers/Names", "Don't export specified channels"};
 
 			DataEntryDialog exportChannelsDialog = new DataEntryDialog(_csdpFrame, title, instructions, names, defaultValues, 
 					types, disableIfNull, extensions, tooltips, true);
