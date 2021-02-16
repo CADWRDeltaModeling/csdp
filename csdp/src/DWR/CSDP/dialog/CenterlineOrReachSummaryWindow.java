@@ -213,8 +213,8 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
     	}
 	    	
     	String yLabelArea = "Area, ft2";
-    	String yLabelWetP = "WetP, ft2";
-    	String yLabelWidth = "Width, ft2";
+    	String yLabelWetP = "WetP, ft";
+    	String yLabelWidth = "Width, ft";
     	String yLabelBottomElevation = "Bottom Elevation, ft";
 		
 //    	XYDataset[] areaDatasetArray = new XYSeriesCollection[this.chanNumbersVector.size()];
@@ -451,7 +451,7 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 					double e = CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS;
 					double area = currentXsect.getAreaSqft(e);
 					double wetP = currentXsect.getWettedPerimeterFeet(e);
-					double width = currentXsect.getWettedPerimeterFeet(e);
+					double width = currentXsect.getWidthFeet(e);
 					double botElev = currentXsect.getMinimumElevationFeet();
 					areaSeries.add(area, distanceAlong);
 					wetPSeries.add(wetP, distanceAlong);

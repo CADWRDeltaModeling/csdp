@@ -81,6 +81,8 @@ import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
 import DWR.CSDP.CenterlineMenu.ReverseCenterline;
+import DWR.CSDP.NetworkMenu.NExportChannelsInWindow;
+import DWR.CSDP.NetworkMenu.NExportMetadataTable;
 import DWR.CSDP.ToolsMenu.TCreateStraightlineGridmapConnectingNodes;
 import DWR.CSDP.ToolsMenu.TCrossSectionSlideshow;
 import DWR.CSDP.ToolsMenu.TExtendCenterlinesToNodes;
@@ -102,6 +104,7 @@ public class CsdpFrame extends JFrame {
 	JRadioButton _selectPointsFor3dViewButton;
 	JRadioButton _deleteCenterlinePointsInBoxButton;
 	JRadioButton _deleteCenterlinePointsOutsideBoxButton;
+	JRadioButton _exportChannelsInWindowButton;
 	JButton _zoomFitButton;
 	JButton _zoomUndoButton;
 
@@ -229,8 +232,8 @@ public class CsdpFrame extends JFrame {
 		tCreateStraightlineGridmapConnectingNodes;
 	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
 	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nList, nSummary, nClearNetwork, 
-		nDisplayReachSummary, nDisplay3dReachView, nSelectPointsFor3dReachView, nCalculate, nExportToSEFormat, nExportTo3DFormat, 
-		nAWDSummaryReport, nXSCheckReport, nDConveyanceReport, nNetworkSummaryReport, nNetworkColorLegend;
+		nDisplayReachSummary, nDisplay3dReachView, nSelectPointsFor3dReachView, nCalculate, nExportToSEFormat, nExportTo3DFormat,
+		nExportChannelsInWindow, nExportMetadataTable, nAWDSummaryReport, nXSCheckReport, nDConveyanceReport, nNetworkSummaryReport, nNetworkColorLegend;
 	private JMenuItem lSave, lSaveAs, lExportToWKT, lAdd, lMove, lEdit, lDelete, lHelp;
 
 	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;
@@ -556,7 +559,8 @@ public class CsdpFrame extends JFrame {
 		_deleteCenterlinePointsInBoxButton = new JRadioButton("Delete Centerline Points in Box");
 		_deleteCenterlinePointsOutsideBoxButton = new JRadioButton("Delete Centerline Points outside box");
 		_selectCenterlineForDataEntryDialogButton = new JRadioButton("Select Centerline for DataEntryDialog button");
-
+		_exportChannelsInWindowButton = new JRadioButton("Export channels in window");
+		
 		removeBackgroundAndBorder(_cursorButton);
 		removeBackgroundAndBorder(_insertButton);
 		removeBackgroundAndBorder(_moveButton);
@@ -576,7 +580,7 @@ public class CsdpFrame extends JFrame {
 		removeBackgroundAndBorder(_deleteCenterlinePointsInBoxButton);
 		removeBackgroundAndBorder(_deleteCenterlinePointsOutsideBoxButton);
 		removeBackgroundAndBorder(_selectCenterlineForDataEntryDialogButton);
-		
+		removeBackgroundAndBorder(_exportChannelsInWindowButton);
 		
 		// _landmarkOpenButton = new JButton("Open Landmark File");
 		// _landmarkSaveButton = new JButton("Save Landmark File");
@@ -713,10 +717,10 @@ public class CsdpFrame extends JFrame {
 		btnPanel.add(_moveXsectButton);
 		btnPanel.add(_removeXsectButton);
 		btnPanel.add(_viewXsectButton);
-		btnPanel.add(_zoomBoxButton);
-		btnPanel.add(_zoomPanButton);
 		btnPanel.add(_selectPointsFor3dViewButton);
 		btnPanel.add(_specifyCenterlinesFor3dViewButton);
+		btnPanel.add(_zoomBoxButton);
+		btnPanel.add(_zoomPanButton);
 		// don't use these buttons; better to right click
 		// btnPanel.add(_landmarkAddButton);
 		// btnPanel.add(_landmarkEditButton);
@@ -739,7 +743,8 @@ public class CsdpFrame extends JFrame {
 		_centerlineLandmarkEditButtonGroup.add(_deleteCenterlinePointsInBoxButton);
 		_centerlineLandmarkEditButtonGroup.add(_deleteCenterlinePointsOutsideBoxButton);
 		_centerlineLandmarkEditButtonGroup.add(_selectCenterlineForDataEntryDialogButton);
-
+		_centerlineLandmarkEditButtonGroup.add(_exportChannelsInWindowButton);
+		
 		btnPanel.add(_zoomUndoButton);
 		btnPanel.add(_zoomFitButton);
 		btnPanel.add(_networkCalculateButton);
@@ -1102,6 +1107,8 @@ public class CsdpFrame extends JFrame {
 		nExport.add(nExportToSEFormat = new JMenuItem("Export to Station/Elevation format"));
 		nExport.add(nExportTo3DFormat = new JMenuItem("Export to 3D format"));
 		nExport.add(nExportToWKT = new JMenuItem("Export to WKT format for GIS"));
+		nExport.add(nExportChannelsInWindow = new JMenuItem("Draw window to select channels to export"));
+		nExport.add(nExportMetadataTable = new JMenuItem("Export channel metadata"));
 		nExport.add(nExportOptions = new JMenu("Network export options"));
 		
 		JMenu reportsMenu = new JMenu("Reports");
@@ -1127,6 +1134,8 @@ public class CsdpFrame extends JFrame {
 		ActionListener nClearNetworkListener = networkMenu.new NClearNetwork(this);
 		ActionListener nExportToSEFormatListener = networkMenu.new NExportToSEFormat(this);
 		ActionListener nExportTo3DFormatListener = networkMenu.new NExportTo3DFormat(this);
+		ActionListener nExportChannelsInWindowListener = networkMenu.new NExportChannelsInWindow(this);
+		ActionListener nExportMetadataTableListener = networkMenu.new NExportMetadataTable(this);
 		EventListener noChannelLengthsOnlyListener = networkMenu.new NChannelLengthsOnly();
 		//// ActionListener nListListener = networkMenu.new NList();
 		//// ActionListener nSummaryListener = networkMenu.new NSummary();
@@ -1149,6 +1158,8 @@ public class CsdpFrame extends JFrame {
 		nNetworkColorLegend.addActionListener(nShowNetworkColorLegendListener);
 		nExportToSEFormat.addActionListener(nExportToSEFormatListener);
 		nExportTo3DFormat.addActionListener(nExportTo3DFormatListener);
+		nExportChannelsInWindow.addActionListener(nExportChannelsInWindowListener);
+		nExportMetadataTable.addActionListener(nExportMetadataTableListener);
 		noChannelLengthsOnly.addItemListener((ItemListener) noChannelLengthsOnlyListener);
 		//// nList.addActionListener(nListListener);
 		//// nSummary.addActionListener(nSummaryListener);
@@ -1274,7 +1285,7 @@ public class CsdpFrame extends JFrame {
 		// cfCenterline.add(cInfo = new JMenuItem("Info"));
 		// cfCenterline.add(cList = new JMenuItem("List"));
 		// cfCenterline.add(cSummary = new JMenuItem("Summary"));
-		cfCenterline.add(cDisplaySummary = new JMenuItem("View Centerline Summary"));
+		cfCenterline.add(cDisplaySummary = new JMenuItem("Centerline Summary Window"));
 		cfCenterline.add(cView3d = new JMenuItem("Centerline 3D View"));
 		cfCenterline.add(cReverseCenterline = new JMenuItem("Reverse Centerline"));
 		cfCenterline.add(cPlotAllCrossSections = new JMenuItem("Multiple Cross-Section Graph"));
@@ -1788,6 +1799,10 @@ public class CsdpFrame extends JFrame {
 		_deleteCenterlinePointsInBoxButton.doClick();
 	}
 	
+	public void pressExportChannelsInWindowButton() {
+		_exportChannelsInWindowButton.doClick();
+	}
+	
 	/**
 	 * toggles zoom pan mode when button is not clicked by user. Allows another
 	 * event to toggle mode.
@@ -1889,6 +1904,8 @@ public class CsdpFrame extends JFrame {
 		nExportToWKT.setEnabled(false);
 		nExportToSEFormat.setEnabled(false);
 		nExportTo3DFormat.setEnabled(false);
+		nExportChannelsInWindow.setEnabled(false);
+		nExportMetadataTable.setEnabled(false);
 		// nList.setEnabled(false);nSummary.setEnabled(false);
 		nClearNetwork.setEnabled(false);
 		zZoomToCenterline.setEnabled(false);
@@ -2034,6 +2051,8 @@ public class CsdpFrame extends JFrame {
 		// nList.setEnabled(true);nSummary.setEnabled(true);
 		nExportToSEFormat.setEnabled(true);
 		nExportTo3DFormat.setEnabled(true);
+		nExportChannelsInWindow.setEnabled(true);
+		nExportMetadataTable.setEnabled(true);
 		nDisplayReachSummary.setEnabled(true);
 		nDisplay3dReachView.setEnabled(true);
 		_selectPointsFor3dViewButton.setEnabled(true);
@@ -2102,6 +2121,8 @@ public class CsdpFrame extends JFrame {
 		// nList.setEnabled(false);nSummary.setEnabled(false);
 		nExportToSEFormat.setEnabled(false);
 		nExportTo3DFormat.setEnabled(false);
+		nExportChannelsInWindow.setEnabled(false);
+		nExportMetadataTable.setEnabled(false);
 		nCalculate.setEnabled(false);
 		nDisplayReachSummary.setEnabled(false);
 		nDisplay3dReachView.setEnabled(false);
@@ -2135,6 +2156,8 @@ public class CsdpFrame extends JFrame {
 		zZoomToCenterline.setEnabled(true);
 		nExportToSEFormat.setEnabled(true);
 		nExportTo3DFormat.setEnabled(true);
+		nExportChannelsInWindow.setEnabled(true);
+		nExportMetadataTable.setEnabled(true);
 		nCalculate.setEnabled(true);
 		nDisplayReachSummary.setEnabled(true);
 		nDisplay3dReachView.setEnabled(true);
@@ -2823,6 +2846,9 @@ public class CsdpFrame extends JFrame {
 	public boolean getDeleteCenterlinePointsInBoxMode() {
 		return _deleteCenterlinePointsInBoxButton.isSelected();
 	}
+	public boolean getExportChannelsInWindowMode() {
+		return _exportChannelsInWindowButton.isSelected();
+	}
 	
 	public boolean getDeleteCenterlinePointsOutsideBoxMode() {
 		return _deleteCenterlinePointsOutsideBoxButton.isSelected();
@@ -2955,6 +2981,8 @@ public class CsdpFrame extends JFrame {
 	public void setSelectPointsFor3dViewMode() {
 		_selectPointsFor3dViewButton.doClick();
 	}
+
+
 
 
 

@@ -304,6 +304,12 @@ public class XsectGraph extends JDialog implements ActionListener {
 
 	private double _xsPropElevation;
 	private XsectBathymetryData _xsectBathymetryData;
+	/*
+	 * The background color for the graph. For reports, white background is required by accessibility guidelines
+	 */
+//	private static final Color GRAPH_BACKGROUND_COLOR = Color.LIGHT_GRAY;
+	private static final Color GRAPH_BACKGROUND_COLOR = Color.WHITE;
+	
 
 	public XsectGraph(CsdpFrame gui, App app, BathymetryData data, XsectBathymetryData xsectBathymetryData, 
 			Network net, String centerlineName, int xsectNum, double thickness, int colorOption) {
@@ -467,14 +473,14 @@ public class XsectGraph extends JDialog implements ActionListener {
 		btnPanel.add(_addRightPointButton);
 		btnPanel.add(_insertButton);
 		btnPanel.add(_deleteButton);
-		btnPanel.add(_keepButton);
-		btnPanel.add(_restoreButton);
-		btnPanel.add(_cloneButton);
-
 		btnPanel.add(_moveXsectXField);
 		btnPanel.add(_moveXsectXButton);
 		btnPanel.add(_moveXsectYField);
 		btnPanel.add(_moveXsectYButton);
+		btnPanel.add(_keepButton);
+		btnPanel.add(_restoreButton);
+		btnPanel.add(_cloneButton);
+
 
 		// btnPanel.add(_metadataButton);
 		_arrowButton.setSelectedIcon(_cursorIconSelected);
@@ -631,7 +637,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		_multiPlot = _factory.createMultiPlot();
 		_graph.addPlot(_multiPlot);
 		_multiPlot.add(_factory.createPlot());
-		_graph.setBackgroundColor(Color.lightGray);
+		_graph.setBackgroundColor(this.GRAPH_BACKGROUND_COLOR );
 		_multiPlot.setCurrentPlot(0);
 		TextLineAttr tla = new TextLineAttr();
 		tla._font = new Font("Times Roman", Font.PLAIN, 16);

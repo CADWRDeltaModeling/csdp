@@ -3,7 +3,7 @@
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
   <jar>D:\temp\csdp-app.jar</jar>
-  <outfile>d:\temp\csdp.exe</outfile>
+  <outfile>d:\temp\csdp2.6_20181023.exe</outfile>
   <errTitle></errTitle>
   <cmdLine>-Xss512K</cmdLine>
   <chdir></chdir>

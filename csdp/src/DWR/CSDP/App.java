@@ -2062,6 +2062,13 @@ public class App {
 	/*
 	 * For each landmark, determines nearest Centerline and distance from the upstream end of the nearest point on the centerline
 	 * to the landmark. Optionally draws a cross-section line, which can be useful for verification.
+	 * 
+	 * The first step is to identify the centerline by determining the closest centerline. Two distances are compared to determine the closest:
+	 * 
+	 * 1. The distance from the landmark to each endpoint of each centerline. This is necessary because sometimes landmarks are placed such that 
+	 * they are not within the infinitely wide rectangle used in condition 1.  
+	 * 2. The closest perpendicular distance a centerline segment. To be counted, the landmark must be contained in an infinitely wide rectangle 
+	 * that has two sides parallel to the line segment, and two sides intersecting the endpoints of the centerline.
 	 */
 	public void createDSM2OutputLocationsForLandmarks(CsdpFrame csdpFrame) {
 		String title = "Create DSM2 Output Locations Specification file (output.inp) for landmarks";
@@ -2078,20 +2085,25 @@ public class App {
 				+ "     b. Tools-Remove all cross-sections<BR>"
 				+ "     c. Save the network file.<BR>"
 				+ "2. If the routine is selecting wrong centerlines, consider deleting some centerlines"
-				+ "3. Specify the output file path, and the values for the fields in the OUTPUT_CHANNEL section.<BR>"
-				+ "4. Check the box if you wish to also output the distance from the centerline to the landmar</BODY></HTML>";
+				+ "3. Optionally specify a DSM2 channels.inp file. If you do so, channel distance will be adjusted by<BR>"
+				+ "     multiplying the distance by the ratio of the channels.inp length to the centerline length. This is <BR>"
+				+ "     done because in DSM2 v8.2, the channel lengths are mostly not equal to the CSDP centerline lengths.<BR>"
+				+ "4. Specify the output file path, and the values for the fields in the OUTPUT_CHANNEL section.<BR>"
+				+ "5. Check the box if you wish to also output the distance from the centerline to the landmar</BODY></HTML>";
 
 		//Create dialog to get input from user.
-		String[] names = new String[] {"Output file (.inp)","Variable(s)", "Interval", "Period Op", "File", "Output dist to centerline"};
-		String[] defaultValues = new String[6];
+		String[] names = new String[] {"Output file (.inp)","DSM2 Channels file", "Variable(s)", "Interval", "Period Op", "File", "Output dist to centerline"};
+		String[] defaultValues = new String[7];
 		defaultValues[0] = CsdpFunctions.getOpenDirectory().toString()+File.separator+"landmarkChanDist.inp";
-		defaultValues[1] = "flow/stage/ec";
-		defaultValues[2] = "${FINE_OUT}";
-		defaultValues[3] = "inst";
-		defaultValues[4] = "${HYDROOUTDSSFILE}";
-		defaultValues[5] = "false";
+		defaultValues[1] = "";
+		defaultValues[2] = "flow/stage/ec";
+		defaultValues[3] = "${FINE_OUT}";
+		defaultValues[4] = "inst";
+		defaultValues[5] = "${HYDROOUTDSSFILE}";
+		defaultValues[6] = "false";
 		
 		int[] dataTypes = new int[] {
+				DataEntryDialog.FILE_SPECIFICATION_TYPE,
 				DataEntryDialog.FILE_SPECIFICATION_TYPE,
 				DataEntryDialog.STRING_TYPE,
 				DataEntryDialog.STRING_TYPE,
@@ -2099,18 +2111,19 @@ public class App {
 				DataEntryDialog.STRING_TYPE,
 				DataEntryDialog.BOOLEAN_TYPE
 				};
-		String[] extensions = new String[] {"inp","","","","",""};
-		String[] tooltips = new String[6];
+		String[] extensions = new String[] {"inp","inp","","","","",""};
+		String[] tooltips = new String[7];
 		tooltips[0] = "Output file will contain landmark name, channel number, and distance";
-		tooltips[1] = "Value(s) for DSM2 OUTPUT_CHANNEL VARIABLE field, separated by slashes";
-		tooltips[2] = "Value for DSM2 OUTPUT_CHANNEL INTERVAL field";
-		tooltips[3] = "Value for DSM2 OUTPUT_CHANNEL PERIOD_OP field";
-		tooltips[4] = "Value for DSM2 OUTPUT_CHANNEL FILE field";
-		tooltips[5] = "Output file will contain, at the end of each line, a commented out value that is the distance between the landmark point and the centerline";
+		tooltips[1] = "DSM2 channels file, which is only needed if channel lengths differ from CSDP centerline lengths";
+		tooltips[2] = "Value(s) for DSM2 OUTPUT_CHANNEL VARIABLE field, separated by slashes";
+		tooltips[3] = "Value for DSM2 OUTPUT_CHANNEL INTERVAL field";
+		tooltips[4] = "Value for DSM2 OUTPUT_CHANNEL PERIOD_OP field";
+		tooltips[5] = "Value for DSM2 OUTPUT_CHANNEL FILE field";
+		tooltips[6] = "Output file will contain, at the end of each line, a commented out value that is the distance between the landmark point and the centerline";
 //		tooltips[1] = "If checked, will create a cross-section line on the nearest channel that intersects the landmark point";
 		
 		//require channels.inp and output file name, but not hof file
-		boolean[] disableIfNull = new boolean[] {true,true,true,true,true,true}; 
+		boolean[] disableIfNull = new boolean[] {true,false,true,true,true,true,true}; 
 		DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, title, instructions, names, defaultValues, dataTypes, disableIfNull, 
 				extensions, tooltips, true);
 		int response = dataEntryDialog.getResponse();
@@ -2123,17 +2136,34 @@ public class App {
 			
 			File outputFileDirectory = dataEntryDialog.getDirectory(names[0]);
 			String outputFileFilename = dataEntryDialog.getFilename(names[0]);
-			String variableFieldString = dataEntryDialog.getValue(names[1]);
-			String intervalFieldString = dataEntryDialog.getValue(names[2]);
-			String periodOpFieldString = dataEntryDialog.getValue(names[3]);
-			String fileFieldString = dataEntryDialog.getValue(names[4]);
-			boolean includeDistToCenterline = Boolean.parseBoolean(dataEntryDialog.getValue(names[5]));
+			File dsm2ChannelsDirectory = dataEntryDialog.getDirectory(names[1]);
+			String dsm2ChannelsFilename = dataEntryDialog.getFilename(names[1]);
+			String variableFieldString = dataEntryDialog.getValue(names[2]);
+			String intervalFieldString = dataEntryDialog.getValue(names[3]);
+			String periodOpFieldString = dataEntryDialog.getValue(names[4]);
+			String fileFieldString = dataEntryDialog.getValue(names[5]);
+			boolean includeDistToCenterline = Boolean.parseBoolean(dataEntryDialog.getValue(names[6]));
 			CsdpFunctions.setOpenDirectory(outputFileDirectory.toString());
 //			boolean createCrossSectionLines = Boolean.parseBoolean(dataEntryDialog.getValue(names[1]));
 			
 			Network network = csdpFrame.getNetwork();
 			Landmark landmark = csdpFrame.getLandmark();
-			
+			DSMChannels dsmChannelsJustForAdjustment = null;
+			if(dsm2ChannelsFilename!=null && dsm2ChannelsFilename.length()>0) {
+				dsmChannelsJustForAdjustment = chanReadStore(dsm2ChannelsDirectory.toString(), dsm2ChannelsFilename);
+				String filename = null;
+				String filetype = null;
+				int dotIndex = dsm2ChannelsFilename.lastIndexOf(".");
+				if (dotIndex >= 0) {
+					filename = dsm2ChannelsFilename.substring(0, dotIndex);
+					filetype = dsm2ChannelsFilename.substring(dotIndex + 1);
+				} else {
+					filename = dsm2ChannelsFilename;
+					filetype = null;
+				}
+				DSMChannelsInput chanInput = DSMChannelsInput.getInstance(dsm2ChannelsDirectory.toString(), filename + "." + DSMChannels_TYPE);
+				dsmChannelsJustForAdjustment = chanInput.readData();
+			}
 
 			AsciiFileWriter asciiFileWriter= new AsciiFileWriter(csdpFrame, outputFileDirectory.toString()+File.separator+outputFileFilename);
 			asciiFileWriter.writeLine("############################################################################################");
@@ -2159,13 +2189,23 @@ public class App {
 			Enumeration<String> landmarkNamesEnum = landmark.getLandmarkNames();
 			try {
 				while(landmarkNamesEnum.hasMoreElements()) {
-					double minDist = Double.MAX_VALUE;
 					String landmarkName = landmarkNamesEnum.nextElement();
 					double landmarkX = landmark.getXFeet(landmarkName);
 					double landmarkY = landmark.getYFeet(landmarkName);
+					// Condition 1: find centerline with shortest distance from one of the endpoints to the landmark.
+					Object[] chanDist = network.findClosestCenterlineEndpointToLandmark(landmarkX, landmarkY);
+					String closestEndpointCenterlineNameString = (String) chanDist[0];
+					double minDistEndpointCenterline = (Double) chanDist[1];
+					double closestEndpointCenterlineDistAlong = (Double) chanDist[2];
+
+					double minDist = minDistEndpointCenterline;
+					closestChanHashtable.put(landmarkName, closestEndpointCenterlineNameString);
+					closestChanDistHashtable.put(landmarkName, closestEndpointCenterlineDistAlong);
+					
 					for(int i=0; i<network.getNumCenterlines(); i++) {
 						String centerlineName = network.getCenterlineName(i);
 						Centerline centerline = network.getCenterline(centerlineName);
+						//Condition 2: find perpendicular distance to all centerlines. returns distance along centerline, and perpendicular distance to the closest centerline segment
 						double[] cumAndMinDist = CsdpFunctions.getXsectDistAndPointDist(centerline, landmarkX, 
 								landmarkY, Double.MAX_VALUE, true); 
 						double cumDist = cumAndMinDist[0];
@@ -2173,6 +2213,11 @@ public class App {
 						if(minCenterlineDist>0 && minCenterlineDist < minDist) {
 							minDist = minCenterlineDist;
 							closestChanHashtable.put(landmarkName, centerlineName);
+							// if a channels inp file was specified, adjust length. This is for creating DSM2 v8.2 output locations using DSM2v 8.3 network file.
+							//The reason for doing this is that the DSM2 v8.2 channels lengths are not always the same as centerline lengths.
+							if(dsmChannelsJustForAdjustment!=null) {
+								cumDist *= dsmChannelsJustForAdjustment.getLength(centerlineName) / centerline.getLengthFeet();
+							}
 							closestChanDistHashtable.put(landmarkName, cumDist);
 						}
 					}//for each centerline
@@ -2820,5 +2865,37 @@ public class App {
 		}
 		return success;
 	}//createStraightlineWKTGridmapFile
+
+	public boolean nExportMetadataTable(Network net, String csvPath) {
+		boolean success = true;
+		AsciiFileWriter afw = new AsciiFileWriter(_csdpFrame, csvPath);
+		try {
+			afw.writeLine("XsectName, XsectEasting, XsectNorthing, Metadata");
+			int numCenterlines = net.getNumCenterlines();
+			for(int i=0; i<numCenterlines; i++) {
+				String centerlineNameString = net.getCenterlineName(i);
+				Centerline centerline = net.getCenterline(centerlineNameString);
+				for(int j=0; j<centerline.getNumXsects(); j++) {
+					Xsect xsect = centerline.getXsect(j);
+					double[] centerlineMidpointCoord = net.getCenterlineMidpointCoord(centerlineNameString, j);
+					double intersectionX = centerlineMidpointCoord[0];
+					double intersectionY = centerlineMidpointCoord[1];
+					String metadata = xsect.getMetadata().replace("\n", "|").replace("\r", "|").replace(",", "-");
+					String line = centerlineNameString+"_"+j+","+intersectionX+","+intersectionY+","+metadata;
+					afw.writeLine(line);
+				}
+			}
+		}catch (Exception e) {
+//			JOptionPane.showMessageDialog(_csdpFrame, "Exception caught in App.chanReadStore: "+e.getMessage(), 
+//			"Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(_csdpFrame, "Exception caught in App.nExportMetadataTable:"+e.getMessage(), 
+					"Error", JOptionPane.ERROR_MESSAGE);
+			success = false;
+		}finally {
+			afw.close();
+		}
+		
+		return success;
+	}
 
 }// class App

@@ -257,7 +257,8 @@ public class NetworkInteractor extends ElementInteractor {
 			}else if (_gui.getMoveXsectMode()) {
 				moveXsect();
 			}else if (_gui.getZoomBoxMode() || _gui.getZoomPanMode() || _gui.getDeleteCenterlinePointsInBoxMode() ||
-					_gui.getDeleteCenterlinePointsOutsideBoxMode() || _gui.getSelectPointsFor3dViewMode()) {
+					_gui.getDeleteCenterlinePointsOutsideBoxMode() || _gui.getSelectPointsFor3dViewMode() ||
+					_gui.getExportChannelsInWindowMode()) {
 				_drawDragRect = true;
 				_previouslyDoubleBuffered = _can.isDoubleBuffered();
 				if (!_previouslyDoubleBuffered)
@@ -753,6 +754,10 @@ public class NetworkInteractor extends ElementInteractor {
 		_net.setIsUpdated(true);
 	}
 
+	protected void exportChannelsInWindow() {
+		JOptionPane.showConfirmDialog(_gui, "feature not implemented yet");
+	}
+	
 	/**
 	 * delete point in centerline
 	 */
@@ -1274,6 +1279,10 @@ public class NetworkInteractor extends ElementInteractor {
 				_drawDragRect = false;
 				deletePointsInOrOutsideBox(Centerline.DELETE_OUTSIDE_WINDOW);
 			}
+			if(_gui.getExportChannelsInWindowMode()) {
+				_drawDragRect = false;
+				exportChannelsInWindow();
+			}
 		}
 		_mouseDragged = false;
 	}// mouseReleased
@@ -1501,7 +1510,7 @@ public class NetworkInteractor extends ElementInteractor {
 		if (_drawDragRect)
 			_mouseDragged = true;
 		if (_gui.getZoomBoxMode() || _gui.getDeleteCenterlinePointsInBoxMode() || _gui.getDeleteCenterlinePointsOutsideBoxMode()
-				|| _gui.getSelectPointsFor3dViewMode()) {
+				|| _gui.getSelectPointsFor3dViewMode() || _gui.getExportChannelsInWindowMode()) {
 			Graphics g = _gCImage.getGraphics();
 			Rectangle bounds = _can.getBounds();
 			bounds.x = 0;

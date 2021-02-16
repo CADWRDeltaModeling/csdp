@@ -43,9 +43,7 @@ package DWR.CSDP;
 import java.awt.Polygon;
 import java.util.Enumeration;
 import java.util.Hashtable;
-
 import javax.swing.JOptionPane;
-
 import DWR.CSDP.semmscon.UseSemmscon;
 
 /**
@@ -1193,5 +1191,43 @@ public class Network {
 		}
 		return returnValue;
 	}//getCenterlineIndex
+
+	public double[] getCenterlineMidpointCoord(String centerlineNameString, int xsectIndex) {
+		double[] xsectLine = findXsectLineCoord(centerlineNameString, xsectIndex);
+		double x1 = xsectLine[CsdpFunctions.x1Index];
+		double y1 = xsectLine[CsdpFunctions.y1Index];
+		double x2 = xsectLine[CsdpFunctions.x2Index];
+		double y2 = xsectLine[CsdpFunctions.y2Index];
+		double intersectionX = 0.5 * (x1 + x2);
+		double intersectionY = 0.5 * (y1 + y2);
+		return new double[] {intersectionX, intersectionY};
+	}
+
+	/*
+	 * Returns array with centerline name, closestDistance, distance along
+	 */
+	public Object[] findClosestCenterlineEndpointToLandmark(double landmarkX, double landmarkY) {
+		double minDist = Double.MAX_VALUE;
+		String chanWithMinDist = null;
+		double closestCenterlineDistAlong = -Double.MAX_VALUE;
+		for(int i=0; i<getNumCenterlines(); i++) {
+			Centerline centerline = getCenterline(getCenterlineName(i));
+			CenterlinePoint upstreamPoint = centerline.getCenterlinePoint(0);
+			CenterlinePoint downstreamPoint = centerline.getCenterlinePoint(centerline.getNumCenterlinePoints()-1);
+			double upstreamDist = CsdpFunctions.pointDist(landmarkX, landmarkY, upstreamPoint._x, upstreamPoint._y);
+			double downstreamDist = CsdpFunctions.pointDist(landmarkX, landmarkY, downstreamPoint._x, downstreamPoint._y);
+			if(upstreamDist < minDist) {
+				minDist = upstreamDist;
+				chanWithMinDist = getCenterlineName(i);
+				closestCenterlineDistAlong = 0.0;
+			}
+			if(downstreamDist < minDist) {
+				minDist = downstreamDist;
+				chanWithMinDist = getCenterlineName(i);
+				closestCenterlineDistAlong = centerline.getLengthFeet();
+			}
+		}
+		return new Object[] {chanWithMinDist, minDist, closestCenterlineDistAlong};
+	}
 	
 } // class Network

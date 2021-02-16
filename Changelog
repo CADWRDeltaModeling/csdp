@@ -329,3 +329,7 @@ Fixed bug in landmark creation: null pointer exception when clearing landmarks a
 Version 3.0_20200505
 
 Fixed bug in move centerline point: when moving an endpoint would exclude a cross-section, an exception was being thrown. Now, a warning dialog will be displayed, and movement will not be attempted.
+
+Version 3.0_20210216
+
+Fixed Create DSM2 output locations file function. Was sometimes choosing the wrong channel when the landmark was near an endpoint (outside the centerline).

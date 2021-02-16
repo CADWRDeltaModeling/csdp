@@ -368,7 +368,7 @@ public class MultipleXsectGraph extends JDialog implements ActionListener {
 		_multiPlot = _factory.createMultiPlot();
 		_graph.addPlot(_multiPlot);
 		_multiPlot.add(_factory.createPlot());
-		_graph.setBackgroundColor(Color.lightGray);
+		_graph.setBackgroundColor(this.GRAPH_BACKGROUND_COLOR);
 		_multiPlot.setCurrentPlot(0);
 		TextLineAttr tla = new TextLineAttr();
 		tla._font = new Font("Times Roman", Font.PLAIN, 16);
@@ -614,6 +614,8 @@ public class MultipleXsectGraph extends JDialog implements ActionListener {
 		c._foregroundColor = _gui.getColor(i);
 		Symbol bathymetrySymbol = new Symbol(networkSymbolAttr);
 		networkCurve.setSymbol(bathymetrySymbol);
+		
+		networkCurve.setLineThickness(this.lineThickness);
 	}// setBathymetryCurveAttributes
 
 	/**
@@ -1297,4 +1299,16 @@ public class MultipleXsectGraph extends JDialog implements ActionListener {
 	private final int NUM_DISTANCE_BINS = 10;
 
 	private double _xsPropElevation;
+
+	/*
+	 * The background color for the graph. For reports, white background is required by accessibility guidelines
+	 */
+	private static final Color GRAPH_BACKGROUND_COLOR = Color.LIGHT_GRAY;
+//	private static final Color backgroundColor = Color.WHITE;
+	/*
+	 * Thickness of cross-section plot lines
+	 */
+	private static final float lineThickness = 4.0f;
+	
+
 }// class XsectGraph

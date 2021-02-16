@@ -67,6 +67,73 @@ import DWR.CSDP.dialog.FileSave;
 
 public class NetworkMenu {
 
+	/**
+	 * Export network file information:
+	 * Cross-section name
+	 * Cross-section origin x (origin is the point where the centerline and cross-section lines intersect)
+	 * Cross-section origin y
+	 * metadata
+	 * etc.
+	 * @author btom
+	 *
+	 */
+	public class NExportMetadataTable implements ActionListener {
+		private CsdpFrame csdpFrame;
+		public NExportMetadataTable(CsdpFrame csdpFrame) {
+			this.csdpFrame = csdpFrame;
+		}
+		
+		public void actionPerformed(ActionEvent arg0) {
+			boolean saved = false;
+			
+			String title = "Export Network to Metadata table";
+			String instructions = "<HTML><BODY>1. Specify a *.csv filename.<BR><BR>"
+					+ "</BODY></HTML>";
+			String[] names = new String[] {"csv filename"};
+			String[] defaultValues = new String[]{""};
+			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE};
+			boolean[] disableIfNull = new boolean[] {true};
+			int[] numDecimalPlaces = new int[] {0};
+			String[] extensions = new String[] {"csv"};
+			String[] tooltips = new String[] {"The full path to the .csv file to be created"};
+			boolean modal = true;
+			
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(this.csdpFrame, title, instructions, names, 
+					defaultValues, dataTypes, disableIfNull, numDecimalPlaces, 
+					extensions, tooltips, modal);
+			int response = dataEntryDialog.getResponse();
+			if(response==DataEntryDialog.OK) {
+				System.out.println("ok clicked");
+				Network net = csdpFrame.getNetwork();
+				String csvPath = dataEntryDialog.getDirectory(names[0])+File.separator+dataEntryDialog.getFilename(names[0]);
+				
+				boolean success = _app.nExportMetadataTable(net, csvPath);
+				
+				if(success) {
+					JOptionPane.showMessageDialog(csdpFrame, "Export metadata table to csv complete.", "Success", JOptionPane.OK_OPTION);
+				}else {
+					JOptionPane.showMessageDialog(csdpFrame, "Export metadata table to csv failed.", "Failure", JOptionPane.ERROR_MESSAGE);
+				}
+			}else {
+				System.out.println("export metadata table to csv canceled.");
+			}
+		}
+
+	}//class NExportMetadataTable
+
+	/**
+	 * User draws window to select channels to export 
+	 */
+	public class NExportChannelsInWindow implements ActionListener {
+		private CsdpFrame _csdpFrame;
+		public NExportChannelsInWindow(CsdpFrame csdpFrame) {
+			_csdpFrame = csdpFrame;		
+		}
+		public void actionPerformed(ActionEvent arg0) {
+			_csdpFrame.pressExportChannelsInWindowButton();
+		}
+	}
+
 	public NetworkMenu(App app) {
 		_app = app;
 		_nOpenFilter = new CsdpFileFilter(_openExtensions, _numOpenExtensions);
@@ -302,10 +369,10 @@ public class NetworkMenu {
 	} // NSaveAs
 
 	public class NExportToWKTFormat implements ActionListener {
-		private CsdpFrame gui;
+		private CsdpFrame csdpFrame;
 
-		public NExportToWKTFormat(CsdpFrame gui) {
-			this.gui = gui;
+		public NExportToWKTFormat(CsdpFrame csdpFrame) {
+			this.csdpFrame = csdpFrame;
 		}
 
 		public void actionPerformed(ActionEvent arg0) {
@@ -328,13 +395,13 @@ public class NetworkMenu {
 					"If selected, only save first and last points (for creating straight line gridmap)"};
 			boolean modal = true;
 			
-			DataEntryDialog dataEntryDialog = new DataEntryDialog(this.gui, title, instructions, names, 
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(this.csdpFrame, title, instructions, names, 
 					defaultValues, dataTypes, disableIfNull, numDecimalPlaces, 
 					extensions, tooltips, modal);
 			int response = dataEntryDialog.getResponse();
 			if(response==DataEntryDialog.OK) {
 				System.out.println("ok clicked");
-				Network net = gui.getNetwork();
+				Network net = csdpFrame.getNetwork();
 				String wktPath = dataEntryDialog.getDirectory(names[0])+File.separator+dataEntryDialog.getFilename(names[0]);
 				String createPolygonObjectsString = dataEntryDialog.getValue(names[1]);
 				boolean createPolygonObjects = true;
@@ -352,9 +419,9 @@ public class NetworkMenu {
 				}
 				boolean success = _app.nExportToWKT(net, wktPath, createPolygonObjects, saveFirstLastPointsOnly);
 				if(success) {
-					JOptionPane.showMessageDialog(gui, "Export to wkt complete.", "Success", JOptionPane.OK_OPTION);
+					JOptionPane.showMessageDialog(csdpFrame, "Export to wkt complete.", "Success", JOptionPane.OK_OPTION);
 				}else {
-					JOptionPane.showMessageDialog(gui, "Export to wkt failed.", "Failure", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(csdpFrame, "Export to wkt failed.", "Failure", JOptionPane.ERROR_MESSAGE);
 				}
 			}else {
 				System.out.println("export to wkt canceled.");
@@ -892,8 +959,8 @@ public class NetworkMenu {
 					replaceDispersionFactor = true;
 				}
 				
-				boolean calculatePreDsm2V8Files = Boolean.valueOf(dataEntryDialog.getValue(names[3]));
-				boolean createCrossSectionLandmarkFile = Boolean.valueOf(dataEntryDialog.getValue(names[4]));
+				boolean calculatePreDsm2V8Files = Boolean.valueOf(dataEntryDialog.getValue(names[4]));
+				boolean createCrossSectionLandmarkFile = Boolean.valueOf(dataEntryDialog.getValue(names[5]));
 				
 				_app.nCalculateDSM2V8Format(channelsDirectory, channelsFilename, calculateDirectory+
 						File.separator+"channel_std_delta_grid_from_CSDP_NAVD.inp", replaceMannings, 
