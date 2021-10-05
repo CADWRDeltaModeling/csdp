@@ -45,18 +45,22 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
+import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Vector;
 
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
+import org.omg.PortableInterceptor.SUCCESSFUL;
+
+import COM.objectspace.jgl.DividesInteger;
+import DWR.CSDP.Landmark.LandmarkPoint;
 import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.FileAndRadioDialog;
 import DWR.CSDP.dialog.FileIO;
 
 public class ToolsMenu {
-
-
 	public static final int ENTER_CENTERLINE_NAMES = 10;
 	public static final int READ_CENTERLINE_NAMES_FROM_FILE = 20;
 
@@ -72,6 +76,142 @@ public class ToolsMenu {
 		_irregXsectsFilter = new CsdpFileFilter(_dsmOpenExtensions, _dsmNumOpenExtensions);
 		_xsectsInpFilter = new CsdpFileFilter(_dsmOpenExtensions, _dsmNumOpenExtensions);
 	}
+
+	/**
+	 * Create a landmark file containing DCD/SMCD nodes.
+	 * The following inputs are required:
+	 *   1. A DSM2 node landmark file, which should be already loaded and displayed in CSDP.
+	 *   2. Two DCD/SMCD input files, containing DIV and DRAIN nodes.
+	 *   3. Landmark file containing nodes that are DCD nodes, but not DSM2 nodes.
+	 *   4. Output Landmark file path.
+	 * @author btom
+	 *
+	 */
+	public class TCreateDCDNodeLandmarkFile implements ActionListener {
+		private CsdpFrame csdpFrame;
+		public TCreateDCDNodeLandmarkFile(CsdpFrame csdpFrame) {
+			this.csdpFrame = csdpFrame;
+		}//constructor
+
+		public void actionPerformed(ActionEvent e) {
+			System.out.println("actionPerformed");
+			Landmark landmark = csdpFrame.getLandmark();
+			if(landmark != null) {
+				System.out.println("creating dialog");
+				String title = "Create DCD landmark file";
+				String instructions = "<HTML><BODY>"
+						+ "Using existing landmark file containing DSM2 nodes, and DCD DIV and DRAIN input files, create<BR> "
+						+ " a landmark file containing only DCD nodes.<BR>"
+						+ "If you wish to create a file containing nodes shared by DSM2 and DCD, then do NOT include a <BR>"
+						+ "DCD only landmark file."
+						+ "Include a DCD only landmark file only if you want to create a layer of all DCD nodes, including <BR>"
+						+ "the node(s) that is/are not shared with DSM2.<BR>"
+						+ "</BODY></HTML>";
+				final String[] names = new String[]{"DCD DIV file", "DCD DRAIN file","DCD Only landmark file","Output Landmark File"};
+
+				String[] defaultValues = new String[] {"","","",""};
+				int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.FILE_SPECIFICATION_TYPE, 
+						DataEntryDialog.FILE_SPECIFICATION_TYPE,DataEntryDialog.FILE_SPECIFICATION_TYPE};
+				boolean[] disableIfNull = new boolean [] {true, true, false, true};
+				String[] extensions = new String[] {"","","cdl","cdl"};
+				String[] tooltips = new String[] {"DCD Input file containing Diversion nodes", 
+						"DCD Input file containing Drain nodes", 
+						"CSDP landmark file containing nodes that are used by DCD but NOT DSM2. If making a DCD/DSM2 shared node file, do NOT include this.",
+				"Output CSDP landmark file"}; 
+				boolean modal = true;
+				DataEntryDialog dataEntryDialog = new DataEntryDialog(csdpFrame, title, instructions, names,
+						defaultValues, dataTypes, disableIfNull, extensions, tooltips, modal);
+
+				int response = dataEntryDialog.getResponse();
+				if(response==DataEntryDialog.OK) {
+					String dcdDivDirectory = dataEntryDialog.getDirectory(names[0]).toString();
+					String dcdDivFilename = dataEntryDialog.getFilename(names[0]);
+					String dcdDrainDirectory = dataEntryDialog.getDirectory(names[1]).toString();
+					String dcdDrainFilename = dataEntryDialog.getFilename(names[1]);
+					//optional
+					String dcdOnlyLandmarkDirectory = null;
+					String dcdOnlyLandmarkFilename = null;
+					if(dataEntryDialog.getValue(names[2]) != null && dataEntryDialog.getValue(names[2]).length()>0) {
+						dcdOnlyLandmarkDirectory = dataEntryDialog.getDirectory(names[2]).toString();
+						dcdOnlyLandmarkFilename = dataEntryDialog.getFilename(names[2]);
+					}
+					String outputLandmarkDirectory = dataEntryDialog.getDirectory(names[3]).toString();
+					String outputLandmarkFilename = dataEntryDialog.getFilename(names[3]);
+
+					AsciiFileReader dcdOnlyFileReader = null;
+					if(dcdOnlyLandmarkDirectory!=null && dcdOnlyLandmarkDirectory.length()>0 &&
+							dcdOnlyLandmarkFilename!=null && dcdOnlyLandmarkFilename.length()>0) {
+						dcdOnlyFileReader = new AsciiFileReader(dcdOnlyLandmarkDirectory+File.separator+dcdOnlyLandmarkFilename);
+					}
+					HashSet<String> allDCDNodes = new HashSet<String>();
+					boolean divSuccess = getDCDNodes(dcdDivDirectory, dcdDivFilename, allDCDNodes);
+					boolean drainSuccess = getDCDNodes(dcdDrainDirectory, dcdDrainFilename, allDCDNodes);
+					boolean writeSuccess = false;
+					//get coordinates from landmark objects, and add to output Landmark object
+					try {
+//						now read landmark file and use them to get coordinates for node numbers, then create new landmark file.
+						Landmark outputLandmark = new Landmark(csdpFrame);
+						if(dcdOnlyFileReader!=null) {
+							LandmarkInput linput = LandmarkInput.getInstance(csdpFrame, dcdOnlyLandmarkDirectory, dcdOnlyLandmarkFilename);
+							Landmark dcdOnlyLandmark = linput.readData();		
+							Enumeration<String> landmarkEnumeration = dcdOnlyLandmark.getLandmarkNames();
+							while(landmarkEnumeration.hasMoreElements()) {
+								String pointNameString = landmarkEnumeration.nextElement();
+								double easting = dcdOnlyLandmark.getXMeters(pointNameString);
+								double northing = dcdOnlyLandmark.getYMeters(pointNameString);
+								outputLandmark.addLandmarkMeters(pointNameString, easting, northing);
+							}
+						}
+						for(String pointNameString: allDCDNodes) {
+							double easting = landmark.getXMeters(pointNameString);
+							double northing = landmark.getYMeters(pointNameString);
+							outputLandmark.addLandmarkMeters(pointNameString, easting, northing);
+						}
+						LandmarkOutput landmarkOutput = LandmarkOutput.getInstance(outputLandmarkDirectory, outputLandmarkFilename, "cdl", outputLandmark);
+						writeSuccess = landmarkOutput.writeData();
+						
+
+					}catch(Exception e3) {
+						System.out.println("error in ToolsMenu.TCreateDCDNodeLandmarkFile.actionPerformed");
+					}finally {
+						if(divSuccess && drainSuccess && writeSuccess) {
+							JOptionPane.showMessageDialog(_gui, "Landmark file written", "Success", JOptionPane.OK_OPTION);
+						}else {
+							System.out.println("divSuccess, drainSuccess, writeSuccess="+divSuccess+","+drainSuccess+","+writeSuccess);
+							JOptionPane.showMessageDialog(_gui, "An error occurred", "Error", JOptionPane.OK_OPTION);
+						}
+					}
+				}//if response==OK
+			}//if landmark!=null
+		}//actionPerformed
+
+		/*
+		 * Given directory and filename of DCD input file, read node numbers and copy to HashSet 
+		 */
+		private boolean getDCDNodes(String directory, String filename, HashSet<String> results) {
+			AsciiFileReader fileReader = new AsciiFileReader(directory+File.separator+filename);
+			boolean success = true;
+			int i=0;
+			while(true){
+				String line = fileReader.getNextLine();
+				if(line==null) break;
+				String[] parts = line.trim().split("\\t+|\\s+");
+				if(parts.length==3) {
+					try {
+						Integer.parseInt(parts[1]);
+						results.add(parts[1]);
+					}catch(NumberFormatException e2) {
+						success=false;
+						System.out.println("line, parts[1]="+line+","+parts[1]);
+						JOptionPane.showMessageDialog(_gui, "Error in ToolsMenu.TCreateDCDNodeLandmarkFile.getDCDNodes: parsing error", "Error", JOptionPane.OK_OPTION);
+					}//try-catch
+				}//if
+			}//while
+			fileReader.close();
+			return success;
+		}//getDCDNodes
+		
+	}//TCreateDCDNodeLandmarkFile
 
 	/**
 	 * Writes coordinates of centroids of all centerlines to a file. Used externally for calculating 
@@ -138,7 +278,7 @@ public class ToolsMenu {
 		}//actionPerformed
 	}//inner class TManningsDispersionSpatialDistribution
 
-	
+
 	/**
 	 * User specifies one or two network files. First will be currently loaded network file by default, but can be changed
 	 * Looping through the centerlines in file #1, display a series of windows. 
@@ -154,7 +294,7 @@ public class ToolsMenu {
 	public class TCrossSectionSlideshow implements ActionListener {
 		public void actionPerformed(ActionEvent arg0) {
 			Network network = _gui.getNetwork();
-//			Centerline centerline = network.getSelectedCenterline();
+			//			Centerline centerline = network.getSelectedCenterline();
 			String title = "Cross-Section slideshow";
 			String instructions = "<HTML><BODY>"
 					+ "Display cross-section(s) for one or two network files, one at a time.<BR>"
@@ -166,7 +306,7 @@ public class ToolsMenu {
 
 			final String[] names = new String[]{"Left Network File","Right Network File", "Left Bathymetry File",
 					"Folder for saving images", "Include Xsect Conveyance Characteristics", "Include Xsect Metadata"};
-//					"Automatically create images for all cross-sections"};
+			//					"Automatically create images for all cross-sections"};
 			String[] defaultValues = new String[] {CsdpFunctions.getNetworkDirectory()+File.separator+
 					CsdpFunctions.getNetworkFilename(), "", "", "", "false", "true"};
 			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.FILE_SPECIFICATION_TYPE,
@@ -179,8 +319,8 @@ public class ToolsMenu {
 					"First Bathymetry file. Will be used for left hand plot", 
 					"A folder for storing saved slideshow images",
 					"If true, include conveyance characteristics in slideshow frames",
-					"If true, include Metadata in slideshow frames"};
-//					"If true, disable interactive mode, and save an image of each frame in the slideshow to disk"}; 
+			"If true, include Metadata in slideshow frames"};
+			//					"If true, disable interactive mode, and save an image of each frame in the slideshow to disk"}; 
 			boolean modal = true;
 
 			DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names,
@@ -197,20 +337,20 @@ public class ToolsMenu {
 				if(bathymetryFilename0.trim().length()<=0) {
 					bathymetryFilename0 = null;
 				}
-				
+
 				File directorySaveImage = dataEntryDialog.getDirectory(names[3]);
 				String directorySaveImageString = null;
 				if(directorySaveImage != null) directorySaveImageString = directorySaveImage.toString().trim();
 				String includeXsectConveyanceCharacteristicsString = dataEntryDialog.getValue(names[4]);
 				String includeMetadataString = dataEntryDialog.getValue(names[5]);
-//				String autoSaveString = dataEntryDialog.getValue(names[6]);
+				//				String autoSaveString = dataEntryDialog.getValue(names[6]);
 				boolean includeXsectConveyanceCharacteristics = Boolean.parseBoolean(includeXsectConveyanceCharacteristicsString);
 				boolean includeMetadata = Boolean.parseBoolean(includeMetadataString);
-//				boolean autoSave = Boolean.parseBoolean(autoSaveString);
+				//				boolean autoSave = Boolean.parseBoolean(autoSaveString);
 				//auto save won't work until I can find a way to make a dialog close itself. Currently, the saving works fine but 
 				//the automatic window closing doesn't.
 				boolean autoSave = false;
-//				boolean autoSave = Boolean.parseBoolean(dataEntryDialog.getValue(names[5]));
+				//				boolean autoSave = Boolean.parseBoolean(dataEntryDialog.getValue(names[5]));
 				boolean reReadFile0 = false;
 				if((directory0.trim()+File.separator+filename0).equalsIgnoreCase(defaultValues[0])){
 					reReadFile0 = false;
@@ -266,15 +406,16 @@ public class ToolsMenu {
 	 * @author btom
 	 *
 	 */
-	public class TCreateStraightlineGridmapConnectingNodes implements ActionListener {
-		
+	public class TCreateStraightlineChanForGridmap implements ActionListener {
+
 		public void actionPerformed(ActionEvent arg0) {
 			Network network = _gui.getNetwork();
 			Landmark landmark = _gui.getLandmark();
 			_DSMChannels = _app.getDSMChannels();
 
-			
-			String title = "Create WKT file containing straight lines connecting nodes for importing into GIS";
+
+			String title = "Create WKT file containing straight line channels which are connected to nodes. This is used for"
+					+ " for importing into GIS, to create a layer for the gridmap";
 			String instructions = "<HTML><BODY>1. Specify a *.wkt filename.<BR></BODY></HTML>";
 			String[] names = new String[] {"WKT filename"};
 			String[] defaultValues = new String[]{""};
@@ -284,7 +425,7 @@ public class ToolsMenu {
 			String[] extensions = new String[] {"wkt"};
 			String[] tooltips = new String[] {"The full path to the .wkt file to be created"};
 			boolean modal = true;
-			
+
 			DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names, 
 					defaultValues, dataTypes, disableIfNull, numDecimalPlaces, 
 					extensions, tooltips, modal);
@@ -296,7 +437,7 @@ public class ToolsMenu {
 		}
 	}//inner class TCreateStraightlineGridmapConnectingNodes
 
-	
+
 	public class TExtendCenterlinesToNodes implements ActionListener {
 
 		public void actionPerformed(ActionEvent arg0) {
@@ -332,7 +473,7 @@ public class ToolsMenu {
 		}//actionPerformed
 
 	}//class TExtendCenterlinesToNodes
-	
+
 	/**
 	 * Given 3 centerlines:
 	 * 1. The channel centerline

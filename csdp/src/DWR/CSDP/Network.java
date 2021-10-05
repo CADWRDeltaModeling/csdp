@@ -1212,8 +1212,22 @@ public class Network {
 		double closestCenterlineDistAlong = -Double.MAX_VALUE;
 		for(int i=0; i<getNumCenterlines(); i++) {
 			Centerline centerline = getCenterline(getCenterlineName(i));
+
+			//new approach: find closest 
+//			for(int j=0; j<centerline.getNumCenterlinePoints(); j++) {
+//				CenterlinePoint centerlinePoint = centerline.getCenterlinePoint(j);
+//				double pointDist = CsdpFunctions.pointDist(landmarkX,  landmarkY, centerlinePoint._x, centerlinePoint._y);
+//				if(pointDist<minDist) {
+//					minDist = pointDist;
+//					chanWithMinDist = getCenterlineName(i);
+//					closestCenterlineDistAlong = centerline.getDistAlongToPoint(j);
+//				}
+//			}
+			
+			
 			CenterlinePoint upstreamPoint = centerline.getCenterlinePoint(0);
 			CenterlinePoint downstreamPoint = centerline.getCenterlinePoint(centerline.getNumCenterlinePoints()-1);
+			
 			double upstreamDist = CsdpFunctions.pointDist(landmarkX, landmarkY, upstreamPoint._x, upstreamPoint._y);
 			double downstreamDist = CsdpFunctions.pointDist(landmarkX, landmarkY, downstreamPoint._x, downstreamPoint._y);
 			if(upstreamDist < minDist) {

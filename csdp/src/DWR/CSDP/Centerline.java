@@ -1625,27 +1625,38 @@ public class Centerline {
 		CenterlinePoint endPoint = getCenterlinePoint(centerlineEndpointIndex);
 		CenterlinePoint adjacentPoint = null;
 		double xsectDistFromEndpoint = -Double.MAX_VALUE;
-		if(centerlineEndpointIndex==0) {
-			adjacentPoint = getCenterlinePoint(1);
-			//if first xsect dist is less than the change in line segment length, 
-			//there is an xs on on the affected line segment: return false
-			xsectDistFromEndpoint = getXsect(0).getDistAlongCenterlineFeet();
-		}else {
-			adjacentPoint = getCenterlinePoint(getNumCenterlinePoints()-2);
-			//if centerline length - last xsect dist is less than change in line segment length, 
-			//there is an xs on the affected line segment; return false
-			xsectDistFromEndpoint = getLengthFeet() - getXsect(getNumXsects()-1).getDistAlongCenterlineFeet();
-		}
-		double initialLineSegmentLength = CsdpFunctions.pointDist(endPoint.getXFeet(), endPoint.getYFeet(), 
-				adjacentPoint.getXFeet(), adjacentPoint.getYFeet());
-		double finalLineSegmentLength = CsdpFunctions.pointDist(xDataCoordFinal, yDataCoordFinal, 
-				adjacentPoint.getXFeet(), adjacentPoint.getYFeet());
-		double changeInlineSegmentLength = finalLineSegmentLength-initialLineSegmentLength;
-		if(changeInlineSegmentLength < 0 && xsectDistFromEndpoint < Math.abs(changeInlineSegmentLength)) {
-			return false;
-		}else {
+
+		if(getNumXsects()==0) {
 			return true;
+		}else {
+			if(centerlineEndpointIndex==0) {
+				adjacentPoint = getCenterlinePoint(1);
+				//if first xsect dist is less than the change in line segment length, 
+				//there is an xs on on the affected line segment: return false
+				xsectDistFromEndpoint = getXsect(0).getDistAlongCenterlineFeet();
+			}else {
+				adjacentPoint = getCenterlinePoint(getNumCenterlinePoints()-2);
+				//if centerline length - last xsect dist is less than change in line segment length, 
+				//there is an xs on the affected line segment; return false
+				xsectDistFromEndpoint = getLengthFeet() - getXsect(getNumXsects()-1).getDistAlongCenterlineFeet();
+			}
+			double initialLineSegmentLength = CsdpFunctions.pointDist(endPoint.getXFeet(), endPoint.getYFeet(), 
+					adjacentPoint.getXFeet(), adjacentPoint.getYFeet());
+			double finalLineSegmentLength = CsdpFunctions.pointDist(xDataCoordFinal, yDataCoordFinal, 
+					adjacentPoint.getXFeet(), adjacentPoint.getYFeet());
+			double changeInlineSegmentLength = finalLineSegmentLength-initialLineSegmentLength;
+			if(changeInlineSegmentLength < 0 && xsectDistFromEndpoint < Math.abs(changeInlineSegmentLength)) {
+				return false;
+			}else {
+				return true;
+			}
 		}
 	}
+
+//	public double getDistAlongToPoint(int centerlinePointIndex) {
+//		for(int i=0; i<centerlinePointIndex; i++) {
+//			CenterlinePoint upstreamPoint = 
+//		}
+//	}
 
 }// class Centerline

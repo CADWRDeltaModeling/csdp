@@ -333,3 +333,9 @@ Fixed bug in move centerline point: when moving an endpoint would exclude a cros
 Version 3.0_20210216
 
 Fixed Create DSM2 output locations file function. Was sometimes choosing the wrong channel when the landmark was near an endpoint (outside the centerline).
+
+Version 3.0_20211005
+
+Added Export Cross-section locations to WKT format. Fixed a problem with the move centerline endpoint function.  Fixed a problem with the 
+DSMChannelsAsciiInput class: it required an XSECT input section, but no longer. Added code to LandmarkAsciiInput to display more useful 
+information when error encountered while reading file metadata. Improved Network.findClosestCenterlineEndpointToLandmark function. 

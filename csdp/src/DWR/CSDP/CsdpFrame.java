@@ -80,13 +80,10 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 
-import DWR.CSDP.CenterlineMenu.ReverseCenterline;
-import DWR.CSDP.NetworkMenu.NExportChannelsInWindow;
-import DWR.CSDP.NetworkMenu.NExportMetadataTable;
-import DWR.CSDP.ToolsMenu.TCreateStraightlineGridmapConnectingNodes;
-import DWR.CSDP.ToolsMenu.TCrossSectionSlideshow;
-import DWR.CSDP.ToolsMenu.TExtendCenterlinesToNodes;
-import DWR.CSDP.ToolsMenu.TManningsDispersionSpatialDistribution;
+import DWR.CSDP.NetworkMenu.NClearChannelsInp;
+import DWR.CSDP.NetworkMenu.NCreateNetworkAllDSM2Chan;
+import DWR.CSDP.NetworkMenu.NXSCheckReport;
+import DWR.CSDP.ToolsMenu.TCreateDCDNodeLandmarkFile;
 import DWR.CSDP.dialog.DataEntryDialog;
 
 /**
@@ -228,12 +225,12 @@ public class CsdpFrame extends JFrame {
 			oUseToeDrainRestriction, oEchoToeDrainInput;
 	private JMenu tOpenWaterOptionsMenu, nExport, nExportOptions;
 	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc, tCreateDSM2ChanPolygons, tClosePolygonCenterlines,
-		tRemoveAllCrossSections, tCreateDSM2OutputLocations, tCrossSectionSlideshow, tManningsDispersionSpatialDistribution, tExtendCenterlinesToNodes,
-		tCreateStraightlineGridmapConnectingNodes;
+		tRemoveAllCrossSections, tCreateDSM2OutputLocations, tCrossSectionSlideshow, tManningsDispersionSpatialDistribution, 
+		tExtendCenterlinesToNodes, tCreateStraightlineChanForGridmap, tCreateDCDNodeLandmarkFile;
 	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
-	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nList, nSummary, nClearNetwork, 
+	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nExportXsectMidpointCoordToWKT, nList, nSummary, nClearNetwork, nClearChannelsInp, nCreateAllChannelNetwork, 
 		nDisplayReachSummary, nDisplay3dReachView, nSelectPointsFor3dReachView, nCalculate, nExportToSEFormat, nExportTo3DFormat,
-		nExportChannelsInWindow, nExportMetadataTable, nAWDSummaryReport, nXSCheckReport, nDConveyanceReport, nNetworkSummaryReport, nNetworkColorLegend;
+		nExportChannelsInWindow, nExportXsectMetadataTable, nAWDSummaryReport, nXSCheckReport, nDConveyanceReport, nNetworkSummaryReport, nNetworkColorLegend;
 	private JMenuItem lSave, lSaveAs, lExportToWKT, lAdd, lMove, lEdit, lDelete, lHelp;
 
 	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;
@@ -1089,6 +1086,8 @@ public class CsdpFrame extends JFrame {
 
 		cfNetwork.add(nNetworkColorLegend = new JMenuItem("Show Network Color Legend"));
 		cfNetwork.add(nClearNetwork = new JMenuItem("Clear Network"));
+		cfNetwork.add(nClearChannelsInp = new JMenuItem("Clear channels.inp"));
+		cfNetwork.add(nCreateAllChannelNetwork = new JMenuItem("Create centerlines for all DSM2 chan"));
 		cfNetwork.addSeparator();
 		// cfNetwork.add(nList = new JMenuItem("List"));
 		// cfNetwork.add(nSummary = new JMenuItem("Summary"));
@@ -1108,7 +1107,8 @@ public class CsdpFrame extends JFrame {
 		nExport.add(nExportTo3DFormat = new JMenuItem("Export to 3D format"));
 		nExport.add(nExportToWKT = new JMenuItem("Export to WKT format for GIS"));
 		nExport.add(nExportChannelsInWindow = new JMenuItem("Draw window to select channels to export"));
-		nExport.add(nExportMetadataTable = new JMenuItem("Export channel metadata"));
+		nExport.add(nExportXsectMetadataTable = new JMenuItem("Export Cross-Section Metadata"));
+		nExport.add(nExportXsectMidpointCoordToWKT = new JMenuItem("Export Cross-Section Locations to WKT for GIS"));
 		nExport.add(nExportOptions = new JMenu("Network export options"));
 		
 		JMenu reportsMenu = new JMenu("Reports");
@@ -1130,12 +1130,16 @@ public class CsdpFrame extends JFrame {
 		_nSaveListener = networkMenu.new NSave(this);
 		_nSaveAsListener = networkMenu.new NSaveAs(this);
 		ActionListener nExportToWKTListener = networkMenu.new NExportToWKTFormat(this);
+		ActionListener nExportXsectMidpointCoordToWKTListener = networkMenu.new NXsectMidpointCoordToWKTFormat(this);
 		_nSaveSpeficiedChannelsAsListener = networkMenu.new NSaveSpecifiedChannelsAs(this);
 		ActionListener nClearNetworkListener = networkMenu.new NClearNetwork(this);
+		ActionListener nClearChannelsInpListener = networkMenu.new NClearChannelsInp(_app);
+		ActionListener nCreateNetworkAllDSM2ChanListener = networkMenu.new NCreateNetworkAllDSM2Chan(_app, this);
+		
 		ActionListener nExportToSEFormatListener = networkMenu.new NExportToSEFormat(this);
 		ActionListener nExportTo3DFormatListener = networkMenu.new NExportTo3DFormat(this);
 		ActionListener nExportChannelsInWindowListener = networkMenu.new NExportChannelsInWindow(this);
-		ActionListener nExportMetadataTableListener = networkMenu.new NExportMetadataTable(this);
+		ActionListener nExportXsectMetadataTableListener = networkMenu.new NExportXsectMetadataTable(this);
 		EventListener noChannelLengthsOnlyListener = networkMenu.new NChannelLengthsOnly();
 		//// ActionListener nListListener = networkMenu.new NList();
 		//// ActionListener nSummaryListener = networkMenu.new NSummary();
@@ -1148,18 +1152,21 @@ public class CsdpFrame extends JFrame {
 //		ActionListener nAWDSummaryReportListener = networkMenu.new NAWDSummaryReport(this);
 		ActionListener nXSCheckReportListener = networkMenu.new NXSCheckReport(this);
 //		ActionListener nDConveyanceReportListener = networkMenu.new NDConveyanceReport(this);
-
+		
 		nOpen.addActionListener(nOpenListener);
 		nSave.addActionListener(_nSaveListener);
 		nSaveAs.addActionListener(_nSaveAsListener);
 		nSaveSpecifiedChannelsAs.addActionListener(_nSaveSpeficiedChannelsAsListener);
 		nExportToWKT.addActionListener(nExportToWKTListener);
+		nExportXsectMidpointCoordToWKT.addActionListener(nExportXsectMidpointCoordToWKTListener);
 		nClearNetwork.addActionListener(nClearNetworkListener);
+		nClearChannelsInp.addActionListener(nClearChannelsInpListener);
+		nCreateAllChannelNetwork.addActionListener(nCreateNetworkAllDSM2ChanListener);
 		nNetworkColorLegend.addActionListener(nShowNetworkColorLegendListener);
 		nExportToSEFormat.addActionListener(nExportToSEFormatListener);
 		nExportTo3DFormat.addActionListener(nExportTo3DFormatListener);
 		nExportChannelsInWindow.addActionListener(nExportChannelsInWindowListener);
-		nExportMetadataTable.addActionListener(nExportMetadataTableListener);
+		nExportXsectMetadataTable.addActionListener(nExportXsectMetadataTableListener);
 		noChannelLengthsOnly.addItemListener((ItemListener) noChannelLengthsOnlyListener);
 		//// nList.addActionListener(nListListener);
 		//// nSummary.addActionListener(nSummaryListener);
@@ -1454,9 +1461,11 @@ public class CsdpFrame extends JFrame {
 		cfTools.add(tCrossSectionSlideshow = new JMenuItem("Cross-Section Slideshow"));
 		cfTools.add(tManningsDispersionSpatialDistribution = new JMenuItem("Manning's & Dispersion Spatial Distribution"));
 		cfTools.add(tExtendCenterlinesToNodes = new JMenuItem("Extend Centerlines to Nodes"));
-		cfTools.add(tCreateStraightlineGridmapConnectingNodes = new JMenuItem("Create Straightline Gridmap Connecting Nodes"));
+		cfTools.add(tCreateStraightlineChanForGridmap = new JMenuItem("Create Network Chan For Gridmap"));
+		cfTools.add(tCreateDCDNodeLandmarkFile = new JMenuItem("Create DCD Node Landmark File"));
 		tExtendCenterlinesToNodes.setToolTipText("Extend centerlines to nodes. One possibility for creating GIS gridmap.");
-		tCreateStraightlineGridmapConnectingNodes.setToolTipText("Create a WKT file containing lines connecting nodes in landmark file");
+		tCreateStraightlineChanForGridmap.setToolTipText("Create a WKT file containing lines connecting nodes in landmark file");
+		tCreateDCDNodeLandmarkFile.setToolTipText("Create a landmark file containing nodes used by DCD model");
 		if (_addToolsMenu)
 			menubar.add(cfTools);
 		cfTools.add(cMovePolygonCenterlinePointsToLeveeCenterline = 
@@ -1514,7 +1523,8 @@ public class CsdpFrame extends JFrame {
 		ActionListener tCrossSectionSlideshowListener = _toolsMenu.new TCrossSectionSlideshow();
 		ActionListener tManningsDispersionSpatialDistributionListener = _toolsMenu.new TManningsDispersionSpatialDistribution();
 		ActionListener tExtendCenterlinesToNodesListener = _toolsMenu.new TExtendCenterlinesToNodes();
-		ActionListener tCreateStraightlineGridmapConnectingNodesListener = _toolsMenu.new TCreateStraightlineGridmapConnectingNodes();
+		ActionListener tCreateStraightlineChanForGridmapListener = _toolsMenu.new TCreateStraightlineChanForGridmap();
+		ActionListener tCreateDCDNodeLandmarkFileListener = _toolsMenu.new TCreateDCDNodeLandmarkFile(this);
 		// removed temporarily(?) options now appear in dialog
 		// EventListener oEchoTimeSeriesInputListener = _toolsMenu.new
 		// TEchoTimeSeriesInput();
@@ -1550,7 +1560,9 @@ public class CsdpFrame extends JFrame {
 		tCrossSectionSlideshow.addActionListener(tCrossSectionSlideshowListener);
 		tManningsDispersionSpatialDistribution.addActionListener(tManningsDispersionSpatialDistributionListener);
 		tExtendCenterlinesToNodes.addActionListener(tExtendCenterlinesToNodesListener);
-		tCreateStraightlineGridmapConnectingNodes.addActionListener(tCreateStraightlineGridmapConnectingNodesListener);
+		tCreateStraightlineChanForGridmap.addActionListener(tCreateStraightlineChanForGridmapListener);
+		tCreateDCDNodeLandmarkFile.addActionListener(tCreateDCDNodeLandmarkFileListener);
+		
 		// tCompareNetwork.setEnabled(_addCompareNetworkOption);
 
 		/*
@@ -1902,10 +1914,11 @@ public class CsdpFrame extends JFrame {
 		nSaveAs.setEnabled(false);
 		nSaveSpecifiedChannelsAs.setEnabled(false);
 		nExportToWKT.setEnabled(false);
+		nExportXsectMidpointCoordToWKT.setEnabled(false);
 		nExportToSEFormat.setEnabled(false);
 		nExportTo3DFormat.setEnabled(false);
 		nExportChannelsInWindow.setEnabled(false);
-		nExportMetadataTable.setEnabled(false);
+		nExportXsectMetadataTable.setEnabled(false);
 		// nList.setEnabled(false);nSummary.setEnabled(false);
 		nClearNetwork.setEnabled(false);
 		zZoomToCenterline.setEnabled(false);
@@ -1941,7 +1954,8 @@ public class CsdpFrame extends JFrame {
 		tCrossSectionSlideshow.setEnabled(false);
 		tManningsDispersionSpatialDistribution.setEnabled(false);
 		tExtendCenterlinesToNodes.setEnabled(false);
-		tCreateStraightlineGridmapConnectingNodes.setEnabled(false);
+		tCreateStraightlineChanForGridmap.setEnabled(false);
+		tCreateDCDNodeLandmarkFile.setEnabled(false);
 		// xMove.setEnabled(false);
 		// xCreate.setEnabled(false);
 		xView.setEnabled(false);
@@ -2044,6 +2058,7 @@ public class CsdpFrame extends JFrame {
 		nSave.setEnabled(true);
 		nSaveAs.setEnabled(true);
 		nExportToWKT.setEnabled(true);
+		nExportXsectMidpointCoordToWKT.setEnabled(true);
 		nSaveSpecifiedChannelsAs.setEnabled(true);
 		nClearNetwork.setEnabled(true);
 		zZoomToCenterline.setEnabled(true);
@@ -2052,7 +2067,7 @@ public class CsdpFrame extends JFrame {
 		nExportToSEFormat.setEnabled(true);
 		nExportTo3DFormat.setEnabled(true);
 		nExportChannelsInWindow.setEnabled(true);
-		nExportMetadataTable.setEnabled(true);
+		nExportXsectMetadataTable.setEnabled(true);
 		nDisplayReachSummary.setEnabled(true);
 		nDisplay3dReachView.setEnabled(true);
 		_selectPointsFor3dViewButton.setEnabled(true);
@@ -2067,7 +2082,7 @@ public class CsdpFrame extends JFrame {
 		if(_landmark!=null) {
 			tCreateDSM2OutputLocations.setEnabled(true);
 			tExtendCenterlinesToNodes.setEnabled(true);
-			tCreateStraightlineGridmapConnectingNodes.setEnabled(true);
+			tCreateStraightlineChanForGridmap.setEnabled(true);
 		}
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 		tManningsDispersionSpatialDistribution.setEnabled(true);
@@ -2101,8 +2116,9 @@ public class CsdpFrame extends JFrame {
 		if(_net!=null) {
 			tCreateDSM2OutputLocations.setEnabled(true);
 			tExtendCenterlinesToNodes.setEnabled(true);
-			tCreateStraightlineGridmapConnectingNodes.setEnabled(true);
+			tCreateStraightlineChanForGridmap.setEnabled(true);
 		}
+		tCreateDCDNodeLandmarkFile.setEnabled(true);
 		tCalcRect.setEnabled(true);
 	}// enableAfterLandmark
 
@@ -2114,6 +2130,7 @@ public class CsdpFrame extends JFrame {
 		nSave.setEnabled(false);
 		nSaveAs.setEnabled(false);
 		nExportToWKT.setEnabled(false);
+		nExportXsectMidpointCoordToWKT.setEnabled(false);
 		nSaveSpecifiedChannelsAs.setEnabled(false);
 		nClearNetwork.setEnabled(false);
 		zZoomToCenterline.setEnabled(false);
@@ -2122,7 +2139,7 @@ public class CsdpFrame extends JFrame {
 		nExportToSEFormat.setEnabled(false);
 		nExportTo3DFormat.setEnabled(false);
 		nExportChannelsInWindow.setEnabled(false);
-		nExportMetadataTable.setEnabled(false);
+		nExportXsectMetadataTable.setEnabled(false);
 		nCalculate.setEnabled(false);
 		nDisplayReachSummary.setEnabled(false);
 		nDisplay3dReachView.setEnabled(false);
@@ -2141,8 +2158,8 @@ public class CsdpFrame extends JFrame {
 		nNetworkSummaryReport.setEnabled(false);
 		tManningsDispersionSpatialDistribution.setEnabled(false);
 		tExtendCenterlinesToNodes.setEnabled(false);
-		tCreateStraightlineGridmapConnectingNodes.setEnabled(false);
-	}
+		tCreateStraightlineChanForGridmap.setEnabled(false);
+	}//disableWhenNetworkCleared
 
 	/**
 	 * Enable buttons and menu items which should be enabled when a network is
@@ -2152,12 +2169,13 @@ public class CsdpFrame extends JFrame {
 		nSaveAs.setEnabled(true);
 		nSaveSpecifiedChannelsAs.setEnabled(true);
 		nExportToWKT.setEnabled(true);
+		nExportXsectMidpointCoordToWKT.setEnabled(true);
 		nClearNetwork.setEnabled(true);
 		zZoomToCenterline.setEnabled(true);
 		nExportToSEFormat.setEnabled(true);
 		nExportTo3DFormat.setEnabled(true);
 		nExportChannelsInWindow.setEnabled(true);
-		nExportMetadataTable.setEnabled(true);
+		nExportXsectMetadataTable.setEnabled(true);
 		nCalculate.setEnabled(true);
 		nDisplayReachSummary.setEnabled(true);
 		nDisplay3dReachView.setEnabled(true);
@@ -2171,7 +2189,7 @@ public class CsdpFrame extends JFrame {
 		tRemoveAllCrossSections.setEnabled(true);
 		if(_landmark!=null) {
 			tCreateDSM2OutputLocations.setEnabled(true);
-			tCreateStraightlineGridmapConnectingNodes.setEnabled(true);
+			tCreateStraightlineChanForGridmap.setEnabled(true);
 		}
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 //		nAWDSummaryReport.setEnabled(true);
@@ -2194,7 +2212,8 @@ public class CsdpFrame extends JFrame {
 		cLandmarks.setEnabled(false);
 		tCreateDSM2OutputLocations.setEnabled(false);
 		tExtendCenterlinesToNodes.setEnabled(false);
-		tCreateStraightlineGridmapConnectingNodes.setEnabled(false);
+		tCreateStraightlineChanForGridmap.setEnabled(false);
+		tCreateDCDNodeLandmarkFile.setEnabled(false);
 	}
 
 	/**

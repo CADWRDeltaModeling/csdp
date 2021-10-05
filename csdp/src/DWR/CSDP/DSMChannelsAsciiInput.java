@@ -106,23 +106,29 @@ public class DSMChannelsAsciiInput extends DSMChannelsInput {
 			//now read the "XSECTS" section
 			readingSection = XSECT_SECTION;
 			done = false;
+			//if no XSECT section don't read it (will get to null line, which will be end of file.)
 			while(line==null || !(line.toLowerCase().contains("chan") && line.toLowerCase().contains("dist") &&
 					line.toLowerCase().contains("elev"))) {
 				line = _asciiIn.readLine();
+				if (line==null){break;}
 			}
-			parseXsectHeaders(line);
-			for(int i=0; done==false; i++) {
-				line=_asciiIn.readLine();
-				done = parseDSMChannelsData(readingSection, i, line);
-				if (_firstToken.equals("#")) {
-					if (DEBUG)
-						System.out.println("comment line read");
-				} else {
-					storeData(XSECT_SECTION, i);
-				}
-			}	
-			// line should now be header line (CHAN_NO, DIST ELEV ...)
-			parseChanHeaders(line);
+			if(line!=null) {
+				parseXsectHeaders(line);
+				for(int i=0; done==false; i++) {
+					line=_asciiIn.readLine();
+					done = parseDSMChannelsData(readingSection, i, line);
+					if (_firstToken.equals("#")) {
+						if (DEBUG)
+							System.out.println("comment line read");
+					} else {
+						storeData(XSECT_SECTION, i);
+					}
+				}	
+				// line should now be header line (CHAN_NO, DIST ELEV ...)
+				parseChanHeaders(line);
+			}else {
+				done = true;
+			}
 		} catch (IOException e) {
 			System.out.println("Error ocurred while reading file " + _directory + _filename + ".prn:" + e.getMessage());
 		} finally {

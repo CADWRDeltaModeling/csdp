@@ -96,15 +96,17 @@ public class LandmarkAsciiInput extends LandmarkInput {
 			} else {
 				fileHasMetadata = true;
 				System.out.println("parse landmark metadata");
+				String metadataLinesRead = "";
 				for (int i = 0; i <= CsdpFunctions.getNumMetadataLines() - 1; i++) {
 					// first line already read
 					if (i > 0)
 						line = _asciiIn.readLine();
+						metadataLinesRead+=line;
 					if (line.indexOf(";") >= 0) {
 						parseMetadata(line, landmarkMetadata);
 					} else {
 						JOptionPane.showMessageDialog(_gui, "incomplete landmark metadata! there should be " + CsdpFunctions.getNumMetadataLines()
-						+ " lines.  " + "The following line was expected to be metadata line:" + line, 
+						+ " lines.\n" + "The following line was expected to be metadata line:" + line+".\nMetadata lines read: "+metadataLinesRead, 
 								"No Metadata Found", JOptionPane.ERROR_MESSAGE);
 					} // if it's a metadata line (should be)
 				} // read all metadata lines

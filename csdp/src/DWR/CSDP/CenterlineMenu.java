@@ -59,7 +59,7 @@ import DWR.CSDP.dialog.CenterlineOrReachSummaryWindow;
  * @version
  */
 public class CenterlineMenu {
-
+	
 	/**
 	 * Remove all cross-sections in centerline
 	 * @author btom
@@ -230,212 +230,238 @@ public class CenterlineMenu {
 			
 			_app = app;
 			_gui = gui;
-			_jfcChannelsInp = new JFileChooser();
-			_channelsInpFilter = new CsdpFileFilter(_channelsInpExtensions, _numChannelsInpExtensions);
+//			_jfcChannelsInp = new JFileChooser();
+//			_channelsInpFilter = new CsdpFileFilter(_channelsInpExtensions, _numChannelsInpExtensions);
 		}
 
 		public void actionPerformed(ActionEvent e) {
 			_gui.pressSelectCursorAkaArrowButton();
-			_DSMChannels = _app.getDSMChannels();
 			_gui.setDefaultModesStates();
-			_net = _gui.getNetwork();
-			if (_net == null) {
-				_net = new Network("delta", _gui);
-				_gui.setNetwork(_net);
-				_app._net = _net;
-				_nplot = _app.setNetworkPlotter();
-				_gui.getPlanViewCanvas(0).setNetworkPlotter(_nplot);
-				_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
-				// removed for conversion to swing
-				_gui.getPlanViewCanvas(0).redoNextPaint();
-				_gui.getPlanViewCanvas(0).repaint();
 
-				// _gui.enableAfterNetwork();
-				_gui.enableWhenNetworkExists();
-			} // if net is null
-
+			_net = CsdpFunctions.getNetworkInstance(_gui, _app, _nplot);
 			String centerlineName = JOptionPane.showInputDialog(_gui, "Enter a new DSM2 channel number");
-			boolean loadAnotherChannelsInpFile = true;
-
-			// if channels.inp file not loaded OR if channel # doesn't exist in
-			// current
-			// DSMChannels object. ask user if another file should be
-			// loaded--don't
-			// assume there is another file with the channel.
-			while (loadAnotherChannelsInpFile) {
-				if (_DSMChannels != null && _DSMChannels.channelExists(centerlineName) == false) {
-					int response = JOptionPane.showConfirmDialog(_gui, "Channel " + centerlineName
-							+ " not found in channel connectivity file.  Load another file?", "Channel not found", JOptionPane.YES_NO_OPTION);
-					if(response==JOptionPane.YES_OPTION) {
-						loadAnotherChannelsInpFile = true;
-					} else {
-						loadAnotherChannelsInpFile = false;
-					}
-				}else {
-					loadAnotherChannelsInpFile = false;
-				}
-
-				if (_DSMChannels == null || loadAnotherChannelsInpFile) {
-					String channelsFilename = null;
-					// FileDialog fd = new FileDialog(_gui, "Open DSM2 channel
-					// connectivity file");
-					// fd.setVisible(true);
-					_jfcChannelsInp.setDialogTitle("Open DSM2 channel connectivity file");
-					_jfcChannelsInp.setApproveButtonText("Open");
-					_jfcChannelsInp.addChoosableFileFilter(_channelsInpFilter);
-					_jfcChannelsInp.setFileFilter(_channelsInpFilter);
-
-					if (CsdpFunctions.getOpenDirectory() != null) {
-						_jfcChannelsInp.setCurrentDirectory(CsdpFunctions.getOpenDirectory());
-					}
-					_filechooserState = _jfcChannelsInp.showOpenDialog(_gui);
-					if (_filechooserState == JFileChooser.APPROVE_OPTION) {
-						channelsFilename = _jfcChannelsInp.getName(_jfcChannelsInp.getSelectedFile());
-						_directory = _jfcChannelsInp.getCurrentDirectory().getAbsolutePath() + File.separator;
-
-						// channelsFilename = fd.getFile();
-						// _directory = fd.getDirectory();
-						
-						_gui.setCursor(_waitCursor);
-						try {
-							_DSMChannels = _app.chanReadStore(_directory, channelsFilename);
-//							_gui.setDSMChannels(_DSMChannels);
-						}catch(Exception e1) {
-							JOptionPane.showMessageDialog(_gui, "Error creating DSM2 channel", "Error", JOptionPane.ERROR_MESSAGE);
-						}finally {
-							_gui.setCursor(_defaultCursor);
-							
-						}
-					} else {
-						loadAnotherChannelsInpFile = false;
-					}
-				} // if DSMChannels is null
-
-				if (_filechooserState == JFileChooser.APPROVE_OPTION) {
-					if (_net.getCenterline(centerlineName) != null) {
-						int response = JOptionPane.showConfirmDialog(_gui, "Centerline " + centerlineName + " already exists. Replace?",
-								"Replace centerline?", JOptionPane.YES_NO_OPTION);
-						if(response==JOptionPane.YES_OPTION) {
-							// addDSMChannel(centerlineName);
-							loadAnotherChannelsInpFile = addDSMChannel(centerlineName);
-						}
-					} else {
-						// addDSMChannel(centerlineName);
-						loadAnotherChannelsInpFile = addDSMChannel(centerlineName);
-					}
-				} // if the cancel button wasn't pressed
-			} // while
-		}// actionPerformed
-
-		/**
-		 * adds a centerline for the specified DSM channel number. First point
-		 * is located at upstream node, last point is located at downstream
-		 * node.
-		 */
-		protected boolean addDSMChannel(String centerlineName) {
-			int upnode = 0;
-			int downnode = 0;
-			String upnodeString = null;
-			String downnodeString = null;
-			double upnodeX = 0.0;
-			double upnodeY = 0.0;
-			double downnodeX = 0.0;
-			double downnodeY = 0.0;
-			Centerline centerline = null;
-			boolean landmarkError = false;
-			boolean channelsInpError = false;
-
-			_net.addCenterline(centerlineName);
-			centerline = _net.getCenterline(centerlineName);
-			upnode = _DSMChannels.getUpnode(centerlineName);
-			downnode = _DSMChannels.getDownnode(centerlineName);
-
-			if (upnode < 0 || downnode < 0) {
-				JOptionPane.showMessageDialog(_gui, "ERROR:  node not found for centerline " + centerlineName, 
-						"Error", JOptionPane.ERROR_MESSAGE);
-				channelsInpError = true;
+			CsdpFunctions.getChannelsInpFile(_gui, _app, _net, _landmark, centerlineName, true);
+			if(CsdpFunctions.okToAddDSMChannel(_gui, _net, _landmark, centerlineName)) {
+				CsdpFunctions.addDSMChannel(_gui, _net, _landmark, centerlineName);
 			}
+		}
+		
+		
+//		public static void getNetworkInstance() {
+//			_net = _gui.getNetwork();
+//
+//			if (_net == null) {
+//				_net = new Network("delta", _gui);
+//				_gui.setNetwork(_net);
+//				_app._net = _net;
+//				_nplot = _app.setNetworkPlotter();
+//				_gui.getPlanViewCanvas(0).setNetworkPlotter(_nplot);
+//				_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+//				// removed for conversion to swing
+//				_gui.getPlanViewCanvas(0).redoNextPaint();
+//				_gui.getPlanViewCanvas(0).repaint();
+//
+//				// _gui.enableAfterNetwork();
+//				_gui.enableWhenNetworkExists();
+//			} // if net is null
+//		}
 
-			// Integer upnodeInteger = new Integer(upnode);
-			// Integer downnodeInteger = new Integer(downnode);
-			// upnodeString = upnodeInteger.toString(upnode);
-			// downnodeString = downnodeInteger.toString(downnode);
+		
+//		protected void getChannelsInpFile(String centerlineName) {
+//			boolean loadAnotherChannelsInpFile = true;
+//
+//			// if channels.inp file not loaded OR if channel # doesn't exist in
+//			// current
+//			// DSMChannels object. ask user if another file should be
+//			// loaded--don't
+//			// assume there is another file with the channel.
+//			while (loadAnotherChannelsInpFile) {
+//				if (_DSMChannels != null && _DSMChannels.channelExists(centerlineName) == false) {
+//					int response = JOptionPane.showConfirmDialog(_gui, "Channel " + centerlineName
+//							+ " not found in channel connectivity file.  Load another file?", "Channel not found", JOptionPane.YES_NO_OPTION);
+//					if(response==JOptionPane.YES_OPTION) {
+//						loadAnotherChannelsInpFile = true;
+//					} else {
+//						loadAnotherChannelsInpFile = false;
+//					}
+//				}else {
+//					loadAnotherChannelsInpFile = false;
+//				}
+//
+//				if (_DSMChannels == null || loadAnotherChannelsInpFile) {
+//					String channelsFilename = null;
+//					// FileDialog fd = new FileDialog(_gui, "Open DSM2 channel
+//					// connectivity file");
+//					// fd.setVisible(true);
+//					_jfcChannelsInp.setDialogTitle("Open DSM2 channel connectivity file");
+//					_jfcChannelsInp.setApproveButtonText("Open");
+//					_jfcChannelsInp.addChoosableFileFilter(_channelsInpFilter);
+//					_jfcChannelsInp.setFileFilter(_channelsInpFilter);
+//
+//					if (CsdpFunctions.getOpenDirectory() != null) {
+//						_jfcChannelsInp.setCurrentDirectory(CsdpFunctions.getOpenDirectory());
+//					}
+//					_filechooserState = _jfcChannelsInp.showOpenDialog(_gui);
+//					if (_filechooserState == JFileChooser.APPROVE_OPTION) {
+//						channelsFilename = _jfcChannelsInp.getName(_jfcChannelsInp.getSelectedFile());
+//						_directory = _jfcChannelsInp.getCurrentDirectory().getAbsolutePath() + File.separator;
+//
+//						// channelsFilename = fd.getFile();
+//						// _directory = fd.getDirectory();
+//						
+//						_gui.setCursor(_waitCursor);
+//						try {
+//							_DSMChannels = _app.chanReadStore(_directory, channelsFilename);
+////							_gui.setDSMChannels(_DSMChannels);
+//						}catch(Exception e1) {
+//							JOptionPane.showMessageDialog(_gui, "Error creating DSM2 channel", "Error", JOptionPane.ERROR_MESSAGE);
+//						}finally {
+//							_gui.setCursor(_defaultCursor);
+//							
+//						}
+//					} else {
+//						loadAnotherChannelsInpFile = false;
+//					}
+//				} // if DSMChannels is null
+//
+//				if (_filechooserState == JFileChooser.APPROVE_OPTION) {
+//					if (_net.getCenterline(centerlineName) != null) {
+//						int response = JOptionPane.showConfirmDialog(_gui, "Centerline " + centerlineName + " already exists. Replace?",
+//								"Replace centerline?", JOptionPane.YES_NO_OPTION);
+//						if(response==JOptionPane.YES_OPTION) {
+//							// addDSMChannel(centerlineName);
+//							loadAnotherChannelsInpFile = addDSMChannel(centerlineName);
+//						}
+//					} else {
+//						// addDSMChannel(centerlineName);
+//						loadAnotherChannelsInpFile = addDSMChannel(centerlineName);
+//					}
+//				} // if the cancel button wasn't pressed
+//			} // while
+//		}// getChannelsInpFile
 
-			upnodeString = Integer.toString(upnode);
-			downnodeString = Integer.toString(downnode);
-
-			boolean giveUp = false;
-			double upX = -Double.MAX_VALUE;
-			double upY = -Double.MAX_VALUE;
-			double downX = -Double.MAX_VALUE;
-			double downY = -Double.MAX_VALUE;
-
-			while (giveUp == false) {
-				if (DEBUG)
-					System.out.println("landmark=" + _landmark);
-				if (_landmark == null)
-					_landmark = _gui.getLandmark(); // load landmark file
-				upX = _landmark.getXFeet(upnodeString);
-				upY = _landmark.getYFeet(upnodeString);
-				downX = _landmark.getXFeet(downnodeString);
-				downY = _landmark.getYFeet(downnodeString);
-
-				if (upX < 0.0f || upY < 0.0f) {
-					JOptionPane.showMessageDialog(_gui, "ERROR:  insufficient information in landmark file for node " + upnodeString + ".", 
-							"Error", JOptionPane.ERROR_MESSAGE);
-
-					landmarkError = true;
-				}
-				if (downX < 0.0f || downY < 0.0f) {
-					JOptionPane.showMessageDialog(_gui, "ERROR:  insufficient information in landmark file for node " + downnodeString + ".", 
-							"Error", JOptionPane.ERROR_MESSAGE);
-					landmarkError = true;
-				}
-				if (landmarkError) {
-					int response = JOptionPane.showConfirmDialog(_gui, "Load another landmark file?", "", JOptionPane.YES_NO_CANCEL_OPTION);
-					if(response==JOptionPane.YES_OPTION) {
-						_landmark = _gui.getLandmark(); // load landmark file
-					}else if(response==JOptionPane.NO_OPTION || response==JOptionPane.CANCEL_OPTION) {
-						giveUp = true;
-					}
-				} else {
-					giveUp = true;
-				}
-			} // while
-
-			if (channelsInpError == false && landmarkError == false) {
-				// getX function returns -BIG_FLOAT if node not found in open
-				// landmark file
-				if (upX < 0.0f || upY < 0.0f || downX < 0.0f || downY < 0.0) {
-					_landmark = _gui.getLandmark(); // load landmark file
-				} // could use a while loop, but user would never get out if no
-					// landmark file
-				upnodeX = _landmark.getXFeet(upnodeString);
-				upnodeY = _landmark.getYFeet(upnodeString);
-				downnodeX = _landmark.getXFeet(downnodeString);
-				downnodeY = _landmark.getYFeet(downnodeString);
-				centerline.addDownstreamCenterlinePointFeet(upnodeX, upnodeY);
-				centerline.addDownstreamCenterlinePointFeet(downnodeX, downnodeY);
-				if (DEBUG)
-					System.out.println("landmark coordinates: upstream xy, downstream xy=" + upnodeX + "," + upnodeY
-							+ "," + downnodeX + "," + downnodeY);
-
-				_net.setSelectedCenterlineName(centerlineName);
-				_net.setSelectedCenterline(_net.getCenterline(centerlineName));
-				_gui.enableAfterCenterlineSelected();
-				_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
-				// removed for conversion to swing
-				_gui.getPlanViewCanvas(0).redoNextPaint();
-				_gui.getPlanViewCanvas(0).repaint();
-			}
-			return channelsInpError;
-		}// addDSMChannel
+//		/**
+//		 * adds a centerline for the specified DSM channel number. First point
+//		 * is located at upstream node, last point is located at downstream
+//		 * node.
+//		 */
+//		protected boolean addDSMChannel(String centerlineName) {
+//			int upnode = 0;
+//			int downnode = 0;
+//			String upnodeString = null;
+//			String downnodeString = null;
+//			double upnodeX = 0.0;
+//			double upnodeY = 0.0;
+//			double downnodeX = 0.0;
+//			double downnodeY = 0.0;
+//			Centerline centerline = null;
+//			boolean landmarkError = false;
+//			boolean channelsInpError = false;
+//
+//			_net.addCenterline(centerlineName);
+//			centerline = _net.getCenterline(centerlineName);
+//			upnode = _DSMChannels.getUpnode(centerlineName);
+//			downnode = _DSMChannels.getDownnode(centerlineName);
+//
+//			if (upnode < 0 || downnode < 0) {
+//				JOptionPane.showMessageDialog(_gui, "ERROR:  node not found for centerline " + centerlineName, 
+//						"Error", JOptionPane.ERROR_MESSAGE);
+//				channelsInpError = true;
+//			}
+//
+//			// Integer upnodeInteger = new Integer(upnode);
+//			// Integer downnodeInteger = new Integer(downnode);
+//			// upnodeString = upnodeInteger.toString(upnode);
+//			// downnodeString = downnodeInteger.toString(downnode);
+//
+//			upnodeString = Integer.toString(upnode);
+//			downnodeString = Integer.toString(downnode);
+//
+//			boolean giveUp = false;
+//			double upX = -Double.MAX_VALUE;
+//			double upY = -Double.MAX_VALUE;
+//			double downX = -Double.MAX_VALUE;
+//			double downY = -Double.MAX_VALUE;
+//
+//			while (giveUp == false) {
+//				if (DEBUG)
+//					System.out.println("landmark=" + _landmark);
+//				if (_landmark == null)
+//					_landmark = _gui.getLandmark(); // load landmark file
+//				upX = _landmark.getXFeet(upnodeString);
+//				upY = _landmark.getYFeet(upnodeString);
+//				downX = _landmark.getXFeet(downnodeString);
+//				downY = _landmark.getYFeet(downnodeString);
+//
+//				if (upX < 0.0f || upY < 0.0f) {
+//					JOptionPane.showMessageDialog(_gui, "ERROR:  insufficient information in landmark file for node " + upnodeString + ".", 
+//							"Error", JOptionPane.ERROR_MESSAGE);
+//
+//					landmarkError = true;
+//				}
+//				if (downX < 0.0f || downY < 0.0f) {
+//					JOptionPane.showMessageDialog(_gui, "ERROR:  insufficient information in landmark file for node " + downnodeString + ".", 
+//							"Error", JOptionPane.ERROR_MESSAGE);
+//					landmarkError = true;
+//				}
+//				if (landmarkError) {
+//					int response = JOptionPane.showConfirmDialog(_gui, "Load another landmark file?", "", JOptionPane.YES_NO_CANCEL_OPTION);
+//					if(response==JOptionPane.YES_OPTION) {
+//						_landmark = _gui.getLandmark(); // load landmark file
+//					}else if(response==JOptionPane.NO_OPTION || response==JOptionPane.CANCEL_OPTION) {
+//						giveUp = true;
+//					}
+//				} else {
+//					giveUp = true;
+//				}
+//			} // while
+//
+//			if (channelsInpError == false && landmarkError == false) {
+//				// getX function returns -BIG_FLOAT if node not found in open
+//				// landmark file
+//				if (upX < 0.0f || upY < 0.0f || downX < 0.0f || downY < 0.0) {
+//					_landmark = _gui.getLandmark(); // load landmark file
+//				} // could use a while loop, but user would never get out if no
+//					// landmark file
+//				upnodeX = _landmark.getXFeet(upnodeString);
+//				upnodeY = _landmark.getYFeet(upnodeString);
+//				downnodeX = _landmark.getXFeet(downnodeString);
+//				downnodeY = _landmark.getYFeet(downnodeString);
+//				centerline.addDownstreamCenterlinePointFeet(upnodeX, upnodeY);
+//				centerline.addDownstreamCenterlinePointFeet(downnodeX, downnodeY);
+//				if (DEBUG)
+//					System.out.println("landmark coordinates: upstream xy, downstream xy=" + upnodeX + "," + upnodeY
+//							+ "," + downnodeX + "," + downnodeY);
+//
+//				_net.setSelectedCenterlineName(centerlineName);
+//				_net.setSelectedCenterline(_net.getCenterline(centerlineName));
+//				_gui.enableAfterCenterlineSelected();
+//				_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+//				// removed for conversion to swing
+//				_gui.getPlanViewCanvas(0).redoNextPaint();
+//				_gui.getPlanViewCanvas(0).repaint();
+//			}
+//			return channelsInpError;
+//		}// addDSMChannel
 
 		JFileChooser _jfcChannelsInp;
 		CsdpFileFilter _channelsInpFilter;
 		int _filechooserState;
 	}// class CDSMCreate
 
+//	CenterlineMenu.CDSM2Create cDSMCreate = new CenterlineMenu.CDSM2Create(app, gui)
+//	public class NCreateNetworkAllDSM2Chan extends centerlineMenu.CDSM2Create{
+//		public NCreateNetworkAllDSM2Chan(App app, CsdpFrame csdpFrame) {
+//			.super(app, csdpFrame);
+//		}
+//		public void actionPerformed(ActionEvent e) {
+//			// TODO Auto-generated method stub
+//
+//		}
+//
+//	}
+
+	
 	/**
 	 * Rename centerline
 	 */
@@ -714,7 +740,7 @@ public class CenterlineMenu {
 	CsdpFrame _gui;
 	NetworkPlot _nplot;
 	Landmark _landmark;
-	DSMChannels _DSMChannels = null;
+//	DSMChannels _DSMChannels = null;
 	String _directory = null;
 	Cursor _waitCursor = new Cursor(Cursor.WAIT_CURSOR);
 	Cursor _defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR);

@@ -57,7 +57,8 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-
+import Acme.Nnrpd.NewsDb;
+import DWR.CSDP.CenterlineMenu.CDSM2Create;
 import DWR.CSDP.dialog.CenterlineOrReachSummaryWindow;
 import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.DialogLegendFactory;
@@ -66,6 +67,44 @@ import DWR.CSDP.dialog.FileOpen;
 import DWR.CSDP.dialog.FileSave;
 
 public class NetworkMenu {
+
+	public class NClearChannelsInp implements ActionListener {
+		private App app;
+		public NClearChannelsInp(App app) {
+			this.app = app;
+		}
+		public void actionPerformed(ActionEvent e) {
+			app.clearChannelsInp();
+		}
+
+	}
+
+	/*
+	 * Given a node Landmark file and a DSM2 channels.inp file, create centerlines for each channel connected to the nodes.
+	 */
+	public class NCreateNetworkAllDSM2Chan implements ActionListener {
+		App app;
+		CsdpFrame csdpFrame;
+		public NCreateNetworkAllDSM2Chan(App app, CsdpFrame csdpFrame) {
+			this.app = app;
+			this.csdpFrame = csdpFrame;
+		}
+		
+		public void actionPerformed(ActionEvent e) {
+			csdpFrame.pressSelectCursorAkaArrowButton();
+			csdpFrame.setDefaultModesStates();
+			NetworkPlot nplot = app.setNetworkPlotter();
+			Network net = CsdpFunctions.getNetworkInstance(csdpFrame, _app, nplot);
+			Landmark _landmark = csdpFrame.getLandmark();
+			DSMChannels dsmChannels = CsdpFunctions.getChannelsInpFile(csdpFrame, app, net, _landmark, null, false);
+			for(int i=0; i<dsmChannels.getNumChannels(); i++) {
+				String chanNumString = dsmChannels.getChanNum(i);
+				if(CsdpFunctions.okToAddDSMChannel(csdpFrame, net, _landmark, chanNumString)) {
+					CsdpFunctions.addDSMChannel(csdpFrame, net, _landmark, chanNumString);
+				}
+			}//for
+		}//actionPerformed
+	}//inner class NCreateNetworkAllDSM2Chan
 
 	/**
 	 * Export network file information:
@@ -77,16 +116,16 @@ public class NetworkMenu {
 	 * @author btom
 	 *
 	 */
-	public class NExportMetadataTable implements ActionListener {
+	public class NExportXsectMetadataTable implements ActionListener {
 		private CsdpFrame csdpFrame;
-		public NExportMetadataTable(CsdpFrame csdpFrame) {
+		public NExportXsectMetadataTable(CsdpFrame csdpFrame) {
 			this.csdpFrame = csdpFrame;
 		}
 		
 		public void actionPerformed(ActionEvent arg0) {
 			boolean saved = false;
 			
-			String title = "Export Network to Metadata table";
+			String title = "Export Cross-Sections to Metadata table";
 			String instructions = "<HTML><BODY>1. Specify a *.csv filename.<BR><BR>"
 					+ "</BODY></HTML>";
 			String[] names = new String[] {"csv filename"};
@@ -459,6 +498,58 @@ public class NetworkMenu {
 //		}// getFilename
 	}//class NExportToWKTFormat
 
+	/**
+	 * Creates WKT file for import into GIS containing cross-section locations, which are the midpoints of cross-section lines.
+	 * @author btom
+	 *
+	 */
+	public class NXsectMidpointCoordToWKTFormat implements ActionListener {
+		private CsdpFrame csdpFrame;
+
+		public NXsectMidpointCoordToWKTFormat(CsdpFrame csdpFrame) {
+			this.csdpFrame = csdpFrame;
+		}
+		
+		public void actionPerformed(ActionEvent e) {
+			boolean saved = false;
+			
+			String title = "Export Cross-section locations to WKT for importing into GIS";
+			String instructions = "<HTML><BODY>Export coordinates of cross-section line midpoints to WKT.<BR>"
+					+ "1. Specify a *.wkt filename.<BR>"
+					+ "</BODY></HTML>";
+			String[] names = new String[] {"WKT filename"};
+			String[] defaultValues = new String[]{""};
+			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE};
+			boolean[] disableIfNull = new boolean[] {true};
+			int[] numDecimalPlaces = new int[] {0};
+			String[] extensions = new String[] {"wkt"};
+			String[] tooltips = new String[] {"The full path to the .wkt file to be created"};
+			boolean modal = true;
+			System.out.println("about to open dialog");
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(this.csdpFrame, title, instructions, names, 
+					defaultValues, dataTypes, disableIfNull, numDecimalPlaces, 
+					extensions, tooltips, modal);
+			int response = dataEntryDialog.getResponse();
+			if(response==DataEntryDialog.OK) {
+				Network net = csdpFrame.getNetwork();
+				String wktPath = dataEntryDialog.getDirectory(names[0])+File.separator+dataEntryDialog.getFilename(names[0]);
+				System.out.println("ok clicked, wktPath="+wktPath);
+
+				boolean success = _app.nExportXsectMidpointCoordToWKT(net, wktPath);
+				if(success) {
+					JOptionPane.showMessageDialog(csdpFrame, "Export cross-section locations to wkt complete.", "Success", JOptionPane.OK_OPTION);
+				}else {
+					JOptionPane.showMessageDialog(csdpFrame, "Export cross-section locations to wkt failed.", "Failure", JOptionPane.ERROR_MESSAGE);
+				}
+			}else {
+				System.out.println("export cross-section locations to wkt canceled.");
+			}//if
+		}//actionPerformed
+	}//inner class NXsectToWKTFormat
+
+
+	
+	
 	/**
 	 * Save network file As
 	 *
@@ -925,7 +1016,7 @@ public class NetworkMenu {
 			boolean[] disableIfNull = new boolean[] {true, true, false, false, true, true};
 			String[] extensions = new String[] {"inp", null, null, null, null, null};
 			String[] tooltips = new String[] {
-					"A DSM2 channels file, i.e. 'channel_std_delta_grid_NAVD_20150129.inp'",
+					"A DSM2 channels file, i.e. 'channel_std_delta_grid_NAVD_20150129.inp'. Required for manning's n, dispersion, and channel connectivity.",
 					"The directory where you would like the DSM2 geometry files should be written",
 					"Enter a value here if you would like to replace all Manning's n values with the specified value",
 					"Enter a value here if you would like to replace all dispersion factors with the specified value",
@@ -961,9 +1052,9 @@ public class NetworkMenu {
 				
 				boolean calculatePreDsm2V8Files = Boolean.valueOf(dataEntryDialog.getValue(names[4]));
 				boolean createCrossSectionLandmarkFile = Boolean.valueOf(dataEntryDialog.getValue(names[5]));
-				
+				String currentDTString = CsdpFunctions.getCurrentDatetimeFormattedForFilenames();
 				_app.nCalculateDSM2V8Format(channelsDirectory, channelsFilename, calculateDirectory+
-						File.separator+"channel_std_delta_grid_from_CSDP_NAVD.inp", replaceMannings, 
+						File.separator+"channel_std_delta_grid_from_CSDP_NAVD"+ currentDTString +".inp", replaceMannings, 
 						manningsReplacementValue, replaceDispersionFactor, dispersionFactorReplacementValue);
 				// The old calculations. Uncomment these lines to create files in the old format.
 				if(calculatePreDsm2V8Files) {

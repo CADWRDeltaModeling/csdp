@@ -852,6 +852,38 @@ public class App {
 	}//nExportToWKT
 
 	/*
+	 * save cross-section locations to WKT file
+	 */
+	public boolean nExportXsectMidpointCoordToWKT(Network net, String wktPath) {
+		System.out.println("wktPath="+wktPath);
+		AsciiFileWriter afw = new AsciiFileWriter(_csdpFrame, wktPath);
+		afw.writeLine("id;wkt");
+		boolean success = true;
+		try{
+			int numCenterlines = net.getNumCenterlines();
+			for(int i=0; i<numCenterlines; i++) {
+				String centerlineName = net.getCenterlineName(i);
+				Centerline centerline = (Centerline) net.getCenterline(centerlineName);
+				for(int j=0; j<centerline.getNumXsects(); j++) {
+					double[] centerlineMidpointCoord = net.getCenterlineMidpointCoord(centerlineName, j);
+					String lineToWrite = centerlineName+"_"+j+";POINT(";
+					lineToWrite +=CsdpFunctions.feetToMeters(centerlineMidpointCoord[CsdpFunctions.x1Index])+" ";
+					lineToWrite +=CsdpFunctions.feetToMeters(centerlineMidpointCoord[CsdpFunctions.y1Index]);
+					lineToWrite += ")"; 
+					afw.writeLine(lineToWrite);
+				}
+			}
+			afw.close();
+			success = true;
+		}catch(Exception exception) {
+			success = false;
+		}
+		return success;
+
+
+	}
+	
+	/*
 	 * Export landmark to WKT format for importing into GIS 
 	 */
 	public boolean lExportToWKT(Landmark landmark, String directory, String filename) {
@@ -2866,6 +2898,10 @@ public class App {
 		return success;
 	}//createStraightlineWKTGridmapFile
 
+	/*
+	 * Exports network information to csv file, containing 
+	 * XsectName, XsectEasting, XsectNorthing, Metadata
+	 */
 	public boolean nExportMetadataTable(Network net, String csvPath) {
 		boolean success = true;
 		AsciiFileWriter afw = new AsciiFileWriter(_csdpFrame, csvPath);
@@ -2897,5 +2933,12 @@ public class App {
 		
 		return success;
 	}
+
+	public void clearChannelsInp() {
+		_DSMChannels = null;
+		CsdpFunctions.setDSMChannelsFilename(null);
+		CsdpFunctions.setDSMChannelsFiletype(null);
+	}
+
 
 }// class App
