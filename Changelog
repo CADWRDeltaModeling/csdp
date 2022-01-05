@@ -339,3 +339,8 @@ Version 3.0_20211005
 Added Export Cross-section locations to WKT format. Fixed a problem with the move centerline endpoint function.  Fixed a problem with the 
 DSMChannelsAsciiInput class: it required an XSECT input section, but no longer. Added code to LandmarkAsciiInput to display more useful 
 information when error encountered while reading file metadata. Improved Network.findClosestCenterlineEndpointToLandmark function. 
+
+Version 3.0_20220105
+
+Removed Tools-CreateStraightlineChanForGridmap from Tools menu, because it is not the way to create a network channel layer. The network channel layer is instead created by 
+creating new channels for the entire network (in the network menu). 

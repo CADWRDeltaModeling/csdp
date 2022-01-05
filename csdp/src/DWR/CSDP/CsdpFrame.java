@@ -1461,10 +1461,11 @@ public class CsdpFrame extends JFrame {
 		cfTools.add(tCrossSectionSlideshow = new JMenuItem("Cross-Section Slideshow"));
 		cfTools.add(tManningsDispersionSpatialDistribution = new JMenuItem("Manning's & Dispersion Spatial Distribution"));
 		cfTools.add(tExtendCenterlinesToNodes = new JMenuItem("Extend Centerlines to Nodes"));
-		cfTools.add(tCreateStraightlineChanForGridmap = new JMenuItem("Create Network Chan For Gridmap"));
+		//This is not the way, because we need to edit some of the centerlines  
+//		cfTools.add(tCreateStraightlineChanForGridmap = new JMenuItem("Create Network Chan For Gridmap"));
 		cfTools.add(tCreateDCDNodeLandmarkFile = new JMenuItem("Create DCD Node Landmark File"));
 		tExtendCenterlinesToNodes.setToolTipText("Extend centerlines to nodes. One possibility for creating GIS gridmap.");
-		tCreateStraightlineChanForGridmap.setToolTipText("Create a WKT file containing lines connecting nodes in landmark file");
+//		tCreateStraightlineChanForGridmap.setToolTipText("Create a WKT file containing lines connecting nodes in landmark file");
 		tCreateDCDNodeLandmarkFile.setToolTipText("Create a landmark file containing nodes used by DCD model");
 		if (_addToolsMenu)
 			menubar.add(cfTools);
@@ -1560,7 +1561,7 @@ public class CsdpFrame extends JFrame {
 		tCrossSectionSlideshow.addActionListener(tCrossSectionSlideshowListener);
 		tManningsDispersionSpatialDistribution.addActionListener(tManningsDispersionSpatialDistributionListener);
 		tExtendCenterlinesToNodes.addActionListener(tExtendCenterlinesToNodesListener);
-		tCreateStraightlineChanForGridmap.addActionListener(tCreateStraightlineChanForGridmapListener);
+//		tCreateStraightlineChanForGridmap.addActionListener(tCreateStraightlineChanForGridmapListener);
 		tCreateDCDNodeLandmarkFile.addActionListener(tCreateDCDNodeLandmarkFileListener);
 		
 		// tCompareNetwork.setEnabled(_addCompareNetworkOption);
@@ -1954,7 +1955,7 @@ public class CsdpFrame extends JFrame {
 		tCrossSectionSlideshow.setEnabled(false);
 		tManningsDispersionSpatialDistribution.setEnabled(false);
 		tExtendCenterlinesToNodes.setEnabled(false);
-		tCreateStraightlineChanForGridmap.setEnabled(false);
+//		tCreateStraightlineChanForGridmap.setEnabled(false);
 		tCreateDCDNodeLandmarkFile.setEnabled(false);
 		// xMove.setEnabled(false);
 		// xCreate.setEnabled(false);

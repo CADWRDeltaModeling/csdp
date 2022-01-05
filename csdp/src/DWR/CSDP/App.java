@@ -2258,7 +2258,9 @@ public class App {
 						String[] variableParts=variableFieldString.split("/");
 						for(int i=0; i<variableParts.length; i++) {
 							String vString = variableParts[i];
-							String lineToWrite = String.format("%-18s", landmarkName)+
+							//if the landmark name includes the forward slash '/' character, replace it with an underscore before writing it to the
+							//DSM2 output specification file. This is necessary because the output location name is used to create a DSS pathname.
+							String lineToWrite = String.format("%-18s", landmarkName.replace('/', '_'))+
 									String.format("%8s", closestChanHashtable.get(landmarkName))+
 									String.format("%10.0f", closestChanDistHashtable.get(landmarkName))+
 									String.format("%-9s", " "+vString)+
