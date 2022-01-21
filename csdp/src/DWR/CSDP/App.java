@@ -2231,9 +2231,18 @@ public class App {
 					double closestEndpointCenterlineDistAlong = (Double) chanDist[2];
 
 					double minDist = minDistEndpointCenterline;
+					if(dsmChannelsJustForAdjustment!=null) {
+						String cNameString = closestEndpointCenterlineNameString;
+						double previousVersionCenterlineLength = dsmChannelsJustForAdjustment.getLength(cNameString);
+						if(previousVersionCenterlineLength > 0 && 
+								closestEndpointCenterlineDistAlong > previousVersionCenterlineLength){
+							closestEndpointCenterlineDistAlong = previousVersionCenterlineLength;
+						}
+					}
 					closestChanHashtable.put(landmarkName, closestEndpointCenterlineNameString);
 					closestChanDistHashtable.put(landmarkName, closestEndpointCenterlineDistAlong);
-					
+					//If there is a line segment or interior centerline point that is closer, 
+					//update closestChanHashtable and closestChanDistHashtable
 					for(int i=0; i<network.getNumCenterlines(); i++) {
 						String centerlineName = network.getCenterlineName(i);
 						Centerline centerline = network.getCenterline(centerlineName);

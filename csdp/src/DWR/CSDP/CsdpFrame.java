@@ -1524,7 +1524,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener tCrossSectionSlideshowListener = _toolsMenu.new TCrossSectionSlideshow();
 		ActionListener tManningsDispersionSpatialDistributionListener = _toolsMenu.new TManningsDispersionSpatialDistribution();
 		ActionListener tExtendCenterlinesToNodesListener = _toolsMenu.new TExtendCenterlinesToNodes();
-		ActionListener tCreateStraightlineChanForGridmapListener = _toolsMenu.new TCreateStraightlineChanForGridmap();
+//		ActionListener tCreateStraightlineChanForGridmapListener = _toolsMenu.new TCreateStraightlineChanForGridmap();
 		ActionListener tCreateDCDNodeLandmarkFileListener = _toolsMenu.new TCreateDCDNodeLandmarkFile(this);
 		// removed temporarily(?) options now appear in dialog
 		// EventListener oEchoTimeSeriesInputListener = _toolsMenu.new
@@ -2083,7 +2083,7 @@ public class CsdpFrame extends JFrame {
 		if(_landmark!=null) {
 			tCreateDSM2OutputLocations.setEnabled(true);
 			tExtendCenterlinesToNodes.setEnabled(true);
-			tCreateStraightlineChanForGridmap.setEnabled(true);
+//			tCreateStraightlineChanForGridmap.setEnabled(true);
 		}
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 		tManningsDispersionSpatialDistribution.setEnabled(true);
@@ -2117,7 +2117,7 @@ public class CsdpFrame extends JFrame {
 		if(_net!=null) {
 			tCreateDSM2OutputLocations.setEnabled(true);
 			tExtendCenterlinesToNodes.setEnabled(true);
-			tCreateStraightlineChanForGridmap.setEnabled(true);
+//			tCreateStraightlineChanForGridmap.setEnabled(true);
 		}
 		tCreateDCDNodeLandmarkFile.setEnabled(true);
 		tCalcRect.setEnabled(true);
@@ -2159,7 +2159,7 @@ public class CsdpFrame extends JFrame {
 		nNetworkSummaryReport.setEnabled(false);
 		tManningsDispersionSpatialDistribution.setEnabled(false);
 		tExtendCenterlinesToNodes.setEnabled(false);
-		tCreateStraightlineChanForGridmap.setEnabled(false);
+//		tCreateStraightlineChanForGridmap.setEnabled(false);
 	}//disableWhenNetworkCleared
 
 	/**
@@ -2190,7 +2190,7 @@ public class CsdpFrame extends JFrame {
 		tRemoveAllCrossSections.setEnabled(true);
 		if(_landmark!=null) {
 			tCreateDSM2OutputLocations.setEnabled(true);
-			tCreateStraightlineChanForGridmap.setEnabled(true);
+//			tCreateStraightlineChanForGridmap.setEnabled(true);
 		}
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(true);
 //		nAWDSummaryReport.setEnabled(true);
@@ -2213,7 +2213,7 @@ public class CsdpFrame extends JFrame {
 		cLandmarks.setEnabled(false);
 		tCreateDSM2OutputLocations.setEnabled(false);
 		tExtendCenterlinesToNodes.setEnabled(false);
-		tCreateStraightlineChanForGridmap.setEnabled(false);
+//		tCreateStraightlineChanForGridmap.setEnabled(false);
 		tCreateDCDNodeLandmarkFile.setEnabled(false);
 	}
 
