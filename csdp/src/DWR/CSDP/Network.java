@@ -1210,6 +1210,8 @@ public class Network {
 		double minDist = Double.MAX_VALUE;
 		String chanWithMinDist = null;
 		double closestCenterlineDistAlong = -Double.MAX_VALUE;
+		CenterlinePoint closestCenterlinePoint = null;
+
 		for(int i=0; i<getNumCenterlines(); i++) {
 			Centerline centerline = getCenterline(getCenterlineName(i));
 
@@ -1230,18 +1232,21 @@ public class Network {
 			
 			double upstreamDist = CsdpFunctions.pointDist(landmarkX, landmarkY, upstreamPoint._x, upstreamPoint._y);
 			double downstreamDist = CsdpFunctions.pointDist(landmarkX, landmarkY, downstreamPoint._x, downstreamPoint._y);
+			
 			if(upstreamDist < minDist) {
 				minDist = upstreamDist;
 				chanWithMinDist = getCenterlineName(i);
 				closestCenterlineDistAlong = 0.0;
+				closestCenterlinePoint = upstreamPoint;
 			}
 			if(downstreamDist < minDist) {
 				minDist = downstreamDist;
 				chanWithMinDist = getCenterlineName(i);
 				closestCenterlineDistAlong = centerline.getLengthFeet();
+				closestCenterlinePoint = downstreamPoint;
 			}
 		}
-		return new Object[] {chanWithMinDist, minDist, closestCenterlineDistAlong};
+		return new Object[] {chanWithMinDist, minDist, closestCenterlineDistAlong, closestCenterlinePoint};
 	}
 	
 } // class Network

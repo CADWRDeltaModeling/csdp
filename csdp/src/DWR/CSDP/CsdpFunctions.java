@@ -167,7 +167,7 @@ public class CsdpFunctions {
 	 */
 	public static double[] getXsectDistAndPointDist(Centerline centerline, double xDataCoord, double yDataCoord, 
 			double maxXsectLineLength, boolean limitWidth) {
-		double[] returnValues = new double[] {-Double.MAX_VALUE, -Double.MAX_VALUE};
+		double[] returnValues = new double[] {-Double.MAX_VALUE, -Double.MAX_VALUE, -Double.MAX_VALUE, -Double.MAX_VALUE};
 		double x1 = 0.0;
 		double y1 = 0.0;
 		double x2 = 0.0;
@@ -236,7 +236,7 @@ public class CsdpFunctions {
 			x1 = centerline.getCenterlinePoint(minDistIndex).getXFeet();
 			y1 = centerline.getCenterlinePoint(minDistIndex).getYFeet();
 			cumDist += CsdpFunctions.pointDist(x1, y1, xi, yi);
-			returnValues=new double[] {cumDist, minDist};
+			returnValues=new double[] {cumDist, minDist, xi, yi};
 		}
 		return returnValues;
 	}//getXsectDistAndPointDist

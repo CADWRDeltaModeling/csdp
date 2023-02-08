@@ -127,10 +127,10 @@ public class ASCIIGridToCSDPConverter {
 		int numValuesToWrite = 0;
 		for (int i = 0; i < nrows; i++) {
 			String[] fields = line.split("\\s");
-//			if ((i % pct) == 0) {
-//				System.out.println("Processed " + i + " of " + nrows
-//						+ " rows from file " + inFilename);
-//			}
+			if ((i % pct) == 0) {
+				System.out.println("Processed " + i + " of " + nrows
+						+ " rows from file " + inFilename);
+			}
 			for (int j = 0; j < fields.length; j++) {
 				double x = xllcorner + (j * cellsize);
 				double y = yllcorner + ((nrows - i) * cellsize);

@@ -52,7 +52,7 @@ import java.util.Vector;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
-import org.omg.PortableInterceptor.SUCCESSFUL;
+//import org.omg.PortableInterceptor.SUCCESSFUL;
 
 import COM.objectspace.jgl.DividesInteger;
 import DWR.CSDP.Landmark.LandmarkPoint;
@@ -332,12 +332,16 @@ public class ToolsMenu {
 				String directory1 = dataEntryDialog.getDirectory(names[1]).toString();
 				String filename0 = dataEntryDialog.getFilename(names[0]);
 				String filename1 = dataEntryDialog.getFilename(names[1]);
-				String bathymetryDirectory0 = dataEntryDialog.getDirectory(names[2]).toString();
-				String bathymetryFilename0 = dataEntryDialog.getFilename(names[2]);
-				if(bathymetryFilename0.trim().length()<=0) {
-					bathymetryFilename0 = null;
+				String bathymetryDirectory0 = null;
+				String bathymetryFilename0 = null;
+				if(names.length > 2) {
+					bathymetryDirectory0 = dataEntryDialog.getDirectory(names[2]).toString();
+					bathymetryFilename0 = dataEntryDialog.getFilename(names[2]);
+				
+					if(bathymetryFilename0.trim().length()<=0) {
+						bathymetryFilename0 = null;
+					}
 				}
-
 				File directorySaveImage = dataEntryDialog.getDirectory(names[3]);
 				String directorySaveImageString = null;
 				if(directorySaveImage != null) directorySaveImageString = directorySaveImage.toString().trim();
@@ -469,7 +473,7 @@ public class ToolsMenu {
 					centerline.addDownstreamCenterlinePointFeet(downnodeX, downnodeY);
 				}
 			}
-			JOptionPane.showMessageDialog(_gui, "Centerlines have been extended to nodes.", "Success", JOptionPane.OK_OPTION);
+			JOptionPane.showMessageDialog(_gui, "Centerlines have been extended to nodes.", "Success", JOptionPane.INFORMATION_MESSAGE);
 		}//actionPerformed
 
 	}//class TExtendCenterlinesToNodes

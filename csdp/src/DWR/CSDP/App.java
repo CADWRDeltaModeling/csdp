@@ -2149,7 +2149,7 @@ public class App {
 		tooltips[1] = "DSM2 channels file, which is only needed if channel lengths differ from CSDP centerline lengths";
 		tooltips[2] = "Value(s) for DSM2 OUTPUT_CHANNEL VARIABLE field, separated by slashes";
 		tooltips[3] = "Value for DSM2 OUTPUT_CHANNEL INTERVAL field";
-		tooltips[4] = "Value for DSM2 OUTPUT_CHANNEL PERIOD_OP field";
+		tooltips[4] = "Value for DSM2 OUTPUT_CHANNEL PERIOD_OP field (inst or avg)";
 		tooltips[5] = "Value for DSM2 OUTPUT_CHANNEL FILE field";
 		tooltips[6] = "Output file will contain, at the end of each line, a commented out value that is the distance between the landmark point and the centerline";
 //		tooltips[1] = "If checked, will create a cross-section line on the nearest channel that intersects the landmark point";
@@ -2165,7 +2165,8 @@ public class App {
 			Hashtable<String, String> closestChanHashtable = new Hashtable<String, String>();
 			//for storing results: key=landmarkName, value=distance along centerline
 			Hashtable<String, Double> closestChanDistHashtable = new Hashtable<String, Double>();
-			
+			Hashtable<String, Double> closestXIntersectionCoordHashtable = new Hashtable<String, Double>();
+			Hashtable<String, Double> closestYIntersectionCoordHashtable = new Hashtable<String, Double>();
 			File outputFileDirectory = dataEntryDialog.getDirectory(names[0]);
 			String outputFileFilename = dataEntryDialog.getFilename(names[0]);
 			File dsm2ChannelsDirectory = dataEntryDialog.getDirectory(names[1]);
@@ -2229,6 +2230,7 @@ public class App {
 					String closestEndpointCenterlineNameString = (String) chanDist[0];
 					double minDistEndpointCenterline = (Double) chanDist[1];
 					double closestEndpointCenterlineDistAlong = (Double) chanDist[2];
+					CenterlinePoint closestCenterlinePoint = (CenterlinePoint)chanDist[3]; 
 
 					double minDist = minDistEndpointCenterline;
 					if(dsmChannelsJustForAdjustment!=null) {
@@ -2241,16 +2243,20 @@ public class App {
 					}
 					closestChanHashtable.put(landmarkName, closestEndpointCenterlineNameString);
 					closestChanDistHashtable.put(landmarkName, closestEndpointCenterlineDistAlong);
+					closestXIntersectionCoordHashtable.put(landmarkName, closestCenterlinePoint.getXFeet());
+					closestYIntersectionCoordHashtable.put(landmarkName, closestCenterlinePoint.getYFeet());
 					//If there is a line segment or interior centerline point that is closer, 
 					//update closestChanHashtable and closestChanDistHashtable
 					for(int i=0; i<network.getNumCenterlines(); i++) {
 						String centerlineName = network.getCenterlineName(i);
 						Centerline centerline = network.getCenterline(centerlineName);
 						//Condition 2: find perpendicular distance to all centerlines. returns distance along centerline, and perpendicular distance to the closest centerline segment
-						double[] cumAndMinDist = CsdpFunctions.getXsectDistAndPointDist(centerline, landmarkX, 
+						double[] cumDistMinDistIntersectionCoord = CsdpFunctions.getXsectDistAndPointDist(centerline, landmarkX, 
 								landmarkY, Double.MAX_VALUE, true); 
-						double cumDist = cumAndMinDist[0];
-						double minCenterlineDist = cumAndMinDist[1];
+						double cumDist = cumDistMinDistIntersectionCoord[0];
+						double minCenterlineDist = cumDistMinDistIntersectionCoord[1];
+						double xIntersection = cumDistMinDistIntersectionCoord[2];
+						double yIntersection = cumDistMinDistIntersectionCoord[3];
 						if(minCenterlineDist>0 && minCenterlineDist < minDist) {
 							minDist = minCenterlineDist;
 							closestChanHashtable.put(landmarkName, centerlineName);
@@ -2260,6 +2266,8 @@ public class App {
 								cumDist *= dsmChannelsJustForAdjustment.getLength(centerlineName) / centerline.getLengthFeet();
 							}
 							closestChanDistHashtable.put(landmarkName, cumDist);
+							closestXIntersectionCoordHashtable.put(landmarkName, xIntersection);
+							closestYIntersectionCoordHashtable.put(landmarkName, yIntersection);
 						}
 					}//for each centerline
 					if(closestChanDistHashtable.containsKey(landmarkName) && closestChanDistHashtable.get(landmarkName)!=null &&
@@ -2279,6 +2287,11 @@ public class App {
 									// also write minDist, which is the minimum perpendicular distance from the landmark point to the centerline
 									if(includeDistToCenterline) lineToWrite += "  # " + String.format("%-20.1f", minDist);
 							asciiFileWriter.writeLine(lineToWrite);
+							
+							//now find the coordinates of the intersection and write to a different file...for now just print to screen
+							double closestXIntersection = CsdpFunctions.feetToMeters(closestXIntersectionCoordHashtable.get(landmarkName));
+							double closestYIntersection = CsdpFunctions.feetToMeters(closestYIntersectionCoordHashtable.get(landmarkName));
+							System.out.println(closestXIntersection+","+closestYIntersection+","+landmarkName);
 						}
 					}
 				}//for each landmark
@@ -2290,6 +2303,8 @@ public class App {
 			}finally {
 				asciiFileWriter.close();
 			}
+
+			
 		}//if Ok button clicked
 	}//findChanDistForLandmarks
 
@@ -2827,19 +2842,20 @@ public class App {
 						}else if(response==XsectSlideshowDialog.PREVIOUS_CENTERLINE_OPTION) {
 							centerlineIndex--;
 							centerlineName0 = network0.getCenterlineName(centerlineIndex);
-							while(!network1.centerlineExists(centerlineName0) && centerlineIndex > 0) {
-								centerlineIndex--;
-							}
+//							while(!network1.centerlineExists(centerlineName0) && centerlineIndex > 0) {
+//								centerlineIndex--;
+//							}
 							centerline0 = network0.getCenterline(centerlineName0);
 							centerline1 = network1.getCenterline(centerlineName0);
 							j=0;
 						}else if(response==XsectSlideshowDialog.NEXT_CENTERLINE_OPTION) {
 							centerlineIndex++;
 							centerlineName0 = network0.getCenterlineName(centerlineIndex);
-							while(!network1.centerlineExists(centerlineName0) && 
-									centerlineIndex<network0.getNumCenterlines()-1 && centerlineIndex<network1.getNumCenterlines()-1) {
-								centerlineIndex++;
-							}
+							//not sure what this was for--it messes things up. Keep here for now... 
+							//							while(!network1.centerlineExists(centerlineName0) && 
+							//									centerlineIndex<network0.getNumCenterlines()-1 && centerlineIndex<network1.getNumCenterlines()-1) {
+							//								centerlineIndex++;
+							//							}
 							centerline0 = network0.getCenterline(centerlineName0);
 							centerline1 = network1.getCenterline(centerlineName0);
 							j=0;
