@@ -2524,6 +2524,11 @@ public class CsdpFunctions {
 		Date date = new Date(System.currentTimeMillis());
 		return formatter.format(date);
 	}
+	public static String getCurrentDatetimeFormattedForDSM2InputComments() {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+		Date date = new Date(System.currentTimeMillis());
+		return formatter.format(date);
+	}
 	
 	private static DSMChannels _dsmChannels;
 	private static int _dsmChannelsFilechooserState;
@@ -2534,7 +2539,7 @@ public class CsdpFunctions {
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static String _version = "3.0_20220105";
+	private static String _version = "3.0_20230207";
 
 
 }// class CsdpFunctions

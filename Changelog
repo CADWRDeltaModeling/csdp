@@ -344,3 +344,11 @@ Version 3.0_20220105
 
 Removed Tools-CreateStraightlineChanForGridmap from Tools menu, because it is not the way to create a network channel layer. The network channel layer is instead created by 
 creating new channels for the entire network (in the network menu). 
+
+Version 3.0_20230207
+
+When creating DSM2 output locations, the coordinates of the centerline point with the closest perpendicular distance are printed to stdout. Later could be modified to write to file. This is used to create a shapefile showing the actual locations of the output locations. 
+
+Version 3.0_20230712
+
+Output location files will now have creation date included in the comments.

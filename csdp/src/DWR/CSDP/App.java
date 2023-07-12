@@ -1097,7 +1097,7 @@ public class App {
 		double normalizedDist;
 
 		setDSMChannels(channelsInputDirectory, channelsInputFilename);
-		
+		afw.writeLine("# " + CsdpFunctions.getCurrentDatetimeFormattedForDSM2InputComments());
 		afw.writeLine("#Created automatically by CSDP, using CSDP channel lengths");
 		afw.writeLine("CHANNEL");
 		String channelHeaderLine = 
@@ -2200,6 +2200,7 @@ public class App {
 
 			AsciiFileWriter asciiFileWriter= new AsciiFileWriter(csdpFrame, outputFileDirectory.toString()+File.separator+outputFileFilename);
 			asciiFileWriter.writeLine("############################################################################################");
+			asciiFileWriter.writeLine("# " + CsdpFunctions.getCurrentDatetimeFormattedForDSM2InputComments());
 			asciiFileWriter.writeLine("# Created automatically by CSDP, using the following network and landmark files,");
 			asciiFileWriter.writeLine("# with the Find Channel/Distance for Landmarks function");
 			asciiFileWriter.writeLine("# Network file: "+CsdpFunctions.getNetworkDirectory()+File.separator+CsdpFunctions.getNetworkFilename());
