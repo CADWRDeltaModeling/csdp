@@ -66,12 +66,28 @@ import vista.graph.GECanvas;
 public class XsectEditMenu {
 
 	private CsdpFrame _csdpFrame;
+	private Network _net;
+	private Xsect _xsect;
+	private XsectGraph _xsectGraph;
+	protected static final boolean DEBUG = false;
+	private App _app;
+	
 	public XsectEditMenu(XsectGraph xsectGraph, CsdpFrame csdpFrame, Network net, App app) {
 		_xsectGraph = xsectGraph;
 		_csdpFrame = csdpFrame;
 		_net = net;
 		_app = app;
-	}
+	}//constructor
+
+	public class XAutoCreate implements ActionListener {
+		public XAutoCreate(XsectGraph xsectGraph) {
+			_xsectGraph = xsectGraph;
+		}
+		public void actionPerformed(ActionEvent e) {
+			_xsectGraph.averageBathymetryForAutoXS();
+			_xsectGraph.createAutoXS();
+		}
+	}//inner class XAutoCreate
 
 	public class XUGC implements ActionListener {
 		public void actionPerformed(ActionEvent e) {
@@ -543,7 +559,7 @@ public class XsectEditMenu {
 					+ "<B>Cross-Section Index:</B> The number of the cross-section from which you would like to copy points. <BR>"
 					+ "Examples: the furthest upstream cross-section has index=0, the next has index=1.<BR></BODY></HTML>";
 
-			DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, "Clone a cross-section", instructions, names, defaultValue, dataType, 
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, "Clone a cross-section FROM another cross-section", instructions, names, defaultValue, dataType, 
 					disableIfNull, numDecimalPlaces, tooltips, true);
 			int response = dataEntryDialog.getResponse();
 			if(response==DataEntryDialog.OK) {
@@ -573,9 +589,4 @@ public class XsectEditMenu {
 
 
 	
-	Network _net;
-	Xsect _xsect;
-	XsectGraph _xsectGraph;
-	protected static final boolean DEBUG = false;
-	App _app;
 }// XsectEditMenu

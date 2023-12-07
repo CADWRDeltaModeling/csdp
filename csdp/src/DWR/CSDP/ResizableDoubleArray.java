@@ -41,6 +41,8 @@
 
 package DWR.CSDP;
 
+import java.util.Arrays;
+
 public class ResizableDoubleArray {
 	public ResizableDoubleArray() {
 		numberOfResizeRequests = 0;
@@ -74,6 +76,7 @@ public class ResizableDoubleArray {
 		resizeStep = rhs.resizeStep;
 		arrayLength = rhs.arrayLength;
 		array = new double[arrayLength];
+		max_index_with_value = rhs.max_index_with_value;
 		System.arraycopy(rhs.array, 0, this.array, 0, arrayLength);
 	}
 
@@ -87,11 +90,13 @@ public class ResizableDoubleArray {
 
 	// return element for read/write: put value
 	public void put(int index, double value) {
-		if (index >= 0 && index < arrayLength)
+		if (index >= 0 && index < arrayLength) {
 			array[index] = value;
-		else if (index >= arrayLength) {
+			max_index_with_value = Math.max(max_index_with_value, index);
+		}else if (index >= arrayLength) {
 			this.resize();
 			this.put(index, value);
+			max_index_with_value = Math.max(max_index_with_value, index);
 		} else
 			throw new ArrayIndexOutOfBoundsException("Illegal access to ResizableDoubleArray element");
 	}
@@ -157,6 +162,10 @@ public class ResizableDoubleArray {
 		array = new double[arrayLength];
 	}
 
+	public double[] getArray() {
+		return Arrays.copyOfRange(array, 0, max_index_with_value+1);
+	}
+	
 	///////////
 	// size of change of arrayLength on resize request
 	protected int resizeStep;
@@ -177,6 +186,8 @@ public class ResizableDoubleArray {
 	// array containing data
 	protected double[] array;
 
+	protected int max_index_with_value=-Integer.MAX_VALUE;
 	public static final int INITIAL_RESIZE_STEP = 20;
 	public static final int INITIAL_ARRAY_LENGTH = 10;
+
 }

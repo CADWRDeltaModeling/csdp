@@ -13,6 +13,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.CannotRedoException;
@@ -56,6 +58,7 @@ class UndoableJTextArea extends JTextArea implements UndoableEditListener, Focus
 	}
 
 	public void undoableEditHappened(UndoableEditEvent e) {
+		if(m_undoManager==null) createUndoMananger();
 		m_undoManager.addEdit(e.getEdit());
 	}
 
@@ -77,11 +80,14 @@ class UndoableJTextArea extends JTextArea implements UndoableEditListener, Focus
 		}
 	}
 
-	public void keyReleased(KeyEvent e) {
-	}
-
 	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

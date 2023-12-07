@@ -164,8 +164,8 @@ public class ASCIIGridToCSDPConverter {
 		writer.close();
 		reader.close();
 		//
-		System.out.println("Actual number of points in data: "+realCount);
-		JOptionPane.showMessageDialog(csdpFrame, "Change numElements in the .prn file to "+numValuesToWrite, "Edit the file!", JOptionPane.OK_OPTION);
+//		System.out.println("Actual number of points in data: "+realCount);
+//		JOptionPane.showMessageDialog(csdpFrame, "Change numElements in the .prn file to "+numValuesToWrite, "Edit the file!", JOptionPane.OK_OPTION);
 		// rewrite with realcount
 		reader = new BufferedReader(new FileReader(tempFile));
 		writer = new PrintWriter(new FileWriter(this.outFilename));

@@ -349,6 +349,6 @@ Version 3.0_20230207
 
 When creating DSM2 output locations, the coordinates of the centerline point with the closest perpendicular distance are printed to stdout. Later could be modified to write to file. This is used to create a shapefile showing the actual locations of the output locations. 
 
-Version 3.0_20230712
+Version 3.0_20230206
 
-Output location files will now have creation date included in the comments.
+Added automatic cross-section creation.

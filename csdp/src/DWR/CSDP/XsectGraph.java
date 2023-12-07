@@ -37,9 +37,10 @@
     chung@water.ca.gov
 
     or see our home page: http://wwwdelmod.water.ca.gov/
-*/
+ */
 package DWR.CSDP;
 
+import DWR.CSDP.dialog.*;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -55,9 +56,12 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowListener;
 import java.net.URL;
+import java.text.NumberFormat;
 import java.util.Date;
 import java.util.EventListener;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -65,11 +69,12 @@ import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JEditorPane;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -80,18 +85,17 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
+import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 
-import DWR.CSDP.XsectBathymetryData;
+import DWR.CSDP.CURVEFIT.LineSimplification;
 import vista.app.CurveFactory;
 import vista.app.GraphBuilderInfo;
 import vista.app.MainProperties;
-//import DWR.Graph.*;
-//import DWR.Graph.Canvas.*;
 import vista.graph.AxisAttr;
 import vista.graph.Curve;
 import vista.graph.CurveAttr;
@@ -114,10 +118,11 @@ import vista.graph.TextLine;
 import vista.graph.TextLineAttr;
 import vista.graph.TickGenerator;
 import vista.set.DataReference;
-import vista.set.DataReferenceMath;
 import vista.set.DataRetrievalException;
 import vista.set.DataSet;
 import vista.set.DefaultReference;
+
+
 
 /**
  * Plots data in cross-section view.
@@ -126,7 +131,6 @@ import vista.set.DefaultReference;
  * @version $Id:
  */
 public class XsectGraph extends JDialog implements ActionListener {
-
 	protected BathymetryPlot _plotter;
 	protected NetworkPlot _networkPlotter;
 	private App _app;
@@ -135,7 +139,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 	private GECanvas _gC;
 	private NetworkDataSet _networkDataSet;
 	private NetworkDataSet _oldNetworkDataSet;
-//	public static final int DATA_LENGTH = 100;
+
 	/*
 	 * size of cross-section points
 	 */
@@ -146,19 +150,19 @@ public class XsectGraph extends JDialog implements ActionListener {
 	private Xsect _xsect;
 	// protected JCheckBoxMenuItem _xMovePointMenuItem, _xAddPointMenuItem,
 	// _xInsertPointMenuItem, _xDeletePointMenuItem;
- 
+
 	private URL xsCloseUrl = this.getClass().getResource("images/XSCloseButton.png");
 	private URL cursorIconUrl = this.getClass().getResource("images/ArrowButton.png");
 	private URL reverseXsectIconUrl = this.getClass().getResource("images/ReverseXsectButton.png");
 	private URL movePointIconUrl = this.getClass().getResource("images/MoveXsectPointButton.png");
-//	private URL addPointIconUrl = this.getClass().getResource("images/AddXsectPointButton.png");
+	//	private URL addPointIconUrl = this.getClass().getResource("images/AddXsectPointButton.png");
 	private URL addLeftPointIconUrl = this.getClass().getResource("images/AddBeginningXsectPointButton.png");
 	private URL addRightPointIconUrl = this.getClass().getResource("images/AddEndingXsectPointButton.png");
 	private URL insertPointIconUrl = this.getClass().getResource("images/InsertXsectPointButton.png");
 	private URL deletePointIconUrl = this.getClass().getResource("images/DeleteXsectPointButton.png");
 	private URL cursorIconSelectedUrl = this.getClass().getResource("images/ArrowButtonSelected.png");
 	private URL movePointIconSelectedUrl = this.getClass().getResource("images/MoveXsectPointButtonSelected.png");
-//	private URL addPointIconSelectedUrl = this.getClass().getResource("images/AddXsectPointButtonSelected.png");
+	//	private URL addPointIconSelectedUrl = this.getClass().getResource("images/AddXsectPointButtonSelected.png");
 	private URL addBeginningPointIconSelectedUrl = this.getClass().getResource("images/AddBeginningXsectPointButtonSelected.png");
 	private URL addEndingPointIconSelectedUrl = this.getClass().getResource("images/AddEndingXsectPointButtonSelected.png");
 	private URL insertPointIconSelectedUrl = this.getClass().getResource("images/InsertXsectPointButtonSelected.png");
@@ -171,19 +175,20 @@ public class XsectGraph extends JDialog implements ActionListener {
 	private URL colorBySourceIconSelectedUrl = this.getClass().getResource("images/ColorSourceButtonSelected.png");
 	private URL colorByYearIconUrl = this.getClass().getResource("images/ColorYearButton.png");
 	private URL colorByYearIconSelectedUrl = this.getClass().getResource("images/ColorYearButtonSelected.png");
-
+	private URL autoXSIconUrl = this.getClass().getResource("images/AutoXSButton.png");
+	
 	private ImageIcon _xsCloseIcon = CsdpFunctions.createScaledImageIcon(xsCloseUrl, WIDE_ICON_WIDTH, WIDE_ICON_HEIGHT);
 	private ImageIcon _cursorIcon = CsdpFunctions.createScaledImageIcon(cursorIconUrl, ICON_WIDTH, ICON_HEIGHT);
 	private ImageIcon _reverseXsectIcon = CsdpFunctions.createScaledImageIcon(reverseXsectIconUrl, ICON_WIDTH, ICON_HEIGHT);
 	private ImageIcon _movePointIcon = CsdpFunctions.createScaledImageIcon(movePointIconUrl, ICON_WIDTH, ICON_HEIGHT);
-//	private ImageIcon _addPointIcon = CsdpFunctions.createScaledImageIcon(addPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
+	//	private ImageIcon _addPointIcon = CsdpFunctions.createScaledImageIcon(addPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
 	private ImageIcon _addLeftPointIcon = CsdpFunctions.createScaledImageIcon(addLeftPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
 	private ImageIcon _addRightPointIcon = CsdpFunctions.createScaledImageIcon(addRightPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
 	private ImageIcon _insertPointIcon = CsdpFunctions.createScaledImageIcon(insertPointIconUrl, ICON_WIDTH, ICON_HEIGHT);
 	private ImageIcon _deletePointIcon = CsdpFunctions.createScaledImageIcon(deletePointIconUrl, ICON_WIDTH, ICON_HEIGHT);
 	private ImageIcon _cursorIconSelected = CsdpFunctions.createScaledImageIcon(cursorIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
 	private ImageIcon _movePointIconSelected = CsdpFunctions.createScaledImageIcon(movePointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
-//	private ImageIcon _addPointIconSelected = CsdpFunctions.createScaledImageIcon(addPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
+	//	private ImageIcon _addPointIconSelected = CsdpFunctions.createScaledImageIcon(addPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
 	private ImageIcon _addUpstreamPointIconSelected = CsdpFunctions.createScaledImageIcon(addBeginningPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
 	private ImageIcon _addDownstreamPointIconSelected = CsdpFunctions.createScaledImageIcon(addEndingPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
 	private ImageIcon _insertPointIconSelected = CsdpFunctions.createScaledImageIcon(insertPointIconSelectedUrl, ICON_WIDTH, ICON_HEIGHT);
@@ -198,7 +203,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 	private ImageIcon _colorBySourceIconSelected = CsdpFunctions.createScaledImageIcon(colorBySourceIconSelectedUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
 	private ImageIcon _colorByYearIcon = CsdpFunctions.createScaledImageIcon(colorByYearIconUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
 	private ImageIcon _colorByYearIconSelected = CsdpFunctions.createScaledImageIcon(colorByYearIconSelectedUrl, COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
-
+	private ImageIcon _autoXSIcon = CsdpFunctions.createScaledImageIcon(autoXSIconUrl, WIDE_ICON_WIDTH, WIDE_ICON_HEIGHT);
+	
 	private JRadioButton _colorByDistanceButton = new JRadioButton(_colorByDistanceIcon);
 	private JRadioButton _colorBySourceButton = new JRadioButton(_colorBySourceIcon);
 	private JRadioButton _colorByYearButton = new JRadioButton(_colorByYearIcon);
@@ -207,7 +213,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 	private JButton _reverseButton = new JButton(_reverseXsectIcon);
 	private JRadioButton _arrowButton = new JRadioButton(_cursorIcon);
 	private JRadioButton _moveButton = new JRadioButton(_movePointIcon);
-//	private JRadioButton _addButton = new JRadioButton(_addPointIcon);
+	//	private JRadioButton _addButton = new JRadioButton(_addPointIcon);
 	private JRadioButton _addLeftPointButton = new JRadioButton(_addLeftPointIcon);
 	private JRadioButton _addRightPointButton = new JRadioButton(_addRightPointIcon);
 	private JRadioButton _insertButton = new JRadioButton(_insertPointIcon);
@@ -216,14 +222,26 @@ public class XsectGraph extends JDialog implements ActionListener {
 	private JButton _restoreButton = new JButton(_restoreIcon);
 	private JButton _keepButton = new JButton(_keepIcon);
 	private JButton _cloneButton = new JButton("Clone");
+
+	// for automatic cross-section creation
+	/*
+	 * for metadata entry
+	 */
+	public static String _userInitialsString = null;
+	//	private JPanel _autoXSPanel = new JPanel(new GridLayout(1,6));
+	private JPanel _autoXSPanel = new JPanel(new FlowLayout());
+	private JButton _autoXSButton = new JButton(_autoXSIcon);
+	private SliderPanel _autoXSEpsilonSlider;
+	private JFormattedTextField _autoXSMinYearTextField;
+	private JFormattedTextField _autoXSMaxYearTextField;
 	
 	// private JButton _metadataButton = new JButton(_metadataIcon);
 
 	private ButtonGroup _colorByButtonGroup, _xsectEditButtonGroup;
 
-//	private static final Dimension _iconSize = new Dimension(25, 25);
-//	private static final Dimension _medIconSize = new Dimension(33, 25);
-//	private static final Dimension _wideIconSize = new Dimension(50, 25);
+	//	private static final Dimension _iconSize = new Dimension(25, 25);
+	//	private static final Dimension _medIconSize = new Dimension(33, 25);
+	//	private static final Dimension _wideIconSize = new Dimension(50, 25);
 
 	private static final int ICON_WIDTH = 38;
 	private static final int ICON_HEIGHT = 38;
@@ -231,11 +249,16 @@ public class XsectGraph extends JDialog implements ActionListener {
 	private static final int COLOR_BY_ICON_HEIGHT = 23;
 	private static final int WIDE_ICON_WIDTH = 60;
 	private static final int WIDE_ICON_HEIGHT = 38;
+	
 	protected boolean _restoreXsect = false;
 	protected double _thickness;
 	protected static final boolean DEBUG = false;
-
-	protected Hashtable _bathymetryDataSets = new Hashtable();
+	/*
+	 * Previously, bathymetry data sets were stored as BathymetryDataSet objects, and the cross-sections points were 
+	 * stored as a NetworkDataSet object. This was changed so that both data set types are now stored as NetworkDataSet 
+	 * objects, which simplifies things a bit. 
+	 */
+	protected Hashtable<String, NetworkDataSet> _bathymetryDataSets = new Hashtable<String, NetworkDataSet>();
 	protected int _numBathymetryDataSets = 0;
 	// protected boolean _colorByDistance = false;
 	// protected boolean _colorBySource = false;
@@ -262,11 +285,11 @@ public class XsectGraph extends JDialog implements ActionListener {
 	private JLabel _hDepthValueLabel = new JLabel();
 
 	// private JLabel _dkLabel = new JLabel();
-//	private JEditorPane _dConveyanceEditorPane = new JEditorPane();
-//	private JTextArea _dConveyanceTextArea = new JTextArea();
+	//	private JEditorPane _dConveyanceEditorPane = new JEditorPane();
+	//	private JTextArea _dConveyanceTextArea = new JTextArea();
 	private JTextPane _dConveyanceTextPane = new JTextPane();
 	private JTextArea _conveyanceCharacteristicsTextArea = new JTextArea();
-	
+
 	// private JCheckBoxMenuItem _bColorByDistance, _bColorBySource, _bColorByYear;
 	private JMenuItem _bChangePointSize;
 	private String _centerlineName = null;
@@ -282,7 +305,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 
 	// all new
 	public JTextArea _metadataJTextArea;
-//	private ResizableStringArray _metadataMessage;
+	//	private ResizableStringArray _metadataMessage;
 	private JScrollPane _metadataScrollPane;
 
 	// DefaultGraphBuilder _dgb = new DefaultGraphBuilder();
@@ -307,9 +330,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 	/*
 	 * The background color for the graph. For reports, white background is required by accessibility guidelines
 	 */
-//	private static final Color GRAPH_BACKGROUND_COLOR = Color.LIGHT_GRAY;
+	//	private static final Color GRAPH_BACKGROUND_COLOR = Color.LIGHT_GRAY;
 	private static final Color GRAPH_BACKGROUND_COLOR = Color.WHITE;
-	
+
 
 	public XsectGraph(CsdpFrame gui, App app, BathymetryData data, XsectBathymetryData xsectBathymetryData, 
 			Network net, String centerlineName, int xsectNum, double thickness, int colorOption) {
@@ -344,58 +367,59 @@ public class XsectGraph extends JDialog implements ActionListener {
 		// use this instead for JFrame
 
 		getContentPane().setLayout(new BorderLayout());
-		setPreferredSize(new Dimension(1200, 900));
+		//		setPreferredSize(new Dimension(1200, 900));
 		// setBackground(Color.gray);
 		CsdpFileMetadata metadata = CsdpFunctions.getBathymetryMetadata();
 		metadata.getVDatumString();
-//		_numPointsLabel.setText("num points");
-//		_elevationLabel.setText("Elevation, ft ("+metadata.getVDatumString());
-//		_widthLabel.setText("Width, ft");
-//		_areaLabel.setText("Area, square ft");
-//		_wetpLabel.setText("Wetted Perimeter, ft");
-//		_hDepthLabel.setText("HydraulicDepth, ft");
+		//		_numPointsLabel.setText("num points");
+		//		_elevationLabel.setText("Elevation, ft ("+metadata.getVDatumString());
+		//		_widthLabel.setText("Width, ft");
+		//		_areaLabel.setText("Area, square ft");
+		//		_wetpLabel.setText("Wetted Perimeter, ft");
+		//		_hDepthLabel.setText("HydraulicDepth, ft");
 
-		
+
 		_xsPropPanel.setLayout(new BoxLayout(_xsPropPanel, BoxLayout.Y_AXIS));
 		_xsPropPanel.setBorder(_lineBorder);
 		_xsPropPanel.add(_elevationButton);
 		_xsPropPanel.add(_conveyanceCharacteristicsTextArea);
-		
-//		_xsPropPanel.add(new JLabel());
-//		_xsPropPanel.add(_numPointsLabel);
-//		_xsPropPanel.add(_numPointsValueLabel);
-//		_xsPropPanel.add(_elevationLabel);
-//		_xsPropPanel.add(_elevationValueLabel);
-//		_xsPropPanel.add(_widthLabel);
-//		_xsPropPanel.add(_widthValueLabel);
-//		_xsPropPanel.add(_wetpLabel);
-//		_xsPropPanel.add(_wetpValueLabel);
-//		_xsPropPanel.add(_areaLabel);
-//		_xsPropPanel.add(_areaValueLabel);
-//		_xsPropPanel.add(_hDepthLabel);
-//		_xsPropPanel.add(_hDepthValueLabel);
+
+		//		_xsPropPanel.add(new JLabel());
+		//		_xsPropPanel.add(_numPointsLabel);
+		//		_xsPropPanel.add(_numPointsValueLabel);
+		//		_xsPropPanel.add(_elevationLabel);
+		//		_xsPropPanel.add(_elevationValueLabel);
+		//		_xsPropPanel.add(_widthLabel);
+		//		_xsPropPanel.add(_widthValueLabel);
+		//		_xsPropPanel.add(_wetpLabel);
+		//		_xsPropPanel.add(_wetpValueLabel);
+		//		_xsPropPanel.add(_areaLabel);
+		//		_xsPropPanel.add(_areaValueLabel);
+		//		_xsPropPanel.add(_hDepthLabel);
+		//		_xsPropPanel.add(_hDepthValueLabel);
 
 		//using a JEditorPane will make -dK red; but not laying out correctly yet
-//		_dConveyanceEditorPane.setEditable(false);
-//		_dConveyanceEditorPane.setContentType("text/html");
-//		_dConveyancePanel.setLayout(new BoxLayout(_dConveyancePanel, BoxLayout.Y_AXIS));
-//		_dConveyancePanel.setBorder(_lineBorder);
-//		_dConveyancePanel.add(_dConveyanceEditorPane);
-		
-//		GridBagLayout dConveyancePanelLayout = new GridBagLayout();
-//		GridBagConstraints dConveyancePanelGridBagConstraints = new GridBagConstraints();
-//		dConveyancePanelGridBagConstraints.gridx=0;
-//		dConveyancePanelGridBagConstraints.gridy=0;
-//		dConveyancePanelGridBagConstraints.fill=GridBagConstraints.VERTICAL;
+		//		_dConveyanceEditorPane.setEditable(false);
+		//		_dConveyanceEditorPane.setContentType("text/html");
+		//		_dConveyancePanel.setLayout(new BoxLayout(_dConveyancePanel, BoxLayout.Y_AXIS));
+		//		_dConveyancePanel.setBorder(_lineBorder);
+		//		_dConveyancePanel.add(_dConveyanceEditorPane);
+
+		//		GridBagLayout dConveyancePanelLayout = new GridBagLayout();
+		//		GridBagConstraints dConveyancePanelGridBagConstraints = new GridBagConstraints();
+		//		dConveyancePanelGridBagConstraints.gridx=0;
+		//		dConveyancePanelGridBagConstraints.gridy=0;
+		//		dConveyancePanelGridBagConstraints.fill=GridBagConstraints.VERTICAL;
 		_dConveyancePanel.setLayout(new BoxLayout(_dConveyancePanel, BoxLayout.Y_AXIS));
-//		_dConveyancePanel.setLayout(dConveyancePanelLayout);
-//		_dConveyancePanel.setBorder(_lineBorder);
+		//		_dConveyancePanel.setLayout(dConveyancePanelLayout);
+		//		_dConveyancePanel.setBorder(_lineBorder);
 
 		JScrollPane dConveyanceScrollpane = new JScrollPane(_dConveyanceTextPane,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, 
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
 		_dConveyancePanel.add(dConveyanceScrollpane);
-//		_dConveyancePanel.add(_dConveyanceEditorPane, dConveyancePanelGridBagConstraints);
-		
+		//		_dConveyancePanel.add(_dConveyanceEditorPane, dConveyancePanelGridBagConstraints);
+
 		// _xsPropPanel.add(_dkLabel);
 
 		// use this for Frame
@@ -403,8 +427,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 		// use this instead for JFrame
 
 		_metadataJTextArea = new UndoableJTextArea(_xsect.getMetadata());
-//		_metadataScrollPane = new JScrollPane(_metadata, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-//				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		//		_metadataScrollPane = new JScrollPane(_metadata, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+		//				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		_metadataJTextArea.setLineWrap(true);
 		_metadataJTextArea.setWrapStyleWord(true);
 		_metadataScrollPane = new JScrollPane(_metadataJTextArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -414,9 +438,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 		_eastPanel.add(_xsPropPanel);
 
 		_eastPanel.add(_dConveyancePanel);
-		
+
 		URL metadataIconUrl = this.getClass().getResource("images/MetadataIcon.png");
-//		ImageIcon _metadataIcon = new ImageIcon(metadataIconUrl);
+		//		ImageIcon _metadataIcon = new ImageIcon(metadataIconUrl);
 		ImageIcon _metadataIcon = CsdpFunctions.createScaledImageIcon(metadataIconUrl, WIDE_ICON_WIDTH*4, WIDE_ICON_HEIGHT);
 		JLabel _metadataLabel = new JLabel(_metadataIcon, SwingConstants.LEFT);
 
@@ -429,16 +453,18 @@ public class XsectGraph extends JDialog implements ActionListener {
 
 		updateXsectProp();
 
+		JPanel northPanel = new JPanel(new BorderLayout());
+
 		JPanel btnPanel = new JPanel();
-//		_xsCloseButton.setPreferredSize(_wideIconSize);
-//		_reverseButton.setPreferredSize(_iconSize);
-//		_arrowButton.setPreferredSize(_iconSize);
-//		_moveButton.setPreferredSize(_iconSize);
-//		_addButton.setPreferredSize(_iconSize);
-//		_insertButton.setPreferredSize(_iconSize);
-//		_deleteButton.setPreferredSize(_iconSize);
-//		_keepButton.setPreferredSize(_medIconSize);
-//		_restoreButton.setPreferredSize(_wideIconSize);
+		//		_xsCloseButton.setPreferredSize(_wideIconSize);
+		//		_reverseButton.setPreferredSize(_iconSize);
+		//		_arrowButton.setPreferredSize(_iconSize);
+		//		_moveButton.setPreferredSize(_iconSize);
+		//		_addButton.setPreferredSize(_iconSize);
+		//		_insertButton.setPreferredSize(_iconSize);
+		//		_deleteButton.setPreferredSize(_iconSize);
+		//		_keepButton.setPreferredSize(_medIconSize);
+		//		_restoreButton.setPreferredSize(_wideIconSize);
 		// _metadataButton.setPreferredSize(_medIconSize);
 
 		btnPanel.setLayout(new FlowLayout());
@@ -468,7 +494,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		btnPanel.add(_reverseButton);
 		btnPanel.add(_arrowButton);
 		btnPanel.add(_moveButton);
-//		btnPanel.add(_addButton);
+		//		btnPanel.add(_addButton);
 		btnPanel.add(_addLeftPointButton);
 		btnPanel.add(_addRightPointButton);
 		btnPanel.add(_insertButton);
@@ -481,11 +507,64 @@ public class XsectGraph extends JDialog implements ActionListener {
 		btnPanel.add(_restoreButton);
 		btnPanel.add(_cloneButton);
 
+		northPanel.add(btnPanel, BorderLayout.WEST);
 
+		//configure epsilon slider. Epsilon is a variable used in the line simplification algorithm.
+		//A lower value uses more points, and a higher value uses fewer points.
+		EpsilonChangeListener epsilonChangeListener = new EpsilonChangeListener(this);
+		Hashtable<Integer, JLabel> labelValues = new Hashtable<Integer, JLabel>();
+		labelValues.put(new Integer(0), new JLabel("0"));
+		labelValues.put(new Integer(20), new JLabel("2"));
+		labelValues.put(new Integer(40), new JLabel("4"));
+		labelValues.put(new Integer(60), new JLabel("6"));
+		labelValues.put(new Integer(80), new JLabel("8"));
+		labelValues.put(new Integer(100), new JLabel("10"));
+		
+		_autoXSEpsilonSlider = new SliderPanel("epsilon", epsilonChangeListener, labelValues, 
+				LineSimplification.MIN_EPSILON, LineSimplification.MAX_EPSILON,
+				CsdpFunctions.RAMER_DOUGLAS_PEUCKER_EPSILON, 10.0);
+
+		NumberFormat numberFormat = NumberFormat.getIntegerInstance();
+		numberFormat.setGroupingUsed(false);
+		
+		_autoXSMinYearTextField = new JFormattedTextField(numberFormat);
+		_autoXSMaxYearTextField = new JFormattedTextField(numberFormat);
+		_autoXSMinYearTextField.setEnabled(false);
+		_autoXSMaxYearTextField.setEnabled(false);
+		_autoXSMinYearTextField.setValue(CsdpFunctions.AUTO_XS_MIN_YEAR);
+		_autoXSMaxYearTextField.setValue(CsdpFunctions.AUTO_XS_MAX_YEAR);
+		_autoXSMinYearTextField.addActionListener(new MinMaxYearFieldListener(this, _autoXSMinYearTextField, MinMaxYearFieldListener.MIN));
+		_autoXSMaxYearTextField.addActionListener(new MinMaxYearFieldListener(this, _autoXSMaxYearTextField, MinMaxYearFieldListener.MAX));
+		
+		_autoXSPanel.setBorder(_raisedBevel);
+		_autoXSPanel.add(_autoXSButton);
+
+		_autoXSPanel.add(_autoXSEpsilonSlider);
+
+		JPanel minYearPanel = new JPanel(new FlowLayout());
+		minYearPanel.setBorder(_raisedBevel);
+		minYearPanel.add(new JLabel("Min Year", SwingConstants.RIGHT));
+		minYearPanel.add(_autoXSMinYearTextField);
+		_autoXSPanel.add(minYearPanel);
+
+		JPanel maxYearPanel = new JPanel(new FlowLayout());
+		maxYearPanel.setBorder(_raisedBevel);
+		maxYearPanel.add(new JLabel("Max Year", SwingConstants.RIGHT));
+		maxYearPanel.add(_autoXSMaxYearTextField);
+		_autoXSPanel.add(maxYearPanel);
+//		_autoXSPanel.add(new JLabel("Min Year", SwingConstants.RIGHT));
+//		_autoXSPanel.add(_autoXSMinYearTextField);
+		
+//		_autoXSPanel.add(new JLabel("Max Year", SwingConstants.RIGHT));
+//		_autoXSPanel.add(_autoXSMaxYearTextField);
+		
+		northPanel.add(_autoXSPanel, BorderLayout.SOUTH);
+
+		
 		// btnPanel.add(_metadataButton);
 		_arrowButton.setSelectedIcon(_cursorIconSelected);
 		_moveButton.setSelectedIcon(_movePointIconSelected);
-//		_addButton.setSelectedIcon(_addPointIconSelected);
+		//		_addButton.setSelectedIcon(_addPointIconSelected);
 		_addLeftPointButton.setSelectedIcon(_addUpstreamPointIconSelected);
 		_addRightPointButton.setSelectedIcon(_addDownstreamPointIconSelected);
 		_insertButton.setSelectedIcon(_insertPointIconSelected);
@@ -493,7 +572,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		_xsectEditButtonGroup = new ButtonGroup();
 		_xsectEditButtonGroup.add(_arrowButton);
 		_xsectEditButtonGroup.add(_moveButton);
-//		_xsectEditButtonGroup.add(_addButton);
+		//		_xsectEditButtonGroup.add(_addButton);
 		_xsectEditButtonGroup.add(_addLeftPointButton);
 		_xsectEditButtonGroup.add(_addRightPointButton);
 		_xsectEditButtonGroup.add(_insertButton);
@@ -502,13 +581,14 @@ public class XsectGraph extends JDialog implements ActionListener {
 		// use this for Frame
 		// add("North", btnPanel);
 		// use this instead for JFrame
-		getContentPane().add("North", btnPanel);
+		//		getContentPane().add("North", btnPanel);
+		getContentPane().add("North", northPanel);
 
 		_xsCloseButton.setToolTipText("close cross-section");
 		_reverseButton.setToolTipText("reverse cross-section drawing  ");
 		_arrowButton.setToolTipText("turn off edit mode");
 		_moveButton.setToolTipText("move point  ");
-//		_addButton.setToolTipText("add point  ");
+		//		_addButton.setToolTipText("add point  ");
 		_addLeftPointButton.setToolTipText("add left point ");
 		_addRightPointButton.setToolTipText("add right point  ");
 		_insertButton.setToolTipText("insert point  ");
@@ -557,20 +637,20 @@ public class XsectGraph extends JDialog implements ActionListener {
 				// plot.getAxis(AxisAttr.BOTTOM).setAxisLabel("Distance Along
 				// Cross-Section Line, feet");
 				// plot.getAxis(AxisAttr.LEFT).setAxisLabel("Elevation(NGVD), ft");
-		
+
 				// TickGenerator tg = new SimpleTickGenerator();
-		
+
 				// plot.getAxis(AxisAttr.BOTTOM).setTickGenerator(tg);
 				// plot.getAxis(AxisAttr.LEFT).setTickGenerator(tg);
-		
+
 				// AxisAttr aa =
 				// (AxisAttr)plot.getAxis(AxisAttr.BOTTOM).getAttributes();
 				// aa._tickLocation = AxisAttr.INSIDE;
 				// aa = (AxisAttr) plot.getAxis(AxisAttr.LEFT).getAttributes();
 				// aa._tickLocation = AxisAttr.BOTH;
-		
+
 				// _graph.addGrid();
-		
+
 				// //use this for Frame
 				// // add("Center", _gC);
 				// //use instead for JFrame
@@ -586,6 +666,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		if(newDummyXsect) {
 			getXsect().setIsUpdated(true);
 		}
+		updateDisplay();
 	}// constructor
 
 	private void printGraphInfo(String a) {
@@ -663,7 +744,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 		plot.setInsets(new java.awt.Insets(20, 5, 20, 50));
 
 		// now add dataReferences
-		//the _refs array contains DefaultReference objects, each containing a bathymetry data set, with the last being a network data set
+		//the _refs array contains DefaultReference objects, each containing a bathymetry data set (which is actually a NetworkDataSet), 
+		// with the last being a network data set
 		//the network data set will always be black points connected by black lines, and will be editable.
 		_refs = new DataReference[ncurves];
 		for (int i = 0; i <= _numBathymetryDataSets - 1; i++) {
@@ -681,9 +763,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 			_refs[0]= new DefaultReference((NetworkDataSet)_networkDataSet); 
 			newDummyXsect = true;
 		}
-		
+
 		_info = new GraphBuilderInfo(_refs, MainProperties.getProperties());
-		
+
 		for (int i = 0; i < _refs.length; i++) {
 			int xPos = _info.getXAxisPosition(_refs[i]);
 			int yPos = _info.getYAxisPosition(_refs[i]);
@@ -871,7 +953,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 			double sd = (double) getPointSize();
 			double nds = (double) _numBathymetryDataSets;
 			double fi = (double) i;
-//			symbolDimf = (sd / 2.0 * ((nds - fi) / 4.0f)) + 1.0;
+			//			symbolDimf = (sd / 2.0 * ((nds - fi) / 4.0f)) + 1.0;
 			//reversing order: make symbol for lower values smaller.
 			symbolDimf = (sd / 2.0 * (fi / 4.0f)) + 1.0;
 			// symbolDim = (getPointSize()/2 *
@@ -919,7 +1001,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		JMenuBar menubar;
 
 		JMenu xgXsect, xgBathymetry, xgEdit;
-		JMenuItem xReverse, xKeep, xRestore, xPrint, xSaveToImage, xClose;
+		JMenuItem xReverse, xKeep, xRestore, xPrint, xSaveToImage, xClose, xAutoCreate;
 		// , xMetadata;
 		menubar = new JMenuBar();
 		this.setJMenuBar(menubar);
@@ -937,8 +1019,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 		// xgXsect.add(xRestore = new JMenuItem("Restore Xsect"));
 		// xRestore.setAccelerator
 		// (KeyStroke.getKeyStroke(KeyEvent.VK_E, ActionEvent.CTRL_MASK));
+		xgXsect.add(xAutoCreate = new JMenuItem("Auto create xs"));
 		xgXsect.add(xSaveToImage = new JMenuItem("Save to Image file"));
-//		xgXsect.add(xPrint = new JMenuItem("Print Xsect"));
+		//		xgXsect.add(xPrint = new JMenuItem("Print Xsect"));
 		// xgXsect.add(xMetadata = new JMenuItem("Metadata"));
 		xgXsect.add(xClose = new JMenuItem("Close"));
 		xClose.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK));
@@ -988,11 +1071,12 @@ public class XsectGraph extends JDialog implements ActionListener {
 		ActionListener xKeepListener = xsectEditMenu.new XKeep();
 		ActionListener xRestoreListener = xsectEditMenu.new XRestore();
 		ActionListener xChangeElevationListener = xsectEditMenu.new XChangeElevation();
+		ActionListener xAutoCreateListener = xsectEditMenu.new XAutoCreate(this);
 		ActionListener xSaveToImageListener = xsectEditMenu.new XSaveToImage(this);
 		ActionListener xPrintListener = xsectEditMenu.new XPrint(this);
 		EventListener xCloseListener = xsectEditMenu.new XClose();
 		ItemListener xMovePointListener = xsectEditMenu.new XMovePoint();
-//		ItemListener xAddPointListener = xsectEditMenu.new XAddPoint();
+		//		ItemListener xAddPointListener = xsectEditMenu.new XAddPoint();
 		ItemListener xAddBeginningPointListener = xsectEditMenu.new XAddPoint();
 		ItemListener xAddEndingPointListener = xsectEditMenu.new XAddPoint();
 		ItemListener xInsertPointListener = xsectEditMenu.new XInsertPoint();
@@ -1000,9 +1084,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 		ItemListener xStopEditListener = xsectEditMenu.new XStopEdit();
 		ActionListener xMoveXsectXListener = xsectEditMenu.new XMoveXsectX(_moveXsectXField, _xsect);
 		ActionListener xMoveXsectYListener = xsectEditMenu.new XMoveXsectY(_moveXsectYField, _xsect);
-		
+
 		ActionListener xCloneListener = xsectEditMenu.new CloneXsect(_gui, _app, _centerlineName, this);
-		
+
 		DocumentListener xMetadataListener =
 				// xsectEditMenu.new XMetadata(_centerlineName, _xsectNum,
 				// _xsect,_gui);
@@ -1013,6 +1097,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 		// xKeep.addActionListener(xKeepListener);
 		// xRestore.addActionListener(xRestoreListener);
 		_elevationButton.addActionListener(xChangeElevationListener);
+		xAutoCreate.addActionListener(xAutoCreateListener);
+		_autoXSButton.addActionListener(xAutoCreateListener);
 		xSaveToImage.addActionListener(xSaveToImageListener);
 		//		xPrint.addActionListener(xPrintListener);
 		xClose.addActionListener((ActionListener) xCloseListener);
@@ -1020,8 +1106,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 		addWindowListener((WindowListener) xCloseListener);
 		_xsCloseButton.addActionListener((ActionListener) xCloseListener);
 
+
 		_moveButton.addItemListener(xMovePointListener);
-//		_addButton.addItemListener(xAddPointListener);
+		//		_addButton.addItemListener(xAddPointListener);
 		_addLeftPointButton.addItemListener(xAddBeginningPointListener);
 		_addRightPointButton.addItemListener(xAddEndingPointListener);
 		_insertButton.addItemListener(xInsertPointListener);
@@ -1029,7 +1116,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 		_arrowButton.addItemListener(xStopEditListener);
 
 		_moveButton.addItemListener(xMovePointListener);
-//		_addButton.addItemListener(xAddPointListener);
+		//		_addButton.addItemListener(xAddPointListener);
 		_addLeftPointButton.addItemListener(xAddBeginningPointListener);
 		_addRightPointButton.addItemListener(xAddEndingPointListener);
 		_insertButton.addItemListener(xInsertPointListener);
@@ -1220,7 +1307,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 	 */
 	protected void setAllButtonsTrue() {
 		_moveButton.setEnabled(true);
-//		_addButton.setEnabled(true);
+		//		_addButton.setEnabled(true);
 		_addLeftPointButton.setEnabled(true);
 		_addRightPointButton.setEnabled(true);
 		_insertButton.setEnabled(true);
@@ -1247,13 +1334,13 @@ public class XsectGraph extends JDialog implements ActionListener {
 			_networkDataSet = new NetworkDataSet("Network", x, y);
 		}
 	}// make network data set
-	
+
 	/*
 	 * This is for XsectEditInteractor, which needs to use pixel coordinates in 
 	 * move point mode to determine which point the user wants to move.
 	 */
 	public NetworkDataSet getNetworkDataSet() {return _networkDataSet;}
-	
+
 	/*
 	 * Makes a network data when there is no bathymetry data and there are no cross-section points.
 	 */
@@ -1264,9 +1351,121 @@ public class XsectGraph extends JDialog implements ActionListener {
 		_xsect.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, (float) x[1], (float)y[1]);
 		_xsect.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, (float) x[2], (float)y[2]);
 		_xsect.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, (float) x[3], (float)y[3]);
-//		_xsect.setIsUpdated(true);
+		//		_xsect.setIsUpdated(true);
 		_networkDataSet = new NetworkDataSet("Network",  x, y);
 	}
+
+	/**
+	 * For creating an automatic cross-section
+	 * @param minYear
+	 * @return
+	 */
+	private double[][] makeBathymetryArrayForAutoXS(int minYear, int maxYear) {
+		int numBathymetryValues = _xsectBathymetryData.getNumEnclosedValues();
+		int numDataSets = 0;
+		double[] point = new double[2];
+		int pointIndex = 0;
+		String dataSetName = null;
+		_numBathymetryDataSets = 0;
+		double distanceBinSize = 0.0;
+		double[] bPoint = new double[3];
+		double[] sePoint = new double[2];
+
+		double[] xsectLine = _net.findXsectLineCoord(_centerlineName, _xsectNum);
+
+		double x1 = xsectLine[CsdpFunctions.x1Index];
+		double y1 = xsectLine[CsdpFunctions.y1Index];
+		double x2 = xsectLine[CsdpFunctions.x2Index];
+		double y2 = xsectLine[CsdpFunctions.y2Index];
+		if(DEBUG) {
+			System.out.println("got xsectLine. _centerlineName, _xsectNum, x1,y1,x2,y2=" + 
+					_centerlineName + "," + _xsectNum + "," + x1 + "," + y1 + "," + x2 + "," + y2);
+		}
+		numDataSets = _bathymetryData.getNumYears();
+
+
+//		double[] stationArray = new double[numBathymetryValues];
+//		double[] elevationArray = new double[numBathymetryValues];
+
+		ResizableDoubleArray stationRDA = new ResizableDoubleArray();
+		ResizableDoubleArray elevationRDA = new ResizableDoubleArray();
+		
+		double[] yearArray = new double[numBathymetryValues];
+		int index = 0;
+
+		//		for (int i = 0; i <= numDataSets - 1; i++) {
+		double binValue = 0.0;
+		double dist = 0.0;
+
+		// find name of data set(distance, year, or source)
+		//		dataSetName = Short.toString(_bathymetryData.getYear(i));
+
+		HashSet<String> rejectedPointSet = new HashSet<String>();
+		// beginning of new dataSet, so set index to zero.
+		AsciiFileWriter aFileWriter = new AsciiFileWriter(_gui, "d:/temp/0xspoints_"+minYear+"_"+maxYear+".csv");
+		for (int j = 0; j < numBathymetryValues; j++) {
+			pointIndex = _xsectBathymetryData.getEnclosedPointIndex(j);
+			_bathymetryData.getPointFeet(pointIndex, bPoint);
+			double x3 = bPoint[CsdpFunctions.xIndex];
+			double y3 = bPoint[CsdpFunctions.yIndex];
+
+//			dist = CsdpFunctions.shortestDistLineSegment(x1, x2, x3, y1, y2, y3);
+			// if the distance from the point to the cross-section line is
+			// within the range defined by the binValue, add it to the
+			// dataset
+			int yearIndex = _bathymetryData.getYearIndex(pointIndex);
+			short year = _bathymetryData.getYear(yearIndex);
+			if (year>=minYear && year<=maxYear){
+//				if (dist < Double.MAX_VALUE) {
+					_xsectBathymetryData.getEnclosedStationElevation(j, sePoint);
+//					stationArray[index]=((double) sePoint[stationIndex]);
+//					elevationArray[index]=((double) sePoint[elevationIndex]);
+					stationRDA.put(index, sePoint[stationIndex]);
+					elevationRDA.put(index, sePoint[elevationIndex]);
+					aFileWriter.writeLine(index+","+sePoint[stationIndex]+","+sePoint[elevationIndex]+","+minYear+","+maxYear+","+year);
+					index++;
+//				} // else if
+			}else {
+				rejectedPointSet.add(minYear+","+maxYear+","+year);
+//				System.out.println("rejecting point: minyear, maxyear, year:"+minYear+","+maxYear+","+year);
+			}
+		} // for j: looping through all enclosed bathymetry points
+		aFileWriter.close();
+
+		Iterator<String> iterator = rejectedPointSet.iterator();
+		
+		while(iterator.hasNext()) {
+			System.out.println(iterator.next());
+		}
+		
+		double[] stationArray = stationRDA.getArray();
+		double[] elevationArray = elevationRDA.getArray();
+		
+		//		} // for i
+		//now sort the return arrays by station in ascending order
+		//		double[][] sortedArrays = {stationArray, elevationArray};
+
+		CsdpFunctions.qsort(stationArray, elevationArray, 0, index-1);
+
+		//		AsciiFileWriter asciiFileWriter = new AsciiFileWriter(_gui, "d:/temp/sortedData.txt");
+		//		for (int i=0; i<stationArray.length; i++) {
+		//			asciiFileWriter.writeLine(stationArray[i]+","+elevationArray[i]);
+		//		}
+		//		asciiFileWriter.close();
+		//		
+		//		System.exit(0);
+
+		double[][] returnArrays = {stationArray, elevationArray};
+		//		returnArrays = CsdpFunctions.qsort(returnArrays, 0, dataSetPointIndex-1);
+
+		//		returnArrays[0] = stationArray;
+		//		returnArrays[1] = elevationArray;
+
+		
+		System.out.println("end of makeBathymetryArrayForAutoXS: sizes of station, elevation arrays, index: "+stationArray.length+","+elevationArray.length+","+index);
+		
+		return returnArrays;
+	}// makeBathymetryArrayForAutoXS
 
 	/**
 	 * Make NetworkDataSets to store bathymetry data to be plotted. Each set
@@ -1291,14 +1490,14 @@ public class XsectGraph extends JDialog implements ActionListener {
 		double[] sePoint = new double[2];
 
 		double[] xsectLine = _net.findXsectLineCoord(_centerlineName, _xsectNum);
-		
+
 		double x1 = xsectLine[CsdpFunctions.x1Index];
 		double y1 = xsectLine[CsdpFunctions.y1Index];
 		double x2 = xsectLine[CsdpFunctions.x2Index];
 		double y2 = xsectLine[CsdpFunctions.y2Index];
 		if(DEBUG) {
 			System.out.println("got xsectLine. _centerlineName, _xsectNum, x1,y1,x2,y2=" + 
-				_centerlineName + "," + _xsectNum + "," + x1 + "," + y1 + "," + x2 + "," + y2);
+					_centerlineName + "," + _xsectNum + "," + x1 + "," + y1 + "," + x2 + "," + y2);
 		}
 		// find number of series (number of colors to use in graph)
 		// why use number of colors?
@@ -1338,12 +1537,12 @@ public class XsectGraph extends JDialog implements ActionListener {
 
 			// find name of data set(distance, year, or source)
 			if (getColorByDistanceMode()) {
-//				binValue = distanceBinSize * (i);
+				//				binValue = distanceBinSize * (i);
 				//reverse order of bins. This will make further away points plot first, putting closer points on top of them.
 				binValue = distanceBinSize*(numDataSets - i-1);
-				
+
 				dataSetName = Double.toString(binValue) + " ft from Cross-section line";
-//				System.out.println("dataSetName="+dataSetName);
+				//				System.out.println("dataSetName="+dataSetName);
 			} else if (getColorBySourceMode())
 				dataSetName = _bathymetryData.getSource(i);
 			else if (getColorByYearMode())
@@ -1480,12 +1679,12 @@ public class XsectGraph extends JDialog implements ActionListener {
 			ccString += String.format("%-22s", "Area, sq ft") + "\t\t"+ String.format("%.2f", area) +"\n";
 			ccString += String.format("%-22s", "Wetted Perimeter, ft") + "\t"+ String.format("%.2f", wetp) +"\n";
 			ccString += String.format("%-22s", "Hydraulic Depth, ft") + "\t"+ String.format("%.2f", hDepth) +"\n";
-//			_numPointsLabel.setText("num points");
-//			_elevationLabel.setText("Elevation, ft ("+metadata.getVDatumString());
-//			_widthLabel.setText("Width, ft");
-//			_areaLabel.setText("Area, square ft");
-//			_wetpLabel.setText("Wetted Perimeter, ft");
-//			_hDepthLabel.setText("HydraulicDepth, ft");
+			//			_numPointsLabel.setText("num points");
+			//			_elevationLabel.setText("Elevation, ft ("+metadata.getVDatumString());
+			//			_widthLabel.setText("Width, ft");
+			//			_areaLabel.setText("Area, square ft");
+			//			_wetpLabel.setText("Wetted Perimeter, ft");
+			//			_hDepthLabel.setText("HydraulicDepth, ft");
 			_conveyanceCharacteristicsTextArea.setText(ccString);
 		}
 	}//updateXsectProp
@@ -1556,91 +1755,321 @@ public class XsectGraph extends JDialog implements ActionListener {
 	/*
 	 * Copied from https://stackoverflow.com/questions/9650992/how-to-change-text-color-in-the-jtextarea
 	 */
-    private void appendToPane(JTextPane tp, String msg, Color foregroundColor, Color backgroundColor)
-    {
-        StyleContext sc = StyleContext.getDefaultStyleContext();
-        AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, foregroundColor);
-        aset = sc.addAttribute(aset, StyleConstants.Background, backgroundColor);
-        aset = sc.addAttribute(aset, StyleConstants.FontFamily, "Lucida Console");
-        aset = sc.addAttribute(aset, StyleConstants.Alignment, StyleConstants.ALIGN_JUSTIFIED);
+	private void appendToPane(JTextPane tp, String msg, Color foregroundColor, Color backgroundColor)
+	{
+		StyleContext sc = StyleContext.getDefaultStyleContext();
+		AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, foregroundColor);
+		aset = sc.addAttribute(aset, StyleConstants.Background, backgroundColor);
+		aset = sc.addAttribute(aset, StyleConstants.FontFamily, "Lucida Console");
+		aset = sc.addAttribute(aset, StyleConstants.Alignment, StyleConstants.ALIGN_JUSTIFIED);
 
-        int len = tp.getDocument().getLength();
-        tp.setCaretPosition(len);
-        tp.setCharacterAttributes(aset, false);
-        tp.replaceSelection(msg);
-    }
+		int len = tp.getDocument().getLength();
+		tp.setCaretPosition(len);
+		tp.setCharacterAttributes(aset, false);
+		tp.replaceSelection(msg);
+	}
 
-	
+
 	//	/*
-//	 * Recalculates the dConveyance values and updates the display
-//	 */
-//	private void updateDConveyanceDisplay() {
-//		if(_xsect.getNumPoints()>0) {
-//			double[] dConveyanceValues = _xsect.getDConveyanceValues();
-//			double[] areaValues = _xsect.getAreaValues();
-//			double[] widthValues = _xsect.getWidthValues();
-//			double[] wetPValues = _xsect.getWetPValues();
-//			double[] elevations = _xsect.getSortedUniqueElevations();
-//			String dConveyanceString = "Elevation\tdConveyance\tarea\twidth\twet_p\n"
-//					+ "--------------------------------------------------------------------------------------------------------\n";
-//			//add dConveyance values in reverse order
-//			for(int i=elevations.length-1; i>=0; i--) {
-//				dConveyanceString += String.format("%.2f", elevations[i])+
-//						"\t"+String.format("%.2f", dConveyanceValues[i])+
-//						"\t"+String.format("%.2f", areaValues[i])+
-//						"\t"+String.format("%.2f", widthValues[i])+
-//						"\t"+String.format("%.2f", wetPValues[i])+"\n";
-//			}
-//			_dConveyanceTextArea.setText(dConveyanceString);
-//		}
-//	}//updateDConveyanceDisplay
-	
+	//	 * Recalculates the dConveyance values and updates the display
+	//	 */
+	//	private void updateDConveyanceDisplay() {
+	//		if(_xsect.getNumPoints()>0) {
+	//			double[] dConveyanceValues = _xsect.getDConveyanceValues();
+	//			double[] areaValues = _xsect.getAreaValues();
+	//			double[] widthValues = _xsect.getWidthValues();
+	//			double[] wetPValues = _xsect.getWetPValues();
+	//			double[] elevations = _xsect.getSortedUniqueElevations();
+	//			String dConveyanceString = "Elevation\tdConveyance\tarea\twidth\twet_p\n"
+	//					+ "--------------------------------------------------------------------------------------------------------\n";
+	//			//add dConveyance values in reverse order
+	//			for(int i=elevations.length-1; i>=0; i--) {
+	//				dConveyanceString += String.format("%.2f", elevations[i])+
+	//						"\t"+String.format("%.2f", dConveyanceValues[i])+
+	//						"\t"+String.format("%.2f", areaValues[i])+
+	//						"\t"+String.format("%.2f", widthValues[i])+
+	//						"\t"+String.format("%.2f", wetPValues[i])+"\n";
+	//			}
+	//			_dConveyanceTextArea.setText(dConveyanceString);
+	//		}
+	//	}//updateDConveyanceDisplay
+
 	//This will make -dK values red, but not layout out correctly yet.
 	//need to figure out how to add horizontal, but not vertical spacing between cells,
 	//and to prevent text from getting cut off at the bottom
-//	/*
-//	 * Recalculates the dConveyance values and updates the display
-//	 */
-//	private void updateDConveyanceDisplay() {
-//		if(_xsect.getNumPoints()>0) {
-//			double[] dConveyanceValues = _xsect.getDConveyanceValues();
-//			double[] areaValues = _xsect.getAreaValues();
-//			double[] widthValues = _xsect.getWidthValues();
-//			double[] wetPValues = _xsect.getWetPValues();
-//			double[] elevations = _xsect.getSortedUniqueElevations();
-//			String dConveyanceString = "<html><BODY><TABLE cellspacing=\"0\" cellpadding=\"0\">"
-//					+ "<TR><TD><b>Elevation</b></TD>"
-//					+ "<TD><b>dConveyance</b></TD>"
-//					+ "<TD><b>Area</b></TD>"
-//					+ "<TD><b>Width</b></TD>"
-//					+ "<TD><b>WetP</b></TD></TR>";
-//			//add dConveyance values in reverse order
-//			for(int i=elevations.length-1; i>=0; i--) {
-//				double dK = dConveyanceValues[i];
-//				String dKString = null;
-//				if(dK<0) {
-//					dKString = "<font color=red>"+String.format("%.2f", dK)+"</font>";
-//				}else {
-//					dKString = String.format("%.2f", dK);
-//				}
-//				dConveyanceString+="<TR>";
-//				dConveyanceString += "<TD>"+String.format("%.2f", elevations[i])+"</TD>"+
-//					"<TD>"+dKString+"</TD>"+
-//					"<TD>"+String.format("%.2f", areaValues[i])+"</TD>"+
-//					"<TD>"+String.format("%.2f", widthValues[i])+"</TD>"+
-//					"<TD>"+String.format("%.2f", wetPValues[i])+"</TD>";
-//				dConveyanceString+="</TR>";
-//			}
-//			dConveyanceString+="</TABLE></BODY></html>\n\n";
-//			_dConveyanceEditorPane.setText(dConveyanceString);
-//		}
-//	}//updateDConveyanceDisplay
-	
+	//	/*
+	//	 * Recalculates the dConveyance values and updates the display
+	//	 */
+	//	private void updateDConveyanceDisplay() {
+	//		if(_xsect.getNumPoints()>0) {
+	//			double[] dConveyanceValues = _xsect.getDConveyanceValues();
+	//			double[] areaValues = _xsect.getAreaValues();
+	//			double[] widthValues = _xsect.getWidthValues();
+	//			double[] wetPValues = _xsect.getWetPValues();
+	//			double[] elevations = _xsect.getSortedUniqueElevations();
+	//			String dConveyanceString = "<html><BODY><TABLE cellspacing=\"0\" cellpadding=\"0\">"
+	//					+ "<TR><TD><b>Elevation</b></TD>"
+	//					+ "<TD><b>dConveyance</b></TD>"
+	//					+ "<TD><b>Area</b></TD>"
+	//					+ "<TD><b>Width</b></TD>"
+	//					+ "<TD><b>WetP</b></TD></TR>";
+	//			//add dConveyance values in reverse order
+	//			for(int i=elevations.length-1; i>=0; i--) {
+	//				double dK = dConveyanceValues[i];
+	//				String dKString = null;
+	//				if(dK<0) {
+	//					dKString = "<font color=red>"+String.format("%.2f", dK)+"</font>";
+	//				}else {
+	//					dKString = String.format("%.2f", dK);
+	//				}
+	//				dConveyanceString+="<TR>";
+	//				dConveyanceString += "<TD>"+String.format("%.2f", elevations[i])+"</TD>"+
+	//					"<TD>"+dKString+"</TD>"+
+	//					"<TD>"+String.format("%.2f", areaValues[i])+"</TD>"+
+	//					"<TD>"+String.format("%.2f", widthValues[i])+"</TD>"+
+	//					"<TD>"+String.format("%.2f", wetPValues[i])+"</TD>";
+	//				dConveyanceString+="</TR>";
+	//			}
+	//			dConveyanceString+="</TABLE></BODY></html>\n\n";
+	//			_dConveyanceEditorPane.setText(dConveyanceString);
+	//		}
+	//	}//updateDConveyanceDisplay
+
+	/**
+	 * Automatically creates cross-section, by averaging nearby bathymetry data. Similar to code in XsectEditInteractor.addPoint method
+	 */
+	public void averageBathymetryForAutoXS() {
+		//find range of bathymetry data point station coordinates
+		//divide range into number of portions equal to numAutoXSPoints-1. 
+		//exclude points with year after autoXSMinYear
+		//from remaining points, calculate average elevation coordinate
+		_colorByYearButton.doClick();
+		int numAutoXSPoints = 200;
+
+		double[][] bathymetryArrays = makeBathymetryArrayForAutoXS(CsdpFunctions.AUTO_XS_MIN_YEAR, CsdpFunctions.AUTO_XS_MAX_YEAR);
+		double[] stationArray = bathymetryArrays[0];
+		double[] elevationArray = bathymetryArrays[1];
+		
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		//Now create arrays of points that are elevation averages.
+		//Divide the bathymetry data spatially into averaging ranges, with each range being of equal length,
+		//and defined by a minimum and maximum station value.
+		//Create an averaged elevation point, whose station value is in the middle of the averaging range.
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		double minX = stationArray[0];
+		double maxX = stationArray[stationArray.length-1];
+		double averagingRangeSize = (maxX-minX)/numAutoXSPoints; //the size of the averaging range
+		double[] averagingRangeMinX = new double[numAutoXSPoints]; //the left hand boundary of the averaging range
+		double[] averagingRangeMaxX = new double[numAutoXSPoints]; //the right hand boundary of the averaging range
+		//store the station and elevation values of the averaged points. We don't know how many points there will be at this point, because 
+		//there may be no bathymtry points in some averaging ranges.
+		ResizableDoubleArray averagedStationsRDA = new ResizableDoubleArray(); 
+		ResizableDoubleArray averagedElevationsRDA = new ResizableDoubleArray();
+		//the index of the averaging point that is "good", meaning that at least one bathymetry point was found in the averaging range
+		int goodAveragePointIndex = 0; 
+
+		for(int i=0; i<numAutoXSPoints; i++) {
+			double startX = minX + (double)i*averagingRangeSize;
+			double endX = startX+averagingRangeSize;
+			averagingRangeMinX[i] = startX; 
+			averagingRangeMaxX[i] = endX; 
+		}
+
+		int averagingRangeIndex = 0; // the index of the current averaging range
+		double avg = 0.0; //the average for the current averaging range
+		int averagingIndex=0; // the index of the current point in the current averaging range
+		double averagingPointMinX = Double.MAX_VALUE; //the left hand boundary of the current averaging range
+		double averagingPointMaxX = -Double.MAX_VALUE; //the right hand boundary of the current averaging range
+
+		// loop through all bathymetry points, and calculate averages
+		for(int i=0; i<stationArray.length; i++) {
+			averagingPointMinX = averagingRangeMinX[averagingRangeIndex];
+			averagingPointMaxX = averagingRangeMaxX[averagingRangeIndex];
+			double x = stationArray[i];
+			double y = elevationArray[i];
+
+			if(x < averagingPointMaxX) {
+				//the current point is inside the current averaging range. Adjust average and increment averagingIndex
+				avg = (avg*(double)averagingIndex + y)/(double)(averagingIndex+1.0);
+				averagingIndex++;
+			}else {
+				if(averagingIndex>0) {
+					//the current point is outside (to the right of) the current averaging range, 
+					//but some points in the averaging range have already been found.
+					//Add the averaged point to the averaged bathymetry arrays, and increment the goodAveragePointIndex
+					averagedStationsRDA.put(goodAveragePointIndex, averagingPointMinX+0.5*averagingRangeSize);
+					averagedElevationsRDA.put(goodAveragePointIndex, avg);
+					goodAveragePointIndex++;
+				}else {
+					//the current point is outside (to the right of) the current averaging range, and
+					//there were no points found in the current averaging range. 
+					//Loop through the averaging ranges until finding one that contains the current bathymetry point.
+					while(x > averagingPointMaxX && averagingRangeIndex<averagingRangeMinX.length-1) {
+						averagingRangeIndex++;
+						averagingPointMaxX = averagingRangeMaxX[averagingRangeIndex];
+						x = stationArray[i];
+					}
+				}
+				avg=0.0;
+				averagingIndex=0;
+				if(averagingRangeIndex<averagingRangeMinX.length-1)
+					averagingRangeIndex++;
+			}
+		}
+
+		//now create averaged points array, which stores points using 1 array for each coordinate pair (station, elevation)
+		double[] averagedStations = averagedStationsRDA.getArray();
+		double[] averagedElevations = averagedElevationsRDA.getArray();
+		_averagedBathymetryPoints = new double[averagedStations.length][2];
+		for(int i=0; i<averagedStations.length; i++) {
+			_averagedBathymetryPoints[i][0] = averagedStations[i];
+			_averagedBathymetryPoints[i][1] = averagedElevations[i];
+		}
+		System.out.println("num averaged stations, elevations="+averagedStations.length+","+averagedElevations.length);
+	}//averageBathymetryForAutoXS
+
+	/*
+	 * Must be called after averageBathymetryForAutoXS. Creates the cross-section drawing using the previous epsilon value.
+	 * Called when the create xs button is clicked or when epsilon, min year, or max year are called.
+	 */
+	public void createAutoXS() {
+		//use the line simplification algorithm to only keep inflection points
+		double[][] simplifiedPoints = LineSimplification.simplifyLine(_averagedBathymetryPoints, CsdpFunctions.RAMER_DOUGLAS_PEUCKER_EPSILON);
+		//replace all the points in the cross-section drawing
+		_xsect.removeAllPoints();
+		
+		for(int i=0; i<simplifiedPoints.length; i++) {
+			_xsect.addXsectPoint(XsectEditInteractor.ADD_RIGHT_POINT, simplifiedPoints[i][0], simplifiedPoints[i][1]);
+		}
+		updateDisplay();
+		_xsect.setIsUpdated(true);
+		_app.updateAllOpenCenterlineOrReachSummaries(_net.getSelectedCenterlineName());
+		_gui.updateInfoPanel(_net.getSelectedCenterlineName());
+		_autoXSEpsilonSlider.setSliderEnabled(true);
+		_autoXSMinYearTextField.setEnabled(true);
+		_autoXSMaxYearTextField.setEnabled(true);
+		
+		//now update metadata. Find index of last nonblank line
+		String metadataText =  _metadataJTextArea.getText().trim();
+		String[] lines = metadataText.split("\\R");
+		String line = null;
+		int mIndex=0;
+		int lastNonBlankLineIndex = 0;
+
+		//find idex of last nonblank line for comparison
+		if(lines.length>0) {
+			for(int i=0; i<lines.length; i++) {
+				line=lines[i];
+				if(line.trim().length() > 0) {
+					lastNonBlankLineIndex=i;
+				}
+			}
+		}
+
+		String replaceText = lines[lastNonBlankLineIndex];
+		while(_userInitialsString==null || (_userInitialsString.length()!=2 && _userInitialsString.length()!=3)) {
+			_userInitialsString = JOptionPane.showInputDialog(_gui, "Enter your initials (for autoXS metadata entry; 2-3 characters)");
+		}
+		String metadataAddition =
+				_userInitialsString+": AutoXS: "+
+				CsdpFunctions.getCurrentDatetimeFormattedForDSM2InputComments() + 
+				": Min Year, Max Year, epsilon="+ 
+				CsdpFunctions.AUTO_XS_MIN_YEAR+","+
+				CsdpFunctions.AUTO_XS_MAX_YEAR+","+
+				CsdpFunctions.RAMER_DOUGLAS_PEUCKER_EPSILON;
+
+		//if metadata addition date matches the date in the first nonblank metadata line, 
+		//then replace the first nonblank metadata line with the metadata addition. Otherwise, add a new line.
+		String[] firstNBParts = line.split(":");
+		String[] newMDParts = metadataAddition.split(":"); 
+		
+		if(firstNBParts.length>=3 && newMDParts.length>=3 && 
+				firstNBParts.length == newMDParts.length && 
+				firstNBParts[0].equals(newMDParts[0]) && 
+				firstNBParts[1].equals(newMDParts[1]) &&
+				firstNBParts[2].equals(newMDParts[2])) {
+//			replace with metadataAddition
+			String content = _metadataJTextArea.getText();
+			String modifiedContent = content.replace(replaceText, metadataAddition);
+			try {
+				_metadataJTextArea.setText(modifiedContent);
+			}catch(java.lang.NullPointerException e) {
+				_metadataJTextArea.append(modifiedContent);
+			}
+		}else {
+			//append
+			_metadataJTextArea.append(System.lineSeparator()+System.lineSeparator()+metadataAddition+System.lineSeparator());
+		}
+	}//autoCreateXS
+
+
+	private class EpsilonChangeListener implements DocumentListener{
+		private XsectGraph _xsectGraph;
+		private SliderPanel _sliderPanel;
+		public EpsilonChangeListener(XsectGraph xsectGraph) {
+			_xsectGraph = xsectGraph;
+		}
+
+		private void updateEpsilon() {
+			_sliderPanel = _xsectGraph.getSliderPanel();
+			CsdpFunctions.RAMER_DOUGLAS_PEUCKER_EPSILON = _sliderPanel.getValue();
+			_xsectGraph.createAutoXS();
+		}
+
+		public void insertUpdate(DocumentEvent e) {updateEpsilon();}
+		public void removeUpdate(DocumentEvent e) {updateEpsilon();}
+		public void changedUpdate(DocumentEvent e) {updateEpsilon();}
+	}//class EpsilonChangeListener
+
+	/**
+	 * Listener for JFormattedTextField objects, allowing user to specify min and max years for automatic XS creation
+	 * @author btom
+	 *
+	 */
+	private class MinMaxYearFieldListener implements ActionListener{
+		public static final int MAX = 0;
+		public static final int MIN = 1;
+		private XsectGraph _xsectGraph;
+		private int _minOrMax;
+		private JFormattedTextField _parent;
+		public MinMaxYearFieldListener(XsectGraph xsectGraph, JFormattedTextField parent, int minOrMax) {
+			_xsectGraph = xsectGraph;
+			_parent = parent;
+			_minOrMax = minOrMax;
+		}
+		/*
+		 * When enter pressed, update the graph
+		 */
+		public void actionPerformed(ActionEvent arg0) {
+			try {
+				int value = Integer.parseInt(_parent.getText());
+				if(_minOrMax==MIN) {
+					CsdpFunctions.AUTO_XS_MIN_YEAR = value;
+				}else if(_minOrMax==MAX) {
+					CsdpFunctions.AUTO_XS_MAX_YEAR = value;
+				}
+			} catch (NumberFormatException e) {
+				if(_minOrMax==MIN) {
+					_parent.setValue(CsdpFunctions.AUTO_XS_MIN_YEAR);
+				}else if(_minOrMax==MAX) {
+					_parent.setValue(CsdpFunctions.AUTO_XS_MAX_YEAR);
+				}
+			}finally {
+				_xsectGraph.averageBathymetryForAutoXS();
+				_xsectGraph.createAutoXS();
+			}
+		}
+	}//class MinMaxYearFieldListener
+
 	/**
 	 * called when keep button pressed.
 	 */
 	public void setChangesKept(boolean b) {
 		_changesKept = b;
+	}
+
+	public SliderPanel getSliderPanel() {
+		return _autoXSEpsilonSlider;
 	}
 
 	/**
@@ -1651,9 +2080,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 		return _changesKept;
 	}
 
-//	public boolean getAddPointMode() {
-//		return _addUpstreamButton.isSelected() || _addDownstreamButton.isSelected();
-//	}	
+	//	public boolean getAddPointMode() {
+	//		return _addUpstreamButton.isSelected() || _addDownstreamButton.isSelected();
+	//	}	
 	public boolean getAddBeginningPointMode() {
 		return _addLeftPointButton.isSelected();
 	}	
@@ -1696,10 +2125,12 @@ public class XsectGraph extends JDialog implements ActionListener {
 	 */
 	public void updateMainWindowInfoPanel() {
 		// TODO Auto-generated method stub
-//		_gui.updateInfoPanel(_net.getCenterline(_centerlineName));
+		//		_gui.updateInfoPanel(_net.getCenterline(_centerlineName));
 		_gui.updateInfoPanel(_centerlineName);
 	}
 
+	double[][] _averagedBathymetryPoints;
+	
 	public int getXsectNum() {return _xsectNum;}
 	public Xsect getXsect() {return _xsect;}
 	public void redoNextPaint() {_gC.redoNextPaint();}
@@ -1711,5 +2142,5 @@ public class XsectGraph extends JDialog implements ActionListener {
 	public JTextPane getConveyanceCharacteristicsPanel() {return _dConveyanceTextPane;}
 	public JScrollPane getMetadataPanel() {return _metadataScrollPane;}
 	public Component getDConveyancePanel() {return _dConveyanceTextPane;}
-	
+
 }// class XsectGraph

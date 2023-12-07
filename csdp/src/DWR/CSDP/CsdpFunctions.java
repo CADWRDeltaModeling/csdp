@@ -766,6 +766,49 @@ public class CsdpFunctions {
 		// array[j] = t;
 	}
 
+
+	public static void qsort(double[] array1, double[] array2, int left, int right) {
+		int last = 0;
+		double ran = 0.0;
+
+		int iValue = -Integer.MAX_VALUE;
+		int leftValue = -Integer.MAX_VALUE;
+
+		if (left < right) {
+			ran = Math.random();
+			swap(array1, array2, left, left + (int) ((right - left + 1) * ran));
+			last = left;
+			for (int i = left + 1; i <= right; i++) {
+				if(array1[i] < array1[left]){
+				// if(array[i] < array[left]){
+				// then swap if the ith value is less then the left value
+//				if (iValue < leftValue) {
+					last++;
+					swap(array1, array2, last, i);
+				} // if
+					// else if the ith value is a number but the left isn't
+
+			} // for i
+			swap(array1, array2, left, last);
+			qsort(array1, array2, left, last - 1);
+			qsort(array1, array2, last + 1, right);
+		} // if
+	}// qsort
+	
+	/**
+	 * swap two doubles in array1 and array2. used by quicksort
+	 */
+	private static void swap(double[] array1, double[] array2, int i, int j) {
+		double t1 = array1[i];
+		double t2 = array2[i];
+		array1[i]= array1[j];
+		array1[j]= t1;
+		array2[i]=array2[j];
+		array2[j]=t2;
+	}
+
+	
+	
 	/**
 	 * quicksort for Strings. left is the index of the first element in array;
 	 * right is the index of the last.
@@ -2125,6 +2168,22 @@ public class CsdpFunctions {
 	public static final int BIT_64 = 20;
 
 	/*
+	 * Value used for LineSimplification algorithm, for automatic cross-section creation
+	 */
+	public static double RAMER_DOUGLAS_PEUCKER_EPSILON = 1.0;
+	
+	/*
+	 * The minimum year to be used for automatic cross-section creation. Bathymetry points with years lower
+	 * than this value will not be used.
+	 */
+	public static int AUTO_XS_MIN_YEAR = 0;
+	/*
+	 * The maximum year to be used for automatic cross-section creation. Bathymetry points with years higher
+	 * than this value will not be used.
+	 */
+	public static int AUTO_XS_MAX_YEAR = 9999;
+
+	/*
 	 * If true, a dialog is already open, and don't allow another to be open.
 	 */
 	private static boolean MOVE_POLYGON_CENTERLINE_POINTS_TO_LEVEE_CENTERLINE_DIALOG_OPEN;
@@ -2539,7 +2598,7 @@ public class CsdpFunctions {
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static String _version = "3.0_20230207";
+	private static String _version = "3.0_20231207";
 
 
 }// class CsdpFunctions

@@ -61,7 +61,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
-import org.apache.commons.io.filefilter.AndFileFilter;
 import org.jfree.data.resources.DataPackageResources;
 import org.junit.experimental.theories.Theories;
 import org.jzy3d.chart.Chart;
