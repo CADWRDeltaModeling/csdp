@@ -57,11 +57,11 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowListener;
 import java.net.URL;
 import java.text.NumberFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.EventListener;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -92,7 +92,10 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 
+import org.apache.log4j.helpers.OnlyOnceErrorHandler;
+
 import DWR.CSDP.CURVEFIT.LineSimplification;
+import DWR.CSDP.NetworkMenu.NCalculate;
 import vista.app.CurveFactory;
 import vista.app.GraphBuilderInfo;
 import vista.app.MainProperties;
@@ -234,6 +237,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 	private SliderPanel _autoXSEpsilonSlider;
 	private JFormattedTextField _autoXSMinYearTextField;
 	private JFormattedTextField _autoXSMaxYearTextField;
+	private JFormattedTextField _autoXSMinStationTextField;
+	private JFormattedTextField _autoXSMaxStationTextField;
 	
 	// private JButton _metadataButton = new JButton(_metadataIcon);
 
@@ -535,6 +540,15 @@ public class XsectGraph extends JDialog implements ActionListener {
 		_autoXSMaxYearTextField.setValue(CsdpFunctions.AUTO_XS_MAX_YEAR);
 		_autoXSMinYearTextField.addActionListener(new MinMaxYearFieldListener(this, _autoXSMinYearTextField, MinMaxYearFieldListener.MIN));
 		_autoXSMaxYearTextField.addActionListener(new MinMaxYearFieldListener(this, _autoXSMaxYearTextField, MinMaxYearFieldListener.MAX));
+		JButton _autoXSRestMinMaxStationsButton = new JButton("Reset Min/Max");
+		_autoXSRestMinMaxStationsButton.addActionListener(new AutoLeveeListener(this));
+		
+		_autoXSMinStationTextField = new JFormattedTextField(numberFormat);
+		_autoXSMaxStationTextField = new JFormattedTextField(numberFormat);
+		_autoXSMinStationTextField.setText("");
+		_autoXSMaxStationTextField.setText("");
+		_autoXSMinStationTextField.addActionListener(new MinMaxStationFieldListener(this));
+		_autoXSMaxStationTextField.addActionListener(new MinMaxStationFieldListener(this));
 		
 		_autoXSPanel.setBorder(_raisedBevel);
 		_autoXSPanel.add(_autoXSButton);
@@ -552,7 +566,25 @@ public class XsectGraph extends JDialog implements ActionListener {
 		maxYearPanel.add(new JLabel("Max Year", SwingConstants.RIGHT));
 		maxYearPanel.add(_autoXSMaxYearTextField);
 		_autoXSPanel.add(maxYearPanel);
-//		_autoXSPanel.add(new JLabel("Min Year", SwingConstants.RIGHT));
+
+		JPanel minMaxStationPanel = new JPanel(new FlowLayout());
+		minMaxStationPanel.setBorder(_raisedBevel);
+		JPanel minStationPanel = new JPanel(new FlowLayout());
+		minStationPanel.setBorder(_raisedBevel);
+		minStationPanel.add(new JLabel("Min Station", SwingConstants.RIGHT));
+		minStationPanel.add(_autoXSMinStationTextField);
+		minMaxStationPanel.add(minStationPanel);
+
+		JPanel maxStationPanel = new JPanel(new FlowLayout());
+		maxStationPanel.setBorder(_raisedBevel);
+		maxStationPanel.add(new JLabel("Max Station", SwingConstants.RIGHT));
+		maxStationPanel.add(_autoXSMaxStationTextField);
+		minMaxStationPanel.add(maxStationPanel);
+		minMaxStationPanel.add(_autoXSRestMinMaxStationsButton);
+
+		_autoXSPanel.add(minMaxStationPanel);
+		
+		//		_autoXSPanel.add(new JLabel("Min Year", SwingConstants.RIGHT));
 //		_autoXSPanel.add(_autoXSMinYearTextField);
 		
 //		_autoXSPanel.add(new JLabel("Max Year", SwingConstants.RIGHT));
@@ -1383,10 +1415,6 @@ public class XsectGraph extends JDialog implements ActionListener {
 		}
 		numDataSets = _bathymetryData.getNumYears();
 
-
-//		double[] stationArray = new double[numBathymetryValues];
-//		double[] elevationArray = new double[numBathymetryValues];
-
 		ResizableDoubleArray stationRDA = new ResizableDoubleArray();
 		ResizableDoubleArray elevationRDA = new ResizableDoubleArray();
 		
@@ -1397,49 +1425,35 @@ public class XsectGraph extends JDialog implements ActionListener {
 		double binValue = 0.0;
 		double dist = 0.0;
 
-		// find name of data set(distance, year, or source)
-		//		dataSetName = Short.toString(_bathymetryData.getYear(i));
-
 		HashSet<String> rejectedPointSet = new HashSet<String>();
 		// beginning of new dataSet, so set index to zero.
-		AsciiFileWriter aFileWriter = new AsciiFileWriter(_gui, "d:/temp/0xspoints_"+minYear+"_"+maxYear+".csv");
 		for (int j = 0; j < numBathymetryValues; j++) {
 			pointIndex = _xsectBathymetryData.getEnclosedPointIndex(j);
 			_bathymetryData.getPointFeet(pointIndex, bPoint);
 			double x3 = bPoint[CsdpFunctions.xIndex];
 			double y3 = bPoint[CsdpFunctions.yIndex];
 
-//			dist = CsdpFunctions.shortestDistLineSegment(x1, x2, x3, y1, y2, y3);
 			// if the distance from the point to the cross-section line is
 			// within the range defined by the binValue, add it to the
 			// dataset
 			int yearIndex = _bathymetryData.getYearIndex(pointIndex);
 			short year = _bathymetryData.getYear(yearIndex);
 			if (year>=minYear && year<=maxYear){
-//				if (dist < Double.MAX_VALUE) {
-					_xsectBathymetryData.getEnclosedStationElevation(j, sePoint);
-//					stationArray[index]=((double) sePoint[stationIndex]);
-//					elevationArray[index]=((double) sePoint[elevationIndex]);
-					stationRDA.put(index, sePoint[stationIndex]);
-					elevationRDA.put(index, sePoint[elevationIndex]);
-					aFileWriter.writeLine(index+","+sePoint[stationIndex]+","+sePoint[elevationIndex]+","+minYear+","+maxYear+","+year);
-					index++;
-//				} // else if
+				_xsectBathymetryData.getEnclosedStationElevation(j, sePoint);
+				stationRDA.put(index, sePoint[stationIndex]);
+				elevationRDA.put(index, sePoint[elevationIndex]);
+				index++;
 			}else {
 				rejectedPointSet.add(minYear+","+maxYear+","+year);
 //				System.out.println("rejecting point: minyear, maxyear, year:"+minYear+","+maxYear+","+year);
 			}
 		} // for j: looping through all enclosed bathymetry points
-		aFileWriter.close();
 
-		Iterator<String> iterator = rejectedPointSet.iterator();
-		
-		while(iterator.hasNext()) {
-			System.out.println(iterator.next());
-		}
 		
 		double[] stationArray = stationRDA.getArray();
 		double[] elevationArray = elevationRDA.getArray();
+		
+		
 		
 		//		} // for i
 		//now sort the return arrays by station in ascending order
@@ -1849,6 +1863,75 @@ public class XsectGraph extends JDialog implements ActionListener {
 		double[][] bathymetryArrays = makeBathymetryArrayForAutoXS(CsdpFunctions.AUTO_XS_MIN_YEAR, CsdpFunctions.AUTO_XS_MAX_YEAR);
 		double[] stationArray = bathymetryArrays[0];
 		double[] elevationArray = bathymetryArrays[1];
+
+		//now try to find tops of levees, by starting in the middle of the range of points (middle=average of min and max station values)
+		//then finding points with the maximum elevation on each side of the middle of the range.
+		double midPointStation = (stationArray[0]+stationArray[stationArray.length-1])/2.0;
+		double leftLeveeCrownStation = -Double.MAX_VALUE;
+		double rightLeveeCrownStation = -Double.MAX_VALUE;
+		double leftLeveeCrownElevation = -Double.MAX_VALUE;
+		double rightLeveeCrownElevation = -Double.MAX_VALUE;
+		
+		boolean leftLeveeCrownFound = false;
+		boolean rightLeveeCrownFound = false;
+		//if user has specified a minimum station value (which should be the station of the left levee crown, 
+		//then get the value and find the index of the value in the station array that is at or to the left of that value;
+		if(_autoXSMinStationTextField!=null && _autoXSMinStationTextField.getText().length()>0) {
+			try {
+				leftLeveeCrownStation = Double.parseDouble(_autoXSMinStationTextField.getText());
+				int index = 0;
+				while (index < stationArray.length && stationArray[index]<leftLeveeCrownStation) {
+					_leftLeveeCrownIndex = index;
+					index++;
+				}
+				if(stationArray[_leftLeveeCrownIndex]>leftLeveeCrownStation) _leftLeveeCrownIndex--;
+				leftLeveeCrownFound = true;
+			}catch(Exception e) {
+				_autoXSMinStationTextField.setText("");
+			}
+		}
+		
+		//if user has specified a maximum station value (which should be the station of the right levee crown, 
+		//then get the value and find the index of the value in the station array that is at or to the right of that value;
+		if(_autoXSMaxStationTextField.getText()!=null && _autoXSMaxStationTextField.getText().length()>0) {
+			try {
+				rightLeveeCrownStation = Double.parseDouble(_autoXSMaxStationTextField.getText());
+				int index = stationArray.length-1;
+				while (index > 0 && stationArray[index]>=rightLeveeCrownStation) {
+					_rightLeveeCrownIndex = index;
+					index--;
+				}
+				if(stationArray[_rightLeveeCrownIndex]<rightLeveeCrownStation) _rightLeveeCrownIndex++;
+				rightLeveeCrownFound = true;
+			}catch(Exception e) {
+				_autoXSMaxStationTextField.setText("");
+			}
+		}		
+
+		//if user has not specified a minimum and/or a maximum station value, find 
+		//index of the maximum elevation values to the left and right of center.
+		for(int i=0; i<stationArray.length; i++) {
+			double station = stationArray[i];
+			double elevation = elevationArray[i];
+			if(!leftLeveeCrownFound && station<midPointStation) {
+				if(elevation>leftLeveeCrownElevation) {
+					leftLeveeCrownElevation = elevation;
+					_leftLeveeCrownIndex = i;
+				}
+			}else if(!rightLeveeCrownFound && station>=midPointStation) {
+				if(elevation>rightLeveeCrownElevation) {
+					rightLeveeCrownElevation = elevation;
+					_rightLeveeCrownIndex = i;
+				}
+			}
+		}
+
+		_autoXSMinStationTextField.setValue(stationArray[_leftLeveeCrownIndex]);
+		_autoXSMaxStationTextField.setValue(stationArray[_rightLeveeCrownIndex]);
+		
+		//now create new arrays which should go from the left levee crown to the right
+		stationArray = Arrays.copyOfRange(stationArray, _leftLeveeCrownIndex, _rightLeveeCrownIndex);
+		elevationArray = Arrays.copyOfRange(elevationArray, _leftLeveeCrownIndex, _rightLeveeCrownIndex);
 		
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//Now create arrays of points that are elevation averages.
@@ -1881,6 +1964,84 @@ public class XsectGraph extends JDialog implements ActionListener {
 		double averagingPointMinX = Double.MAX_VALUE; //the left hand boundary of the current averaging range
 		double averagingPointMaxX = -Double.MAX_VALUE; //the right hand boundary of the current averaging range
 
+		///////////////////////////////////////////////////////////////////////////////////////////
+		//the current averaging range is either the first or the last
+		//We want the endpoints of the cross-section to be near the tops of the levees, 
+		//so averaging doesn't not work well for the endpoints.
+		//For first and last averging ranges, don't average. Instead,
+		//1. Calculate the vertical range of all the points in the averaging range
+		//2. For the points that are in the top 20% of the averaging range, 
+		//calculate the station as the average of all the stations, and 
+		//calculate the elevation as the highest elevation. 
+		//////////////////////////////////////////////////////////////////////////////////////////////////
+		//also need to update text fields when min max station are automatically calculated.
+		//start by creating slices: 1) the first averaging range 2) the last averaging range 3) all other averaging ranges.
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		int endOfFirstAvgRangeIndex = 0;
+		int beginOfLastAvgRangeIndex = 0;
+		double firstRangeMinElev = Double.MAX_VALUE;
+		double firstRangeMaxElev = -Double.MAX_VALUE;
+		double lastRangeMinElev = Double.MAX_VALUE;
+		double lastRangeMaxElev = -Double.MAX_VALUE;
+		boolean beginLastRangeFound = false;
+		
+		for(int i=0; i<stationArray.length; i++) {
+			double s = stationArray[i];
+			double e = elevationArray[i];
+			if(s<averagingRangeMaxX[0]) {
+				endOfFirstAvgRangeIndex = i;
+				firstRangeMinElev = Math.min(e, firstRangeMinElev);
+				firstRangeMaxElev = Math.max(e, firstRangeMaxElev);
+			}
+			if(s>=averagingRangeMinX[numAutoXSPoints-1] && !beginLastRangeFound) {
+				beginOfLastAvgRangeIndex = i;
+				beginLastRangeFound = true;
+			}else if(beginLastRangeFound) {
+				lastRangeMinElev = Math.min(e, lastRangeMinElev);
+				lastRangeMaxElev = Math.max(e, lastRangeMaxElev);
+			}
+		}
+
+		//1. get index of end of first averaging range and beginning of last averaging range
+		double[] stationArrayFirstRange = Arrays.copyOfRange(stationArray, 0, endOfFirstAvgRangeIndex);
+		double[] elevationArrayFirstRange = Arrays.copyOfRange(elevationArray, 0, endOfFirstAvgRangeIndex);
+		double[] stationArrayLastRange = Arrays.copyOfRange(stationArray, beginOfLastAvgRangeIndex, stationArray.length-1);
+		double[] elevationArrayLastRange = Arrays.copyOfRange(elevationArray, beginOfLastAvgRangeIndex, stationArray.length-1);
+		// replace original arrays with new arrays with first and last averaging ranges removed
+		stationArray = Arrays.copyOfRange(stationArray, endOfFirstAvgRangeIndex+1, beginOfLastAvgRangeIndex-1);
+		elevationArray = Arrays.copyOfRange(elevationArray, endOfFirstAvgRangeIndex+1, beginOfLastAvgRangeIndex-1);
+		//2. First averaging range: 
+		double top20PercentLevel = firstRangeMinElev+ (4.0/5.0) * (firstRangeMaxElev-firstRangeMinElev);
+		double averageStationFirstRange = 0.0;
+		for(int i=0; i<stationArrayFirstRange.length; i++) {
+			if(elevationArrayFirstRange[i] >= top20PercentLevel) {
+				averageStationFirstRange = (averageStationFirstRange*(double)averagingIndex + stationArrayFirstRange[i])/(double)(averagingIndex+1);
+				averagingIndex++;
+			}
+		}
+		averagingIndex=0;
+		System.out.println("first range: average station, top20percentLevel, firstRangeMaxElevation="+averageStationFirstRange+","+top20PercentLevel+","+firstRangeMaxElev);
+
+		top20PercentLevel = lastRangeMinElev+ (4.0/5.0) * (lastRangeMaxElev-lastRangeMinElev);
+		double averageStationLastRange = 0.0;
+		for(int i=0; i<stationArrayLastRange.length; i++) {
+			if(elevationArrayLastRange[i] >= top20PercentLevel) {
+				averageStationLastRange = (averageStationLastRange*(double)averagingIndex + stationArrayLastRange[i])/(double)(averagingIndex+1);
+				averagingIndex++;
+			}
+		}
+		
+		averagingIndex=0;
+		System.out.println("last range: average station, top20percentLevel, lastRangeMaxElevation="+averageStationLastRange+","+top20PercentLevel+","+lastRangeMaxElev);
+		
+		
+		
+		
+		//now add first range points to arrays
+		averagedStationsRDA.put(goodAveragePointIndex, averageStationFirstRange);
+		averagedElevationsRDA.put(goodAveragePointIndex, firstRangeMaxElev);
+		goodAveragePointIndex++;
+		
 		// loop through all bathymetry points, and calculate averages
 		for(int i=0; i<stationArray.length; i++) {
 			averagingPointMinX = averagingRangeMinX[averagingRangeIndex];
@@ -1888,6 +2049,9 @@ public class XsectGraph extends JDialog implements ActionListener {
 			double x = stationArray[i];
 			double y = elevationArray[i];
 
+			//current averaging range is not the first or last. 
+			//Create a new station value which is in the middle of the averaging range.
+			//Create a new elevation value which is the average elevation of all the bathymetry points in the averaging range.
 			if(x < averagingPointMaxX) {
 				//the current point is inside the current averaging range. Adjust average and increment averagingIndex
 				avg = (avg*(double)averagingIndex + y)/(double)(averagingIndex+1.0);
@@ -1915,8 +2079,14 @@ public class XsectGraph extends JDialog implements ActionListener {
 				if(averagingRangeIndex<averagingRangeMinX.length-1)
 					averagingRangeIndex++;
 			}
-		}
+		}//for each bathymetry point
 
+		//now add last range points to arrays
+		averagedStationsRDA.put(goodAveragePointIndex, averageStationLastRange);
+		averagedElevationsRDA.put(goodAveragePointIndex, lastRangeMaxElev);
+		goodAveragePointIndex++;
+
+		
 		//now create averaged points array, which stores points using 1 array for each coordinate pair (station, elevation)
 		double[] averagedStations = averagedStationsRDA.getArray();
 		double[] averagedElevations = averagedElevationsRDA.getArray();
@@ -2021,6 +2191,28 @@ public class XsectGraph extends JDialog implements ActionListener {
 		public void changedUpdate(DocumentEvent e) {updateEpsilon();}
 	}//class EpsilonChangeListener
 
+	
+	
+	/**
+	 * Listener for JFormattedTextField objects, allowing user to specify min and max years for automatic XS creation
+	 * @author btom
+	 *
+	 */
+	private class MinMaxStationFieldListener implements ActionListener{
+		public static final int MAX = 0;
+		public static final int MIN = 1;
+		private XsectGraph _xsectGraph;
+		public MinMaxStationFieldListener(XsectGraph xsectGraph) {
+			_xsectGraph = xsectGraph;
+		}
+		/*
+		 * When enter pressed, update the graph
+		 */
+		public void actionPerformed(ActionEvent arg0) {
+			_xsectGraph.averageBathymetryForAutoXS();
+			_xsectGraph.createAutoXS();
+		}
+	}//class MinMaxYearFieldListener
 	/**
 	 * Listener for JFormattedTextField objects, allowing user to specify min and max years for automatic XS creation
 	 * @author btom
@@ -2041,26 +2233,25 @@ public class XsectGraph extends JDialog implements ActionListener {
 		 * When enter pressed, update the graph
 		 */
 		public void actionPerformed(ActionEvent arg0) {
-			try {
-				int value = Integer.parseInt(_parent.getText());
-				if(_minOrMax==MIN) {
-					CsdpFunctions.AUTO_XS_MIN_YEAR = value;
-				}else if(_minOrMax==MAX) {
-					CsdpFunctions.AUTO_XS_MAX_YEAR = value;
-				}
-			} catch (NumberFormatException e) {
-				if(_minOrMax==MIN) {
-					_parent.setValue(CsdpFunctions.AUTO_XS_MIN_YEAR);
-				}else if(_minOrMax==MAX) {
-					_parent.setValue(CsdpFunctions.AUTO_XS_MAX_YEAR);
-				}
-			}finally {
-				_xsectGraph.averageBathymetryForAutoXS();
-				_xsectGraph.createAutoXS();
-			}
+			_xsectGraph.averageBathymetryForAutoXS();
+			_xsectGraph.createAutoXS();
 		}
 	}//class MinMaxYearFieldListener
 
+	public class AutoLeveeListener implements ActionListener {
+		private XsectGraph _xsectGraph;
+		public AutoLeveeListener(XsectGraph xsectGraph) {
+			_xsectGraph = xsectGraph;
+		}
+		public void actionPerformed(ActionEvent e) {
+			_xsectGraph._autoXSMinStationTextField.setText("");
+			_xsectGraph._autoXSMaxStationTextField.setText("");
+			_xsectGraph.averageBathymetryForAutoXS();
+			_xsectGraph.createAutoXS();
+		}
+	}//class AutoLeveeListener
+
+	
 	/**
 	 * called when keep button pressed.
 	 */
@@ -2142,5 +2333,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 	public JTextPane getConveyanceCharacteristicsPanel() {return _dConveyanceTextPane;}
 	public JScrollPane getMetadataPanel() {return _metadataScrollPane;}
 	public Component getDConveyancePanel() {return _dConveyanceTextPane;}
+
+	private int _leftLeveeCrownIndex = -Integer.MAX_VALUE;
+	private int _rightLeveeCrownIndex = -Integer.MAX_VALUE;
 
 }// class XsectGraph
