@@ -92,10 +92,8 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 
-import org.apache.log4j.helpers.OnlyOnceErrorHandler;
 
 import DWR.CSDP.CURVEFIT.LineSimplification;
-import DWR.CSDP.NetworkMenu.NCalculate;
 import vista.app.CurveFactory;
 import vista.app.GraphBuilderInfo;
 import vista.app.MainProperties;
@@ -1874,6 +1872,8 @@ public class XsectGraph extends JDialog implements ActionListener {
 		
 		boolean leftLeveeCrownFound = false;
 		boolean rightLeveeCrownFound = false;
+		_leftLeveeCrownIndex = 0;
+		_rightLeveeCrownIndex = stationArray.length-1;
 		//if user has specified a minimum station value (which should be the station of the left levee crown, 
 		//then get the value and find the index of the value in the station array that is at or to the left of that value;
 		if(_autoXSMinStationTextField!=null && _autoXSMinStationTextField.getText().length()>0) {
@@ -1884,7 +1884,6 @@ public class XsectGraph extends JDialog implements ActionListener {
 					_leftLeveeCrownIndex = index;
 					index++;
 				}
-				if(stationArray[_leftLeveeCrownIndex]>leftLeveeCrownStation) _leftLeveeCrownIndex--;
 				leftLeveeCrownFound = true;
 			}catch(Exception e) {
 				_autoXSMinStationTextField.setText("");
@@ -1901,7 +1900,6 @@ public class XsectGraph extends JDialog implements ActionListener {
 					_rightLeveeCrownIndex = index;
 					index--;
 				}
-				if(stationArray[_rightLeveeCrownIndex]<rightLeveeCrownStation) _rightLeveeCrownIndex++;
 				rightLeveeCrownFound = true;
 			}catch(Exception e) {
 				_autoXSMaxStationTextField.setText("");
@@ -2032,11 +2030,6 @@ public class XsectGraph extends JDialog implements ActionListener {
 		}
 		
 		averagingIndex=0;
-		System.out.println("last range: average station, top20percentLevel, lastRangeMaxElevation="+averageStationLastRange+","+top20PercentLevel+","+lastRangeMaxElev);
-		
-		
-		
-		
 		//now add first range points to arrays
 		averagedStationsRDA.put(goodAveragePointIndex, averageStationFirstRange);
 		averagedElevationsRDA.put(goodAveragePointIndex, firstRangeMaxElev);
@@ -2233,6 +2226,11 @@ public class XsectGraph extends JDialog implements ActionListener {
 		 * When enter pressed, update the graph
 		 */
 		public void actionPerformed(ActionEvent arg0) {
+			if(_minOrMax==MIN) {
+				CsdpFunctions.AUTO_XS_MIN_YEAR = Integer.parseInt(_parent.getText());
+			}else if(_minOrMax==MAX) {
+				CsdpFunctions.AUTO_XS_MAX_YEAR = Integer.parseInt(_parent.getText());
+			}
 			_xsectGraph.averageBathymetryForAutoXS();
 			_xsectGraph.createAutoXS();
 		}
