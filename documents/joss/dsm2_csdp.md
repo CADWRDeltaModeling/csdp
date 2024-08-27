@@ -41,14 +41,13 @@ date: 23 August 2024
 
 # Figures
 
-Figures can be included like this:
 ![An example graphic user interface window of the CSDP\label{fig:csdp_main_window}](csdpPlanView.png)
 ![An example cross-section window of the CSDP\label{fig:csdp_xs_view}](csdpXSView.png)
 ![An example 3D Bathymetry and Cross-Section interactive plot showing river channel bathymetry and user-defined cross-sections. The legend shows the elevation variations of the bathymetry data.\label{fig:csdp_3d_view}](csdp3DView.png)
 
 # Source Code and Packaging
-CSDP Source code is available here: https://github.com/CADWRDeltaModeling/csdp
-CSDP executable is avialable here: https://data.cnra.ca.gov/dataset/cross-section-development-program-version-3/resource/98471d54-0244-4822-a7cd-2a5cf30636b8
+CSDP Source code is available here: https://github.com/CADWRDeltaModeling/csdp.
+CSDP executable is avialable here: https://data.cnra.ca.gov/dataset/cross-section-development-program-version-3/resource/98471d54-0244-4822-a7cd-2a5cf30636b8.
 
 # Acknowledgements
 
