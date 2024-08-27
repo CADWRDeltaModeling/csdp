@@ -1,0 +1,67 @@
+---
+title: 'Delta Simulation Model 2 Cross-Section Development Program (DSM2 CSDP): A Java application for creating channel geometry for the DSM2 model'
+tags:
+	- Java
+	- California Department of Water Resources
+	- CADWR
+	- DWR
+	- Delta Simulation Model 2
+	- DSM2
+	- Cross-Section Development Program
+	- CSDP
+authors:
+	- name: Bradley Tom
+	orcid: 0009-0009-9034-6577
+	equal-contrib: true
+	affiliation: 1
+	- name: Prabhjot Sandhu
+	orcid: 
+	equal-contrib: true
+	affiliation: 1
+
+# Summary
+The Delta Simulation Model 2 (DSM2) Cross-Section Development Program (CSDP) is a user-friendly Java software tool that is developed to prepare geometric inputs for hydrodynamic models. The CSDP allows the user to select bathymetry data collected in different years by different agencies and create cross-sections and computational points in a channel manually or automatically.
+
+The process of creating cross-sections with the CSDP is done by clicking on a graph of bathymetry data and/or DEM data. The bathymetry points on the graph can be col-or-coded to identify attributes such as collection year or data source. The use of a DEM requires more pre-processing of bathymetry data, and can make variations in data quality less obvious to the user. The CSDP also includes a tool to display bathymetry data together with cross-sections in a 3D interactive plot [28], allowing the user to zoom, pan, and rotate the plot to determine qualitatively how the cross-sections com-pare to the bathymetry data. The 3D plot can also help the user identify features that the user may wish to exclude from model geometry, such as narrow deep holes.
+
+# Statement of need
+Hydrodynamic models are widely used in simulating water dynamics in riverine and estuarine systems. A reasonably realistic representation of the geometry (e.g., channel length, junctions, cross sections, etc.) of the study area is imperative for any successful hydrodynamic modeling applications. Typically, hydrodynamic models do not digest these data directly but rely on pre-processing tools to convert the data to a format readable to them.
+
+Hydrodynamic models are indispensable tools used to simulate the move-ment of wa-ter in different types of water bodies, and for various purposes. In oceans, hydrody-namic models can be used to help characterize the tides [1] and to simulate regional oceanic circulation [2]. In estuaries, hydrodynamic model results can be used to simu-late shallow water wave motions [3], to simulate flooding [4], as input to water quality models, for purposes including water project operation [5], and as input to particle tracking models [6], for purposes including determining the effects of water project operations on fish survival rates [7, 8]. In riverine systems, hydrodynamic modeling can be used to better understand flood risks [9], and the evaluate the effects of dredg-ing [10]. 
+
+Cross-sections for 1D models are created exactly or approximately perpendicular to the channel center lines of a river system. The shapes of the cross-sections are de-rived from bathymetry data, either as individual points, or as a surface created using GIS, such as a DEM. Coordinate systems are channel-based, with cross-section point coordinates measured in the longitudinal and transverse directions. Cross-sections are placed as needed to approximate the variations in the channel bathymetry that are most important for the accuracy of the flow simulation. Examples of 1D models using this approach include DSM2 [12] and HEC-RAS [13]. Tools used to create cross-sections for 1D models include HEC-RAS, the Advanced Spaceborne Thermal Emission and Reflection (ASTER) Radiometer Global Digital Elevation Model [27], and RiverBox [26].HEC-RAS (USACE), ASTER [27], and RiverBox [26] all have the option to create cross-sections automatically, using DEM data. ASTER also has the ability to create synthetic cross-sections using a rating curve derived from observed data. Automatic cross-section creation may be less time-consuming than manual cross-section creation, but it requires a surface such as a DEM, created from high quality bathymetry data, and in the case of ASTER, the automatically created cross-sections must be adjusted manually to exclude lower quality data [27]. ASTER’s method of creating synthetic cross-sections appears to be useful in areas lacking adequate bathymetry data, but their applicability of these cross-sections outside the range of hydrologic conditions used to develop them is not discussed [27]. HEC-RAS, in addition to creating cross-sections automatically, allows the user to create and edit cross-sections manually by entering and/or modifying station and elevation coordinates for each cross-section [13]. RiverBox is a tool for creating cross-sections automatically, using interpolation to create reasonable approximations in areas with relatively sparse bathymetry [26]. The method used by RiverBox is almost completely automated, and it appears to assume that all bathymetry data are of equal quality.
+
+Automated approaches to cross-section creation can save time and yield more consistent results. However, they either assume that all data used to create them are of equal quality, or they include a method for making manual adjustments to cross-sections. The current study proposes a parsimonious cross section development tool: the Cross-Section Development Program (CSDP). It is an open-source application written in Java. It is a standalone application, requiring no other software, such as GIS. It is easy to use, and is designed specifically to create input for DSM2 [12] but also can be applied to other hydrodynamic models. The CSDP differs from the other tools described above in that the placement of channel centerlines, cross-section lines, and cross-section points are all done manually. This has the advantage of allowing the user full control over cross-section creation, allowing the user to place more emphasis on bathymetry data considered to be higher quality, and to easily incorporate proposed changes to channels, such as dredging. However, the manual cross-section development process can be time consuming, and results for a given set of input data will be more variable than results from automated tools. 
+
+affiliations:
+  -  name: California Department of Water Resources, USA
+   index: 1
+
+date: 23 August 2024
+bibliography: paper.bib
+
+---
+
+# Figures
+
+Figures can be included like this:
+![An example graphic user interface window of the CSDP\label{fig:example}](csdpPlanView.png)
+and referenced from text using \autoref{fig:example}.{width=100%}
+![An example cross-section window of the CSDP\label{fig:example}](csdpXSView.png)
+and referenced from text using \autoref{fig:example}.{width=100%}
+![An example 3D Bathymetry and Cross-Section interactive plot showing river channel bathymetry and user-defined cross-sections. The legend shows the elevation variations of the bathymetry data.\label{fig:example}](csdpPlanView.png)
+and referenced from text using \autoref{fig:example}.{width=100%}
+
+# Source Code and Packaging
+CSDP Source code is available here: https://github.com/CADWRDeltaModeling/csdp
+CSDP executable is avilalbe here: https://data.cnra.ca.gov/dataset/cross-section-development-program-version-3/resource/98471d54-0244-4822-a7cd-2a5cf30636b8
+
+# Acknowledgements
+
+We acknowledge contributions from Ralph Finch during the genesis of this project.
+
+# References
+
+CADWR. Cross-Section Development Program. In Methodology for Flow and Salinity Estimates in the Sacramento-San Joaquin Delta and Suisun Marsh: 19th Annual Progress Report, 1998.
+
+CADWR. DSM2 GIS Reference. In Methodology for Flow and Salinity Estimates in the Sacramento-San Joaquin Delta and Suisun Marsh: 41st Annual Progress Report, 2020
