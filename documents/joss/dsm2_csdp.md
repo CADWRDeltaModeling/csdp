@@ -1,23 +1,23 @@
 ---
 title: 'Delta Simulation Model 2 Cross-Section Development Program (DSM2 CSDP): A Java application for creating channel geometry for the DSM2 model'
 tags:
-	- Java
-	- California Department of Water Resources
-	- CADWR
-	- DWR
-	- Delta Simulation Model 2
-	- DSM2
-	- Cross-Section Development Program
-	- CSDP
+  - Java
+  - California Department of Water Resources
+  - CADWR
+  - DWR
+  - Delta Simulation Model 2
+  - DSM2
+  - Cross-Section Development Program
+  - CSDP
 authors:
-	- name: Bradley Tom
-	orcid: 0009-0009-9034-6577
-	equal-contrib: true
-	affiliation: 1
-	- name: Prabhjot Sandhu
-	orcid: 
-	equal-contrib: true
-	affiliation: 1
+  - name: Bradley Tom
+  orcid: 0009-0009-9034-6577
+  equal-contrib: true
+  affiliation: 1
+  - name: Prabhjot Sandhu
+  orcid: 
+  equal-contrib: true
+  affiliation: 1
 
 # Summary
 The Delta Simulation Model 2 (DSM2) Cross-Section Development Program (CSDP)\autoref{fig:csdp_main_window} is a user-friendly Java software tool that is developed to prepare geometric inputs for hydrodynamic models. The CSDP allows the user to use bathymetry data collected in different years by different agencies as a guide to create cross-sections in a river channel manually or automatically.
