@@ -46,6 +46,7 @@ import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.Hashtable;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -65,6 +66,7 @@ import DWR.CSDP.Centerline;
 import DWR.CSDP.CsdpFrame;
 import DWR.CSDP.CsdpFunctions;
 import DWR.CSDP.Network;
+import DWR.CSDP.ResizableDoubleArray;
 import DWR.CSDP.Xsect;
 
 /**
@@ -257,7 +259,7 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 	        ChartPanel wetPChartPanel = new ChartPanel(wetPChart);
 	        ChartPanel widthChartPanel = new ChartPanel(widthChart);
 	        ChartPanel bottomElevationChartPanel = new ChartPanel(bottomElevationChart);
-			setSize(800, 800);
+			setSize(1000, 1000);
 			
 			JPanel chartsPanel = new JPanel(new GridLayout(0,1,5,5));
 			chartsPanel.add(areaChartPanel);
@@ -320,27 +322,42 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 			JLabel channelWettedAreaLabel = null;
 			JLabel channelSurfaceAreaLabel = null;
 			JLabel maxAreaRatioLabel = null;
+			JLabel maxAdjacentAreaRatioLabel = null;
+			JLabel maxAdjacentAreaRatioElevationLabel = null;
 			if(this.chanNumbersVector.size()>1) {
 				centerlineLengthLabel = new JLabel("Reach Length, ft");
 				channelVolumeLabel = new JLabel("Reach Volume, ft3");
 				channelWettedAreaLabel = new JLabel("Reach Wetted Area, ft2");
 				channelSurfaceAreaLabel = new JLabel("Reach Surface Area, ft2");
 				maxAreaRatioLabel = new JLabel("Reach Max Area Ratio");
+				maxAdjacentAreaRatioElevationLabel = new JLabel("Reach Max Adjacent Area Ratio Elevation");
+				maxAdjacentAreaRatioLabel = new JLabel("Reach Max Adjacent Area Ratio");
 			}else {
 				centerlineLengthLabel = new JLabel("Centerline Length, ft");
 				channelVolumeLabel = new JLabel("Channel Volume, ft3");
 				channelWettedAreaLabel = new JLabel("Channel Wetted Area, ft2");
 				channelSurfaceAreaLabel = new JLabel("Channel Surface Area, ft2");
 				maxAreaRatioLabel = new JLabel("Channel Max Area Ratio");
+				maxAdjacentAreaRatioElevationLabel = new JLabel("Channel Max Adjacent Area Ratio Elevation");
+				maxAdjacentAreaRatioLabel = new JLabel("Channel Max Adjacent Area Ratio");
 			}
 			double length = 0.0;
 			double volume = 0.0;
 			double wettedArea = 0.0;
 			double surfaceArea = 0.0;
 			double maxAreaRatio = -Double.MAX_VALUE;
-
 			double reachMinArea = Double.MAX_VALUE;
 			double reachMaxArea = -Double.MAX_VALUE;
+			Xsect lastXsectPreviousChannel = null;
+			
+			double elevIncrement = 0.5;
+			int numMaarValues =  ((int)((CsdpFunctions.INTERTIDAL_HIGH_TIDE - CsdpFunctions.INTERTIDAL_LOW_TIDE) / elevIncrement)+1)-1;
+			double[] maarElevForPlotting = new double[numMaarValues];
+			double[] maarValuesForPlotting = new double[numMaarValues];
+			//these are for the maximum value for the entire elevation range
+			double maxAdjacentAreaRatioElevation = 0.0;
+			double maxAdjacentAreaRatio = 0.0;
+			
 			for(int i=0; i<this.chanNumbersVector.size(); i++) {
 				String centerlineName = this.chanNumbersVector.get(i);
 				Centerline centerline = this.network.getCenterline(centerlineName);
@@ -355,13 +372,75 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 					reachMaxArea = Math.max(centerline.getMaxArea(), reachMaxArea);
 					maxAreaRatio = reachMaxArea/reachMinArea;
 				}
+
+				//calculate max adjacent area ratio (MAAR) using last xs from previous channel, if any, and the first xs from current channel
+				//this will not execute if only single channel or if it's the first channel
+				Xsect firstXSCurrentChan = centerline.getXsect(0);
+				int maarValuesIndex = 0;
+				if(lastXsectPreviousChannel!=null && !lastXsectPreviousChannel.hasNoPoints() && !firstXSCurrentChan.hasNoPoints() ) {
+					for(double elev=CsdpFunctions.INTERTIDAL_LOW_TIDE; elev<CsdpFunctions.INTERTIDAL_HIGH_TIDE; elev+=0.5) {
+						double a1 = lastXsectPreviousChannel.getAreaSqft(elev);
+						double a2 = firstXSCurrentChan.getAreaSqft(elev);
+						double maarAdjacentChan = Math.max(a1/a2, a2/a1);
+						if(maarAdjacentChan > maxAdjacentAreaRatio) {
+							maxAdjacentAreaRatioElevation = elev;
+							maxAdjacentAreaRatio = maarAdjacentChan;
+						}
+						if(maarAdjacentChan > maarValuesForPlotting[maarValuesIndex]) {
+							maarValuesForPlotting[maarValuesIndex] = maarAdjacentChan;
+						}
+						maarValuesIndex++;
+					}
+				}
+				
+				//now calculate MAAR within the channel
+				double[][] maarWithinChannelResults = centerline.getMaxAdjacentAreaRatioInRange(numMaarValues, 
+						CsdpFunctions.INTERTIDAL_LOW_TIDE, CsdpFunctions.INTERTIDAL_HIGH_TIDE, 0.5);
+				maarElevForPlotting = maarWithinChannelResults[0];
+				double[] currentChanMaarValues = maarWithinChannelResults[1];
+				for(int j=0; j<maarElevForPlotting.length; j++) {
+					if(currentChanMaarValues[j] > maarValuesForPlotting[j]) {
+						maarValuesForPlotting[j]= currentChanMaarValues[j]; 
+					}
+					if(currentChanMaarValues[j]>maxAdjacentAreaRatio) {
+						maxAdjacentAreaRatioElevation = maarElevForPlotting[j];
+						maxAdjacentAreaRatio = currentChanMaarValues[j];
+					}
+				}
+				
+				lastXsectPreviousChannel = centerline.getXsect(centerline.getNumXsects()-1);
 			}		
+
+			//now add MAAR and MAR graphs
+	    	String graphTitleMAAR = "MAAR vs Elev";
+	    	String graphTitleMAR = "MAR vs Elev";
+	    	String yLabelMAAR = "MAAR";
+	    	String yLabelMAR = "MAR";
+	    	String xLabelMAAR = "Elevation";
+	    	XYSeriesCollection MAARSeriesCollection = new XYSeriesCollection();
+	    	XYSeriesCollection MARSeriesCollection = new XYSeriesCollection();
+
+	    	XYSeries MAARSeries = new XYSeries(yLabelMAAR, false);
+	    	XYSeries MARSeries = new XYSeries(yLabelMAR, false);
+	    	
+	    	for(int i=0; i<maarElevForPlotting.length; i++) {
+	    		MAARSeries.add(maarValuesForPlotting[i], maarElevForPlotting[i]);
+	    	}
+	    	MAARSeriesCollection.addSeries(MAARSeries);
+	    	MARSeriesCollection.addSeries(MARSeries);
+			
+			
 			JLabel elevValueLabel = new JLabel(String.format("%,.2f", elevation), SwingConstants.RIGHT);
 			JLabel cLengthValueLabel = new JLabel(String.format("%,.1f", length), SwingConstants.RIGHT);
 			JLabel volValueLabel = new JLabel(String.format("%,.1f", volume), SwingConstants.RIGHT);
 			JLabel wetAreaValueLabel = new JLabel(String.format("%,.1f", wettedArea), SwingConstants.RIGHT);
 			JLabel surfAreaValueLabel = new JLabel(String.format("%,.1f",surfaceArea), SwingConstants.RIGHT);
 			JLabel maxAreaRatioValueLabel = new JLabel(String.format("%,.1f", maxAreaRatio), SwingConstants.RIGHT);
+			JLabel maxAdjacentAreaRatioElevationValueLabel = new JLabel(String.format("%,.1f", maxAdjacentAreaRatioElevation), SwingConstants.RIGHT);
+			JLabel maxAdjacentAreaRatioValueLabel = new JLabel(String.format("%,.1f", maxAdjacentAreaRatio), SwingConstants.RIGHT);
+
+			JFreeChart maarChart = CsdpFunctions.createChartWithScatterPlot(this.csdpFrame, graphTitleMAAR, xLabelMAAR, yLabelMAAR, MAARSeriesCollection, legend);
+			ChartPanel maarChartPanel = new ChartPanel(maarChart);
 			
 			conveyanceCharacteristicsPanel.add(elevationLabel);
 			conveyanceCharacteristicsPanel.add(elevValueLabel);
@@ -375,11 +454,16 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 			conveyanceCharacteristicsPanel.add(surfAreaValueLabel);
 			conveyanceCharacteristicsPanel.add(maxAreaRatioLabel);
 			conveyanceCharacteristicsPanel.add(maxAreaRatioValueLabel);
+			conveyanceCharacteristicsPanel.add(maxAdjacentAreaRatioElevationLabel);
+			conveyanceCharacteristicsPanel.add(maxAdjacentAreaRatioElevationValueLabel);
+			conveyanceCharacteristicsPanel.add(maxAdjacentAreaRatioLabel);
+			conveyanceCharacteristicsPanel.add(maxAdjacentAreaRatioValueLabel);
 			
 			JPanel topValuesPanel = new JPanel(new GridLayout(0,1,5,5));
 			topValuesPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 			topValuesPanel.add(centerlineOrReachSummaryLabel);
 			topValuesPanel.add(conveyanceCharacteristicsPanel);
+			chartsPanel.add(maarChartPanel);
 			
 			valuesPanel.add(topValuesPanel, BorderLayout.SOUTH);
 			

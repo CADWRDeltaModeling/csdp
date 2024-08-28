@@ -68,6 +68,7 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.CategoryLabelPositions;
+import org.jfree.chart.axis.LogarithmicAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.DatasetRenderingOrder;
 import org.jfree.chart.plot.PlotOrientation;
@@ -1744,6 +1745,12 @@ public class CsdpFunctions {
 		return jFreeChart;
 	}//createChartWithXYPlot
 
+	public static JFreeChart createChartWithScatterPlotLogY(CsdpFrame csdpFrame, String title, String xLabel, String yLabel, 
+			XYSeriesCollection xySeriesCollection, boolean legend) {
+		JFreeChart returnChart = createChartWithScatterPlot(csdpFrame, title, xLabel, yLabel, xySeriesCollection, legend);
+		returnChart.getXYPlot().setRangeAxis(new LogarithmicAxis(yLabel));
+		return returnChart;
+	}
 	/*
 	 * Create chart for multiple time series
 	 */

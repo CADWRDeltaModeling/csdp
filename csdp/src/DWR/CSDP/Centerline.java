@@ -48,6 +48,8 @@ import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import vista.graph.DoubleRect;
+
 /**
  * A centerline contains centerline points and cross-sections. Centerline points
  * are stored in order.
@@ -1262,12 +1264,48 @@ public class Centerline {
 	}
 
 	/*
-	 * Returns the area of the maximum 
+	 * Returns the area of the cross-section with the maximum area divided by the minimum cross-sectional area
 	 */
 	public double getMaxAreaRatio() {
 		return getMaxArea()/getMinArea();
 	}//getMaxAreaRatio
 
+
+	/*
+	 * Returns the maximum ratio of adjacent cross-sectional areas 
+	 */
+	public double getMaxAdjacentAreaRatio(double elevation) {
+		double maar = 0.0;
+		for(int i=0; i<getNumXsects()-1; i++) {
+			Xsect currentXsect = getXsect(i);
+			Xsect nextXsect = getXsect(i+1);
+			double a1 = currentXsect.getAreaSqft(elevation);
+			double a2 = nextXsect.getAreaSqft(elevation);
+			double ar = Math.max(a1/a2, a2/a1);
+			maar = Math.max(ar, maar);
+		}
+		return maar;
+	}
+
+	/*
+	 * Get max maar in range (could be intertidal zone)
+	 */
+	public double[][] getMaxAdjacentAreaRatioInRange(int numValues, double minStage, double maxStage, double elevationIncrement) {
+		
+		double[][] returnValues = new double[2][numValues];
+
+		//		double maxMaar = 0.0;
+		ResizableDoubleArray elevRDA = new ResizableDoubleArray();
+		int index = 0;
+		for(double d = minStage; d<maxStage; d+=elevationIncrement) {
+			double maar = getMaxAdjacentAreaRatio(d);
+			returnValues[0][index] = d;
+			returnValues[1][index] = maar;
+			index++;
+		}
+		return returnValues;
+	}
+	
 	public double getMinArea() {
 		double minArea = Double.MAX_VALUE;
 		for(int i=0; i<getNumXsects(); i++) {

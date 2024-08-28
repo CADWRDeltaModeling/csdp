@@ -60,6 +60,42 @@ import DWR.CSDP.dialog.CenterlineOrReachSummaryWindow;
  */
 public class CenterlineMenu {
 	
+	public class ScaleCrossSectionLineLengths implements ActionListener {
+
+		public void actionPerformed(ActionEvent e) {
+			String response = JOptionPane.showInputDialog(_gui, "Enter scale factor", "Scale cross-section line lengths", JOptionPane.OK_CANCEL_OPTION);
+			if(response!=null && response.length()>0) {
+				boolean success=false;
+				try {
+					double scaleFactor = Double.parseDouble(response);
+					double averageAdjustedLineLength = 0.0; 
+					Network network = _gui.getNetwork();
+					Centerline centerline = network.getSelectedCenterline();
+					for(int i=0; i<centerline.getNumXsects(); i++) {
+						Xsect xsect = centerline.getXsect(i);
+						Double xsectLineLength = xsect.getXsectLineLengthFeet();
+						xsect.putXsectLineLengthFeet(xsectLineLength * scaleFactor);
+						averageAdjustedLineLength = (averageAdjustedLineLength*(double)i + xsectLineLength*scaleFactor)/(double)(i + 1);
+					}
+					_gui.getPlanViewCanvas(0).setUpdateNetwork(true);
+					_gui.getPlanViewCanvas(0).redoNextPaint();
+					_gui.getPlanViewCanvas(0).repaint();
+					network.setIsUpdated(true);
+					CsdpFunctions.CROSS_SECTION_LINE_LENGTH = averageAdjustedLineLength;
+					success=true;
+				}catch(Exception e1) {
+					System.out.println("exception caught!");
+				}finally {
+					if(!success) {
+						JOptionPane.showMessageDialog(_gui, "Unable to scale cross-section lines. Factor must be a number");
+					}
+				}
+			}else {
+				System.out.println("no input received");
+			}
+		}//actionPerformed
+	}//inner class ScaleCrossSectionLineLengths
+
 	/**
 	 * Remove all cross-sections in centerline
 	 * @author btom

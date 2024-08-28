@@ -237,7 +237,7 @@ public class CsdpFrame extends JFrame {
 
 	private JCheckBoxMenuItem noChannelLengthsOnly;
 	private JMenuItem cCursor, cCreate, cDSMCreate, cRemove, cDisplaySummary, cView3d, cReverseCenterline, cPlotAllCrossSections, cDeletePointsInWindow,
-		cDeletePointsOutsideWindow, cAddXSAtComputationalPoints, cRemoveAllCrossSections;
+		cDeletePointsOutsideWindow, cAddXSAtComputationalPoints, cRemoveAllCrossSections, cScaleCrossSectionLineLengths;
 	/*
 	 * For adjusting centerlines that are actually representations of polygons used to estimate channel volume
 	 * Will move points to a given centerline, which is actually representing a leveee
@@ -1300,7 +1300,7 @@ public class CsdpFrame extends JFrame {
 		cfCenterline.add(cDeletePointsOutsideWindow = new JMenuItem("Delete Centerline Points Outside of Window"));
 		cfCenterline.add(cAddXSAtComputationalPoints = new JMenuItem("Add cross-sections at Computational Pts"));
 		cfCenterline.add(cRemoveAllCrossSections = new JMenuItem("Remove all cross-sections in centerline"));
-		
+		cfCenterline.add(cScaleCrossSectionLineLengths = new JMenuItem("Scale cross-section line lengths"));
 		
 		cfCenterline.setMnemonic(KeyEvent.VK_C);
 
@@ -1330,6 +1330,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener cDeletePointsOutsideOfWindowListener = _centerlineMenu.new DeleteCenterlinePointsOutsideOfWindow();
 		ActionListener cAddXSAtComputationalPointsListener = _centerlineMenu.new AddXSAtComputationalPoints(_networkInteractor);
 		ActionListener cRemoveAllCrossSectionsListener = _centerlineMenu.new RemoveAllCrossSections();
+		ActionListener cScaleCrossSectionLineLengthsListener = _centerlineMenu.new ScaleCrossSectionLineLengths();
 		cCursor.addActionListener(cCursorListener);
 		cCreate.addActionListener(cCreateListener);
 		cDSMCreate.addActionListener(cDSM2CreateListener);
@@ -1345,7 +1346,8 @@ public class CsdpFrame extends JFrame {
 		cDeletePointsOutsideWindow.addActionListener(cDeletePointsOutsideOfWindowListener);
 		cAddXSAtComputationalPoints.addActionListener(cAddXSAtComputationalPointsListener);
 		cRemoveAllCrossSections.addActionListener(cRemoveAllCrossSectionsListener);
-
+		cScaleCrossSectionLineLengths.addActionListener(cScaleCrossSectionLineLengthsListener);
+		
 		_cursorButton.addActionListener(cCursorListener);
 		_moveButton.addActionListener(cMovePointListener);
 		_insertButton.addActionListener(cInsertPointListener);
