@@ -1,0 +1,16 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Mon Dec 17 14:36:36 PST 2018
+jogl-all-2.3.2-natives-windows-i586.jar>central=
+jogl-all-2.3.2-natives-linux-armv6hf.jar>central=
+jogl-all-2.3.2-natives-windows-amd64.jar>central=
+jogl-all-2.3.2-natives-linux-i586.jar>central=
+jogl-all-2.3.2-natives-android-aarch64.jar>central=
+jogl-all-2.3.2-natives-linux-armv6.jar>central=
+jogl-all-2.3.2-natives-solaris-i586.jar>central=
+jogl-all-2.3.2-natives-linux-amd64.jar>central=
+jogl-all-2.3.2-natives-macosx-universal.jar>central=
+jogl-all-2.3.2.pom>central=
+jogl-all-2.3.2-sources.jar>central=
+jogl-all-2.3.2.jar>central=
+jogl-all-2.3.2-natives-solaris-amd64.jar>central=
+jogl-all-2.3.2-natives-android-armv6.jar>central=

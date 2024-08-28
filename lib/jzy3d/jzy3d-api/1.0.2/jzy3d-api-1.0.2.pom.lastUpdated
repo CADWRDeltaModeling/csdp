@@ -1,0 +1,7 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Fri Apr 12 09:59:41 PDT 2019
+http\://repo1.maven.org/maven2/.error=
+http\://repo1.maven.org/maven2/.lastUpdated=1555088214631
+@default-mvnrepository-(http\://maven.jzy3d.org/releases/.lastUpdated=1555088347845
+http\://maven.jzy3d.org/releases/.lastUpdated=1555088381251
+(http\://maven.jzy3d.org/releases/.error=Could not transfer artifact org.jzy3d\:jzy3d-api\:pom\:1.0.2 from/to mvnrepository ((http\://maven.jzy3d.org/releases/)\: Cannot access (http\://maven.jzy3d.org/releases/ with type default using the available connector factories\: AetherRepositoryConnectorFactory, BasicRepositoryConnectorFactory

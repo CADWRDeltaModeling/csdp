@@ -1,0 +1,10 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Mon Dec 17 14:36:33 PST 2018
+http\://maven.jzy3d.org/snapshots/.lastUpdated=1544471140030
+http\://repo1.maven.org/maven2/.error=
+http\://repo1.maven.org/maven2/.lastUpdated=1545086193272
+http\://maven.jzy3d.org/releases/.lastUpdated=1545086193594
+@default-central-https\://repo.maven.apache.org/maven2/.lastUpdated=1544471074028
+http\://maven.jzy3d.org/releases/.error=
+https\://repo.maven.apache.org/maven2/.error=Could not transfer artifact org.jzy3d\:jzy3d-api\:jar\:sources\:1.0.0 from/to central (https\://repo.maven.apache.org/maven2)\: sun.security.validator.ValidatorException\: PKIX path building failed\: sun.security.provider.certpath.SunCertPathBuilderException\: unable to find valid certification path to requested target
+http\://maven.jzy3d.org/snapshots/.error=

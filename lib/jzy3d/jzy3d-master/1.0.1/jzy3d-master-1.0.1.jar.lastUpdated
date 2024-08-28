@@ -1,0 +1,8 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Fri Apr 12 09:40:39 PDT 2019
+http\://repo1.maven.org/maven2/.error=
+http\://repo1.maven.org/maven2/.lastUpdated=1555087238927
+http\://download.osgeo.org/webdav/geotools/.error=
+http\://download.osgeo.org/webdav/geotools/.lastUpdated=1555087239328
+http\://maven.jzy3d.org/releases/.lastUpdated=1555087239238
+http\://maven.jzy3d.org/releases/.error=

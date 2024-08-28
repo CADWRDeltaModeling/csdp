@@ -1,0 +1,7 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Apr 17 16:13:28 PDT 2019
+http\://repo1.maven.org/maven2/.lastUpdated=1555542808957
+@default-mvnrepository-http\://maven.jzy3d.org/releases/.lastUpdated=1555528408952
+https\://mvnrepository.com/artifact/.error=Could not transfer artifact org.jogamp.gluegen\:gluegen-rt\:jar\:natives-android-aarch64\:2.3.1 from/to org.geotools (https\://mvnrepository.com/artifact)\: The operation was cancelled.
+http\://maven.jzy3d.org/releases/.error=Could not transfer artifact org.jogamp.gluegen\:gluegen-rt\:jar\:natives-android-aarch64\:2.3.1 from/to mvnrepository (http\://maven.jzy3d.org/releases)\: The operation was cancelled.
+@default-org.geotools-https\://mvnrepository.com/artifact/.lastUpdated=1555528409068

@@ -1,0 +1,8 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Apr 17 09:25:32 PDT 2019
+http\://repo1.maven.org/maven2/.error=
+http\://repo1.maven.org/maven2/.lastUpdated=1555518329469
+http\://maven.jzy3d.org/releases/.lastUpdated=1555518329799
+https\://mvnrepository.com/artifact/.error=Could not transfer artifact org.jzy3d\:jzy3d-extensions\:pom\:1.0.2 from/to org.geotools (https\://mvnrepository.com/artifact)\: sun.security.validator.ValidatorException\: PKIX path building failed\: sun.security.provider.certpath.SunCertPathBuilderException\: unable to find valid certification path to requested target
+http\://maven.jzy3d.org/releases/.error=
+@default-org.geotools-https\://mvnrepository.com/artifact/.lastUpdated=1555518332027

@@ -1,0 +1,9 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Mon Dec 17 14:36:12 PST 2018
+http\://maven.jzy3d.org/snapshots/.lastUpdated=1545085957165
+http\://repo1.maven.org/maven2/.lastUpdated=1545086172858
+http\://maven.jzy3d.org/releases/.lastUpdated=1545085956397
+@default-central-https\://repo.maven.apache.org/maven2/.lastUpdated=1545085956849
+http\://maven.jzy3d.org/releases/.error=
+http\://maven.jzy3d.org/snapshots/.error=
+https\://repo.maven.apache.org/maven2/.error=Could not transfer artifact org.jogamp.gluegen\:gluegen-rt-main\:pom\:2.3.2 from/to central (https\://repo.maven.apache.org/maven2)\: sun.security.validator.ValidatorException\: PKIX path building failed\: sun.security.provider.certpath.SunCertPathBuilderException\: unable to find valid certification path to requested target

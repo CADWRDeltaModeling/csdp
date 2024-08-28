@@ -1,0 +1,55 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.jzy3d</groupId>
+	<artifactId>jzy3d-extensions</artifactId>
+	<version>0.9.1</version>
+    <packaging>pom</packaging>
+
+    <name>Jzy3d Extensions Project</name>
+
+    <parent>
+        <groupId>org.jzy3d</groupId>
+        <artifactId>jzy3d-master</artifactId>
+        <version>0.9.1</version>
+    </parent>
+
+    <repositories>
+      <repository>
+         <id>jzy3d-snapshots</id>
+         <name>Jzy3d Snapshots</name>
+         <url>http://www.jzy3d.org/maven/snapshots</url>
+      </repository>
+      <repository>
+         <id>jzy3d-releases</id>
+         <name>Jzy3d Snapshots</name>
+         <url>http://www.jzy3d.org/maven/releases</url>
+      </repository>
+   </repositories>
+
+    <modules>
+        <module>jzy3d-svm-mapper</module>
+        <module>jzy3d-tools-libsvm</module>
+        <module>jzy3d-g2d</module>
+        <module>jzy3d-depthpeeling</module>
+        <!-- pb with gephi toolkit<module>jzy3d-graphs</module>-->
+    </modules>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <configuration>
+                        <source>1.5</source>
+                        <target>1.5</target>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

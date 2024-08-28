@@ -1,0 +1,15 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Wed Apr 17 16:13:30 PDT 2019
+gluegen-rt-2.3.1-natives-windows-i586.jar>central=
+gluegen-rt-2.3.1-natives-macosx-universal.jar>central=
+gluegen-rt-2.3.1-natives-android-aarch64.jar>central=
+gluegen-rt-2.3.1-natives-linux-amd64.jar>central=
+gluegen-rt-2.3.1-natives-solaris-i586.jar>central=
+gluegen-rt-2.3.1-natives-linux-armv6hf.jar>central=
+gluegen-rt-2.3.1-natives-windows-amd64.jar>central=
+gluegen-rt-2.3.1-natives-android-armv6.jar>central=
+gluegen-rt-2.3.1-natives-linux-i586.jar>central=
+gluegen-rt-2.3.1-natives-solaris-amd64.jar>central=
+gluegen-rt-2.3.1-natives-linux-armv6.jar>central=
+gluegen-rt-2.3.1.pom>central=
+gluegen-rt-2.3.1-sources.jar>central=
