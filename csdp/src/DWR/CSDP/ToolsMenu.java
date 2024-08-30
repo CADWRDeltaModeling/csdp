@@ -54,7 +54,7 @@ import javax.swing.JOptionPane;
 
 //import org.omg.PortableInterceptor.SUCCESSFUL;
 
-import COM.objectspace.jgl.DividesInteger;
+//import COM.objectspace.jgl.DividesInteger;
 import DWR.CSDP.Landmark.LandmarkPoint;
 import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.FileAndRadioDialog;

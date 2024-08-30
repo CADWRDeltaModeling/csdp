@@ -6,9 +6,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 import javax.swing.JOptionPane;
 
-import org.w3c.dom.html.HTMLIsIndexElement;
-
-import Acme.Nnrpd.NewsDb;
+//import Acme.Nnrpd.NewsDb;
 
 /**
  * Creates a report containing diagnostic information. 

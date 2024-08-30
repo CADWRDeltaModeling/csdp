@@ -57,13 +57,10 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-import Acme.Nnrpd.NewsDb;
-import DWR.CSDP.CenterlineMenu.CDSM2Create;
 import DWR.CSDP.dialog.CenterlineOrReachSummaryWindow;
 import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.DialogLegendFactory;
 import DWR.CSDP.dialog.FileIO;
-import DWR.CSDP.dialog.FileOpen;
 import DWR.CSDP.dialog.FileSave;
 
 public class NetworkMenu {

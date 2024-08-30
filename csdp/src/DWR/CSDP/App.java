@@ -61,6 +61,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
+import org.apache.log4j.BasicConfigurator;
 import org.jfree.data.resources.DataPackageResources;
 import org.junit.experimental.theories.Theories;
 import org.jzy3d.chart.Chart;
@@ -90,6 +91,7 @@ import org.jzy3d.plot3d.text.drawable.DrawableTextBitmap;
 import com.jogamp.newt.event.MouseListener;
 
 import DWR.CSDP.XsectBathymetryData;
+import DWR.CSDP.Test.Test3dScatter;
 import DWR.CSDP.dialog.CenterlineOrReachSummaryWindow;
 import DWR.CSDP.dialog.XsectSlideshowDialog;
 import DWR.CSDP.dialog.DataEntryDialog;
@@ -2582,7 +2584,7 @@ public class App {
 		chart.addController(awtCameraMouseController);
 //		chart.addKeyboardCameraController(new AWTLightKeyController(chart));
 		ChartLauncher.openChart(chart, new Rectangle(1000, 800), windowTitle);
-
+		
 		//For some reason, the plot won't display correctly until user right-drags on the window.
 		//Sending a right-drag event could help eliminate this problem.
 		//but need to figure out how to create a MouseEvent object programmatically. Code below is not working.
@@ -2966,6 +2968,5 @@ public class App {
 		CsdpFunctions.setDSMChannelsFilename(null);
 		CsdpFunctions.setDSMChannelsFiletype(null);
 	}
-
 
 }// class App
