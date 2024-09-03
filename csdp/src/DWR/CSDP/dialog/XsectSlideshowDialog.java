@@ -2,7 +2,6 @@ package DWR.CSDP.dialog;
 
 import java.awt.AWTException;
 import java.awt.Color;
-import java.awt.EventQueue;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -12,20 +11,16 @@ import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.Robot;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Hashtable;
-import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
-import javax.naming.InitialContext;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import DWR.CSDP.App;
@@ -37,7 +32,6 @@ import DWR.CSDP.Network;
 import DWR.CSDP.Xsect;
 import DWR.CSDP.XsectBathymetryData;
 import DWR.CSDP.XsectGraph;
-import DWR.CSDP.Test.DialogClose;
 import vista.graph.GECanvas;
 
 public class XsectSlideshowDialog extends JDialog{
