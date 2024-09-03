@@ -1,10 +1,6 @@
 package DWR.CSDP;
 
 
-import java.awt.GridLayout;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
@@ -13,23 +9,15 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
-import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
-import org.apache.log4j.BasicConfigurator;
-import org.jfree.data.resources.DataPackageResources;
-import org.junit.experimental.theories.Theories;
 import org.jzy3d.chart.Chart;
 import org.jzy3d.chart.ChartLauncher;
 import org.jzy3d.chart.Settings;
-import org.jzy3d.chart.controllers.camera.AbstractCameraController;
 import org.jzy3d.chart.controllers.mouse.camera.AWTCameraMouseController;
-import org.jzy3d.chart.controllers.thread.camera.CameraThreadController;
 import org.jzy3d.chart.factories.AWTChartComponentFactory;
 import org.jzy3d.colors.Color;
 import org.jzy3d.colors.ColorMapper;
@@ -48,16 +36,11 @@ import org.jzy3d.plot3d.rendering.legends.colorbars.AWTColorbarLegend;
 import org.jzy3d.plot3d.text.align.Halign;
 import org.jzy3d.plot3d.text.drawable.DrawableTextBitmap;
 
-import com.jogamp.newt.event.MouseListener;
-
-import DWR.CSDP.XsectBathymetryData;
-import DWR.CSDP.Test.Test3dScatter;
 import DWR.CSDP.dialog.CenterlineOrReachSummaryWindow;
 import DWR.CSDP.dialog.XsectSlideshowDialog;
 import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.GISSummaryStatisticGraphFrame;
 import DWR.CSDP.dialog.MessageDialog;
-import vista.graph.GECanvas;
 
 /**
  * Main application class
