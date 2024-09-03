@@ -2,10 +2,6 @@ package DWR.CSDP.CURVEFIT;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.jogamp.common.os.MachineDataInfo.StaticConfig;
-
-import DWR.CSDP.StationTimeSeriesData;
-
 /**
  * Ramer-Douglas-Peucker algorithm, a well-known method for reducing the number of points in a curve approximated by a series of points
  * @author btom
