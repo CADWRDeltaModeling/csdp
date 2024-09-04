@@ -2562,7 +2562,18 @@ public class CsdpFunctions {
 		Date date = new Date(System.currentTimeMillis());
 		return formatter.format(date);
 	}
+
+	public static void setIconImagePath(String string) {
+		_iconImagePath = string;
+	}
+	public static String getIconImagePath() {
+		return _iconImagePath;
+	}
 	
+	/*
+	 * The path to use to look for images used to create icons
+	 */
+	private static String _iconImagePath = "images";
 	private static DSMChannels _dsmChannels;
 	private static int _dsmChannelsFilechooserState;
 	public static void appendGitHashToVersionNumber(String gitHash) {
@@ -2573,6 +2584,7 @@ public class CsdpFunctions {
 	 * version number-displayed at top of frame
 	 */
 	private static String _version = "3.0_20231207";
+
 
 
 }// class CsdpFunctions

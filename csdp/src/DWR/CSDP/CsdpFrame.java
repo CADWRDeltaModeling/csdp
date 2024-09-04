@@ -12,6 +12,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.EventListener;
@@ -332,30 +333,31 @@ public class CsdpFrame extends JFrame {
 	}
 
 	private void makeIconButtons() {
-		URL bathUrl = this.getClass().getResource("images/FileOpenButton.png");
-		URL propUrl = this.getClass().getResource("images/PropOpenButton.png");
-		URL netOpenUrl = this.getClass().getResource("images/NetworkOpenButton.png");
-		URL netSaveUrl = this.getClass().getResource("images/NetworkSaveButton.png");
-		URL arrowUrl = this.getClass().getResource("images/ArrowButton.png");
-		URL insertPointUrl = this.getClass().getResource("images/InsertPointButton.png");
-		URL movePointUrl = this.getClass().getResource("images/MovePointButton.png");
-		URL addUpstreamPointUrl = this.getClass().getResource("images/AddUpstreamPointButton.png");
-		URL addDownstreamPointUrl = this.getClass().getResource("images/AddDownstreamPointButton.png");
-		URL deletePointUrl = this.getClass().getResource("images/DeletePointButton.png");
-		URL addXsectUrl = this.getClass().getResource("images/AddXsectButton.png");
+		URL bathUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"FileOpenButton.png");
+//		URL propUrl = this.getClass().getResource("images/PropOpenButton.png");
+		URL propUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"PropOpenButton.png");
+		URL netOpenUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"NetworkOpenButton.png");
+		URL netSaveUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"NetworkSaveButton.png");
+		URL arrowUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ArrowButton.png");
+		URL insertPointUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"InsertPointButton.png");
+		URL movePointUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"MovePointButton.png");
+		URL addUpstreamPointUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"AddUpstreamPointButton.png");
+		URL addDownstreamPointUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"AddDownstreamPointButton.png");
+		URL deletePointUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"DeletePointButton.png");
+		URL addXsectUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"AddXsectButton.png");
 
-		URL removeXsectUrl = this.getClass().getResource("images/RemoveXsectButton.png");
-		URL moveXsectUrl = this.getClass().getResource("images/MoveXsectButton.png");
+		URL removeXsectUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"RemoveXsectButton.png");
+		URL moveXsectUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"MoveXsectButton.png");
 
-		URL viewXsectUrl = this.getClass().getResource("images/ViewXsectButton.png");
+		URL viewXsectUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ViewXsectButton.png");
 
-		URL colorUniformUrl = this.getClass().getResource("images/ColorUniformButton.png");
-		URL colorElevUrl = this.getClass().getResource("images/ColorElevButton.png");
-		URL colorSourceUrl = this.getClass().getResource("images/ColorSourceButton.png");
-		URL colorYearUrl = this.getClass().getResource("images/ColorYearButton.png");
-		URL filterSourceUrl = this.getClass().getResource("images/FilterSourceButton.png");
-		URL filterYearUrl = this.getClass().getResource("images/FilterYearButton.png");
-		URL filterLabelUrl = this.getClass().getResource("images/FilterLabel.png");
+		URL colorUniformUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ColorUniformButton.png");
+		URL colorElevUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ColorElevButton.png");
+		URL colorSourceUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ColorSourceButton.png");
+		URL colorYearUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ColorYearButton.png");
+		URL filterSourceUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"FilterSourceButton.png");
+		URL filterYearUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"FilterYearButton.png");
+		URL filterLabelUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"FilterLabel.png");
 
 //		_fileOpenIcon = new ImageIcon(bathUrl);
 //		_propOpenIcon = new ImageIcon(propUrl);
@@ -394,47 +396,47 @@ public class CsdpFrame extends JFrame {
 		_filterYearIcon = CsdpFunctions.createScaledImageIcon(filterYearUrl,COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
 		_filterLabelIcon = CsdpFunctions.createScaledImageIcon(filterLabelUrl,COLOR_BY_ICON_WIDTH, COLOR_BY_ICON_HEIGHT);
 
-		URL networkCalculateUrl = this.getClass().getResource("images/NetworkCalculateButton.png");
-		URL cursorIconSelectedUrl = this.getClass().getResource("images/ArrowButtonSelected.png");
-		URL insertPointButtonSelectedUrl = this.getClass().getResource("images/InsertPointButtonSelected.png");
-		URL movePointIconSelectedUrl = this.getClass().getResource("images/MovePointButtonSelected.png");
-		URL addUpstreamPointIconSelectedUrl = this.getClass().getResource("images/AddUpstreamPointButtonSelected.png");
-		URL addDownstreamPointIconSelectedUrl = this.getClass().getResource("images/AddDownstreamPointButtonSelected.png");
-		URL deleteIconSelectedUrl = this.getClass().getResource("images/DeletePointButtonSelected.png");
-		URL addXsectIconSelectedUrl = this.getClass().getResource("images/AddXsectButtonSelected.png");
-		URL removeXsectIconSelectedUrl = this.getClass().getResource("images/RemoveXsectButtonSelected.png");
-		URL moveXsectIconSelectedUrl = this.getClass().getResource("images/MoveXsectButtonSelected.png");
-		URL colorUniformIconSelectedUrl = this.getClass().getResource("images/ColorUniformButtonSelected.png");
-		URL colorElevIconSelectedUrl = this.getClass().getResource("images/ColorElevButtonSelected.png");
-		URL colorSourceIconSelectedUrl = this.getClass().getResource("images/ColorSourceButtonSelected.png");
-		URL colorYearIconSelectedUrl = this.getClass().getResource("images/ColorYearButtonSelected.png");
-		URL zoomBoxIconUrl = this.getClass().getResource("images/ZoomBoxButton.png");
-		URL zoomBoxIconSelectedUrl = this.getClass().getResource("images/ZoomBoxButtonSelected.png");
-		URL zoomPanIconUrl = this.getClass().getResource("images/ZoomPanButton.png");
-		URL zoomPanIconSelectedUrl = this.getClass().getResource("images/ZoomPanButtonSelected.png");
-		URL zoomFitIconUrl = this.getClass().getResource("images/ZoomFitButton.png");
-		URL zoomFitIconRolloverUrl = this.getClass().getResource("images/ZoomFitButtonRollover.png");
-		URL zoomUndoIconUrl = this.getClass().getResource("images/Undo24.gif");
+		URL networkCalculateUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"NetworkCalculateButton.png");
+		URL cursorIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ArrowButtonSelected.png");
+		URL insertPointButtonSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"InsertPointButtonSelected.png");
+		URL movePointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"MovePointButtonSelected.png");
+		URL addUpstreamPointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"AddUpstreamPointButtonSelected.png");
+		URL addDownstreamPointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"AddDownstreamPointButtonSelected.png");
+		URL deleteIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"DeletePointButtonSelected.png");
+		URL addXsectIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"AddXsectButtonSelected.png");
+		URL removeXsectIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"RemoveXsectButtonSelected.png");
+		URL moveXsectIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"MoveXsectButtonSelected.png");
+		URL colorUniformIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ColorUniformButtonSelected.png");
+		URL colorElevIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ColorElevButtonSelected.png");
+		URL colorSourceIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ColorSourceButtonSelected.png");
+		URL colorYearIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ColorYearButtonSelected.png");
+		URL zoomBoxIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ZoomBoxButton.png");
+		URL zoomBoxIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ZoomBoxButtonSelected.png");
+		URL zoomPanIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ZoomPanButton.png");
+		URL zoomPanIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ZoomPanButtonSelected.png");
+		URL zoomFitIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ZoomFitButton.png");
+		URL zoomFitIconRolloverUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ZoomFitButtonRollover.png");
+		URL zoomUndoIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"Undo24.gif");
 
-		URL selectPointsFor3dViewUrl = this.getClass().getResource("images/SelectPointsFor3dViewButton.png");
-		URL selectPointsFor3dViewSelectedUrl = this.getClass().getResource("images/SelectPointsFor3dViewButtonSelected.png");
-		URL specifyCenterlinesFor3dViewButtonUrl = this.getClass().getResource("images/SpecifyCenterlinesFor3dViewButton.png");
+		URL selectPointsFor3dViewUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"SelectPointsFor3dViewButton.png");
+		URL selectPointsFor3dViewSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"SelectPointsFor3dViewButtonSelected.png");
+		URL specifyCenterlinesFor3dViewButtonUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"SpecifyCenterlinesFor3dViewButton.png");
 		// URL landmarkAddUrl =
-		// this.getClass().getResource("images/LAddButton.gif");
+		// this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"LAddButton.gif");
 		// URL landmarkEditUrl =
-		// this.getClass().getResource("images/LEditButton.gif");
+		// this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"LEditButton.gif");
 		// URL landmarkMoveUrl =
-		// this.getClass().getResource("images/LMoveButton.gif");
+		// this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"LMoveButton.gif");
 		// URL landmarkDeleteUrl =
-		// this.getClass().getResource("images/LDeleteButton.gif");
+		// this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"LDeleteButton.gif");
 		// URL landmarkAddSelectedUrl =
-		// this.getClass().getResource("images/LAddButtonSelected.gif");
+		// this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"LAddButtonSelected.gif");
 		// URL landmarkEditSelectedUrl =
-		// this.getClass().getResource("images/LEditButtonSelected.gif");
+		// this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"LEditButtonSelected.gif");
 		// URL landmarkMoveSelectedUrl =
-		// this.getClass().getResource("images/LMoveButtonSelected.gif");
+		// this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"LMoveButtonSelected.gif");
 		// URL landmarkDeleteSelectedUrl =
-		// this.getClass().getResource("images/LDeleteButtonSelected.gif");
+		// this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"LDeleteButtonSelected.gif");
 
 		_networkCalculateIcon = CsdpFunctions.createScaledImageIcon(networkCalculateUrl,ICON_WIDTH, ICON_HEIGHT);
 		_cursorIconSelected = CsdpFunctions.createScaledImageIcon(cursorIconSelectedUrl,ICON_WIDTH, ICON_HEIGHT);
