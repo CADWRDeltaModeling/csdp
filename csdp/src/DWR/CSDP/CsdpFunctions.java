@@ -2233,7 +2233,14 @@ public class CsdpFunctions {
 	 * Create instance of ImageIcon using image Url scaled to specified width and height
 	 */
 	public static ImageIcon createScaledImageIcon(URL imageUrl, int width, int height) {
-		return new ImageIcon((new ImageIcon(imageUrl)).getImage().getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH));
+		ImageIcon returnImageIcon = null;
+		try {
+			returnImageIcon =  new ImageIcon((new ImageIcon(imageUrl)).getImage().getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH));
+		}catch(NullPointerException e){
+			System.out.println("Error in CsdpFunctions.createScaledImageIcon: unable to create icon for imageUrl="+imageUrl);
+			
+		}
+		return returnImageIcon;
 	}
 
 	/*
