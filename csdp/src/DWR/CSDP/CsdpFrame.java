@@ -43,6 +43,7 @@ import javax.swing.border.Border;
 
 import DWR.CSDP.NetworkMenu.NClearChannelsInp;
 import DWR.CSDP.NetworkMenu.NCreateNetworkAllDSM2Chan;
+import DWR.CSDP.NetworkMenu.NNetworkMAARReport;
 import DWR.CSDP.NetworkMenu.NXSCheckReport;
 import DWR.CSDP.ToolsMenu.TCreateDCDNodeLandmarkFile;
 import DWR.CSDP.LandmarkMenu;
@@ -192,7 +193,8 @@ public class CsdpFrame extends JFrame {
 	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
 	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nExportXsectMidpointCoordToWKT, nList, nSummary, nClearNetwork, nClearChannelsInp, nCreateAllChannelNetwork, 
 		nDisplayReachSummary, nDisplay3dReachView, nSelectPointsFor3dReachView, nCalculate, nExportToSEFormat, nExportTo3DFormat,
-		nExportChannelsInWindow, nExportXsectMetadataTable, nAWDSummaryReport, nXSCheckReport, nDConveyanceReport, nNetworkSummaryReport, nNetworkColorLegend;
+		nExportChannelsInWindow, nExportXsectMetadataTable, nAWDSummaryReport, nXSCheckReport, nDConveyanceReport, nNetworkSummaryReport, nNetworkMAARReport,
+		nNetworkColorLegend;
 	private JMenuItem lSave, lSaveAs, lExportToWKT, lAdd, lMove, lEdit, lDelete, lHelp;
 
 	private JRadioButtonMenuItem lAddPopup, lMovePopup, lEditPopup, lDeletePopup, lHelpPopup;
@@ -333,7 +335,9 @@ public class CsdpFrame extends JFrame {
 	}
 
 	private void makeIconButtons() {
-		URL bathUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"FileOpenButton.png");
+		String tString = CsdpFunctions.getIconImagePath()+File.separator+"FileOpenButton.png";
+		URL bathUrl = this.getClass().getResource(tString);
+		System.out.println(tString+","+bathUrl);
 //		URL propUrl = this.getClass().getResource("images/PropOpenButton.png");
 		URL propUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"PropOpenButton.png");
 		URL netOpenUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"NetworkOpenButton.png");
@@ -1076,6 +1080,7 @@ public class CsdpFrame extends JFrame {
 		
 		JMenu reportsMenu = new JMenu("Reports");
 		reportsMenu.add(nNetworkSummaryReport = new JMenuItem("Network Summary Report"));
+		reportsMenu.add(nNetworkMAARReport = new JMenuItem("Network MAAR Report"));
 		//		reportsMenu.add(nAWDSummaryReport = new JMenuItem("AWD Summary"));
 		//now obsolete--this info is in the Network Summary Report
 //		reportsMenu.add(nXSCheckReport = new JMenuItem("Cross-sections with errors"));
@@ -1111,6 +1116,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener nSelectPointsFor3dReachViewListener = networkMenu.new NSelectPointsFor3dReachView(this);
 		ActionListener nCalculateListener = networkMenu.new NCalculate(this);
 		ActionListener nNetworkSummaryReportListener = networkMenu.new NNetworkSummaryReport(this);
+		ActionListener nNetworkMAARReportListener = networkMenu.new NNetworkMAARReport(this);
 		ActionListener nShowNetworkColorLegendListener = networkMenu.new NShowNetworkColorLegend();
 //		ActionListener nAWDSummaryReportListener = networkMenu.new NAWDSummaryReport(this);
 		ActionListener nXSCheckReportListener = networkMenu.new NXSCheckReport(this);
@@ -1141,6 +1147,7 @@ public class CsdpFrame extends JFrame {
 //		nAWDSummaryReport.addActionListener(nAWDSummaryReportListener);
 //		nXSCheckReport.addActionListener(nXSCheckReportListener);
 		nNetworkSummaryReport.addActionListener(nNetworkSummaryReportListener);
+		nNetworkMAARReport.addActionListener(nNetworkMAARReportListener);
 //		nDConveyanceReport.addActionListener(nDConveyanceReportListener);
 		_networkOpenButton.addActionListener(nOpenListener);
 		_networkSaveButton.addActionListener(_nSaveListener);
@@ -1912,6 +1919,7 @@ public class CsdpFrame extends JFrame {
 //		nXSCheckReport.setEnabled(false);
 //		nDConveyanceReport.setEnabled(false);
 		nNetworkSummaryReport.setEnabled(false);
+		nNetworkMAARReport.setEnabled(false);
 		
 		tClosePolygonCenterlines.setEnabled(false);
 		tRemoveAllCrossSections.setEnabled(false);
@@ -2056,6 +2064,7 @@ public class CsdpFrame extends JFrame {
 //		nXSCheckReport.setEnabled(true);
 //		nDConveyanceReport.setEnabled(true);
 		nNetworkSummaryReport.setEnabled(true);
+		nNetworkMAARReport.setEnabled(true);
 
 	}// enableAfterNetwork
 
@@ -2122,6 +2131,7 @@ public class CsdpFrame extends JFrame {
 //		nDConveyanceReport.setEnabled(false);
 		cMovePolygonCenterlinePointsToLeveeCenterline.setEnabled(false);
 		nNetworkSummaryReport.setEnabled(false);
+		nNetworkMAARReport.setEnabled(false);
 		tManningsDispersionSpatialDistribution.setEnabled(false);
 		tExtendCenterlinesToNodes.setEnabled(false);
 //		tCreateStraightlineChanForGridmap.setEnabled(false);
@@ -2162,6 +2172,7 @@ public class CsdpFrame extends JFrame {
 //		nXSCheckReport.setEnabled(true);
 //		nDConveyanceReport.setEnabled(true);
 		nNetworkSummaryReport.setEnabled(true);
+		nNetworkMAARReport.setEnabled(true);
 		tManningsDispersionSpatialDistribution.setEnabled(true);
 		tExtendCenterlinesToNodes.setEnabled(true);
 	}

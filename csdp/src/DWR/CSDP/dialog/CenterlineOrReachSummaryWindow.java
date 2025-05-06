@@ -274,7 +274,9 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 					+ "assuming no intepolation from adjacent channels,<BR>"
 					+ "an elevation of " + elevation + " in the current datum, and <BR>"
 					+ "linear variation between cross-sections.<BR>"
-					+ "Intertidal Zone: <B>"+CsdpFunctions.INTERTIDAL_LOW_TIDE+"&lt;=Z&lt;="+CsdpFunctions.INTERTIDAL_HIGH_TIDE+"</B></html>");
+					+ "Intertidal Zone: <B>"+CsdpFunctions.INTERTIDAL_LOW_TIDE+"&lt;=Z&lt;="+CsdpFunctions.INTERTIDAL_HIGH_TIDE+"</B><BR><BR>"
+							+ "Maximum Adjacent Area Ratio (MAAR) is, for each 0.5 foot elevation increment in the intertidal zone, the <BR>"
+							+ "maximum ratio of cross-sectional areas between adjacent cross-sections. </html>");
 			centerlineOrReachSummaryLabel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 			centerlineOrReachSummaryLabel.setBackground(Color.LIGHT_GRAY);
 			JLabel elevationLabel = new JLabel("Elevation, ft");
@@ -302,6 +304,7 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 				maxAdjacentAreaRatioElevationLabel = new JLabel("Channel Max Adjacent Area Ratio Elevation");
 				maxAdjacentAreaRatioLabel = new JLabel("Channel Max Adjacent Area Ratio");
 			}
+			
 			double length = 0.0;
 			double volume = 0.0;
 			double wettedArea = 0.0;
@@ -309,7 +312,6 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 			double maxAreaRatio = -Double.MAX_VALUE;
 			double reachMinArea = Double.MAX_VALUE;
 			double reachMaxArea = -Double.MAX_VALUE;
-			Xsect lastXsectPreviousChannel = null;
 			
 			double elevIncrement = 0.5;
 			int numMaarValues =  ((int)((CsdpFunctions.INTERTIDAL_HIGH_TIDE - CsdpFunctions.INTERTIDAL_LOW_TIDE) / elevIncrement)+1)-1;
@@ -334,44 +336,53 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 					maxAreaRatio = reachMaxArea/reachMinArea;
 				}
 
-				//calculate max adjacent area ratio (MAAR) using last xs from previous channel, if any, and the first xs from current channel
-				//this will not execute if only single channel or if it's the first channel
-				Xsect firstXSCurrentChan = centerline.getXsect(0);
-				int maarValuesIndex = 0;
-				if(lastXsectPreviousChannel!=null && !lastXsectPreviousChannel.hasNoPoints() && !firstXSCurrentChan.hasNoPoints() ) {
-					for(double elev=CsdpFunctions.INTERTIDAL_LOW_TIDE; elev<CsdpFunctions.INTERTIDAL_HIGH_TIDE; elev+=0.5) {
-						double a1 = lastXsectPreviousChannel.getAreaSqft(elev);
-						double a2 = firstXSCurrentChan.getAreaSqft(elev);
-						double maarAdjacentChan = Math.max(a1/a2, a2/a1);
-						if(maarAdjacentChan > maxAdjacentAreaRatio) {
-							maxAdjacentAreaRatioElevation = elev;
-							maxAdjacentAreaRatio = maarAdjacentChan;
-						}
-						if(maarAdjacentChan > maarValuesForPlotting[maarValuesIndex]) {
-							maarValuesForPlotting[maarValuesIndex] = maarAdjacentChan;
-						}
-						maarValuesIndex++;
-					}
-				}
-				
-				//now calculate MAAR within the channel
-				double[][] maarWithinChannelResults = centerline.getMaxAdjacentAreaRatioInRange(numMaarValues, 
-						CsdpFunctions.INTERTIDAL_LOW_TIDE, CsdpFunctions.INTERTIDAL_HIGH_TIDE, 0.5);
-				maarElevForPlotting = maarWithinChannelResults[0];
-				double[] currentChanMaarValues = maarWithinChannelResults[1];
-				for(int j=0; j<maarElevForPlotting.length; j++) {
-					if(currentChanMaarValues[j] > maarValuesForPlotting[j]) {
-						maarValuesForPlotting[j]= currentChanMaarValues[j]; 
-					}
-					if(currentChanMaarValues[j]>maxAdjacentAreaRatio) {
-						maxAdjacentAreaRatioElevation = maarElevForPlotting[j];
-						maxAdjacentAreaRatio = currentChanMaarValues[j];
-					}
-				}
-				
-				lastXsectPreviousChannel = centerline.getXsect(centerline.getNumXsects()-1);
+//				double[][] maarArrays = network.calcMAAR(this.chanNumbersVector.get(i), this.app.getDSMChannels());
+				Object[] maarObjectArray = network.calcMAAR(this.chanNumbersVector.get(i), this.app.getDSMChannels());
+				maarElevForPlotting = ((double[][])(maarObjectArray[0]))[0];
+				maarValuesForPlotting = ((double[][])(maarObjectArray[0]))[1];
+				maxAdjacentAreaRatioElevation = (double)(maarObjectArray[1]);
+				maxAdjacentAreaRatio = (double)(maarObjectArray[2]);
+				System.out.println("maar elevation, value="+maxAdjacentAreaRatioElevation+","+maxAdjacentAreaRatio);
+				//
+//				//calculate max adjacent area ratio (MAAR) using last xs from previous channel, if any, and the first xs from current channel
+//				//this will not execute if only single channel or if it's the first channel
+//				Xsect firstXSCurrentChan = centerline.getXsect(0);
+//				int maarValuesIndex = 0;
+//				if(lastXsectPreviousChannel!=null && !lastXsectPreviousChannel.hasNoPoints() && !firstXSCurrentChan.hasNoPoints() ) {
+//					for(double elev=CsdpFunctions.INTERTIDAL_LOW_TIDE; elev<CsdpFunctions.INTERTIDAL_HIGH_TIDE; elev+=0.5) {
+//						double a1 = lastXsectPreviousChannel.getAreaSqft(elev);
+//						double a2 = firstXSCurrentChan.getAreaSqft(elev);
+//						double maarAdjacentChan = Math.max(a1/a2, a2/a1);
+//						if(maarAdjacentChan > maxAdjacentAreaRatio) {
+//							maxAdjacentAreaRatioElevation = elev;
+//							maxAdjacentAreaRatio = maarAdjacentChan;
+//						}
+//						if(maarAdjacentChan > maarValuesForPlotting[maarValuesIndex]) {
+//							maarValuesForPlotting[maarValuesIndex] = maarAdjacentChan;
+//						}
+//						maarValuesIndex++;
+//					}
+//				}
+//				
+//				//now calculate MAAR within the channel. Result: for each elevation increment in the user specified
+//				//intertidal zone, the maximum ratio of cross-sectional areas found by comparing adjacent cross-sections.
+//				double[][] maarWithinChannelResults = centerline.getMaxAdjacentAreaRatioInRange(numMaarValues, 
+//						CsdpFunctions.INTERTIDAL_LOW_TIDE, CsdpFunctions.INTERTIDAL_HIGH_TIDE, 0.5);
+//				maarElevForPlotting = maarWithinChannelResults[0];
+//				double[] currentChanMaarValues = maarWithinChannelResults[1];
+//				for(int j=0; j<maarElevForPlotting.length; j++) {
+//					if(currentChanMaarValues[j] > maarValuesForPlotting[j]) {
+//						maarValuesForPlotting[j]= currentChanMaarValues[j]; 
+//					}
+//					if(currentChanMaarValues[j]>maxAdjacentAreaRatio) {
+//						maxAdjacentAreaRatioElevation = maarElevForPlotting[j];
+//						maxAdjacentAreaRatio = currentChanMaarValues[j];
+//					}
+//				}
+//				
+//				lastXsectPreviousChannel = centerline.getXsect(centerline.getNumXsects()-1);
 			}		
-
+			
 			//now add MAAR and MAR graphs
 	    	String graphTitleMAAR = "MAAR vs Elev";
 	    	String graphTitleMAR = "MAR vs Elev";

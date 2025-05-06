@@ -1,6 +1,8 @@
 package DWR.CSDP;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -34,38 +36,17 @@ public class DSMChannels {
 	private Hashtable<String, String> _xsectLayerArea = new Hashtable<String, String>();
 	private Hashtable<String, String> _xsectLayerWidth = new Hashtable<String, String>();
 	private Hashtable<String, String> _xsectLayerWetPerim = new Hashtable<String, String>();
+	/*
+	 * For each node, an array containing names of centerlines connected to it
+	 */
+	private Hashtable<Integer, List<String>> _channelsConnectedToNode = new Hashtable<Integer, List<String>>();
 	
 	private final String ELEV_HEADER = "ELEV";
 	private final String AREA_HEADER = "AREA";
 	private final String WIDTH_HEADER = "WIDTH";
 	private final String WET_PERIM_HEADER = "WET_PERIM";
 
-//	/*
-//	 * Key is node num, value is the number of channels connected to it.
-//	 */
-//	private Hashtable<Integer, Integer> nodeToNumChannelsHashtable = new Hashtable<Integer, Integer>();
-//	/*
-//	 * The goal is for user to be able to determine 
-//	 */
-//	public static final int UPSTREAM_CONNECTION = 10;
-//	public static final int DOWNSTREAM_CONNECTION = 20;
-	
 	private static final boolean DEBUG = false;
-
-	/**
-	 * add a DSM channel.
-	 */
-//	public void addDSMChannel(int index, String name, int length, int upnode, int downnode, int xsect1, int dist1,
-//			int xsect2, int dist2) {
-//		putChanNum(index, name);
-//		putLength(name, length);
-//		putUpnode(name, upnode);
-//		putDownnode(name, downnode);
-//		putXsect1(name, xsect1);
-//		putDist1(name, dist1);
-//		putXsect2(name, xsect2);
-//		putDist2(name, dist2);
-//	}
 
 	public void addDSMChannel(int index, String name, int length, String manning, String dispersion, int upnode, int downnode) {
 		_chanNum.addElement(name);
@@ -74,6 +55,16 @@ public class DSMChannels {
 		_dispersion.put(name, dispersion);
 		_upnode.put(name, upnode);
 		_downnode.put(name, downnode);
+		
+		if(!_channelsConnectedToNode.containsKey(upnode)) {
+			_channelsConnectedToNode.put(upnode, new ArrayList<String>());
+		}
+		_channelsConnectedToNode.get(upnode).add(name);
+		
+		if(!_channelsConnectedToNode.containsKey(downnode)) {
+			_channelsConnectedToNode.put(downnode, new ArrayList<String>());
+		}
+		_channelsConnectedToNode.get(downnode).add(name);
 	}
 
 	public void addDSMXsectLayer(int index, String chan, String dist, String elev, String area, String width, String wetPerim) {
@@ -266,6 +257,27 @@ public class DSMChannels {
 			exists = true;
 		return exists;
 	}
+
+	/*
+	 * For given centerline and node number:
+	 * if there are two channels connected to the node, return the name of the channel
+	 * that does not match the centerlineName.
+	 * If there either 1 or 3 or more channels connected to the node, return null. 
+	 */
+	public String getChannelConnectedToNode(String centerlineName, int node) {
+		List<String> channelsList = _channelsConnectedToNode.get(node);
+		String returnCenterlineName = null;
+		if(channelsList.size()==2) {
+			if(channelsList.get(0).equals(centerlineName)) {
+				returnCenterlineName = channelsList.get(1);
+			}else if(channelsList.get(1).equals(centerlineName)) {
+				returnCenterlineName = channelsList.get(0);
+			}else {
+				System.out.println("Error in DSMChannels.getChannelConnectedToNode: given centerlineName is not in DSMChannls object!");
+			}
+		}
+		return returnCenterlineName;
+	}//getChannelConnectedToNode
 
 
 }// DSMChannels

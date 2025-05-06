@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.locks.Condition;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -1870,6 +1871,57 @@ public class App {
 		_csdpFrame.getPlanViewCanvas(0).repaint();
 	}//movePolygonCenterlinePointsToLeveeCenterline
 
+	public void createNetworkMAARReport() {
+		 String title = "Create Network Max Adjacent Area Ratio (MAAR) Report";
+		 String instructions = "<HTML><BODY>A Network MAAR report is a .csv file containing the Max Adjacent Area Ratios (MAAR) for each channel. <BR>"
+		 		+ "The MAAR for each channel is calculated for a range of elevations defined by the user as the intertidal zone (Display-Parameters menu. <BR>"
+		 		+ "For each elevation, for each cross-section in the channel, the maximum ratio of cross-sectional areas between adjacent cross-sections<BR>"
+		 		+ " is calculated. If a single channel is connected to one of the channel's nodes, then the cross-section adjacent to this node is included<BR>"
+		 		+ " in the calculation.<BR><BR>"
+		 		+ "<H2>A Network MAAR report uses the following inputs:</H2><BR><BR>"
+		 		+ "1. An existing channel_std_delta_grid.inp file, if one is not already loaded<BR>"
+		 		+ "2. The currently loaded network file<BR>"
+		 		+ "3. The name of the output file, to which results will be written<BR><BR>"
+		 		+ "The output file will include the MAAR results for all channels, sorted in descending order by maximum MAAR. ";
+		//create dialog to get input from user
+
+		double length = 0.0;
+		double volume = 0.0;
+		double wettedArea = 0.0;
+		double surfaceArea = 0.0;
+		double maxAreaRatio = -Double.MAX_VALUE;
+		double reachMinArea = Double.MAX_VALUE;
+		double reachMaxArea = -Double.MAX_VALUE;
+		AsciiFileWriter asciiFileWriter = new AsciiFileWriter(_csdpFrame, "d:/temp/network_maar.csv");
+		asciiFileWriter.writeLine("Network MAAR for network");
+		asciiFileWriter.writeLine("Channel, MAAR elev, MAAR, values for elevations");
+		double elevIncrement = 0.5;
+		int numMaarValues =  ((int)((CsdpFunctions.INTERTIDAL_HIGH_TIDE - CsdpFunctions.INTERTIDAL_LOW_TIDE) / elevIncrement)+1)-1;
+		double[] maarElevForPlotting = new double[numMaarValues];
+		double[] maarValuesForPlotting = new double[numMaarValues];
+		//these are for the maximum value for the entire elevation range
+		double maxAdjacentAreaRatioElevation = 0.0;
+		double maxAdjacentAreaRatio = 0.0;
+		int numCenterlines = this._net.getNumCenterlines();
+		for(int i=0; i<numCenterlines; i++) {
+			String centerlineName = this._net.getCenterlineName(i);
+			Centerline centerline = this._net.getCenterline(centerlineName);
+
+			Object[] maarObjectArray = this._net.calcMAAR(centerlineName, getDSMChannels());
+			maarElevForPlotting = ((double[][])(maarObjectArray[0]))[0];
+			maarValuesForPlotting = ((double[][])(maarObjectArray[0]))[1];
+			maxAdjacentAreaRatioElevation = (double)(maarObjectArray[1]);
+			maxAdjacentAreaRatio = (double)(maarObjectArray[2]);
+			String lineString = centerlineName+","+maxAdjacentAreaRatioElevation+","+maxAdjacentAreaRatio+",";
+			for(int j=0; j<maarValuesForPlotting.length; j++) {
+				lineString += maarValuesForPlotting[j]+",";
+			}
+			asciiFileWriter.writeLine(lineString);
+		}		
+		asciiFileWriter.close();
+	}//createNetworkMAARReport
+
+	
 	/*
 	 * Create the Network Summary Report using input from user.
 	 */
@@ -2043,7 +2095,7 @@ public class App {
 	 * 
 	 * 1. The distance from the landmark to each endpoint of each centerline. This is necessary because sometimes landmarks are placed such that 
 	 * they are not within the infinitely wide rectangle used in condition 1.  
-	 * 2. The closest perpendicular distance a centerline segment. To be counted, the landmark must be contained in an infinitely wide rectangle 
+	 * 2. The closest perpendicular distance to a centerline segment. To be counted, the landmark must be contained in an infinitely wide rectangle 
 	 * that has two sides parallel to the line segment, and two sides intersecting the endpoints of the centerline.
 	 */
 	public void createDSM2OutputLocationsForLandmarks(CsdpFrame csdpFrame) {
@@ -2138,6 +2190,9 @@ public class App {
 					filename = dsm2ChannelsFilename;
 					filetype = null;
 				}
+				// This is a DSM2 channels input file from a run for which we do not have a CSDP network file.
+				// Channel lengths will be read from this file and used to scale channel distances, so they will be
+				// compatible with a grid that uses channels lengths that differ from the currently loaded CSDP network file.
 				DSMChannelsInput chanInput = DSMChannelsInput.getInstance(dsm2ChannelsDirectory.toString(), filename + "." + DSMChannels_TYPE);
 				dsmChannelsJustForAdjustment = chanInput.readData();
 			}
@@ -2170,8 +2225,12 @@ public class App {
 					String landmarkName = landmarkNamesEnum.nextElement();
 					double landmarkX = landmark.getXFeet(landmarkName);
 					double landmarkY = landmark.getYFeet(landmarkName);
-					// Condition 1: find centerline with shortest distance from one of the endpoints to the landmark.
-					Object[] chanDist = network.findClosestCenterlineEndpointToLandmark(landmarkX, landmarkY);
+
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					// Condition 1: find centerline with shortest distance from one of the points to the landmark. Include all centerline points //
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					Object[] chanDist = network.findClosestCenterlinePointToLandmark(landmarkX, landmarkY);
+					
 					String closestEndpointCenterlineNameString = (String) chanDist[0];
 					double minDistEndpointCenterline = (Double) chanDist[1];
 					double closestEndpointCenterlineDistAlong = (Double) chanDist[2];
@@ -2195,7 +2254,10 @@ public class App {
 					for(int i=0; i<network.getNumCenterlines(); i++) {
 						String centerlineName = network.getCenterlineName(i);
 						Centerline centerline = network.getCenterline(centerlineName);
-						//Condition 2: find perpendicular distance to all centerlines. returns distance along centerline, and perpendicular distance to the closest centerline segment
+						/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+						//Condition 2: find perpendicular distance to all centerlines. returns distance along centerline, and perpendicular 
+						//distance to the closest centerline segment
+						/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 						double[] cumDistMinDistIntersectionCoord = CsdpFunctions.getXsectDistAndPointDist(centerline, landmarkX, 
 								landmarkY, Double.MAX_VALUE, true); 
 						double cumDist = cumDistMinDistIntersectionCoord[0];
@@ -2911,5 +2973,6 @@ public class App {
 		CsdpFunctions.setDSMChannelsFilename(null);
 		CsdpFunctions.setDSMChannelsFiletype(null);
 	}
+
 
 }// class App

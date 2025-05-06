@@ -1059,16 +1059,31 @@ public class NetworkMenu {
 	} // NAWDSummary
 
 	public class NNetworkSummaryReport implements ActionListener {
-		private CsdpFrame _gui;
+		private CsdpFrame _csdpFrame;
 		public NNetworkSummaryReport(CsdpFrame gui) {
-			_gui = gui;
+			_csdpFrame = gui;
 		}
 		public void actionPerformed(ActionEvent arg0) {
-			_gui.pressSelectCursorAkaArrowButton();
+			_csdpFrame.pressSelectCursorAkaArrowButton();
 			_app.createNetworkSummaryReport();
 		}
 
 	}//inner class NNetworkSummaryReport
+
+	
+	public class NNetworkMAARReport implements ActionListener {
+		private CsdpFrame _csdpFrame;
+		public NNetworkMAARReport(CsdpFrame csdpFrame) {
+			_csdpFrame = csdpFrame;
+		}
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			_csdpFrame.pressSelectCursorAkaArrowButton();
+			_app.createNetworkMAARReport();
+		}
+
+	}//inner class NNetworkMAARReport
+
 
 
 	/**

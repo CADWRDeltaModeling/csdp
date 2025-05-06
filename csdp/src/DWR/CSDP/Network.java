@@ -1,9 +1,17 @@
 package DWR.CSDP;
 
 import java.awt.Polygon;
+import java.beans.beancontext.BeanContext;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.prefs.NodeChangeEvent;
+
 import javax.swing.JOptionPane;
+
+import org.jfree.chart.panel.AbstractOverlay;
+import org.jzy3d.plot3d.builder.concrete.OldRingTesselator;
+
+import Acme.Nnrpd.NewsDb;
 import DWR.CSDP.semmscon.UseSemmscon;
 
 /**
@@ -14,7 +22,7 @@ import DWR.CSDP.semmscon.UseSemmscon;
  */
 public class Network {
 
-	
+
 	public String _oldCenterlineName = null;
 	public String _newCenterlineName = null;
 	/**
@@ -1043,14 +1051,14 @@ public class Network {
 			Centerline centerline = getCenterline(centerlineName);
 			maxXsectLineLength[i] = centerline.getMaximumXsectLineLength();
 		}
-		
+
 		for(int i=0; i<centerlineNames.length; i++) {
 			String centerlineName = centerlineNames[i];
 			Centerline centerline = getCenterline(centerlineName);
-//			for(int j=0; j<centerline.getNumXsects(); j++) {
+			//			for(int j=0; j<centerline.getNumXsects(); j++) {
 			for(int j=0; j<centerline.getNumCenterlinePoints(); j++) {
 				CenterlinePoint centerlinePoint = centerline.getCenterlinePoint(j);
-//				double[] centerlineSegmentEndpoints = findCenterlineSegmentCoord(centerlineName, j);
+				//				double[] centerlineSegmentEndpoints = findCenterlineSegmentCoord(centerlineName, j);
 				minX = Math.min(minX, centerlinePoint.getXFeet());
 				maxX = Math.max(maxX, centerlinePoint.getXFeet());
 
@@ -1093,13 +1101,13 @@ public class Network {
 					maxY = Math.max(maxY, xsY2);
 				}
 				//				minX -= xsectThickness/2;
-//				maxX += xsectThickness/2;
-//				need to Fix this
-				
+				//				maxX += xsectThickness/2;
+				//				need to Fix this
+
 				minY = Math.min(minY, centerlinePoint.getYFeet());
 				maxY = Math.max(maxY, centerlinePoint.getYFeet());
-//				minY -= xsectThickness/2;
-//				maxY += xsectThickness/2;
+				//				minY -= xsectThickness/2;
+				//				maxY += xsectThickness/2;
 			}
 			for(int j=0; j<centerline.getNumXsects(); j++) {
 				double[] xsectEndpoints = findXsectLineCoord(centerlineName, j);
@@ -1107,7 +1115,7 @@ public class Network {
 				minX = Math.min(minX, xsectEndpoints[CsdpFunctions.x2Index]);
 				maxX = Math.max(maxX, xsectEndpoints[CsdpFunctions.x1Index]);
 				maxX = Math.max(maxX, xsectEndpoints[CsdpFunctions.x2Index]);
-				
+
 				minY = Math.min(minY, xsectEndpoints[CsdpFunctions.y1Index]);
 				minY = Math.min(minY, xsectEndpoints[CsdpFunctions.y2Index]);
 				maxY = Math.max(maxY, xsectEndpoints[CsdpFunctions.y1Index]);
@@ -1119,7 +1127,7 @@ public class Network {
 		returnValues[CsdpFunctions.x2Index] = maxX;
 		returnValues[CsdpFunctions.y1Index] = minY;
 		returnValues[CsdpFunctions.y2Index] = maxY;
-		
+
 		return returnValues;
 	}
 
@@ -1166,7 +1174,7 @@ public class Network {
 	/*
 	 * Returns array with centerline name, closestDistance, distance along
 	 */
-	public Object[] findClosestCenterlineEndpointToLandmark(double landmarkX, double landmarkY) {
+	public Object[] findClosestCenterlinePointToLandmark(double landmarkX, double landmarkY) {
 		double minDist = Double.MAX_VALUE;
 		String chanWithMinDist = null;
 		double closestCenterlineDistAlong = -Double.MAX_VALUE;
@@ -1174,39 +1182,144 @@ public class Network {
 
 		for(int i=0; i<getNumCenterlines(); i++) {
 			Centerline centerline = getCenterline(getCenterlineName(i));
-
-			//new approach: find closest 
-//			for(int j=0; j<centerline.getNumCenterlinePoints(); j++) {
-//				CenterlinePoint centerlinePoint = centerline.getCenterlinePoint(j);
-//				double pointDist = CsdpFunctions.pointDist(landmarkX,  landmarkY, centerlinePoint._x, centerlinePoint._y);
-//				if(pointDist<minDist) {
-//					minDist = pointDist;
-//					chanWithMinDist = getCenterlineName(i);
-//					closestCenterlineDistAlong = centerline.getDistAlongToPoint(j);
-//				}
-//			}
-			
-			
-			CenterlinePoint upstreamPoint = centerline.getCenterlinePoint(0);
-			CenterlinePoint downstreamPoint = centerline.getCenterlinePoint(centerline.getNumCenterlinePoints()-1);
-			
-			double upstreamDist = CsdpFunctions.pointDist(landmarkX, landmarkY, upstreamPoint._x, upstreamPoint._y);
-			double downstreamDist = CsdpFunctions.pointDist(landmarkX, landmarkY, downstreamPoint._x, downstreamPoint._y);
-			
-			if(upstreamDist < minDist) {
-				minDist = upstreamDist;
-				chanWithMinDist = getCenterlineName(i);
-				closestCenterlineDistAlong = 0.0;
-				closestCenterlinePoint = upstreamPoint;
-			}
-			if(downstreamDist < minDist) {
-				minDist = downstreamDist;
-				chanWithMinDist = getCenterlineName(i);
-				closestCenterlineDistAlong = centerline.getLengthFeet();
-				closestCenterlinePoint = downstreamPoint;
+			for(int j=0; j<centerline.getNumCenterlinePoints(); j++) {
+				CenterlinePoint centerlinePoint = centerline.getCenterlinePoint(j);
+				double pointDist = CsdpFunctions.pointDist(landmarkX, landmarkY, centerlinePoint._x, centerlinePoint._y);
+				if(pointDist < minDist) {
+					minDist = pointDist;
+					chanWithMinDist = getCenterlineName(i);
+					closestCenterlineDistAlong = centerline.getDistToPoint(j);
+					closestCenterlinePoint = centerlinePoint;
+				}
 			}
 		}
 		return new Object[] {chanWithMinDist, minDist, closestCenterlineDistAlong, closestCenterlinePoint};
+	}//findClosestCenterlinePointToLandmark
+
+	/*
+	 * Calculate Max adjacent area ratio for intertidal zone, for specified centerline and 
+	 * using DSMChannels object to determine connectivity
+	 */
+	public Object[] calcMAAR(String centerlineName, DSMChannels dsmChannels) {
+		double length = 0.0;
+		double volume = 0.0;
+		double wettedArea = 0.0;
+		double surfaceArea = 0.0;
+		double maxAreaRatio = -Double.MAX_VALUE;
+		double reachMinArea = Double.MAX_VALUE;
+		double reachMaxArea = -Double.MAX_VALUE;
+		Xsect lastXsectPreviousChannel = null;
+		double elevIncrement = 0.5;
+
+		int numMaarValues =  ((int)((CsdpFunctions.INTERTIDAL_HIGH_TIDE - CsdpFunctions.INTERTIDAL_LOW_TIDE) / elevIncrement)+1)-1;
+		double[] maarElevForPlotting = new double[numMaarValues];
+		double[] maarValuesForPlotting = new double[numMaarValues];
+		//these are for the maximum value for the entire elevation range
+		double maxAdjacentAreaRatioElevation = 0.0;
+		double maxAdjacentAreaRatio = 0.0;
+
+		Centerline centerline = getCenterline(centerlineName);
+
+		//calculate max adjacent area ratio (MAAR) using last xs from previous channel, if any, and the first xs from current channel
+		//this will not execute if only single channel or if it's the first channel
+
+		//If there is a single centerline connected to the upstream node, compare its last cross-section with the 
+		//first cross-section in the current channel
+		int upnode = dsmChannels.getUpnode(centerlineName);
+		String upChanName = dsmChannels.getChannelConnectedToNode(centerlineName, upnode);
+		if(upChanName != null) {
+			Centerline upCenterline = getCenterline(upChanName);
+			if(upCenterline != null) {
+				Xsect adjacentXsectUpstreamChan = null;
+				if(dsmChannels.getUpnode(upChanName) == upnode) {
+					adjacentXsectUpstreamChan = upCenterline.getXsect(0);
+				}else if(dsmChannels.getDownnode(upChanName) == upnode) {
+					adjacentXsectUpstreamChan = upCenterline.getXsect(upCenterline.getNumXsects()-1);
+				}else {
+					System.out.println("Error in Network.calcMAAR: can't find adjacent cross-section for upstream chan");
+				}
+				Xsect firstXsectCurrentChan = centerline.getXsect(0);
+				int maarValuesIndex = 0;
+				for(double elev=CsdpFunctions.INTERTIDAL_LOW_TIDE; elev<CsdpFunctions.INTERTIDAL_HIGH_TIDE; elev+=elevIncrement) {
+					double a1 = adjacentXsectUpstreamChan.getAreaSqft(elev);
+					double a2 = firstXsectCurrentChan.getAreaSqft(elev);
+					double maarUpstreamChan = Math.max(a1/a2, a2/a1);
+					if(maarUpstreamChan > maxAdjacentAreaRatio) {
+						maxAdjacentAreaRatioElevation = elev;
+						maxAdjacentAreaRatio = maarUpstreamChan;
+					}
+					if(maarUpstreamChan > maarValuesForPlotting[maarValuesIndex]) {
+						maarValuesForPlotting[maarValuesIndex] = maarUpstreamChan;
+					}
+					maarValuesIndex++;
+				}
+			}
+			System.out.println("upChanName="+upChanName);
+		}else {
+			System.out.println("upChanName="+upChanName);
+		}
+
+		//If there is a single centerline connected to the downstream node, compare its first cross-section with the 
+		//last cross-section in the current channel
+		int downnode = dsmChannels.getDownnode(centerlineName);
+		String downChanName = dsmChannels.getChannelConnectedToNode(centerlineName, downnode);
+		if(downChanName != null) {
+			Centerline downCenterline = getCenterline(downChanName);
+			if(downCenterline != null) {
+				Xsect adjacentXsectDownstreamChan = null;
+				if(dsmChannels.getUpnode(downChanName) == downnode) {
+					adjacentXsectDownstreamChan = downCenterline.getXsect(0);
+				}else if(dsmChannels.getDownnode(upChanName) == downnode) {
+					adjacentXsectDownstreamChan = downCenterline.getXsect(downCenterline.getNumXsects()-1);
+				}else {
+					System.out.println("Error in Network.calcMAAR: can't find adjacent cross-section for downstream chan");
+				}
+				
+				Xsect lastXsectCurrentChan = centerline.getXsect(centerline.getNumXsects()-1);
+				int maarValuesIndex = 0;
+				for(double elev=CsdpFunctions.INTERTIDAL_LOW_TIDE; elev<CsdpFunctions.INTERTIDAL_HIGH_TIDE; elev+=0.5) {
+					double a1 = adjacentXsectDownstreamChan.getAreaSqft(elev);
+					double a2 = lastXsectCurrentChan.getAreaSqft(elev);
+					double maarDownstreamChan = Math.max(a1/a2, a2/a1);
+					if(maarDownstreamChan > maxAdjacentAreaRatio) {
+						maxAdjacentAreaRatioElevation = elev;
+						maxAdjacentAreaRatio = maarDownstreamChan;
+					}
+					if(maarDownstreamChan > maarValuesForPlotting[maarValuesIndex]) {
+						maarValuesForPlotting[maarValuesIndex] = maarDownstreamChan;
+					}
+					maarValuesIndex++;
+				}
+			}
+			System.out.println("downChanName="+downChanName);
+		}else {
+			System.out.println("downChanName="+downChanName);
+		}
+		
+		//now calculate MAAR within the channel. Result: for each elevation increment in the user specified
+		//intertidal zone, the maximum ratio of cross-sectional areas found by comparing adjacent cross-sections.
+		double[][] maarWithinChannelResults = centerline.getMaxAdjacentAreaRatioInRange(numMaarValues, 
+				CsdpFunctions.INTERTIDAL_LOW_TIDE, CsdpFunctions.INTERTIDAL_HIGH_TIDE, elevIncrement);
+		maarElevForPlotting = maarWithinChannelResults[0];
+		maarValuesForPlotting = maarWithinChannelResults[1];
+//		double[] currentChanMaarValues = maarWithinChannelResults[1];
+		for(int j=0; j<maarElevForPlotting.length; j++) {
+//			if(currentChanMaarValues[j] > maarValuesForPlotting[j]) {
+//				maarValuesForPlotting[j]= currentChanMaarValues[j]; 
+//			}
+			if(maarValuesForPlotting[j]>maxAdjacentAreaRatio) {
+				maxAdjacentAreaRatioElevation = maarElevForPlotting[j];
+				maxAdjacentAreaRatio = maarValuesForPlotting[j];
+			}
+		}
+
+		lastXsectPreviousChannel = centerline.getXsect(centerline.getNumXsects()-1);
+		Object[] returnObject = new Object[3];
+		returnObject[0] = new double[][]{maarElevForPlotting, maarValuesForPlotting};
+		returnObject[1] = maxAdjacentAreaRatioElevation;
+		returnObject[2] = maxAdjacentAreaRatio;
+		return returnObject;
 	}
-	
+
+
 } // class Network

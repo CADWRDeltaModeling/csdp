@@ -297,7 +297,7 @@ public class Centerline {
 	/*
 	 * the distance along the centerline from the upstream end to the centerlinePoint at the given index.
 	 */
-	private double getDistToPoint(int index) {
+	public double getDistToPoint(int index) {
 		double returnValue = -Double.MAX_VALUE;
 		if(getNumCenterlinePoints()>2) {
 			returnValue = 0.0;
@@ -1232,7 +1232,8 @@ public class Centerline {
 
 
 	/*
-	 * Returns the maximum ratio of adjacent cross-sectional areas 
+	 * For a given elevation, returns the maximum ratio of adjacent cross-sectional areas, 
+	 * comparing all cross-sections in the channel 
 	 */
 	public double getMaxAdjacentAreaRatio(double elevation) {
 		double maar = 0.0;
@@ -1242,6 +1243,7 @@ public class Centerline {
 			double a1 = currentXsect.getAreaSqft(elevation);
 			double a2 = nextXsect.getAreaSqft(elevation);
 			double ar = Math.max(a1/a2, a2/a1);
+			if(a1==0.0 || a2==0.0) ar=0.0;
 			maar = Math.max(ar, maar);
 		}
 		return maar;
@@ -1650,6 +1652,7 @@ public class Centerline {
 			}
 		}
 	}
+
 
 //	public double getDistAlongToPoint(int centerlinePointIndex) {
 //		for(int i=0; i<centerlinePointIndex; i++) {
