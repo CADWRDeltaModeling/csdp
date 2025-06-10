@@ -113,31 +113,31 @@ public class XsectGraph extends JDialog implements ActionListener {
 	// protected JCheckBoxMenuItem _xMovePointMenuItem, _xAddPointMenuItem,
 	// _xInsertPointMenuItem, _xDeletePointMenuItem;
 
-	private URL xsCloseUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"XSCloseButton.png");
-	private URL cursorIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ArrowButton.png");
-	private URL reverseXsectIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ReverseXsectButton.png");
-	private URL movePointIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"MoveXsectPointButton.png");
-	//	private URL addPointIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"AddXsectPointButton.png");
-	private URL addLeftPointIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"AddBeginningXsectPointButton.png");
-	private URL addRightPointIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"AddEndingXsectPointButton.png");
-	private URL insertPointIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"InsertXsectPointButton.png");
-	private URL deletePointIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"DeleteXsectPointButton.png");
-	private URL cursorIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ArrowButtonSelected.png");
-	private URL movePointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"MoveXsectPointButtonSelected.png");
-	//	private URL addPointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"AddXsectPointButtonSelected.png");
-	private URL addBeginningPointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"AddBeginningXsectPointButtonSelected.png");
-	private URL addEndingPointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"AddEndingXsectPointButtonSelected.png");
-	private URL insertPointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"InsertXsectPointButtonSelected.png");
-	private URL deletePointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"DeleteXsectPointButtonSelected.png");
-	private URL keepIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"KeepButton.png");
-	private URL restoreIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"RestoreButton.png");
-	private URL colorByDistanceIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ColorDistanceButton.png");
-	private URL colorByDistanceIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ColorDistanceButtonSelected.png");
-	private URL colorBySourceIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ColorSourceButton.png");
-	private URL colorBySourceIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ColorSourceButtonSelected.png");
-	private URL colorByYearIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ColorYearButton.png");
-	private URL colorByYearIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"ColorYearButtonSelected.png");
-	private URL autoXSIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"AutoXSButton.png");
+	private URL xsCloseUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"XSCloseButton.png");
+	private URL cursorIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"ArrowButton.png");
+	private URL reverseXsectIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"ReverseXsectButton.png");
+	private URL movePointIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"MoveXsectPointButton.png");
+	//	private URL addPointIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"AddXsectPointButton.png");
+	private URL addLeftPointIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"AddBeginningXsectPointButton.png");
+	private URL addRightPointIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"AddEndingXsectPointButton.png");
+	private URL insertPointIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"InsertXsectPointButton.png");
+	private URL deletePointIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"DeleteXsectPointButton.png");
+	private URL cursorIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"ArrowButtonSelected.png");
+	private URL movePointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"MoveXsectPointButtonSelected.png");
+	//	private URL addPointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"AddXsectPointButtonSelected.png");
+	private URL addBeginningPointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"AddBeginningXsectPointButtonSelected.png");
+	private URL addEndingPointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"AddEndingXsectPointButtonSelected.png");
+	private URL insertPointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"InsertXsectPointButtonSelected.png");
+	private URL deletePointIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"DeleteXsectPointButtonSelected.png");
+	private URL keepIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"KeepButton.png");
+	private URL restoreIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"RestoreButton.png");
+	private URL colorByDistanceIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"ColorDistanceButton.png");
+	private URL colorByDistanceIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"ColorDistanceButtonSelected.png");
+	private URL colorBySourceIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"ColorSourceButton.png");
+	private URL colorBySourceIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"ColorSourceButtonSelected.png");
+	private URL colorByYearIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"ColorYearButton.png");
+	private URL colorByYearIconSelectedUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"ColorYearButtonSelected.png");
+	private URL autoXSIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"AutoXSButton.png");
 	
 	private ImageIcon _xsCloseIcon = CsdpFunctions.createScaledImageIcon(xsCloseUrl, WIDE_ICON_WIDTH, WIDE_ICON_HEIGHT);
 	private ImageIcon _cursorIcon = CsdpFunctions.createScaledImageIcon(cursorIconUrl, ICON_WIDTH, ICON_HEIGHT);
@@ -403,7 +403,7 @@ public class XsectGraph extends JDialog implements ActionListener {
 
 		_eastPanel.add(_dConveyancePanel);
 
-		URL metadataIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+File.separator+"MetadataIcon.png");
+		URL metadataIconUrl = this.getClass().getResource(CsdpFunctions.getIconImagePath()+"/"+"MetadataIcon.png");
 		//		ImageIcon _metadataIcon = new ImageIcon(metadataIconUrl);
 		ImageIcon _metadataIcon = CsdpFunctions.createScaledImageIcon(metadataIconUrl, WIDE_ICON_WIDTH*4, WIDE_ICON_HEIGHT);
 		JLabel _metadataLabel = new JLabel(_metadataIcon, SwingConstants.LEFT);

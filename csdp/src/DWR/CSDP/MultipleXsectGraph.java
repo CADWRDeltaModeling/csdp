@@ -75,7 +75,7 @@ import vista.set.DefaultReference;
 public class MultipleXsectGraph extends JDialog implements ActionListener {
 
 	public MultipleXsectGraph(CsdpFrame gui, App app, Network net, String centerlineName) {
-		super(gui, "Multiple Cross-section Drawing view", ModalityType.MODELESS);
+		super(gui, "Channel Cross-section Comparison", ModalityType.MODELESS);
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		setXSPropElevation(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
 

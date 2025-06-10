@@ -2238,7 +2238,7 @@ public class CsdpFunctions {
 			returnImageIcon =  new ImageIcon((new ImageIcon(imageUrl)).getImage().getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH));
 		}catch(NullPointerException e){
 			System.out.println("Error in CsdpFunctions.createScaledImageIcon: unable to create icon for imageUrl="+imageUrl);
-			
+			System.out.println("error message: "+e.toString());
 		}
 		return returnImageIcon;
 	}
@@ -2563,9 +2563,6 @@ public class CsdpFunctions {
 		return formatter.format(date);
 	}
 
-	public static void setIconImagePath(String string) {
-		_iconImagePath = string;
-	}
 	public static String getIconImagePath() {
 		return _iconImagePath;
 	}

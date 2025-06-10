@@ -21,12 +21,7 @@ public class Csdp {
 		try {
 			App app = new App();
 			if(args.length > 0) {
-				if(args[0].contains("imagePath")) {
-					String[] parts = args[0].split(":");
-					CsdpFunctions.setIconImagePath(parts[0]);
-				}else {
-					readGitHashAndUpdateVersionNumber(args[0]);
-				}
+				readGitHashAndUpdateVersionNumber(args[0]);
 			}
 			// if(args.length > 0){
 			// CsdpFunctions._csdpHome=args[0];

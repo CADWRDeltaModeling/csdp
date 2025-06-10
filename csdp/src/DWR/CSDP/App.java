@@ -1872,13 +1872,13 @@ public class App {
 	}//movePolygonCenterlinePointsToLeveeCenterline
 
 	public void createNetworkMAARReport() {
-		 String title = "Create Network Max Adjacent Area Ratio (MAAR) Report";
-		 String instructions = "<HTML><BODY>A Network MAAR report is a .csv file containing the Max Adjacent Area Ratios (MAAR) for each channel. <BR>"
+		 String title = "Create Network Max Adjacent Area Ratio (MAAR) Summary";
+		 String instructions = "<HTML><BODY>A Network MAAR summary is a .csv file containing the Max Adjacent Area Ratios (MAAR) for each channel. <BR>"
 		 		+ "The MAAR for each channel is calculated for a range of elevations defined by the user as the intertidal zone (Display-Parameters menu. <BR>"
 		 		+ "For each elevation, for each cross-section in the channel, the maximum ratio of cross-sectional areas between adjacent cross-sections<BR>"
 		 		+ " is calculated. If a single channel is connected to one of the channel's nodes, then the cross-section adjacent to this node is included<BR>"
 		 		+ " in the calculation.<BR><BR>"
-		 		+ "<H2>A Network MAAR report uses the following inputs:</H2><BR><BR>"
+		 		+ "<H2>A Network MAAR summary uses the following inputs:</H2><BR><BR>"
 		 		+ "1. An existing channel_std_delta_grid.inp file, if one is not already loaded<BR>"
 		 		+ "2. The currently loaded network file<BR>"
 		 		+ "3. The name of the output file, to which results will be written<BR><BR>"
