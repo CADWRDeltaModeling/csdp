@@ -20,6 +20,30 @@ public class Xsect {
 	// private double MAX_INSERT_DIST = 300.0;
 
 	/*
+	 * Reduce cross-section width by specified percentage, by adjusting station coordinates
+	 * This is an attempt to increase water levels.
+	 */
+	public void reduceXSWidth(double percentReduction) {
+		double xCentroid = getXCentroidFeet(100);
+		if(getNumPoints()==0) {
+			System.out.println("xsect has no points!!!");
+		}else {
+			System.out.println("xsect has "+ getNumPoints()+" points");
+		}
+		for(int i=0; i<getNumPoints(); i++) {
+			XsectPoint xp = getXsectPoint(i);
+			double newStation = -Double.MAX_VALUE;
+			double currentStation = xp.getStationFeet();
+			if(currentStation<=xCentroid) {
+				newStation = currentStation + Math.abs((0.5*percentReduction/100.0) * currentStation);
+			}else {
+				newStation = currentStation - Math.abs((0.5*percentReduction/100.0) * currentStation);
+			}
+			xp.putStationFeet(newStation);
+		}
+	}//reduceXSWidth
+	
+	/*
 	 * All stations in a cross-section should be unique. return true if they
 	 * are.
 	 */

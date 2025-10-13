@@ -46,6 +46,7 @@ import DWR.CSDP.NetworkMenu.NCreateNetworkAllDSM2Chan;
 import DWR.CSDP.NetworkMenu.NNetworkMAARReport;
 import DWR.CSDP.NetworkMenu.NXSCheckReport;
 import DWR.CSDP.ToolsMenu.TCreateDCDNodeLandmarkFile;
+import DWR.CSDP.ToolsMenu.TReduceXSWidth;
 import DWR.CSDP.LandmarkMenu;
 import DWR.CSDP.dialog.DataEntryDialog;
 
@@ -189,7 +190,7 @@ public class CsdpFrame extends JFrame {
 	private JMenu tOpenWaterOptionsMenu, nExport, nExportOptions;
 	private JMenuItem tCompareNetwork, tCalcRect, tOpenWaterCalc, tCreateDSM2ChanPolygons, tClosePolygonCenterlines,
 		tRemoveAllCrossSections, tCreateDSM2OutputLocations, tCrossSectionSlideshow, tManningsDispersionSpatialDistribution, 
-		tExtendCenterlinesToNodes, tCreateStraightlineChanForGridmap, tCreateDCDNodeLandmarkFile;
+		tExtendCenterlinesToNodes, tCreateStraightlineChanForGridmap, tCreateDCDNodeLandmarkFile, tReduceXSWidth;
 	// 1/3/2019 AWDSummary and dConveyance report are now obsolete. Network Summary report has this information. 
 	private JMenuItem nOpen, nSave, nSaveAs, nSaveSpecifiedChannelsAs, nExportToWKT, nExportXsectMidpointCoordToWKT, nList, nSummary, nClearNetwork, nClearChannelsInp, nCreateAllChannelNetwork, 
 		nDisplayReachSummary, nDisplay3dReachView, nSelectPointsFor3dReachView, nCalculate, nExportToSEFormat, nExportTo3DFormat,
@@ -1438,6 +1439,8 @@ public class CsdpFrame extends JFrame {
 		tExtendCenterlinesToNodes.setToolTipText("Extend centerlines to nodes. One possibility for creating GIS gridmap.");
 //		tCreateStraightlineChanForGridmap.setToolTipText("Create a WKT file containing lines connecting nodes in landmark file");
 		tCreateDCDNodeLandmarkFile.setToolTipText("Create a landmark file containing nodes used by DCD model");
+		cfTools.add(tReduceXSWidth = new JMenuItem("ReduceCross-Section Width"));
+		tReduceXSWidth.setToolTipText("Reduce the width of all cross-sections by specified percentage");
 		if (_addToolsMenu)
 			menubar.add(cfTools);
 		cfTools.add(cMovePolygonCenterlinePointsToLeveeCenterline = 
@@ -1497,6 +1500,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener tExtendCenterlinesToNodesListener = _toolsMenu.new TExtendCenterlinesToNodes();
 //		ActionListener tCreateStraightlineChanForGridmapListener = _toolsMenu.new TCreateStraightlineChanForGridmap();
 		ActionListener tCreateDCDNodeLandmarkFileListener = _toolsMenu.new TCreateDCDNodeLandmarkFile(this);
+		ActionListener tReduceXSWidthListener = _toolsMenu.new TReduceXSWidth(this);
 		// removed temporarily(?) options now appear in dialog
 		// EventListener oEchoTimeSeriesInputListener = _toolsMenu.new
 		// TEchoTimeSeriesInput();
@@ -1534,7 +1538,7 @@ public class CsdpFrame extends JFrame {
 		tExtendCenterlinesToNodes.addActionListener(tExtendCenterlinesToNodesListener);
 //		tCreateStraightlineChanForGridmap.addActionListener(tCreateStraightlineChanForGridmapListener);
 		tCreateDCDNodeLandmarkFile.addActionListener(tCreateDCDNodeLandmarkFileListener);
-		
+		tReduceXSWidth.addActionListener(tReduceXSWidthListener);
 		// tCompareNetwork.setEnabled(_addCompareNetworkOption);
 
 		/*

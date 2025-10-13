@@ -21,6 +21,54 @@ import DWR.CSDP.dialog.FileAndRadioDialog;
 import DWR.CSDP.dialog.FileIO;
 
 public class ToolsMenu {
+	public class TReduceXSWidth implements ActionListener {
+
+		private CsdpFrame csdpFrame;
+
+		public TReduceXSWidth(CsdpFrame csdpFrame) {
+			this.csdpFrame = csdpFrame;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			Network network = this.csdpFrame.getNetwork();
+			if(network != null) {
+				String title = "Reduce cross-section widths";
+				String instructions = "<HTML><BODY>"
+						+ "Reduce all the cross-section widths by a specified percentage. This will be accomplished by <BR>"
+						+ "adjusting cross-section point station coordinates.<BR> "
+						+ "</BODY></HTML>";
+				final String[] names = new String[]{"percentage (1-100)"};
+
+				String[] defaultValues = new String[] {""};
+				int[] dataTypes = new int[] {DataEntryDialog.NUMERIC_TYPE};
+				boolean[] disableIfNull = new boolean [] {true};
+				String[] extensions = new String[] {""};
+				String[] tooltips = new String[] {"percentage reduction"}; 
+				boolean modal = true;
+				DataEntryDialog dataEntryDialog = new DataEntryDialog(csdpFrame, title, instructions, names,
+						defaultValues, dataTypes, disableIfNull, extensions, tooltips, modal);
+
+				int response = dataEntryDialog.getResponse();
+				if(response==DataEntryDialog.OK) {
+					String percentageString= dataEntryDialog.getValue(names[0]);
+					double percentReduction = Double.parseDouble(percentageString);
+					Enumeration<Centerline> allCenterlinesEnumeration = network.getAllCenterlines();
+					while(allCenterlinesEnumeration.hasMoreElements()) {
+						Centerline centerline = allCenterlinesEnumeration.nextElement();
+						System.out.println("processing centerline "+centerline.getCenterlineName());
+						for(int i=0; i<centerline.getNumXsects(); i++) {
+							Xsect xsect = centerline.getXsect(i);
+							System.out.println("processing xsect "+i);
+							xsect.reduceXSWidth(percentReduction);
+						}
+					}
+
+				}
+			}
+		}
+	}
+
 	public static final int ENTER_CENTERLINE_NAMES = 10;
 	public static final int READ_CENTERLINE_NAMES_FROM_FILE = 20;
 
