@@ -2580,7 +2580,7 @@ public class CsdpFunctions {
 	/**
 	 * version number-displayed at top of frame
 	 */
-	private static String _version = "3.0_20231207";
+	private static String _version = "2025-10-13";
 
 
 
