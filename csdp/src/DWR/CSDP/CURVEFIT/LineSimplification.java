@@ -3,7 +3,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Ramer-Douglas-Peucker algorithm, a well-known method for reducing the number of points in a curve approximated by a series of points
+ * Ramer-Douglas-Peucker algorithm, a well-known method for reducing the number of points in a curve approximated 
+ * by a series of points
+ * Adapted from https://rosettacode.org/wiki/Ramer-Douglas-Peucker_line_simplification
  * @author btom
  *
  */
