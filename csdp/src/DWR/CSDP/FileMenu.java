@@ -173,7 +173,7 @@ public class FileMenu {
 					"A description, usually identifying the name of the body of water", "If the data set is dense, enter a factor greater than 1 to reduce."};
 			boolean[] disableIfNull = new boolean[] {true, true, true, true, false, true};
 			int[] numDecimalPlaces = new int[] {0,0,0,0,0,0};
-			String[] extensions = new String[] {"","prn","","","",""};
+			String[] extensions = new String[] {"txt","prn","","","",""};
 			
 			String instructions = 
 					"<HTML><BODY><B>Import ASCII Raster Bathymetry File</B><BR>"
