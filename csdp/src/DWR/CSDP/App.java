@@ -2128,7 +2128,7 @@ public class App {
 		defaultValues[3] = "${FINE_OUT}";
 		defaultValues[4] = "inst";
 		defaultValues[5] = "${HYDROOUTDSSFILE}";
-		defaultValues[6] = "false";
+		defaultValues[6] = "true";
 		
 		int[] dataTypes = new int[] {
 				DataEntryDialog.FILE_SPECIFICATION_TYPE,
