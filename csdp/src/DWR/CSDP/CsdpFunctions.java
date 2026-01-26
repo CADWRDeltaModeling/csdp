@@ -5,10 +5,12 @@ import java.awt.Color;
 //import DWR.CSDP.semmscon.UseSemmscon;
 import java.awt.Cursor;
 import java.awt.Polygon;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -18,6 +20,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Vector;
 
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -2229,20 +2232,20 @@ public class CsdpFunctions {
 		return returnValue;
 	}
 
-	/*
-	 * Create instance of ImageIcon using image Url scaled to specified width and height
-	 */
-	public static ImageIcon createScaledImageIcon(URL imageUrl, int width, int height) {
+	public static ImageIcon createScaledImageIcon(InputStream inputStream, int width, int height) {
 		ImageIcon returnImageIcon = null;
 		try {
-			returnImageIcon =  new ImageIcon((new ImageIcon(imageUrl)).getImage().getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH));
-		}catch(NullPointerException e){
-			System.out.println("Error in CsdpFunctions.createScaledImageIcon: unable to create icon for imageUrl="+imageUrl);
-			System.out.println("error message: "+e.toString());
+//			InputStream resourceBuff = YourClass.class.getResourceAsStream(filepath);
+			BufferedImage bf = ImageIO.read(inputStream);
+			returnImageIcon = new ImageIcon((new ImageIcon(bf)).getImage().getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH));
+		}catch(NullPointerException e) {
+			System.out.println("Error in CsdpFunctions.createdScaledImageIcon: unable to create icon for inputStream="+inputStream);
+		}catch(IOException ioe) {
+			System.out.println("IOException caught in CsdpFunctions.createScaledImageIcon: "+ioe);
 		}
 		return returnImageIcon;
 	}
-
+	
 	/*
 	 * The font size used by instances of DataEntryDialog, and possibly others.
 	 */
