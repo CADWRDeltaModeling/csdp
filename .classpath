@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry including="**/*.java" kind="src" output="target/classes" path="csdp/resources/semmscon">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry excluding="**" kind="src" output="target/classes" path="csdp/src">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/java">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/jfreechart/jcommon-1.0.23.jar"/>
+	<classpathentry kind="lib" path="lib/jfreechart/jfreechart-1.0.19.jar"/>
+	<classpathentry kind="lib" path="lib/jfreechart/junit-4.11.jar"/>
+	<classpathentry kind="lib" path="lib/jpy.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar"/>
+	<classpathentry kind="lib" path="lib/vista.jar"/>
+	<classpathentry kind="lib" path="lib/pd.jar"/>
+	<classpathentry kind="lib" path="lib/jzy3d/jzy3d-api/1.0.2/jzy3d-api-1.0.2.jar"/>
+	<classpathentry excluding="**" kind="src" output="target/classes" path="src/main/resources">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry excluding="**" kind="src" output="target/test-classes" path="src/test/resources">
+		<attributes>
+			<attribute name="test" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/org/jogamp/gluegen/gluegen-rt/2.3.2/gluegen-rt-2.3.2.jar"/>
+	<classpathentry kind="lib" path="lib/org/jogamp/jogl/jogl-all/2.3.2/jogl-all-2.3.2.jar"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>
