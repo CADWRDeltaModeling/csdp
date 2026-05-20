@@ -6,8 +6,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import javax.swing.JOptionPane;
-
 /**
  * Convers an ASCII grid DEM file to CSDP prn file :-
  * The ASCII grid should be in NAD83 with units of meter.
@@ -47,7 +45,7 @@ public class ASCIIGridToCSDPConverter {
 			description = args[4];
 		}
 		
-		ASCIIGridToCSDPConverter converter = new ASCIIGridToCSDPConverter(null, args[0], args[1], year, source, description, 1);
+		ASCIIGridToCSDPConverter converter = new ASCIIGridToCSDPConverter(args[0], args[1], year, source, description, 1);
 		converter.convert();
 	}
 
@@ -67,10 +65,8 @@ public class ASCIIGridToCSDPConverter {
 	 * Example: 4 would reduce the number of points by a factor of 4. Only write every 4th point.
 	 */
 	private int pointReductionFactor;
-	private CsdpFrame csdpFrame;
 
-	public ASCIIGridToCSDPConverter(CsdpFrame csdpFrame, String inFileName, String outFileName, String year, String source, String description, int pointReductionFactor) {
-		this.csdpFrame = csdpFrame;
+	public ASCIIGridToCSDPConverter(String inFileName, String outFileName, String year, String source, String description, int pointReductionFactor) {
 		this.inFilename = inFileName;
 		this.outFilename = outFileName;
 		this.year = year;

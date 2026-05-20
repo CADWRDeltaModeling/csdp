@@ -10,7 +10,7 @@ import javax.swing.JOptionPane;
  * This is the superclass of all classes that implement a file-save feature,
  * which saves a file to the directory in/from which it was last saved/read.
  *
- * @author
+ * @author: Brad Tom
  * @version $Id: FileSave.java,v 1.1 2002/06/12 18:48:38 btom Exp $
  */
 public abstract class FileSave extends FileIO {

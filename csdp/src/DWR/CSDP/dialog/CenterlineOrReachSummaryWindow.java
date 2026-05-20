@@ -471,6 +471,7 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 			centerlineIncrement = -1;
 		}
 
+		System.out.println("distance, area, wetp, width, bottom elev");
 		for(int i=startingCenterlineIndex; ((startingEnd==START_AT_UPSTREAM_END && i<endingCenterlineIndex) || 
 				(startingEnd==START_AT_DOWNSTREAM_END && i>=endingCenterlineIndex)); i+=centerlineIncrement) {
 			String centerlineName = this.chanNumbersVector.get(i);
@@ -513,6 +514,7 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 					wetPSeries.add(wetP, distanceAlong);
 					widthSeries.add(width, distanceAlong);
 					bottomElevationSeries.add(botElev, distanceAlong);
+					System.out.println(distanceAlong+","+area+","+wetP+","+width+","+botElev);
 				}
 			}
 			lengthIncrement += centerline.getLengthFeet();

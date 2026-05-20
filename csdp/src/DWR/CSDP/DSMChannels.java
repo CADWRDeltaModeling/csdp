@@ -15,6 +15,7 @@ public class DSMChannels {
 	private final String UPNODE_HEADER = "UPNODE";
 	private final String XSECT_HEADER = "XSECT";
 	private final String DIST_HEADER = "DIST";
+	private final String DX_HEADER = "DX";
 //	private int _numChannels;
 
 	private Vector<String> _chanNum = new Vector<String>();
@@ -23,6 +24,8 @@ public class DSMChannels {
 	private Hashtable<String, String> _dispersion = new Hashtable<String, String>();
 	private Hashtable<String, Integer> _downnode = new Hashtable<String, Integer>();
 	private Hashtable<String, Integer> _upnode = new Hashtable<String, Integer>();
+	private Hashtable<String, Double> _dx = new Hashtable<String, Double>();
+	private boolean includesDx = false;
 	
 	private Hashtable<String, Integer> _xsect1 = new Hashtable<String, Integer>();
 	private Hashtable<String, Integer> _dist1 = new Hashtable<String, Integer>();
@@ -49,6 +52,7 @@ public class DSMChannels {
 	private static final boolean DEBUG = false;
 
 	public void addDSMChannel(int index, String name, int length, String manning, String dispersion, int upnode, int downnode) {
+		includesDx = false;
 		_chanNum.addElement(name);
 		_length.put(name, length);
 		_manning.put(name, manning);
@@ -65,6 +69,12 @@ public class DSMChannels {
 			_channelsConnectedToNode.put(downnode, new ArrayList<String>());
 		}
 		_channelsConnectedToNode.get(downnode).add(name);
+	}
+
+	public void addDSMChannel(int index, String name, int length, String manning, String dispersion, int upnode, int downnode, double dx) {
+		addDSMChannel(index, name, length, manning, dispersion, upnode, downnode);
+		includesDx = true;
+		_dx.put(name, dx);
 	}
 
 	public void addDSMXsectLayer(int index, String chan, String dist, String elev, String area, String width, String wetPerim) {
@@ -140,6 +150,20 @@ public class DSMChannels {
 		return returnValue;
 	}
 
+	/**
+	 * returns DX
+	 */
+	public double getDX(String chan) {
+		if(!getIncludesDx()) {
+			System.out.println("ERROR in DSMChannels.getDX: DX values were not read from the file");
+		}
+		double returnValue = -Double.MAX_VALUE;
+		if(_dx.containsKey(chan)) {
+			returnValue = _dx.get(chan).doubleValue();
+		}
+		return returnValue;
+	}
+	
 	/**
 	 * stores first rectangular xsect number
 	 */
@@ -279,5 +303,6 @@ public class DSMChannels {
 		return returnCenterlineName;
 	}//getChannelConnectedToNode
 
-
+	public boolean getIncludesDx() {return includesDx;}
+	
 }// DSMChannels

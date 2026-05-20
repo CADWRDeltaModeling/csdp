@@ -48,7 +48,7 @@ public class AdjustRGBColor implements ActionListener {
 		Color newColor = null;
 
 		_jcc.setColor(_gui.getColor(_buttonNumber));
-		newColor = _jcc.showDialog(_gui, "Select a new color", _gui.getColor(_buttonNumber));
+		newColor = JColorChooser.showDialog(_gui, "Select a new color", _gui.getColor(_buttonNumber));
 
 		if (newColor != null) {
 			oldColorValues[0] = _gui.getColor(_buttonNumber).getRed();

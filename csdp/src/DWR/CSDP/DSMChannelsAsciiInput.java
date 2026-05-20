@@ -9,6 +9,8 @@ import java.util.StringTokenizer;
 
 import javax.swing.JOptionPane;
 
+import com.jogamp.opengl.util.packrect.LevelSet;
+
 public class DSMChannelsAsciiInput extends DSMChannelsInput {
 
 	/**
@@ -134,7 +136,8 @@ public class DSMChannelsAsciiInput extends DSMChannelsInput {
 		boolean foundDispersion = false;
 		boolean foundUpnode = false;
 		boolean foundDownnode = false;
-
+		boolean foundDX = false;
+		
 		boolean foundXsectChan = false;
 		boolean foundXsectDist = false;
 		boolean foundXsectElev = false;
@@ -153,22 +156,25 @@ public class DSMChannelsAsciiInput extends DSMChannelsInput {
 			} else {
 				if(readingSection==CHAN_SECTION) {
 					if (_chanIndex == 0) {
-						_pd.chan = firstToken;
+						_dsmChannelsParsedData.chan = firstToken;
 						foundChan = true;
 					}
 					if (_lengthIndex == 0) {
-						_pd.length = Integer.parseInt(firstToken);
+						_dsmChannelsParsedData.length = Integer.parseInt(firstToken);
 						foundLength = true;
 					}else if (_manningIndex == 0) {
-						_pd.manning = nextToken;
+						_dsmChannelsParsedData.manning = nextToken;
 					}else if(_dispersionIndex == 0) {
-						_pd.dispersion = nextToken;
+						_dsmChannelsParsedData.dispersion = nextToken;
 					} else if (_upnodeIndex == 0) {
-						_pd.upnode = Integer.parseInt(firstToken);
+						_dsmChannelsParsedData.upnode = Integer.parseInt(firstToken);
 						foundUpnode = true;
 					} else if (_downnodeIndex == 0) {
-						_pd.downnode = Integer.parseInt(firstToken);
+						_dsmChannelsParsedData.downnode = Integer.parseInt(firstToken);
 						foundDownnode = true;
+					} else if (_dxIndex == 0) {
+						_dsmChannelsParsedData.dx = Integer.parseInt(firstToken);
+						foundDX = true;
 					}
 	
 					for (int i = 1; t.hasMoreTokens(); i++) {
@@ -189,31 +195,36 @@ public class DSMChannelsAsciiInput extends DSMChannelsInput {
 						if (DEBUG)
 							System.out.println("i, nextToken=" + i + "," + nextToken);
 						if (_chanIndex == i) {
-							_pd.chan = nextToken;
+							_dsmChannelsParsedData.chan = nextToken;
 							foundChan = true;
 						}
 						if (_lengthIndex == i) {
 							if (DEBUG)
 								System.out.println("lengthIndex, i=" + _lengthIndex + "," + i);
-							_pd.length = Integer.parseInt(nextToken);
+							_dsmChannelsParsedData.length = Integer.parseInt(nextToken);
 							foundLength = true;
 						}
 						if(_manningIndex == i) {
-							_pd.manning = nextToken;
+							_dsmChannelsParsedData.manning = nextToken;
 							foundManning = true;
 						}
 						if(_dispersionIndex == i) {
-							_pd.dispersion = nextToken;
+							_dsmChannelsParsedData.dispersion = nextToken;
 							foundDispersion = true;
 						}
 						if (_upnodeIndex == i) {
-							_pd.upnode = Integer.parseInt(nextToken);
+							_dsmChannelsParsedData.upnode = Integer.parseInt(nextToken);
 							foundUpnode = true;
 						}
 						if (_downnodeIndex == i) {
-							_pd.downnode = Integer.parseInt(nextToken);
+							_dsmChannelsParsedData.downnode = Integer.parseInt(nextToken);
 							foundDownnode = true;
 						}
+						if(_dxIndex == i) {
+							_dsmChannelsParsedData.dx = Double.parseDouble(nextToken);
+							foundDX = true;
+						}
+						//DX is required by DSM2 v8.5.0. For prior versions, it is not a requirement. 
 						if (foundChan == false && foundLength == false && foundUpnode == false && foundDownnode == false
 								&& foundManning == false && foundDispersion == false) {
 							System.out.println(
@@ -224,23 +235,23 @@ public class DSMChannelsAsciiInput extends DSMChannelsInput {
 					} // while has more tokens
 				}else if(readingSection==XSECT_SECTION) {
 					if (_xsectChanIndex == 0) {
-						_pd.xsectChan = firstToken;
+						_dsmChannelsParsedData.xsectChan = firstToken;
 						foundXsectChan = true;
 					}
 					if (_xsectDistIndex == 0) {
-						_pd.xsectDist = firstToken;
+						_dsmChannelsParsedData.xsectDist = firstToken;
 						foundXsectDist = true;
 					}else if (_xsectElevIndex == 0) {
-						_pd.xsectElev = nextToken;
+						_dsmChannelsParsedData.xsectElev = nextToken;
 						foundXsectElev = true;
 					}else if(_xsectAreaIndex == 0) {
-						_pd.xsectArea = nextToken;
+						_dsmChannelsParsedData.xsectArea = nextToken;
 						foundXsectArea = true;
 					} else if (_xsectWidthIndex == 0) {
-						_pd.xsectWidth = firstToken;
+						_dsmChannelsParsedData.xsectWidth = firstToken;
 						foundXsectWidth = true;
 					} else if (_xsectWetPerimIndex == 0) {
-						_pd.xsectWetPerim = firstToken;
+						_dsmChannelsParsedData.xsectWetPerim = firstToken;
 						foundXsectWetPerim = true;
 					}
 	
@@ -262,27 +273,27 @@ public class DSMChannelsAsciiInput extends DSMChannelsInput {
 						if (DEBUG)
 							System.out.println("i, nextToken=" + i + "," + nextToken);
 						if (_xsectChanIndex == i) {
-							_pd.xsectChan = nextToken;
+							_dsmChannelsParsedData.xsectChan = nextToken;
 							foundXsectChan = true;
 						}
 						if (_xsectDistIndex == i) {
-							_pd.xsectDist= nextToken;
+							_dsmChannelsParsedData.xsectDist= nextToken;
 							foundXsectDist = true;
 						}
 						if(_xsectElevIndex == i) {
-							_pd.xsectElev = nextToken;
+							_dsmChannelsParsedData.xsectElev = nextToken;
 							foundXsectElev = true;
 						}
 						if(_xsectAreaIndex == i) {
-							_pd.xsectArea = nextToken;
+							_dsmChannelsParsedData.xsectArea = nextToken;
 							foundXsectArea = true;
 						}
 						if (_xsectWidthIndex == i) {
-							_pd.xsectWidth = nextToken;
+							_dsmChannelsParsedData.xsectWidth = nextToken;
 							foundXsectWidth = true;
 						}
 						if (_xsectWetPerimIndex == i) {
-							_pd.xsectWetPerim = nextToken;
+							_dsmChannelsParsedData.xsectWetPerim = nextToken;
 							foundXsectWetPerim = true;
 						}
 						if(!foundXsectChan && !foundXsectDist && !foundXsectElev && !foundXsectArea && !foundXsectWidth && !foundXsectWetPerim) {
@@ -369,6 +380,9 @@ public class DSMChannelsAsciiInput extends DSMChannelsInput {
 			if(tok.equalsIgnoreCase(DISPERSION_HEADER)) {
 				_dispersionIndex = i;
 			}
+			if(tok.equalsIgnoreCase(DX_HEADER)) {
+				_dxIndex = i;
+			}
 //			if (tok.equalsIgnoreCase(XSECT_HEADER)) {
 //				if (_xsect1Index <= 0) {
 //					_xsect1Index = i;
@@ -384,37 +398,43 @@ public class DSMChannelsAsciiInput extends DSMChannelsInput {
 //				}
 //			}
 		}
+		if(_dxIndex>=0) {
+			_dsmChannelsParsedData.setDXIncluded(true);
+		}else {
+			_dsmChannelsParsedData.setDXIncluded(false);
+		}
 	} // parseSecondLine
 
 	LineNumberReader _asciiIn;
-	protected int _chanIndex = 0;
-	protected int _lengthIndex = 0;
-	protected int _manningIndex = 0;
-	protected int _dispersionIndex = 0;
-	protected int _upnodeIndex = 0;
-	protected int _downnodeIndex = 0;
-//	protected int _xsect1Index = 0;
-//	protected int _dist1Index = 0;
-//	protected int _xsect2Index = 0;
-//	protected int _dist2Index = 0;
+	protected int _chanIndex = -Integer.MAX_VALUE;
+	protected int _lengthIndex = -Integer.MAX_VALUE;
+	protected int _manningIndex = -Integer.MAX_VALUE;
+	protected int _dispersionIndex = -Integer.MAX_VALUE;
+	protected int _upnodeIndex = -Integer.MAX_VALUE;
+	protected int _downnodeIndex = -Integer.MAX_VALUE;
+//	protected int _xsect1Index = -Integer.MAX_VALUE;
+//	protected int _dist1Index = -Integer.MAX_VALUE;
+//	protected int _xsect2Index = -Integer.MAX_VALUE;
+//	protected int _dist2Index = -Integer.MAX_VALUE;
+	protected int _dxIndex = -Integer.MAX_VALUE;
 	
-	protected int _xsectChanIndex = 0;
-	protected int _xsectDistIndex = 0;
-	protected int _xsectElevIndex = 0;
-	protected int _xsectAreaIndex = 0;
-	protected int _xsectWidthIndex = 0;
-	protected int _xsectWetPerimIndex = 0;
+	protected int _xsectChanIndex = -Integer.MAX_VALUE;
+	protected int _xsectDistIndex = -Integer.MAX_VALUE;
+	protected int _xsectElevIndex = -Integer.MAX_VALUE;
+	protected int _xsectAreaIndex = -Integer.MAX_VALUE;
+	protected int _xsectWidthIndex = -Integer.MAX_VALUE;
+	protected int _xsectWetPerimIndex = -Integer.MAX_VALUE;
 	protected static final String DIST_HEADER = "dist";
 	protected static final String ELEV_HEADER = "elev";
 	protected static final String AREA_HEADER = "area";
 	protected static final String WIDTH_HEADER = "width";
 	protected static final String WET_PERIM_HEADER = "wet_perim";
-
 	
 	protected static final String CHAN_HEADER = "chan_no";
 	protected static final String LENGTH_HEADER = "length";
 	protected static final String UPNODE_HEADER = "upnode";
 	protected static final String DOWNNODE_HEADER = "downnode";
+	protected static final String DX_HEADER = "dx";
 	protected static final String END_HEADER = "end";
 	protected static final String MANNING_HEADER = "manning";
 	protected static final String DISPERSION_HEADER = "dispersion";

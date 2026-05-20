@@ -198,7 +198,7 @@ public class FileMenu {
 				String source = dataEntryDialog.getValue(names[3]);
 				String description = dataEntryDialog.getValue(names[4]);
 				int pointReductionFactor = Integer.parseInt(dataEntryDialog.getValue(names[5]));
-				ASCIIGridToCSDPConverter asciiGridToCSDPConverter = new ASCIIGridToCSDPConverter(csdpFrame, inputRasterDirectory+File.separator+inputRasterFilename, outputPrnDirectory+File.separator+outputPrnFilename, 
+				ASCIIGridToCSDPConverter asciiGridToCSDPConverter = new ASCIIGridToCSDPConverter(inputRasterDirectory+File.separator+inputRasterFilename, outputPrnDirectory+File.separator+outputPrnFilename, 
 						year, source, description, pointReductionFactor);
 				try {
 					asciiGridToCSDPConverter.convert();

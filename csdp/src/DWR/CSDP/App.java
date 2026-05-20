@@ -1052,6 +1052,9 @@ public class App {
 				String.format("%-12s", "DISPERSION")+
 				String.format("%-8s", "UPNODE")+
 				String.format("%-8s", "DOWNNODE");
+		if(_DSMChannels.getIncludesDx()) {
+			channelHeaderLine += " "+String.format("%-12s", "DX");
+		}
 		afw.writeLine(channelHeaderLine);
 		for(int i=0; i<_net.getNumCenterlines(); i++) {
 			centerlineName = _net.getCenterlineName(i);
@@ -1076,6 +1079,9 @@ public class App {
 					dispersionFactor +
 					String.format("%-8d", _DSMChannels.getUpnode(centerlineName))+
 					String.format("%-8d", _DSMChannels.getDownnode(centerlineName));
+			if(_DSMChannels.getIncludesDx()) {
+				lineToWrite += String.format("%-12.4f", _DSMChannels.getDX(centerlineName));
+			}
 			afw.writeLine(lineToWrite);
 		}
 		
@@ -1101,6 +1107,9 @@ public class App {
 					String.format("%-12s", _DSMChannels.getDispersion(chan)) +
 					String.format("%-8d", _DSMChannels.getUpnode(chan))+
 					String.format("%-8d", _DSMChannels.getDownnode(chan));
+				if(_DSMChannels.getIncludesDx()) {
+					channelDataLine += String.format("%-12.4f", _DSMChannels.getDX(centerlineName));
+				}
 				afw.writeLine(channelDataLine);
 			}
 		}

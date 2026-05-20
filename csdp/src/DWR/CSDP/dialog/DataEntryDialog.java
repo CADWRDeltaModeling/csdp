@@ -53,7 +53,7 @@ import DWR.CSDP.CsdpFunctions;
 
 /**
  * A class for creating dialogs to get user input using various components, such as text entry fields, radio buttons, 
- * file selector dialogs, checkboxes, etc. Arguments to the constructor specify how many fields and their type. 
+ * file selector dialogs, checkboxes, etc. Arguments to the constructor specify the number of fields and their type. 
  * Each field must have a unique name, which is used to label the user entry component.
  * 
  * After instantiating, call getResponse to determine which button was clicked.

@@ -8,6 +8,8 @@ import javax.swing.JFrame;
 /**
  * This is the superclass of all classes that implement a file-open feature that
  * checks to see if a similar filetype is already open.
+ * The main difference is the abstract method warnUserIfNecessary().
+ * This should display a warning dialog if a similar filetype is already loaded
  * 
  * currently unused
  *

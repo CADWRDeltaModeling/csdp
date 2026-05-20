@@ -54,7 +54,7 @@ public abstract class DSMChannelsInput {
 		open();
 		read();
 		close();
-		return _data;
+		return _dsmChannels;
 	}
 
 	/**
@@ -77,12 +77,13 @@ public abstract class DSMChannelsInput {
 	 */
 	protected void storeData(int dataType, int dataNumber) {
 		if(dataType==CHAN_SECTION) {
-			String name = _pd.chan;
-			int length = _pd.length;
-			String manning = _pd.manning;
-			String dispersion = _pd.dispersion;
-			int upnode = _pd.upnode;
-			int downnode = _pd.downnode;
+			String name = _dsmChannelsParsedData.chan;
+			int length = _dsmChannelsParsedData.length;
+			String manning = _dsmChannelsParsedData.manning;
+			String dispersion = _dsmChannelsParsedData.dispersion;
+			int upnode = _dsmChannelsParsedData.upnode;
+			int downnode = _dsmChannelsParsedData.downnode;
+			double dx = _dsmChannelsParsedData.dx;
 	//		int xsect1 = _pd.xsect1;
 	//		int dist1 = _pd.dist1;
 	//		int xsect2 = _pd.xsect2;
@@ -92,21 +93,25 @@ public abstract class DSMChannelsInput {
 				System.out.println("storing data: name, length, upnode, downnode=" + name + "," + length + "," + upnode
 						+ "," + downnode);
 	//		_data.addDSMChannel(dataNumber, name, length, upnode, downnode, xsect1, dist1, xsect2, dist2);
-			_data.addDSMChannel(dataNumber, name, length, manning, dispersion, upnode, downnode);
+			if(_dsmChannelsParsedData.dxIncluded) {
+				_dsmChannels.addDSMChannel(dataNumber, name, length, manning, dispersion, upnode, downnode, dx);
+			}else {
+				_dsmChannels.addDSMChannel(dataNumber, name, length, manning, dispersion, upnode, downnode);
+			}
 		}else if (dataType==XSECT_SECTION) {
-			String xsectChan = _pd.xsectChan;
-			String xsectDist = _pd.xsectDist;
-			String xsectElev = _pd.xsectElev;
-			String xsectArea = _pd.xsectArea;
-			String xsectWidth = _pd.xsectWidth;
-			String xsectWetPerim = _pd.xsectWetPerim;
+			String xsectChan = _dsmChannelsParsedData.xsectChan;
+			String xsectDist = _dsmChannelsParsedData.xsectDist;
+			String xsectElev = _dsmChannelsParsedData.xsectElev;
+			String xsectArea = _dsmChannelsParsedData.xsectArea;
+			String xsectWidth = _dsmChannelsParsedData.xsectWidth;
+			String xsectWetPerim = _dsmChannelsParsedData.xsectWetPerim;
 			
-			_data.addDSMXsectLayer(dataNumber, xsectChan, xsectDist, xsectElev, xsectArea, xsectWidth, xsectWetPerim);
+			_dsmChannels.addDSMXsectLayer(dataNumber, xsectChan, xsectDist, xsectElev, xsectArea, xsectWidth, xsectWetPerim);
 		}
 	}// storeData
 
-	DSMChannels _data = new DSMChannels();
-	DSMChannelsParsedData _pd = new DSMChannelsParsedData();
+	DSMChannels _dsmChannels = new DSMChannels();
+	DSMChannelsParsedData _dsmChannelsParsedData = new DSMChannelsParsedData();
 	public static final boolean DEBUG = false;
 
 	protected static String _filename = null;// part of filename before the
@@ -144,7 +149,12 @@ public abstract class DSMChannelsInput {
 		public String xsectArea = null;
 		public String xsectWidth = null;
 		public String xsectWetPerim = null;
+		public double dx;
+		private boolean dxIncluded = false;
+		public void setDXIncluded(boolean b) {
+			dxIncluded = b;
+		}
 
-	} // class DSMChannelsParsedData
+	} // inner class DSMChannelsParsedData
 
 } // class LandmarkInput
