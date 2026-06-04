@@ -59,6 +59,41 @@ import DWR.CSDP.dialog.DataEntryDialog;
  */
 public class CsdpFrame extends JFrame {
 	
+	private Vector _legendButtonListener = new Vector();
+	protected int NUM_BUTTONS = 0;
+	private Vector _buttons = new Vector();
+	/**
+	 * The component on which the graph is drawn.
+	 */
+	private PlanViewCanvas _canvas1 = new PlanViewCanvas(this);
+	// PlanViewCanvas _canvas1 = PlanViewCanvas.getInstance();
+	JPanel _planViewJPanel = new JPanel(true);
+	JScrollPane _sp1;
+	// if you want to have more than one bathymetry file open
+	// Hashtable _panelObjects = new Hashtable();
+	App _app;
+
+	/**
+	 * button that displays header information for plan view legend
+	 */
+	public static JButton headerButton = new JButton("header");
+
+	/**
+	 * stores size of frame
+	 */
+	public Dimension _dim = null;
+	private NetworkInteractor _networkInteractor;
+	private LandmarkInteractor _li;
+	private BathymetryPlot _plot;
+	// display parameters
+
+	private XsectMenu _xsectMenu;
+	private CenterlineMenu _centerlineMenu;
+	private ToolsMenu _toolsMenu;
+//	private Landmark _landmark;
+	private DigitalLineGraph _dDigitalLineGraph;
+
+	
 	Border _raisedBevel = BorderFactory.createRaisedBevelBorder();
 
 	JRadioButton _zoomBoxButton;
@@ -166,8 +201,6 @@ public class CsdpFrame extends JFrame {
 	// _cInsertPointMenuItem, _cDeletePointMenuItem, _cAddXsectMenuItem,
 	// _cRemoveXsectMenuItem, _cMoveXsectMenuItem;
 
-	private Landmark _landmark;
-	private DigitalLineGraph _dDigitalLineGraph;
 //	private DSMChannels _DSMChannels;
 	private JMenuBar menubar;
 
@@ -583,31 +616,6 @@ public class CsdpFrame extends JFrame {
 		JToolBar btnPanel = new JToolBar();
 		btnPanel.setFloatable(false);
 
-//		_fileOpenButton.setPreferredSize(_wideIconSize);
-//		_propOpenButton.setPreferredSize(_wideIconSize);
-//		_networkOpenButton.setPreferredSize(_wideIconSize);
-//		_networkSaveButton.setPreferredSize(_wideIconSize);
-//		_cursorButton.setPreferredSize(_iconSize);
-//		_colorUniformButton.setPreferredSize(_colorByIconSize);
-//		_colorByElevButton.setPreferredSize(_colorByIconSize);
-//		_colorBySourceButton.setPreferredSize(_colorByIconSize);
-//		_colorByYearButton.setPreferredSize(_colorByIconSize);
-//		_filterSourceButton.setPreferredSize(_colorByIconSize);
-//		_filterYearButton.setPreferredSize(_colorByIconSize);
-		// _moveButton.setPreferredSize(_iconSize);
-		// _insertButton.setPreferredSize(_iconSize);
-		// _addButton.setSize(_iconSize);
-		// _deleteButton.setPreferredSize(_iconSize);
-		// _addXsectButton.setPreferredSize(_iconSize);
-		// _removeXsectButton.setPreferredSize(_iconSize);
-		// _moveXsectButton.setPreferredSize(_iconSize);
-		// _viewXsectButton.setPreferredSize(_iconSize);
-		// _networkCalculateButton.setPreferredSize(_iconSize);
-		// _zoomBoxButton.setPreferredSize(_iconSize);
-		// _zoomPanButton.setPreferredSize(_iconSize);
-//		_zoomFitButton.setPreferredSize(_iconSize);
-//		_zoomUndoButton.setPreferredSize(_iconSize);
-
 		_cursorButton.setSelectedIcon(_cursorIconSelected);
 		_colorUniformButton.setSelectedIcon(_colorUniformIconSelected);
 		_colorByElevButton.setSelectedIcon(_colorElevIconSelected);
@@ -625,16 +633,6 @@ public class CsdpFrame extends JFrame {
 		_zoomPanButton.setSelectedIcon(_zoomPanIconSelected);
 		_selectPointsFor3dViewButton.setSelectedIcon(_selectPointsFor3dViewIconSelected);
 		
-		// _landmarkAddButton.setSelectedIcon(_landmarkAddSelectedIcon);
-		// _landmarkEditButton.setSelectedIcon(_landmarkEditSelectedIcon);
-		// _landmarkMoveButton.setSelectedIcon(_landmarkMoveSelectedIcon);
-		// _landmarkDeleteButton.setSelectedIcon(_landmarkDeleteSelectedIcon);
-
-		// rollover doesn't work?
-		// _zoomFitButton.setRolloverEnabled(true);
-		// _zoomFitButton.setRolloverIcon(_zoomFitIconRollover);
-		// _zoomFitButton.setRolloverSelectedIcon(_zoomFitIconRollover);
-
 		_fileOpenButton.setBorder(_raisedBevel);
 		_propOpenButton.setBorder(_raisedBevel);
 		_networkOpenButton.setBorder(_raisedBevel);
@@ -688,11 +686,7 @@ public class CsdpFrame extends JFrame {
 		btnPanel.add(_specifyCenterlinesFor3dViewButton);
 		btnPanel.add(_zoomBoxButton);
 		btnPanel.add(_zoomPanButton);
-		// don't use these buttons; better to right click
-		// btnPanel.add(_landmarkAddButton);
-		// btnPanel.add(_landmarkEditButton);
-		// btnPanel.add(_landmarkMoveButton);
-		// btnPanel.add(_landmarkDeleteButton);
+
 
 		_centerlineLandmarkEditButtonGroup = new ButtonGroup();
 		_centerlineLandmarkEditButtonGroup.add(_cursorButton);
@@ -735,10 +729,7 @@ public class CsdpFrame extends JFrame {
 		_addXsectButton.setToolTipText("add cross-section line ");
 		_removeXsectButton.setToolTipText("remove cross-section line ");
 		_moveXsectButton.setToolTipText("move cross-section line ");
-		// _landmarkAddButton.setToolTipText("Add landmark");
-		// _landmarkEditButton.setToolTipText("Edit landmark");
-		// _landmarkMoveButton.setToolTipText("Move landmark");
-		// _landmarkDeleteButton.setToolTipText("Delete landmark");
+
 		_zoomBoxButton.setToolTipText("draw a box for zooming ");
 		_zoomPanButton.setToolTipText("Pan");
 		_zoomUndoButton.setToolTipText("Undo last zoom/pan");
@@ -999,7 +990,7 @@ public class CsdpFrame extends JFrame {
 		if (_addDisplayMenu)
 			menubar.add(cfDisplay);
 
-		DisplayMenu displayMenu = new DisplayMenu(_app, _net);
+		DisplayMenu displayMenu = new DisplayMenu(_app, CsdpFunctions.getNetwork());
 		ActionListener dParametersListener = displayMenu.new DParameters(this);
 		ActionListener dDigitalLineGraphListener = displayMenu.new DDigitalLineGraph(this);
 		ActionListener clearDigitalLineGraphListener = displayMenu.new ClearDigitalLineGraph();
@@ -1330,6 +1321,7 @@ public class CsdpFrame extends JFrame {
 		_moveXsectButton.addActionListener(cMoveXsectListener);
 		// _restoreButton.addActionListener(cRestoreListener);
 		// _keepButton.addActionListener(cRestoreListener);
+		cDSMCreate.setEnabled(false);
 
 		/*
 		 * Xsect Menu
@@ -1499,7 +1491,7 @@ public class CsdpFrame extends JFrame {
 		ActionListener tRemoveAllCrossSectionsListener = _toolsMenu.new TRemoveAllCrossSections();
 		ActionListener tCreateDSM2OutputLocationsListener = _toolsMenu.new TCreateDSM2OutputLocationsForLandmarks();
 		ActionListener tCrossSectionSlideshowListener = _toolsMenu.new TCrossSectionSlideshow();
-		ActionListener tManningsDispersionSpatialDistributionListener = _toolsMenu.new TManningsDispersionSpatialDistribution();
+		ActionListener tManningsDispersionSpatialDistributionListener = _toolsMenu.new TManningsDispersionSpatialDistribution(this);
 		ActionListener tExtendCenterlinesToNodesListener = _toolsMenu.new TExtendCenterlinesToNodes();
 //		ActionListener tCreateStraightlineChanForGridmapListener = _toolsMenu.new TCreateStraightlineChanForGridmap();
 		ActionListener tCreateDCDNodeLandmarkFileListener = _toolsMenu.new TCreateDCDNodeLandmarkFile(this);
@@ -1607,18 +1599,18 @@ public class CsdpFrame extends JFrame {
 	 * sets Network object
 	 */
 	public void setNetwork(Network net) {
-		_net = net;
+		CsdpFunctions.setNetwork(net);
 		_networkInteractor.setNetwork(net);
 		_xsectMenu.setNetwork(net);
 		_canvas1.setNetwork(net);
 	}// setNetwork
 
-	/**
-	 * returns handle to the network object.
-	 */
-	public Network getNetwork() {
-		return _net;
-	}// getNetwork
+//	/**
+//	 * returns handle to the network object.
+//	 */
+//	public Network getNetwork() {
+//		return _net;
+//	}// getNetwork
 
 	public NetworkInteractor getNetworkInteractor() {
 		return _networkInteractor;
@@ -1644,15 +1636,12 @@ public class CsdpFrame extends JFrame {
 	}// saveNetwork
 
 	/**
-	 * returns landmark object
+	 * returns landmark object. If there is no landmark object, prompt user to load one.
 	 */
 	public Landmark getLandmark() {
-		Landmark landmark = null;
-		if(_landmark != null) {
-			landmark = _landmark;
-		}else{
+		Landmark landmark = CsdpFunctions.getLandmark();
+		if(landmark==null) {
 			_oLandmarkListener.actionPerformed(_nullActionEvent);
-			landmark = _landmark;
 		}
 		return landmark;
 	}// getLandmark
@@ -1661,10 +1650,10 @@ public class CsdpFrame extends JFrame {
 	 * sets Landmark object
 	 */
 	public void setLandmark(Landmark landmark) {
-		_landmark = landmark;
+		CsdpFunctions.setLandmark(landmark);
 		_li.setLandmark(landmark);
 		_canvas1.setLandmark(landmark);
-		_centerlineMenu.setLandmark(landmark);
+//		_centerlineMenu.setLandmark(landmark);
 	}// setLandmark
 
 //	/**
@@ -2035,6 +2024,7 @@ public class CsdpFrame extends JFrame {
 	 * loaded
 	 */
 	protected void enableAfterNetwork() {
+		cDSMCreate.setEnabled(true);
 		nSave.setEnabled(true);
 		nSaveAs.setEnabled(true);
 		nExportToWKT.setEnabled(true);
@@ -2059,7 +2049,7 @@ public class CsdpFrame extends JFrame {
 		tCalcRect.setEnabled(true);
 		tClosePolygonCenterlines.setEnabled(true);
 		tRemoveAllCrossSections.setEnabled(true);
-		if(_landmark!=null) {
+		if(CsdpFunctions.getLandmark()!=null) {
 			tCreateDSM2OutputLocations.setEnabled(true);
 			tExtendCenterlinesToNodes.setEnabled(true);
 //			tCreateStraightlineChanForGridmap.setEnabled(true);
@@ -2094,7 +2084,7 @@ public class CsdpFrame extends JFrame {
 		lDeletePopup.setEnabled(true);
 		cLandmarks.setEnabled(true);
 		dFitByNetworkMenuItem.setEnabled(true);
-		if(_net!=null) {
+		if(CsdpFunctions.getNetwork()!=null) {
 			tCreateDSM2OutputLocations.setEnabled(true);
 			tExtendCenterlinesToNodes.setEnabled(true);
 //			tCreateStraightlineChanForGridmap.setEnabled(true);
@@ -2148,6 +2138,7 @@ public class CsdpFrame extends JFrame {
 	 * loaded
 	 */
 	public void enableWhenNetworkExists() {
+		cDSMCreate.setEnabled(true);
 		nSaveAs.setEnabled(true);
 		nSaveSpecifiedChannelsAs.setEnabled(true);
 		nExportToWKT.setEnabled(true);
@@ -2169,7 +2160,7 @@ public class CsdpFrame extends JFrame {
 		tCalcRect.setEnabled(true);
 		tClosePolygonCenterlines.setEnabled(true);
 		tRemoveAllCrossSections.setEnabled(true);
-		if(_landmark!=null) {
+		if(CsdpFunctions.getLandmark()!=null) {
 			tCreateDSM2OutputLocations.setEnabled(true);
 //			tCreateStraightlineChanForGridmap.setEnabled(true);
 		}
@@ -2405,7 +2396,7 @@ public class CsdpFrame extends JFrame {
 	 */
 	public void updateInfoPanel(String centerlineName) {
 		_centerlineLabel.setText("Selected Centerline:  " + centerlineName);
-		updateInfoPanel(_net.getCenterline(centerlineName));
+		updateInfoPanel(CsdpFunctions.getNetwork().getCenterline(centerlineName));
 	}// updateInfoPanel
 
 	private void updateInfoPanel(Centerline centerline) {
@@ -2424,7 +2415,7 @@ public class CsdpFrame extends JFrame {
 	 * updates displayed value of cross-section properties
 	 */
 	public void updateInfoPanelXSProp() {
-		Xsect xsect = _net.getSelectedXsect();
+		Xsect xsect = CsdpFunctions.getNetwork().getSelectedXsect();
 		if(xsect!=null) {
 			double area = xsect.getAreaSqft(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
 			double width = xsect.getWidthFeet(CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
@@ -2727,10 +2718,6 @@ public class CsdpFrame extends JFrame {
 		return dFitByLandmarkMenuItem.isSelected();
 	}
 
-	/**
-	 * button that displays header information for plan view legend
-	 */
-	public static JButton headerButton = new JButton("header");
 
 	/**
 	 * returns button from array of buttons
@@ -2752,26 +2739,6 @@ public class CsdpFrame extends JFrame {
 		return b;
 	}// getButton
 
-	/**
-	 *
-	 */
-	public PlanViewCanvas getPlanViewCanvas(int canvasNum) {
-		return _canvas1;
-	}
-
-	private Vector _legendButtonListener = new Vector();
-	protected int NUM_BUTTONS = 0;
-	private Vector _buttons = new Vector();
-	/**
-	 * The component on which the graph is drawn.
-	 */
-	private PlanViewCanvas _canvas1 = new PlanViewCanvas(this);
-	// PlanViewCanvas _canvas1 = PlanViewCanvas.getInstance();
-	JPanel _planViewJPanel = new JPanel(true);
-	JScrollPane _sp1;
-	// if you want to have more than one bathymetry file open
-	// Hashtable _panelObjects = new Hashtable();
-	App _app;
 
 	/**
 	 * returns inital value of canvas width
@@ -2787,19 +2754,6 @@ public class CsdpFrame extends JFrame {
 		return _initialHeight;
 	}
 
-	/**
-	 * stores size of frame
-	 */
-	protected Dimension _dim = null;
-	protected Network _net;
-	NetworkInteractor _networkInteractor;
-	LandmarkInteractor _li;
-	BathymetryPlot _plot;
-	// display parameters
-
-	protected XsectMenu _xsectMenu;
-	protected CenterlineMenu _centerlineMenu;
-	protected ToolsMenu _toolsMenu;
 
 	public LandmarkInteractor getLandmarkInteractor() {
 		return _li;
@@ -2985,6 +2939,12 @@ public class CsdpFrame extends JFrame {
 	}
 
 
+	/**
+	 *
+	 */
+	public PlanViewCanvas getPlanViewCanvas(int canvasNum) {
+		return _canvas1;
+	}
 
 
 

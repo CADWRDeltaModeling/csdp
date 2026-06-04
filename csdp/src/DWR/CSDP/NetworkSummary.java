@@ -634,7 +634,7 @@ public class NetworkSummary {
 		reportText.addElement("CSDP Network Summary Report for Elevation="+CsdpFunctions.ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS);
 		reportText.addElement("");
 		reportText.addElement("Network path: "+CsdpFunctions.getNetworkDirectory()+File.separator+CsdpFunctions.getNetworkFilename()+"."+CsdpFunctions.getNetworkFiletype());
-		reportText.addElement("DSM2 channels path: "+CsdpFunctions.getDSMChannelsDirectory()+File.separator+CsdpFunctions.getDSMChannelsFilename());
+		reportText.addElement("DSM2 channels path: "+CsdpFunctions.getDSMChannelsDirectory()+File.separator+CsdpFunctions.getDSMChannelsFilename()+"."+CsdpFunctions.getDSMChannelsFiletype());
 		reportText.addElement("DSM2 output path: "+CsdpFunctions.getDSM2HofDirectory()+File.separator+CsdpFunctions.getDSM2HofFilename());
 		reportText.addElement("");
 		reportText.addElement("Channels.inp length: length specified for DSM2 in the DSM2 channels file above.");

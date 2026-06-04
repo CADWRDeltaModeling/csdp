@@ -48,7 +48,7 @@ public class DisplayMenu {
 		 */
 		public void actionPerformed(ActionEvent e) {
 			_plot = _gui.getPlotObject();
-			_net = _gui.getNetwork();
+			_net = CsdpFunctions.getNetwork();
 
 			double oldThickness = CsdpFunctions.getXsectThickness();
 			int oldPointSize = _plot.getPointSize();

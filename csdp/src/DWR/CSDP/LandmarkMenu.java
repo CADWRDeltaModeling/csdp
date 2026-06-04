@@ -110,6 +110,7 @@ public class LandmarkMenu {
 			// _gui.getPlanViewCanvas(0).repaint();
 
 			((CsdpFrame) _gui).enableAfterLandmark();
+			_landmark.setIsUpdated(false);
 		}
 
 	} // Class LOpen

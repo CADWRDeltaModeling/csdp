@@ -9,6 +9,7 @@ import java.util.prefs.NodeChangeEvent;
 import javax.swing.JOptionPane;
 
 import org.jfree.chart.panel.AbstractOverlay;
+import org.jzy3d.bridge.IFrame;
 import org.jzy3d.plot3d.builder.concrete.OldRingTesselator;
 
 import Acme.Nnrpd.NewsDb;
@@ -166,7 +167,7 @@ public class Network {
 		boolean addedNewCenterline = true;
 		// if there is already a centerline with the name, erase the old one.
 		if (_centerlines.containsKey(name)) {
-			System.out.println("centerline name matches existing centerline name: "+name);
+			if(DEBUG) System.out.println("centerline name matches existing centerline name: "+name);
 			addedNewCenterline = false;
 			removeCenterline(name);
 		}

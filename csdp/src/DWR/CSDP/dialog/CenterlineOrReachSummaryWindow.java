@@ -337,7 +337,7 @@ public class CenterlineOrReachSummaryWindow extends JFrame {
 				}
 
 //				double[][] maarArrays = network.calcMAAR(this.chanNumbersVector.get(i), this.app.getDSMChannels());
-				Object[] maarObjectArray = network.calcMAAR(this.chanNumbersVector.get(i), this.app.getDSMChannels());
+				Object[] maarObjectArray = network.calcMAAR(this.chanNumbersVector.get(i), CsdpFunctions.readDSMChannelsFileIfNotLoaded(csdpFrame));
 				maarElevForPlotting = ((double[][])(maarObjectArray[0]))[0];
 				maarValuesForPlotting = ((double[][])(maarObjectArray[0]))[1];
 				maxAdjacentAreaRatioElevation = (double)(maarObjectArray[1]);

@@ -22,6 +22,7 @@ import DWR.CSDP.dialog.DataEntryDialog;
 import DWR.CSDP.dialog.DialogLegendFactory;
 import DWR.CSDP.dialog.FileIO;
 import DWR.CSDP.dialog.FileSave;
+import junit.framework.Test;
 
 public class NetworkMenu {
 
@@ -38,6 +39,7 @@ public class NetworkMenu {
 
 	/*
 	 * Given a node Landmark file and a DSM2 channels.inp file, create centerlines for each channel connected to the nodes.
+	 * This is useful for creating a new network, and also for creating a straightline channel GIS layer for gridmaps.
 	 */
 	public class NCreateNetworkAllDSM2Chan implements ActionListener {
 		App app;
@@ -50,16 +52,90 @@ public class NetworkMenu {
 		public void actionPerformed(ActionEvent e) {
 			csdpFrame.pressSelectCursorAkaArrowButton();
 			csdpFrame.setDefaultModesStates();
+
+			//If a network already exists in memory, use it, no need to ask user, they should know what they're going.
+			//If a landmark file is loaded, give user option to load new one.
 			NetworkPlot nplot = app.setNetworkPlotter();
-			Network net = CsdpFunctions.getNetworkInstance(csdpFrame, _app, nplot);
-			Landmark _landmark = csdpFrame.getLandmark();
-			DSMChannels dsmChannels = CsdpFunctions.getChannelsInpFile(csdpFrame, app, net, _landmark, null, false);
-			for(int i=0; i<dsmChannels.getNumChannels(); i++) {
-				String chanNumString = dsmChannels.getChanNum(i);
-				if(CsdpFunctions.okToAddDSMChannel(csdpFrame, net, _landmark, chanNumString)) {
-					CsdpFunctions.addDSMChannel(csdpFrame, net, _landmark, chanNumString);
+			Network net = CsdpFunctions.createNetworkIfNull(csdpFrame, _app, nplot);
+//			Landmark _landmark = csdpFrame.getLandmark();
+
+
+			String title = "Create Centerlines for all DSM2 Channels";
+			String instructions = "<HTML><BODY>"
+					+ "Using existing network file, landmark file containing DSM2 nodes, and a DSM2 channels file <BR>"
+					+ "(channels.inp), create a CSDP centerline for all the channel numbers in the DSM2 channels file.<BR>"
+					+ "If a DSM2 channels file is already loaded, its path will be the default path in the 'DSM2 channels file' "
+					+ "field below.<BR>"
+					+ "WARNING: if you have a network file in memory (either loaded from disk or you are in the process of creating one)<BR>"
+					+ "you will be modifying the network. <BR>"
+					+ "1. The DSM2 channels file to use. If a file is already loaded, loaded, the path to this file will be displayed below <BR>"
+					+ "2. Check the box if you want to force reloading of all files.<BR>"
+					+ "</BODY></HTML>";
+
+			final String[] names = new String[]{"DSM2 channels file", "CSDP landmark file (nodes)", "reload files"};
+			String existingChannelsInpFile = "";
+			File existingDSMChannelsDirectory = CsdpFunctions.getDSMChannelsDirectory();
+			String existingDSMChannelsFilename = CsdpFunctions.getDSMChannelsFilename()+"."+CsdpFunctions.getDSMChannelsFiletype();
+			boolean defaultLoadNewFile = true;
+			if(existingDSMChannelsDirectory!=null && existingDSMChannelsFilename!=null) {
+				existingChannelsInpFile = existingDSMChannelsDirectory.toString()+File.separator+existingDSMChannelsFilename;
+				defaultLoadNewFile = false;
+			}
+
+			String existingLandmarkFile = "";
+			File existingLandmarkDirectory = CsdpFunctions.getLandmarkDirectory();
+			String existingLandmarkFilename = CsdpFunctions.getLandmarkFilename()+"."+CsdpFunctions.getLandmarkFiletype();
+			if(existingLandmarkDirectory != null && existingLandmarkFilename!=null) {
+				existingLandmarkFile = existingLandmarkDirectory.toString()+File.separator+existingLandmarkFilename;
+				defaultLoadNewFile = false;
+			}
+			
+			
+			String[] defaultValues = new String[] {existingChannelsInpFile, existingLandmarkFile, Boolean.toString(defaultLoadNewFile)};
+			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, 
+					DataEntryDialog.FILE_SPECIFICATION_TYPE, 
+					DataEntryDialog.BOOLEAN_TYPE};
+			boolean[] disableIfNull = new boolean [] {true, true, true};
+			String[] extensions = new String[] {"inp", "cdl", ""};
+			String[] tooltips = new String[] {"DSM2 channels file", "CSDP landmark file (DSM2 nodes)", "load new DSM2 channels file"}; 
+			boolean modal = true;
+
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(csdpFrame, title, instructions, names,
+					defaultValues, dataTypes, disableIfNull, extensions, tooltips, modal);
+
+			int response = dataEntryDialog.getResponse();
+			if(response==DataEntryDialog.OK) {
+				boolean proceedWithOperation = false;
+				if(net.getNumCenterlines()>0) {
+					int replaceResponse = JOptionPane.showConfirmDialog(csdpFrame, "This will replace all existing centerlines with matching names. Proceed?",
+							"Replace centerline?", JOptionPane.YES_NO_OPTION);
+					if(replaceResponse==JOptionPane.YES_OPTION) {
+						proceedWithOperation=true;
+					}
+				}else {
+					proceedWithOperation = true;
 				}
-			}//for
+				if(proceedWithOperation) {
+					String dsmChanDirectory = dataEntryDialog.getDirectory(names[0]).toString();
+					String dsmChanFilename = dataEntryDialog.getFilename(names[0]);
+					String landmarkDirectory = dataEntryDialog.getDirectory(names[1]).toString();
+					String landmarkFilename = dataEntryDialog.getFilename(names[1]);
+					
+					boolean loadNewFile = Boolean.parseBoolean(dataEntryDialog.getValue(names[2]));
+					boolean checkChannelExists=false;
+					String centerlineName = null;
+
+					DSMChannels dsmChannels = CsdpFunctions.getChannelsInpFile(csdpFrame, centerlineName, dsmChanDirectory, dsmChanFilename, checkChannelExists, loadNewFile);
+					Landmark landmark = CsdpFunctions.getLandmarkFile(csdpFrame, app, centerlineName, landmarkDirectory, landmarkFilename, checkChannelExists, loadNewFile);
+					for(int i=0; i<dsmChannels.getNumChannels(); i++) {
+						String chanNumString = dsmChannels.getChanNum(i);
+						if(CsdpFunctions.okToAddDSMChannel(csdpFrame, chanNumString)) {
+							CsdpFunctions.addDSMChannel(csdpFrame, chanNumString);
+						}
+					}//for
+					net.setIsUpdated(true);
+				}
+			}//if OK clicked
 		}//actionPerformed
 	}//inner class NCreateNetworkAllDSM2Chan
 
@@ -78,10 +154,10 @@ public class NetworkMenu {
 		public NExportXsectMetadataTable(CsdpFrame csdpFrame) {
 			this.csdpFrame = csdpFrame;
 		}
-		
+
 		public void actionPerformed(ActionEvent arg0) {
 			boolean saved = false;
-			
+
 			String title = "Export Cross-Sections to Metadata table";
 			String instructions = "<HTML><BODY>1. Specify a *.csv filename.<BR><BR>"
 					+ "</BODY></HTML>";
@@ -93,18 +169,18 @@ public class NetworkMenu {
 			String[] extensions = new String[] {"csv"};
 			String[] tooltips = new String[] {"The full path to the .csv file to be created"};
 			boolean modal = true;
-			
+
 			DataEntryDialog dataEntryDialog = new DataEntryDialog(this.csdpFrame, title, instructions, names, 
 					defaultValues, dataTypes, disableIfNull, numDecimalPlaces, 
 					extensions, tooltips, modal);
 			int response = dataEntryDialog.getResponse();
 			if(response==DataEntryDialog.OK) {
 				System.out.println("ok clicked");
-				Network net = csdpFrame.getNetwork();
+				Network net = CsdpFunctions.getNetwork();
 				String csvPath = dataEntryDialog.getDirectory(names[0])+File.separator+dataEntryDialog.getFilename(names[0]);
-				
+
 				boolean success = _app.nExportMetadataTable(net, csvPath);
-				
+
 				if(success) {
 					JOptionPane.showMessageDialog(csdpFrame, "Export metadata table to csv complete.", "Success", JOptionPane.OK_OPTION);
 				}else {
@@ -162,7 +238,7 @@ public class NetworkMenu {
 		 * Option to save network before continuing.
 		 */
 		public void checkAndSaveUnsavedEdits() {
-			_net = ((CsdpFrame) _gui).getNetwork();
+			_net = CsdpFunctions.getNetwork();
 			if (_net != null) {
 				if (_net.isUpdated()) {
 					int response = JOptionPane.showConfirmDialog(_gui, "Network file is not saved.  Save(y/n)?", "save network?",
@@ -230,16 +306,18 @@ public class NetworkMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			Network net = _gui.getNetwork();
+			Network net = CsdpFunctions.getNetwork();
 			if (net != null) {
 				if (net.isUpdated()) {
-					int response = JOptionPane.showConfirmDialog(_gui, "Network file is not saved. Save(y/n)?", "save network?",
-							JOptionPane.YES_NO_OPTION);
+					int response = JOptionPane.showConfirmDialog(_gui, "Network file is not saved. Save, proceed without saving, or cancel (y/n/cancel)?", "save network?",
+							JOptionPane.YES_NO_CANCEL_OPTION);
 					if(response==JOptionPane.YES_OPTION) {
 						_gui.saveNetwork();
 						_app.clearNetwork();
 					}else if(response == JOptionPane.NO_OPTION) {
 						_app.clearNetwork();
+					}else if(response == JOptionPane.CANCEL_OPTION) {
+						//do nothing
 					} else {
 						// do nothing
 					}
@@ -355,7 +433,7 @@ public class NetworkMenu {
 			}
 			return saved;
 		}
-		
+
 		@Override
 		public void checkAndSaveUnsavedEdits() {
 			// no need
@@ -373,7 +451,7 @@ public class NetworkMenu {
 
 		public void actionPerformed(ActionEvent arg0) {
 			boolean saved = false;
-			
+
 			String title = "Export Network to WKT for importing into GIS";
 			String instructions = "<HTML><BODY>1. Specify a *.wkt filename.<BR>"
 					+ "2. Check the box if you want the results to be identified as POLYGON objects. Default is LINESTRING."
@@ -388,16 +466,16 @@ public class NetworkMenu {
 			String[] extensions = new String[] {"wkt", "", ""};
 			String[] tooltips = new String[] {"The full path to the .wkt file to be created", 
 					"If selected, create POLYGON objects. If not, create LINESTRING objects",
-					"If selected, only save first and last points (for creating straight line gridmap)"};
+			"If selected, only save first and last points (for creating straight line gridmap)"};
 			boolean modal = true;
-			
+
 			DataEntryDialog dataEntryDialog = new DataEntryDialog(this.csdpFrame, title, instructions, names, 
 					defaultValues, dataTypes, disableIfNull, numDecimalPlaces, 
 					extensions, tooltips, modal);
 			int response = dataEntryDialog.getResponse();
 			if(response==DataEntryDialog.OK) {
 				System.out.println("ok clicked");
-				Network net = csdpFrame.getNetwork();
+				Network net = CsdpFunctions.getNetwork();
 				String wktPath = dataEntryDialog.getDirectory(names[0])+File.separator+dataEntryDialog.getFilename(names[0]);
 				String createPolygonObjectsString = dataEntryDialog.getValue(names[1]);
 				boolean createPolygonObjects = true;
@@ -422,37 +500,37 @@ public class NetworkMenu {
 			}else {
 				System.out.println("export to wkt canceled.");
 			}
-			
+
 		}
 
-//		/**
-//		 * uses a dialog box to get filename from user
-//		 */
-//		protected String getFilename() {
-//			int numLines = 0;
-//			String filename = null;
-//			if (CsdpFunctions.getNetworkDirectory() != null) {
-//				_jfc.setCurrentDirectory(CsdpFunctions.getNetworkDirectory());
-//			}
-//
-//			_filechooserState = _jfc.showSaveDialog(_gui);
-//			if (_filechooserState == JFileChooser.APPROVE_OPTION) {
-//				filename = _jfc.getName(_jfc.getSelectedFile());
-//				CsdpFunctions.setNetworkDirectory(_jfc.getCurrentDirectory().getAbsolutePath() + File.separator);
-//				parseFilename(filename);
-//				_cancel = false;
-//				CsdpFunctions._cancelSaveNetwork = false;
-//			} else if (_filechooserState == JFileChooser.CANCEL_OPTION) {
-//				_cancel = true;
-//				CsdpFunctions._cancelSaveNetwork = true;
-//				filename = null;
-//			} else {
-//				_cancel = true;
-//				CsdpFunctions._cancelSaveNetwork = true;
-//				filename = null;
-//			} // if
-//			return filename;
-//		}// getFilename
+		//		/**
+		//		 * uses a dialog box to get filename from user
+		//		 */
+		//		protected String getFilename() {
+		//			int numLines = 0;
+		//			String filename = null;
+		//			if (CsdpFunctions.getNetworkDirectory() != null) {
+		//				_jfc.setCurrentDirectory(CsdpFunctions.getNetworkDirectory());
+		//			}
+		//
+		//			_filechooserState = _jfc.showSaveDialog(_gui);
+		//			if (_filechooserState == JFileChooser.APPROVE_OPTION) {
+		//				filename = _jfc.getName(_jfc.getSelectedFile());
+		//				CsdpFunctions.setNetworkDirectory(_jfc.getCurrentDirectory().getAbsolutePath() + File.separator);
+		//				parseFilename(filename);
+		//				_cancel = false;
+		//				CsdpFunctions._cancelSaveNetwork = false;
+		//			} else if (_filechooserState == JFileChooser.CANCEL_OPTION) {
+		//				_cancel = true;
+		//				CsdpFunctions._cancelSaveNetwork = true;
+		//				filename = null;
+		//			} else {
+		//				_cancel = true;
+		//				CsdpFunctions._cancelSaveNetwork = true;
+		//				filename = null;
+		//			} // if
+		//			return filename;
+		//		}// getFilename
 	}//class NExportToWKTFormat
 
 	/**
@@ -466,10 +544,10 @@ public class NetworkMenu {
 		public NXsectMidpointCoordToWKTFormat(CsdpFrame csdpFrame) {
 			this.csdpFrame = csdpFrame;
 		}
-		
+
 		public void actionPerformed(ActionEvent e) {
 			boolean saved = false;
-			
+
 			String title = "Export Cross-section locations to WKT for importing into GIS";
 			String instructions = "<HTML><BODY>Export coordinates of cross-section line midpoints to WKT.<BR>"
 					+ "1. Specify a *.wkt filename.<BR>"
@@ -488,7 +566,7 @@ public class NetworkMenu {
 					extensions, tooltips, modal);
 			int response = dataEntryDialog.getResponse();
 			if(response==DataEntryDialog.OK) {
-				Network net = csdpFrame.getNetwork();
+				Network net = CsdpFunctions.getNetwork();
 				String wktPath = dataEntryDialog.getDirectory(names[0])+File.separator+dataEntryDialog.getFilename(names[0]);
 				System.out.println("ok clicked, wktPath="+wktPath);
 
@@ -505,8 +583,8 @@ public class NetworkMenu {
 	}//inner class NXsectToWKTFormat
 
 
-	
-	
+
+
 	/**
 	 * Save network file As
 	 *
@@ -567,7 +645,7 @@ public class NetworkMenu {
 					for(int i=0; i<parts.length; i++) {
 						parts[i] = parts[i].replace("*", ".*");
 					}
-					Network network = _csdpFrame.getNetwork();
+					Network network = CsdpFunctions.getNetwork();
 					if(dontExportSpecifiedChannels) {
 						for(int i=0; i<network.getNumCenterlines(); i++) {
 							String centerlineName = network.getCenterlineName(i);
@@ -801,9 +879,9 @@ public class NetworkMenu {
 		public NDisplay3dReachView(CsdpFrame gui) {
 			this.gui = gui;
 		}
-		
+
 		public void actionPerformed(ActionEvent arg0) {
-			Network net = gui.getNetwork();
+			Network net = CsdpFunctions.getNetwork();
 
 			String names[] = new String[3];
 			String initValue[] = new String[3];
@@ -813,7 +891,7 @@ public class NetworkMenu {
 			initValue[0] = "Reach";
 			initValue[1] = "17,1-5";
 			initValue[2] = "True";
-			
+
 			int[] dataTypes = new int[] {DataEntryDialog.STRING_TYPE, DataEntryDialog.STRING_TYPE, DataEntryDialog.BOOLEAN_TYPE};
 			String[] tooltips = new String[] {null, null, "Plot user-defined cross-section data in white"};
 			boolean[] disableIfNull = new boolean[] {true, true, true};
@@ -834,7 +912,7 @@ public class NetworkMenu {
 				String reachTitle = dataEntryDialog.getValue(names[0]);
 				String channelNumbersString = dataEntryDialog.getValue(names[1]);
 				boolean displayUserDefinedCrossSections = Boolean.parseBoolean(dataEntryDialog.getValue(names[2]));
-				
+
 				int downstreamToUpstreamInt = -Integer.MAX_VALUE;
 				Vector<String> centerlineNames = CsdpFunctions.parseChanGroupString(gui, channelNumbersString);
 				String[] centerlineNamesArray = new String[centerlineNames.size()];
@@ -859,7 +937,7 @@ public class NetworkMenu {
 			_gui.setCursor(CsdpFunctions._crosshairCursor);
 		}// actionPerformed
 	}
-	
+
 	public class NDisplayReachSummaryWindow implements ActionListener {
 
 		private CsdpFrame gui;
@@ -869,7 +947,7 @@ public class NetworkMenu {
 		}
 
 		public void actionPerformed(ActionEvent arg0) {
-			Network net = gui.getNetwork();
+			Network net = CsdpFunctions.getNetwork();
 
 			String names[] = new String[3];
 			String initValue[] = new String[3];
@@ -879,7 +957,7 @@ public class NetworkMenu {
 			initValue[0] = "Reach";
 			initValue[1] = "17,1-5";
 			initValue[2] = "true";
-			
+
 			int[] dataTypes = new int[] {DataEntryDialog.STRING_TYPE, DataEntryDialog.STRING_TYPE, DataEntryDialog.BOOLEAN_TYPE};
 			String[] tooltips = new String[] {null, null, "If true, profile plots will begin at the downstream end of the reach, and "
 					+ "end at the upstream end. Otherwise, they will do the opposite. "};
@@ -894,7 +972,7 @@ public class NetworkMenu {
 							+ "3. Check the checkbox if you want profile plots to be downstream to upstream.<BR>"
 							+ "The example below indicates channels 1 through 5, followed by channel 10. This is equivalent to '1,2,3,4,5,10'<BR></font></BODY></HTML>";
 
-//			int numFields = 3;
+			//			int numFields = 3;
 			DataEntryDialog dataEntryDialog = new DataEntryDialog(gui, "Reach Summary Information", instructions, 
 					names, initValue, dataTypes, disableIfNull, tooltips, true);
 			int response=dataEntryDialog.getResponse();
@@ -909,7 +987,7 @@ public class NetworkMenu {
 					downstreamToUpstreamInt = CenterlineOrReachSummaryWindow.START_AT_UPSTREAM_END;
 				}
 				_app.createCenterlineOrReachSummaryWindow(gui, net, reachTitle, channelNumbersString, downstreamToUpstreamInt);
-//				new CenterlineSummaryWindow(gui, net, reachTitle, channelNumbersString, downstreamToUpstreamInt);
+				//				new CenterlineSummaryWindow(gui, net, reachTitle, channelNumbersString, downstreamToUpstreamInt);
 			}
 		}
 	}//inner class DisplayReachSummaryWindow
@@ -951,7 +1029,7 @@ public class NetworkMenu {
 			if(defaultDSMChannelsDirectoryFile!=null) {
 				defaultDSMChannelsDirectoryString = defaultDSMChannelsDirectoryFile.toString();
 			}
-			String defaultDSMChannelsFilename = CsdpFunctions.getDSMChannelsFilename();
+			String defaultDSMChannelsFilename = CsdpFunctions.getDSMChannelsFilename()+"."+CsdpFunctions.getDSMChannelsFiletype();
 			if(defaultDSMChannelsDirectoryFile!=null && defaultDSMChannelsDirectoryString.length()>0 &&
 					defaultDSMChannelsFilename!=null && defaultDSMChannelsFilename.length()>0) {
 				defaultChannelsInp = defaultDSMChannelsDirectoryFile.toString()+File.separator+defaultDSMChannelsFilename;
@@ -979,7 +1057,7 @@ public class NetworkMenu {
 					"Enter a value here if you would like to replace all dispersion factors with the specified value",
 					"Create DSM2 geometry files in the pre-DSM2 v8 format",
 					"Create a CSDP landmark file (xsects.cdl) which labels all of the cross-section lines in the network"
-					};
+			};
 			boolean modal = true;
 			int[] numDecimalPlaces = new int[] {0,0,4,4,0,0};
 			DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, "Calculate Network", instructions, names, 
@@ -988,6 +1066,7 @@ public class NetworkMenu {
 			int response = dataEntryDialog.getResponse();
 			if(response==DataEntryDialog.OK) {
 				String channelsDirectory = dataEntryDialog.getDirectory(names[0]).toString();
+				channelsDirectory+=File.separator;
 				String channelsFilename = dataEntryDialog.getFilename(names[0]);
 				String calculateDirectory = dataEntryDialog.getDirectory(names[1]).toString();
 				calculateDirectory+=File.separator+dataEntryDialog.getFilename(names[1]);
@@ -1006,7 +1085,7 @@ public class NetworkMenu {
 					dispersionFactorReplacementValue = Double.parseDouble(dispersionFactorReplacementString);
 					replaceDispersionFactor = true;
 				}
-				
+
 				boolean calculatePreDsm2V8Files = Boolean.valueOf(dataEntryDialog.getValue(names[4]));
 				boolean createCrossSectionLandmarkFile = Boolean.valueOf(dataEntryDialog.getValue(names[5]));
 				String currentDTString = CsdpFunctions.getCurrentDatetimeFormattedForFilenames();
@@ -1070,7 +1149,7 @@ public class NetworkMenu {
 
 	}//inner class NNetworkSummaryReport
 
-	
+
 	public class NNetworkMAARReport implements ActionListener {
 		private CsdpFrame _csdpFrame;
 		public NNetworkMAARReport(CsdpFrame csdpFrame) {

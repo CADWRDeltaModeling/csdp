@@ -19,7 +19,7 @@ public class NetworkPlot extends PlanViewPlot {
 	protected double _y1Pixels;
 	protected double _x2Pixels;
 	protected double _y2Pixels;
-	Network _net = null;
+//	Network _net = null;
 	protected static int NETWORK_SELECTION_POINT_DIMENSION = 4;
 	protected static final boolean DEBUG = false;
 	/*

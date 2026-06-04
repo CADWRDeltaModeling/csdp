@@ -231,6 +231,17 @@ public class DataEntryDialog extends JDialog {
 	private void createDialog(JFrame parent, String title, String instructions, String[] fieldNames, 
 			String[] defaultValues, int[] dataTypes, boolean[] disableIfNull, int[] numDecimalPlaces, 
 			String[] extensions, String[] tooltips, boolean modal) {
+
+		//check names array, warn user if any duplicates
+		HashSet<String> uniqueNamesHashSet = new HashSet<String>(fieldNames.length);
+		for(int i=0; i<fieldNames.length; i++) {
+			if(uniqueNamesHashSet.contains(fieldNames[i])) {
+				JOptionPane.showMessageDialog(parent, "Error in DataEntryDialog.createDialog: fieldNames array contains duplicates", "ERROR", JOptionPane.OK_OPTION);
+			}else {
+				uniqueNamesHashSet.add(fieldNames[i]);
+			}
+		}
+		
 		boolean inputArgsOk = true;
 		//make sure all values unique
 		HashSet<String> fieldNamesHashSet = new HashSet<String>();
@@ -444,11 +455,12 @@ public class DataEntryDialog extends JDialog {
 	
 	/*
 	 * Adds a JLabel (containing field name) and a JComponent to the dataEntryPanel.
-	 * What kind of JComponent will depend upon requested dataType:
+	 * The type of JComponent will depend upon requested dataType:
 	 * If numeric, jComponent will be a JFormattedTextField
 	 * If String, jComponent will be a JTextField
 	 * If boolean, jComponent will be a JCheckbox
 	 * If file specification, jComponent will be a JTextField and a JButton, which will open up a file selector dialog.
+	 * The components are added to a hashtable called _allComponents. The key is the field name specified by user.
 	 */
 	private void addFieldObjects(int index, String name, String defaultValue, int dataType, int numDecimalPlaces, String extension, 
 			String tooltip) {
@@ -1088,6 +1100,15 @@ public class DataEntryDialog extends JDialog {
 	}//inner class LoadDefaultsListener
 	
 	public String[] getFieldNames() {return this.fieldNames;}
-
+	public void setEnabled(String fieldName, boolean enabledValue) {
+		_allComponents.get(fieldName).setEnabled(enabledValue);
+	}
+	public void setCheckboxValue(String fieldName, boolean checkedValue) {
+		JComponent selectedComponenent = _allComponents.get(fieldName);
+		if(selectedComponenent instanceof JCheckBox) {
+			JCheckBox jcb = (JCheckBox) selectedComponenent;
+			jcb.setSelected(checkedValue);
+		}
+	}
 	
 }// class DataEntryDialog

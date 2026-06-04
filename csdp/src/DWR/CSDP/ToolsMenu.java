@@ -31,7 +31,7 @@ public class ToolsMenu {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			Network network = this.csdpFrame.getNetwork();
+			Network network = CsdpFunctions.getNetwork();
 			if(network != null) {
 				String title = "Reduce cross-section widths";
 				String instructions = "<HTML><BODY>"
@@ -74,7 +74,7 @@ public class ToolsMenu {
 
 	public ToolsMenu(App app, CsdpFrame gui) {
 		_app = app;
-		_gui = gui;
+		_csdpFrame = gui;
 		_owaOpenFilter = new CsdpFileFilter(_openExtensions, _numOpenExtensions);
 		_owaWriteFilter = new CsdpFileFilter(_saveExtensions, _numSaveExtensions);
 		_stationOpenFilter = new CsdpFileFilter(_stationExtensions, _numStationExtensions);
@@ -183,10 +183,10 @@ public class ToolsMenu {
 						System.out.println("error in ToolsMenu.TCreateDCDNodeLandmarkFile.actionPerformed");
 					}finally {
 						if(divSuccess && drainSuccess && writeSuccess) {
-							JOptionPane.showMessageDialog(_gui, "Landmark file written", "Success", JOptionPane.OK_OPTION);
+							JOptionPane.showMessageDialog(_csdpFrame, "Landmark file written", "Success", JOptionPane.OK_OPTION);
 						}else {
 							System.out.println("divSuccess, drainSuccess, writeSuccess="+divSuccess+","+drainSuccess+","+writeSuccess);
-							JOptionPane.showMessageDialog(_gui, "An error occurred", "Error", JOptionPane.OK_OPTION);
+							JOptionPane.showMessageDialog(_csdpFrame, "An error occurred", "Error", JOptionPane.OK_OPTION);
 						}
 					}
 				}//if response==OK
@@ -211,7 +211,7 @@ public class ToolsMenu {
 					}catch(NumberFormatException e2) {
 						success=false;
 						System.out.println("line, parts[1]="+line+","+parts[1]);
-						JOptionPane.showMessageDialog(_gui, "Error in ToolsMenu.TCreateDCDNodeLandmarkFile.getDCDNodes: parsing error", "Error", JOptionPane.OK_OPTION);
+						JOptionPane.showMessageDialog(_csdpFrame, "Error in ToolsMenu.TCreateDCDNodeLandmarkFile.getDCDNodes: parsing error", "Error", JOptionPane.OK_OPTION);
 					}//try-catch
 				}//if
 			}//while
@@ -228,9 +228,12 @@ public class ToolsMenu {
 	 *
 	 */
 	public class TManningsDispersionSpatialDistribution implements ActionListener {
+		
+		public TManningsDispersionSpatialDistribution(CsdpFrame csdpFrame) {
+			_csdpFrame = csdpFrame;
+		}
 
 		public void actionPerformed(ActionEvent arg0) {
-			// TODO Auto-generated method stub
 			String title = "Manning's n or Dispersion Spatial Distribution";
 			String instructions = "<HTML><BODY>"
 					+ "Using existing network file and a DSM channels file (channels.inp), create a file with 3 columns, containing:<BR>"
@@ -250,7 +253,7 @@ public class ToolsMenu {
 			String[] tooltips = new String[] {"output filename", "check to include Manning's n in output", "check to include Dispersion Factor in output"}; 
 			boolean modal = true;
 
-			DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names,
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, title, instructions, names,
 					defaultValues, dataTypes, disableIfNull, extensions, tooltips, modal);
 
 			int response = dataEntryDialog.getResponse();
@@ -261,10 +264,10 @@ public class ToolsMenu {
 				String writeDispersionString = dataEntryDialog.getValue(names[2]);
 				boolean writeManning = Boolean.parseBoolean(writeManningString);
 				boolean writeDispersion = Boolean.parseBoolean(writeDispersionString);
-				_DSMChannels = _app.getDSMChannels();
-				Network network = _gui.getNetwork();
+				_DSMChannels = CsdpFunctions.readDSMChannelsFileIfNotLoaded(_csdpFrame);
+				Network network = CsdpFunctions.getNetwork();
 
-				AsciiFileWriter asciiFileWriter = new AsciiFileWriter(_gui, outputDirectory+File.separator+outputFilename);
+				AsciiFileWriter asciiFileWriter = new AsciiFileWriter(_csdpFrame, outputDirectory+File.separator+outputFilename);
 				for(int i=0; i<network.getNumCenterlines(); i++) {
 					String centerlineName = network.getCenterlineName(i);
 					Centerline centerline = network.getCenterline(centerlineName);
@@ -281,7 +284,7 @@ public class ToolsMenu {
 					asciiFileWriter.writeLine(line);
 				}
 				asciiFileWriter.close();
-				JOptionPane.showMessageDialog(_gui, "Manning and/or dispersion spatial distribution file written", "Success", JOptionPane.OK_OPTION);
+				JOptionPane.showMessageDialog(_csdpFrame, "Manning and/or dispersion spatial distribution file written", "Success", JOptionPane.OK_OPTION);
 			}
 		}//actionPerformed
 	}//inner class TManningsDispersionSpatialDistribution
@@ -301,7 +304,7 @@ public class ToolsMenu {
 	 */
 	public class TCrossSectionSlideshow implements ActionListener {
 		public void actionPerformed(ActionEvent arg0) {
-			Network network = _gui.getNetwork();
+			Network network = CsdpFunctions.getNetwork();
 			//			Centerline centerline = network.getSelectedCenterline();
 			String title = "Cross-Section slideshow";
 			String instructions = "<HTML><BODY>"
@@ -316,11 +319,11 @@ public class ToolsMenu {
 					"Folder for saving images", "Include Xsect Conveyance Characteristics", "Include Xsect Metadata"};
 			//					"Automatically create images for all cross-sections"};
 			String[] defaultValues = new String[] {CsdpFunctions.getNetworkDirectory()+File.separator+
-					CsdpFunctions.getNetworkFilename(), "", "", "", "false", "true"};
+					CsdpFunctions.getNetworkFilename()+"."+CsdpFunctions.getNetworkFiletype(), "", "", "", "false", "true"};
 			int[] dataTypes = new int[] {DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.FILE_SPECIFICATION_TYPE,
 					DataEntryDialog.FILE_SPECIFICATION_TYPE, DataEntryDialog.DIRECTORY_SPECIFICATION_TYPE, 
 					DataEntryDialog.BOOLEAN_TYPE, DataEntryDialog.BOOLEAN_TYPE};
-			boolean[] disableIfNull = new boolean [] {true, true, false, false, true, true};
+			boolean[] disableIfNull = new boolean [] {true, true, true, true, true, true};
 			String[] extensions = new String[] {"cdn", "cdn", "prn|cdp", "","",""};
 			String[] tooltips = new String[] {"network file used for cross-section data to be displayed on left hand side ", 
 					"network file used for cross-section data to be displayed on right hand side", 
@@ -331,7 +334,7 @@ public class ToolsMenu {
 			//					"If true, disable interactive mode, and save an image of each frame in the slideshow to disk"}; 
 			boolean modal = true;
 
-			DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names,
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, title, instructions, names,
 					defaultValues, dataTypes, disableIfNull, extensions, tooltips, modal);
 
 			int response = dataEntryDialog.getResponse();
@@ -384,7 +387,7 @@ public class ToolsMenu {
 	 */
 	public class TCreateDSM2OutputLocationsForLandmarks implements ActionListener {
 		public void actionPerformed(ActionEvent arg0) {
-			_app.createDSM2OutputLocationsForLandmarks(_gui);
+			_app.createDSM2OutputLocationsForLandmarks(_csdpFrame);
 		}
 	}
 
@@ -392,7 +395,7 @@ public class ToolsMenu {
 	public class TRemoveAllCrossSections implements ActionListener {
 
 		public void actionPerformed(ActionEvent arg0) {
-			_app.removeAllCrossSections(_gui);
+			_app.removeAllCrossSections(_csdpFrame);
 		}
 
 	}
@@ -421,9 +424,9 @@ public class ToolsMenu {
 	public class TCreateStraightlineChanForGridmap implements ActionListener {
 
 		public void actionPerformed(ActionEvent arg0) {
-			Network network = _gui.getNetwork();
-			Landmark landmark = _gui.getLandmark();
-			_DSMChannels = _app.getDSMChannels();
+			Network network = CsdpFunctions.getNetwork();
+			Landmark landmark = _csdpFrame.getLandmark();
+			_DSMChannels = CsdpFunctions.readDSMChannelsFileIfNotLoaded(_csdpFrame);
 
 
 			String title = "Create WKT file containing straight line channels which are connected to nodes. This is used for"
@@ -438,7 +441,7 @@ public class ToolsMenu {
 			String[] tooltips = new String[] {"The full path to the .wkt file to be created"};
 			boolean modal = true;
 
-			DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names, 
+			DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, title, instructions, names, 
 					defaultValues, dataTypes, disableIfNull, numDecimalPlaces, 
 					extensions, tooltips, modal);
 			int response = dataEntryDialog.getResponse();
@@ -454,12 +457,12 @@ public class ToolsMenu {
 
 		public void actionPerformed(ActionEvent arg0) {
 			// TODO Auto-generated method stub
-			Network network = _gui.getNetwork();
-			Landmark landmark = _gui.getLandmark();
+			Network network = CsdpFunctions.getNetwork();
+			Landmark landmark = _csdpFrame.getLandmark();
 			for(int i=0; i<network.getNumCenterlines(); i++) {
 				String centerlineName = network.getCenterlineName(i);
 				Centerline centerline = network.getCenterline(centerlineName);
-				_DSMChannels = _app.getDSMChannels();
+				_DSMChannels = CsdpFunctions.readDSMChannelsFileIfNotLoaded(_csdpFrame);
 				int upnode = _DSMChannels.getUpnode(centerlineName);
 				int downnode = _DSMChannels.getDownnode(centerlineName);
 				double upnodeX = landmark.getXFeet(Integer.toString(upnode));
@@ -481,7 +484,7 @@ public class ToolsMenu {
 					centerline.addDownstreamCenterlinePointFeet(downnodeX, downnodeY);
 				}
 			}
-			JOptionPane.showMessageDialog(_gui, "Centerlines have been extended to nodes.", "Success", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(_csdpFrame, "Centerlines have been extended to nodes.", "Success", JOptionPane.INFORMATION_MESSAGE);
 		}//actionPerformed
 
 	}//class TExtendCenterlinesToNodes
@@ -507,7 +510,7 @@ public class ToolsMenu {
 
 		public void actionPerformed(ActionEvent arg0) {
 			if(!CsdpFunctions.movePolygonCenterlinePointsToLeveeCenterlineDialogOpen()) {
-				Network network = _gui.getNetwork();
+				Network network = CsdpFunctions.getNetwork();
 				Centerline centerline = network.getSelectedCenterline();
 
 				if(this.centerlineNameSource==ENTER_CENTERLINE_NAMES) {
@@ -537,7 +540,7 @@ public class ToolsMenu {
 					"Click button to select the levee centerline"};
 					boolean modal = true;
 
-					final DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names,
+					final DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, title, instructions, names,
 							defaultValues, dataTypes, disableIfNull, numDecimalPlaces, tooltips, modal);
 
 					int response = dataEntryDialog.getResponse();
@@ -565,16 +568,16 @@ public class ToolsMenu {
 							for(int i=0; i<errorMessages.size(); i++) {
 								messages+=errorMessages.get(i)+"\n";
 							}
-							JOptionPane.showMessageDialog(_gui, messages, "Error", JOptionPane.ERROR_MESSAGE);
+							JOptionPane.showMessageDialog(_csdpFrame, messages, "Error", JOptionPane.ERROR_MESSAGE);
 						}else {
-							_gui.pressSelectCursorAkaArrowButton();
+							_csdpFrame.pressSelectCursorAkaArrowButton();
 							_app.snapPolygonCenterlinePointsToLeveeCenterline(polygonCenterlineName,  
 									new String[] {leveeCenterlineName});
 						}
 					}else{
 						//					dataEntryDialog.removeWindowListener(this);
 						//					dataEntryDialog.disposeDialog();
-						_gui.pressSelectCursorAkaArrowButton();
+						_csdpFrame.pressSelectCursorAkaArrowButton();
 						CsdpFunctions.setPolygonCenterlinePointsToLeveeCenterlineDialogOpen(false);
 					}
 
@@ -647,7 +650,7 @@ public class ToolsMenu {
 					String[] tooltips = new String[] {""}; 
 					boolean modal = true;
 
-					DataEntryDialog dataEntryDialog = new DataEntryDialog(_gui, title, instructions, names,
+					DataEntryDialog dataEntryDialog = new DataEntryDialog(_csdpFrame, title, instructions, names,
 							defaultValues, dataTypes, disableIfNull, extensions, tooltips, modal);
 
 					int response = dataEntryDialog.getResponse();
@@ -684,7 +687,7 @@ public class ToolsMenu {
 						}
 						asciiFileReader.close();
 						for(int j=0; j<polygonCenterlineNamesVector.size(); j++) {
-							_gui.pressSelectCursorAkaArrowButton();
+							_csdpFrame.pressSelectCursorAkaArrowButton();
 							String leveeCenterlineIndicesString = leveeCenterlineIndicesVector.get(j).trim().replaceAll("\"", "");
 							//							System.out.println("leveeCenterlineIndicesString="+leveeCenterlineIndicesString);
 							if(!leveeCenterlineIndicesString.equals("no adj needed") && leveeCenterlineIndicesString.length()>0) {
@@ -727,7 +730,7 @@ public class ToolsMenu {
 
 				}
 			}else {
-				JOptionPane.showMessageDialog(_gui, "A Move centerline points dialog is already open!\n"
+				JOptionPane.showMessageDialog(_csdpFrame, "A Move centerline points dialog is already open!\n"
 						+ "You must finish your work in the other dialog first", "Dialog alreay open", JOptionPane.ERROR_MESSAGE);
 			}
 		}
@@ -898,7 +901,7 @@ public class ToolsMenu {
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			_net = _gui.getNetwork();
+			_net = CsdpFunctions.getNetwork();
 			String outputFilename = null;
 			String outputFiletype = null;
 			String DSMFilename = null;
@@ -1483,6 +1486,6 @@ public class ToolsMenu {
 	private int _irregXsectsFileState = -Integer.MAX_VALUE;
 	private int _xsectsInpFileState = -Integer.MAX_VALUE;
 	private String _toeDrainFilename;
-	CsdpFrame _gui;
+	CsdpFrame _csdpFrame;
 	DSMChannels _DSMChannels;
 }// class ToolsMenu

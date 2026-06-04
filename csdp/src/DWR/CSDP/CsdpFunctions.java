@@ -5,6 +5,8 @@ import java.awt.Color;
 //import DWR.CSDP.semmscon.UseSemmscon;
 import java.awt.Cursor;
 import java.awt.Polygon;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -153,11 +155,11 @@ public class CsdpFunctions {
 			y1 = centerline.getCenterlinePoint(i).getYFeet();
 			x2 = centerline.getCenterlinePoint(i + 1).getXFeet();
 			y2 = centerline.getCenterlinePoint(i + 1).getYFeet();
-//			if(Double.isNaN(maxXsectLineLength)) {
-//				dist = CsdpFunctions.shortestDistLineSegment(x1, x2, xDataCoord, y1, y2, yDataCoord);
-//			}else {
-				dist = CsdpFunctions.shortestDistLineSegment(x1, x2, xDataCoord, y1, y2, yDataCoord, maxXsectLineLength, limitWidth);
-//			}
+			//			if(Double.isNaN(maxXsectLineLength)) {
+			//				dist = CsdpFunctions.shortestDistLineSegment(x1, x2, xDataCoord, y1, y2, yDataCoord);
+			//			}else {
+			dist = CsdpFunctions.shortestDistLineSegment(x1, x2, xDataCoord, y1, y2, yDataCoord, maxXsectLineLength, limitWidth);
+			//			}
 			if (DEBUG)
 				System.out.println("line segment, shortest dist, x1x2x3y1y2y3=" + i + "," + dist + "," + x1 + ","
 						+ x2 + "," + xDataCoord + "," + y1 + "," + y2 + "," + yDataCoord);
@@ -166,7 +168,7 @@ public class CsdpFunctions {
 				minDistIndex = i;
 			} // if
 		} // for i
-	
+
 		if (DEBUG)
 			System.out.println("minDistIndex, min dist=" + minDistIndex + "," + minDist);
 		if (minDist < Double.MAX_VALUE) {
@@ -177,10 +179,10 @@ public class CsdpFunctions {
 			theta = CsdpFunctions.getTheta(x1, x2, y1, y2);
 			xi = CsdpFunctions.findXIntersection(x1, x2, xDataCoord, y1, y2, yDataCoord);
 			yi = CsdpFunctions.findYIntersection(x1, x2, xDataCoord, y1, y2, yDataCoord);
-	
+
 			if (DEBUG)
 				System.out.println("Intersection coord:" + xi + "," + yi);
-	
+
 			// find dist from first point in centerline to first point in
 			// centerline
 			// segment that contains the xsect
@@ -196,7 +198,7 @@ public class CsdpFunctions {
 				if (DEBUG)
 					System.out.println("increasing cumDist:" + cumDist);
 			} // for i
-	
+
 			x1 = centerline.getCenterlinePoint(minDistIndex).getXFeet();
 			y1 = centerline.getCenterlinePoint(minDistIndex).getYFeet();
 			cumDist += CsdpFunctions.pointDist(x1, y1, xi, yi);
@@ -204,7 +206,7 @@ public class CsdpFunctions {
 		}
 		return returnValues;
 	}//getXsectDistAndPointDist
-	
+
 	/**
 	 * find x coordinate of intersection of 2 perpendicular lines. 1st line is
 	 * defined by (x1,y2) and (x2,y2) and the second line is defined by (x3,y3)
@@ -248,7 +250,7 @@ public class CsdpFunctions {
 		double yIntersect = findYIntersection(x1, x2, x3, y1, y2, y3);
 		return (double) (Math.sqrt(Math.pow((xIntersect - x3), 2) + Math.pow((yIntersect - y3), 2)));
 	}// shortestDistLine
-	
+
 	/**
 	 * Find the shortest distance between a line segment (finite length) and a
 	 * point. Return maximum value if angle between line segment and line
@@ -309,7 +311,7 @@ public class CsdpFunctions {
 		double dist = 0.0;
 		double xIntersect = findXIntersection(x1, x2, x3, y1, y2, y3);
 		double yIntersect = findYIntersection(x1, x2, x3, y1, y2, y3);
-//		double theta = getTheta(x1, x2, y1, y2);
+		//		double theta = getTheta(x1, x2, y1, y2);
 		if (DEBUG)
 			System.out.println("shortestDistLineSegment x1x2x3y1y2y3=" + x1 + "," + x2 + "," + x3 + "," + y1 + "," + y2
 					+ "," + y3);
@@ -744,13 +746,13 @@ public class CsdpFunctions {
 			last = left;
 			for (int i = left + 1; i <= right; i++) {
 				if(array1[i] < array1[left]){
-				// if(array[i] < array[left]){
-				// then swap if the ith value is less then the left value
-//				if (iValue < leftValue) {
+					// if(array[i] < array[left]){
+					// then swap if the ith value is less then the left value
+					//				if (iValue < leftValue) {
 					last++;
 					swap(array1, array2, last, i);
 				} // if
-					// else if the ith value is a number but the left isn't
+				// else if the ith value is a number but the left isn't
 
 			} // for i
 			swap(array1, array2, left, last);
@@ -758,7 +760,7 @@ public class CsdpFunctions {
 			qsort(array1, array2, last + 1, right);
 		} // if
 	}// qsort
-	
+
 	/**
 	 * swap two doubles in array1 and array2. used by quicksort
 	 */
@@ -771,8 +773,8 @@ public class CsdpFunctions {
 		array2[j]=t2;
 	}
 
-	
-	
+
+
 	/**
 	 * quicksort for Strings. left is the index of the first element in array;
 	 * right is the index of the last.
@@ -813,7 +815,7 @@ public class CsdpFunctions {
 						last++;
 						swap(array, last, i);
 					} // if
-						// else if the ith value is a number but the left isn't
+					// else if the ith value is a number but the left isn't
 				} else if (iValueParsable && leftValueParsable == false) {
 					last++;
 					swap(array, last, i);
@@ -1041,23 +1043,27 @@ public class CsdpFunctions {
 	public static File getNetworkCalculateDirectory() {
 		return _networkCalculateDirectory;
 	}
-	
+
 	public static File getDSMChannelsDirectory() {
 		return _dsmChannelsDirectory;
 	}
-	
+
+	public static String getDSMChannelsFiletype() {
+		return _dsmChannelsFiletype;
+	}
+
 	public static void setDSMChannelsFilename(String filename) {
 		_dsmChannelsFilename = filename;
 	}
-	
+
 	public static void setDSMChannelsFiletype(String filetype) {
-		_DSMChannelsFiletype = filetype;
+		_dsmChannelsFiletype = filetype;
 	}
-	
+
 	public static String getDSMChannelsFilename() {
 		return _dsmChannelsFilename;
 	}
-	
+
 	public static void setDSM2HofDirectory(File d) {
 		_dsm2HofDirectory = d;
 	}
@@ -1065,15 +1071,15 @@ public class CsdpFunctions {
 	public static void setDSM2HofFilename(String f) {
 		_dsm2HofFilename = f;
 	}
-	
+
 	public static File getDSM2HofDirectory() {
 		return _dsm2HofDirectory;
 	}
-	
+
 	public static String getDSM2HofFilename() {
 		return _dsm2HofFilename;
 	}
-	
+
 	/**
 	 * store name of current digital line graph directory.
 	 * _digitalLineGraphDirectory store the name of the last directory accessed.
@@ -1082,13 +1088,13 @@ public class CsdpFunctions {
 		_digitalLineGraphDirectory = name;
 	}
 
-	/**
-	 * stores name of current landmark directory. _landmarkDirectory stores the
-	 * name of the last directory accessed.
-	 */
-	public static void setLandmarkDirectory(File d) {
-		_landmarkDirectory = d;
-	}
+	//	/**
+	//	 * stores name of current landmark directory. _landmarkDirectory stores the
+	//	 * name of the last directory accessed.
+	//	 */
+	//	public static void setLandmarkDirectory(File d) {
+	//		_landmarkDirectory = d;
+	//	}
 
 	/**
 	 * stores name of current network directory. _networkDirectory stores the
@@ -1226,7 +1232,7 @@ public class CsdpFunctions {
 	public static String getNetworkFiletype() {
 		return _networkFiletype;
 	}
-	
+
 	public static String getLandmarkFilename() {
 		return _landmarkFilename;
 	}
@@ -1604,7 +1610,7 @@ public class CsdpFunctions {
 
 		return returnString;
 	}
-	
+
 	public static double getXsectThickness() {return _xsectThickness;}
 	public static void setXsectThickness(double thickness) {_xsectThickness = thickness;}
 
@@ -1620,7 +1626,7 @@ public class CsdpFunctions {
 		JFileChooser jfcChannelsInp = new JFileChooser();
 		int numChannelsInpExtensions = extensions.length;
 		CsdpFileFilter csdpFileFilter = new CsdpFileFilter(extensions, numChannelsInpExtensions);
-		
+
 		jfcChannelsInp.setDialogTitle(dialogTitle);
 		jfcChannelsInp.setApproveButtonText("Open");
 		jfcChannelsInp.addChoosableFileFilter(csdpFileFilter);
@@ -1658,11 +1664,11 @@ public class CsdpFunctions {
 		CsdpFunctions.setOpenDirectory(jfcChannelsInp.getCurrentDirectory());
 		return returnValues;
 	}//getFilePath	
-	
+
 	public static String selectDirectory(JFrame gui, String dialogTitle) {
 		String directory = null;
 		JFileChooser jfcChannelsInp = new JFileChooser();
-		
+
 		jfcChannelsInp.setDialogTitle(dialogTitle);
 		jfcChannelsInp.setApproveButtonText("Open");
 		jfcChannelsInp.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -1678,7 +1684,7 @@ public class CsdpFunctions {
 		CsdpFunctions.setOpenDirectory(jfcChannelsInp.getCurrentDirectory());
 		return directory;
 	}//selectDirectory
-	
+
 	/*
 	 * Create chart for multiple time series
 	 * Important: if your dataset(s) have any isolated single points, you should make shapes=true, otherwise
@@ -1686,7 +1692,7 @@ public class CsdpFunctions {
 	 */
 	public static JFreeChart createChartWithXYPlot(CsdpFrame csdpFrame, String title, String xLabel, String yLabel, 
 			XYSeriesCollection xySeriesCollection, boolean lines, boolean shapes, float[] lineThicknessArray) {
-//		JFreeChart jFreeChart = ChartFactory.createXYLineChart(title, yLabel, xLabel, datasets[0], PlotOrientation.HORIZONTAL, legend, true, true);
+		//		JFreeChart jFreeChart = ChartFactory.createXYLineChart(title, yLabel, xLabel, datasets[0], PlotOrientation.HORIZONTAL, legend, true, true);
 		JFreeChart jFreeChart = ChartFactory.createXYLineChart(title, xLabel, yLabel, xySeriesCollection);
 		XYPlot plot = jFreeChart.getXYPlot();
 
@@ -1723,7 +1729,7 @@ public class CsdpFunctions {
 		boolean shapes = true;
 		JFreeChart jFreeChart = ChartFactory.createScatterPlot(title, yLabel, xLabel, xySeriesCollection, PlotOrientation.HORIZONTAL, legend, true, true);
 		XYPlot plot = jFreeChart.getXYPlot();
-		
+
 		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer(lines, shapes);
 		for(int i=0; i<xySeriesCollection.getSeriesCount(); i++) {
 			renderer.setSeriesPaint(i,  csdpFrame.getColor(i));
@@ -1738,7 +1744,7 @@ public class CsdpFunctions {
 		plot.setDomainGridlinePaint(Color.BLACK);
 		return jFreeChart;
 	}//createChartWithScatterPlot
-	
+
 	/*
 	 * Create a line chart with labels instead of numeric values on the x axis
 	 */
@@ -1747,7 +1753,7 @@ public class CsdpFunctions {
 		boolean lines = true;
 		boolean shapes = drawPoints;		
 		JFreeChart returnChart = ChartFactory.createLineChart(title, xLabel, yLabel, defaultCategoryDataset);
-		
+
 		CategoryPlot plot = returnChart.getCategoryPlot();
 		plot.setOutlinePaint(Color.BLACK);
 		plot.setOutlineStroke(new BasicStroke(2.0f));
@@ -1763,7 +1769,7 @@ public class CsdpFunctions {
 		plot.setRenderer(renderer);
 		return returnChart;
 	}//getChannelGroupGraphs
-	
+
 	/*
 	 * Example: Given "280_290-292_300", return vector containing {"280", "290", "291", "292", "300"}
 	 * Also allow reverse order: Given 300_292-290_280 return vector containing {"300", "292", "291", "290", "280"}
@@ -1796,7 +1802,7 @@ public class CsdpFunctions {
 		}
 		return returnValues;
 	}//parseChanGroupString
-	
+
 	/**
 	 * debugging statements printed if true
 	 */
@@ -1894,7 +1900,7 @@ public class CsdpFunctions {
 	private static File _dsmChannelsDirectory = null;
 	private static File _dsm2HofDirectory = null;
 	private static String _dsm2HofFilename = null;
-	
+
 	/**
 	 *
 	 */
@@ -1931,7 +1937,7 @@ public class CsdpFunctions {
 	 * For automatically drawing a cross-section line at each computational point.
 	 */
 	public static double CROSS_SECTION_LINE_LENGTH = 3000.0;
-	
+
 	public static boolean getWarnZoom() {
 		return _warnZoom;
 	}
@@ -1945,7 +1951,7 @@ public class CsdpFunctions {
 	private static String _landmarkFilename = null;
 	private static String _landmarkFiletype = null;
 	private static String _dsmChannelsFilename = null;
-	private static String _DSMChannelsFiletype = null;
+	private static String _dsmChannelsFiletype = null;
 	private static String _networkFilename = null;
 	private static String _networkFiletype = null;
 
@@ -1953,7 +1959,7 @@ public class CsdpFunctions {
 	private static String _propertiesFiletype = null;
 	private static String _openWaterAreaFilename = null;
 	private static String _openWaterAreaFiletype = null;
-	
+
 	public static double CHARACTER_TO_PIXELS = 300.0f / 44.0;
 	// private static Vector _buttons = new Vector();
 	// private static int NUM_BUTTONS = 0;
@@ -2100,7 +2106,7 @@ public class CsdpFunctions {
 	}
 
 	private static UseSemmscon _us;
-	
+
 	/*
 	 * Will be equal to BIT_32 if the 32 bit JRE is being used, will be BIT_64 if 64 bit.
 	 */
@@ -2122,7 +2128,7 @@ public class CsdpFunctions {
 	 * area ratio in centerline exceeds maximum recommended value 
 	 */
 	public static boolean NETWORK_COLORING = false;
-	
+
 	/*
 	 * The maximum recommended ratio of largest to smallest cross-sectional areas in a channel, evaluated at 
 	 * ELEVATION_FOR_CENTERLINE_SUMMARY_CALCULATIONS, which is usually zero wrt the current datum
@@ -2141,7 +2147,7 @@ public class CsdpFunctions {
 	 * Value used for LineSimplification algorithm, for automatic cross-section creation
 	 */
 	public static double RAMER_DOUGLAS_PEUCKER_EPSILON = 1.0;
-	
+
 	/*
 	 * The minimum year to be used for automatic cross-section creation. Bathymetry points with years lower
 	 * than this value will not be used.
@@ -2167,7 +2173,7 @@ public class CsdpFunctions {
 	public static boolean ADD_XSECT_POINTS_BASED_ON_POINT_ORDER = true;
 	public static double cubicMetersToCubicFeet = 35.3147;
 	public static double squareMetersToSquareFeet = 10.7639;
-	
+
 	public static boolean backupFile(String fullPath) {
 		String inputPath = fullPath;
 		String outputPath = inputPath + ".bak";
@@ -2220,11 +2226,11 @@ public class CsdpFunctions {
 		if(vector!=null && vector.size()>0) {
 			Iterator<Integer> iterator = vector.iterator(); 
 			while(iterator.hasNext()) {
-			//			for(int i=0; i<vector.size(); i++) {
+				//			for(int i=0; i<vector.size(); i++) {
 				if(index>0) {
 					returnValue += ",";
 				}
-//				returnValue += String.valueOf(vector.get(i));
+				//				returnValue += String.valueOf(vector.get(i));
 				returnValue += String.valueOf(iterator.next());
 				index++;
 			}
@@ -2235,7 +2241,7 @@ public class CsdpFunctions {
 	public static ImageIcon createScaledImageIcon(InputStream inputStream, int width, int height) {
 		ImageIcon returnImageIcon = null;
 		try {
-//			InputStream resourceBuff = YourClass.class.getResourceAsStream(filepath);
+			//			InputStream resourceBuff = YourClass.class.getResourceAsStream(filepath);
 			BufferedImage bf = ImageIO.read(inputStream);
 			returnImageIcon = new ImageIcon((new ImageIcon(bf)).getImage().getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH));
 		}catch(NullPointerException e) {
@@ -2245,7 +2251,7 @@ public class CsdpFunctions {
 		}
 		return returnImageIcon;
 	}
-	
+
 	/*
 	 * The font size used by instances of DataEntryDialog, and possibly others.
 	 */
@@ -2315,14 +2321,13 @@ public class CsdpFunctions {
 		}
 		return returnValues;
 	}// parseFilename
-	
-	public static Network getNetworkInstance(CsdpFrame csdpFrame, App app, NetworkPlot networkPlot) {
-		Network network = csdpFrame.getNetwork();
 
-		if (network == null) {
-			network = new Network("delta", csdpFrame);
-			csdpFrame.setNetwork(network);
-			app._net = network;
+	public static Network createNetworkIfNull(CsdpFrame csdpFrame, App app, NetworkPlot networkPlot) {
+
+		if (_net== null) {
+			_net= new Network("delta", csdpFrame);
+			csdpFrame.setNetwork(_net);
+			app._net = _net;
 			networkPlot = app.setNetworkPlotter();
 			csdpFrame.getPlanViewCanvas(0).setNetworkPlotter(networkPlot);
 			csdpFrame.getPlanViewCanvas(0).setUpdateNetwork(true);
@@ -2333,29 +2338,113 @@ public class CsdpFunctions {
 			// _gui.enableAfterNetwork();
 			csdpFrame.enableWhenNetworkExists();
 		} // if net is null
-		return network;
+		return _net;
 	}
-	
+
 	/*
-	 * used to create DSM2 channels, using channels.inp file and landmark file with nodes
+	 * If there is no channels.inp file directory or filename, read a new channels.inp file and store the information 
+	 * Or if forceLoad is true, load/reload file
+	 */
+	public static DSMChannels loadDSMChannels(String directory, String filename, boolean forceLoad) {
+		boolean updateDsmChannels = false;
+		if(forceLoad) {
+			updateDsmChannels = true;
+		}else if(getDSMChannelsDirectory() != null && getDSMChannelsFilename()!=null) { 
+			if(!getDSMChannelsDirectory().equals(directory) || !getDSMChannelsFilename().equals(filename)) {
+				updateDsmChannels = true;
+			}
+		}else {
+			updateDsmChannels = true;
+		}
+		if(updateDsmChannels) {
+			String[] fNameType = parseFilename(filename);
+			String fName = fNameType[0];
+			String fType = fNameType[1];
+			System.out.println("=======================================================================================");
+			System.out.println("loading DSM channels file:"+directory+File.separator+fName+"."+fType);
+			System.out.println("=======================================================================================");
+			CsdpFunctions.setDSMChannelsDirectory(directory);
+			CsdpFunctions.setDSMChannelsFilename(fName);
+			CsdpFunctions.setDSMChannelsFiletype(fType);
+			DSMChannelsInput chanInput = DSMChannelsInput.getInstance(directory, fName + "." + DSMChannels_TYPE);
+			_dsmChannels = chanInput.readData();
+			if (DEBUG)
+				System.out.println("Done reading ascii DSMChannels data file");
+		}
+		return _dsmChannels;
+	}//loadDSMChannels
+
+	/*
+	 * If there is no channels.inp file directory or filename, read a new channels.inp file and store the information 
+	 * Or if forceLoad is true, load/reload file
+	 */
+	private static Landmark loadLandmark(CsdpFrame csdpFrame, App app, String directory, String filename, boolean forceLoad) {
+		boolean updateLandmark = false;
+		if(forceLoad) {
+			updateLandmark = true;
+		}else if(getLandmarkDirectory() != null && getLandmarkFilename()!=null) { 
+			if(!getLandmarkDirectory().toString().equals(directory) || !getLandmarkFilename().equals(filename)) {
+				updateLandmark = true;
+			}else {
+				updateLandmark = false;
+			}
+		}else {
+			updateLandmark = true;
+		}
+		if(updateLandmark) {
+			String[] fNameType = parseFilename(filename);
+			String fName = fNameType[0];
+			String fType = fNameType[1];
+			System.out.println("=======================================================================================");
+			System.out.println("loading landmark file:"+directory+File.separator+fName+"."+fType);
+			System.out.println("=======================================================================================");
+
+			_landmark = app.lReadStore(directory, fName + "." + fType);
+			csdpFrame.setLandmark(_landmark);
+			LandmarkPlot _lplot = app.setLandmarkPlotter();
+			csdpFrame.getPlanViewCanvas(0).setLandmarkPlotter(_lplot);
+			csdpFrame.getPlanViewCanvas(0).setUpdateLandmark(true);
+			csdpFrame.enableAfterLandmark();
+			_landmark.setIsUpdated(false);
+			
+			if (DEBUG)
+				System.out.println("Done reading ascii DSMChannels data file");
+		}
+		return _landmark;
+	}//loadDSMChannels
+
+	/*
+	 * Displays file selector dialog to prompt user to select a DSM channels file to load
+	 */
+	public static DSMChannels readDSMChannelsFileIfNotLoaded(CsdpFrame csdpFrame) {
+		DSMChannels dsmChannels = CsdpFunctions.getDSMChannels();
+		if(dsmChannels == null) {
+			String startingDirectory = "d:/delta/";
+			String[] directoryFilename = CsdpFunctions.selectFilePath(csdpFrame, "Open DSM2 channel connectivity file (channels.inp)", 
+					new String[]{"inp"}, startingDirectory, false);
+			dsmChannels = loadDSMChannels(directoryFilename[0], directoryFilename[1],true);
+		}
+		return dsmChannels;
+	}//getDSMChannels
+
+	/*
+	 * Used to create DSM2 channels, using channels.inp file and landmark file with nodes
+	 * Will use currently loaded channels.inp file if available; if not or if channel not found in it, 
+	 * prompt user for file path to load another.
 	 * If checkChannelExists, user will be prompted to load another channels.inp file 
 	 * if the specified centerline name doesn't exist in it.
 	 */
-	public static DSMChannels getChannelsInpFile(CsdpFrame csdpFrame, App app, Network network, Landmark landmark, 
-			String centerlineName, boolean checkChannelExists) {
-		_dsmChannels = app.getDSMChannels();
+	public static DSMChannels getChannelsInpFile(CsdpFrame csdpFrame, String centerlineName, String newDSMChannelsDirectory, 
+			String newDSMChannelsFilename, boolean checkChannelExists, boolean forceLoadNewFile) {
 		boolean loadAnotherChannelsInpFile = true;
-		JFileChooser _jfcChannelsInp = new JFileChooser();
+		//		JFileChooser _jfcChannelsInp = new JFileChooser();
 		String[] _channelsInpExtensions = { "inp" };
 		int _numChannelsInpExtensions = 1;
-		String directoryString = "";
+		//		String directoryString = "";
 
-		CsdpFileFilter _channelsInpFilter = new CsdpFileFilter(_channelsInpExtensions, _numChannelsInpExtensions);
-		// if channels.inp file not loaded OR if channel # doesn't exist in
-		// current
-		// DSMChannels object. ask user if another file should be
-		// loaded--don't
-		// assume there is another file with the channel.
+		//		CsdpFileFilter _channelsInpFilter = new CsdpFileFilter(_channelsInpExtensions, _numChannelsInpExtensions);
+		// If channels.inp file not loaded OR if channel # doesn't exist in current DSMChannels object,
+		//ask user if another file should be loaded--don't assume there is another file with the channel.
 		while (loadAnotherChannelsInpFile) {
 			if (checkChannelExists && _dsmChannels != null && _dsmChannels.channelExists(centerlineName) == false) {
 				int response = JOptionPane.showConfirmDialog(csdpFrame, "Channel " + centerlineName
@@ -2369,90 +2458,109 @@ public class CsdpFunctions {
 				loadAnotherChannelsInpFile = false;
 			}
 
-			if (_dsmChannels == null || loadAnotherChannelsInpFile) {
-				String channelsFilename = null;
-				// FileDialog fd = new FileDialog(_gui, "Open DSM2 channel
-				// connectivity file");
-				// fd.setVisible(true);
-				_jfcChannelsInp.setDialogTitle("Open DSM2 channel connectivity file");
-				_jfcChannelsInp.setApproveButtonText("Open");
-				_jfcChannelsInp.addChoosableFileFilter(_channelsInpFilter);
-				_jfcChannelsInp.setFileFilter(_channelsInpFilter);
-
-				if (CsdpFunctions.getOpenDirectory() != null) {
-					_jfcChannelsInp.setCurrentDirectory(CsdpFunctions.getOpenDirectory());
-				}
-				_dsmChannelsFilechooserState = _jfcChannelsInp.showOpenDialog(csdpFrame);
-				if (_dsmChannelsFilechooserState == JFileChooser.APPROVE_OPTION) {
-					channelsFilename = _jfcChannelsInp.getName(_jfcChannelsInp.getSelectedFile());
-					directoryString = _jfcChannelsInp.getCurrentDirectory().getAbsolutePath() + File.separator;
-
-					// channelsFilename = fd.getFile();
-					// _directory = fd.getDirectory();
-					
-					csdpFrame.setCursor(_waitCursor);
-					try {
-						_dsmChannels = app.chanReadStore(directoryString, channelsFilename);
-//						_gui.setDSMChannels(_DSMChannels);
-					}catch(Exception e1) {
-						JOptionPane.showMessageDialog(csdpFrame, "Error creating DSM2 channel", "Error", JOptionPane.ERROR_MESSAGE);
-					}finally {
-						csdpFrame.setCursor(_defaultCursor);
-						
-					}
-				} else {
-					loadAnotherChannelsInpFile = false;
-				}
-			} // if DSMChannels is null
-
-			if (_dsmChannelsFilechooserState == JFileChooser.APPROVE_OPTION) {
-				if (checkChannelExists) {
-					if (network.getCenterline(centerlineName) != null) {
-						int response = JOptionPane.showConfirmDialog(csdpFrame, "Centerline " + centerlineName + " already exists. Replace?",
-								"Replace centerline?", JOptionPane.YES_NO_OPTION);
-						if(response==JOptionPane.YES_OPTION) {
-							// addDSMChannel(centerlineName);
-	//						loadAnotherChannelsInpFile = addDSMChannel(csdpFrame, network, landmark, centerlineName);
-							loadAnotherChannelsInpFile = !okToAddDSMChannel(csdpFrame, network, landmark, centerlineName);
-						}
-					} else {
-						// addDSMChannel(centerlineName);
-	//					loadAnotherChannelsInpFile = addDSMChannel(csdpFrame, network, landmark, centerlineName);
-						loadAnotherChannelsInpFile = !okToAddDSMChannel(csdpFrame, network, landmark, centerlineName);
-					}
-				}else {
-					loadAnotherChannelsInpFile = false;
-				}
-			} // if the cancel button wasn't pressed
+			//load channels inp file if 
+			if (_dsmChannels == null || loadAnotherChannelsInpFile || forceLoadNewFile) {
+				_dsmChannels = loadDSMChannels(newDSMChannelsDirectory, newDSMChannelsFilename, forceLoadNewFile);
+			} else {
+				loadAnotherChannelsInpFile = false;
+			}
 		} // while
 		return _dsmChannels;
 	}// getChannelsInpFile
 
 	/*
-	 * Return true of network file contains centerline name and landmark file contains both nodes. 
+	 * Returns currently loaded landmark file if available; if not or if channel nodes not found in it, 
+	 * prompt user for file path to load another.
+	 * If checkChannelExists, user will be prompted to load another channels.inp file 
+	 * if the specified centerline name doesn't exist in it.
 	 */
-	public static boolean okToAddDSMChannel(CsdpFrame csdpFrame, Network network, Landmark landmark, String centerlineName) {
+	public static Landmark getLandmarkFile(CsdpFrame csdpFrame, App app, String centerlineName, String newLandmarkDirectory, 
+			String newLandmarkFilename, boolean checkNodesExist, boolean forceLoadNewFile) {
+		//Possibilities
+		//1. File is not loaded                                           ->load new file
+		//2. File is loaded, new directory and/or filename is specified   ->load new file
+		//3a. File is loaded, includes both nodes, force load is false    ->don't load new file
+		//3b. File is loaded, includes both nodes, force load is true     ->load new file
+		//4. File is loaded, does not include both nodes                  ->load new file
+		//5. after loading new file, it does not contain the nodes        ->don't worry about it here, have the add centerline routine pop up a dialog.
+		boolean containsBothNodes = false;
+		boolean fileIsLoaded = false;
+		boolean newDirectoryAndOrFilenameSpecified = false;
+		boolean loadAnotherLandmarkFile = false;
+		if(_landmark==null) {
+			//1. File is not loaded
+			fileIsLoaded = false;
+		}else {
+			fileIsLoaded = true;
+		}
+		
+		if(getLandmarkDirectory()!=null && getLandmarkFilename()!=null && getLandmarkFiletype()!=null &&
+				newLandmarkDirectory.equals(getLandmarkDirectory().toString()) && 
+				newLandmarkFilename.equals(getLandmarkFilename())){
+			newDirectoryAndOrFilenameSpecified = false;
+		}else {
+			newDirectoryAndOrFilenameSpecified = true;
+		}
+
+		if(fileIsLoaded) {
+			int upnode = _dsmChannels.getUpnode(centerlineName);
+			int downnode = _dsmChannels.getDownnode(centerlineName);
+			if (_landmark.containsLandmark(Integer.toString(upnode)) &&
+					_landmark.containsLandmark(Integer.toString(downnode))) {
+				containsBothNodes = true;
+			}else {
+				containsBothNodes = false;
+			}
+		}
+
+		if(!fileIsLoaded) {
+			loadAnotherLandmarkFile = true;
+		}else if(fileIsLoaded && newDirectoryAndOrFilenameSpecified) {
+			loadAnotherLandmarkFile = true;
+		}else if(fileIsLoaded && containsBothNodes && !forceLoadNewFile) {
+			loadAnotherLandmarkFile = false;
+		}else if(fileIsLoaded && containsBothNodes && forceLoadNewFile) {
+			loadAnotherLandmarkFile = true;
+		}else if(fileIsLoaded && !containsBothNodes) {
+			loadAnotherLandmarkFile = true;
+		}
+
+		if(loadAnotherLandmarkFile) {
+			_landmark = loadLandmark(csdpFrame, app, newLandmarkDirectory, newLandmarkFilename, forceLoadNewFile);
+		}
+		return _landmark;
+	}// getLandmarkFile
+
+
+	/*
+	 * Return true if network file contains centerline name and landmark file contains both nodes. 
+	 */
+	public static boolean okToAddDSMChannel(CsdpFrame csdpFrame, String centerlineName) {
 		boolean okToAdd = false;
 		int upnode = _dsmChannels.getUpnode(centerlineName);
 		int downnode = _dsmChannels.getDownnode(centerlineName);
 		if (upnode < 0 || downnode < 0) {
 			okToAdd = false;
 		}else {
-			if (landmark == null)
-				landmark = csdpFrame.getLandmark(); // load landmark file
-			if(landmark.containsLandmark(Integer.toString(upnode)) && landmark.containsLandmark(Integer.toString(downnode))) {
+			//			if (_landmark == null)
+			//				_landmark = csdpFrame.getLandmark(); // load landmark file
+			if(_net != null && _landmark != null &&  
+					_landmark.containsLandmark(Integer.toString(upnode)) && 
+					_landmark.containsLandmark(Integer.toString(downnode))) {
 				okToAdd = true;
+			}else {
+				okToAdd = false;
 			}
 		}
 		return okToAdd;
 	}//okToAddDSMChannel
-	
+
 	/**
 	 * adds a centerline for the specified DSM channel number. First point
 	 * is located at upstream node, last point is located at downstream
 	 * node.
 	 */
-	public static boolean addDSMChannel(CsdpFrame csdpFrame, Network network, Landmark landmark, String centerlineName) {
+	public static boolean addDSMChannel(CsdpFrame csdpFrame, String centerlineName) {
 		int upnode = 0;
 		int downnode = 0;
 		String upnodeString = null;
@@ -2465,8 +2573,8 @@ public class CsdpFunctions {
 		boolean landmarkError = false;
 		boolean channelsInpError = false;
 
-		network.addCenterline(centerlineName);
-		centerline = network.getCenterline(centerlineName);
+		_net.addCenterline(centerlineName);
+		centerline = _net.getCenterline(centerlineName);
 		upnode = _dsmChannels.getUpnode(centerlineName);
 		downnode = _dsmChannels.getDownnode(centerlineName);
 
@@ -2492,13 +2600,13 @@ public class CsdpFunctions {
 
 		while (giveUp == false) {
 			if (DEBUG)
-				System.out.println("landmark=" + landmark);
-			if (landmark == null)
-				landmark = csdpFrame.getLandmark(); // load landmark file
-			upX = landmark.getXFeet(upnodeString);
-			upY = landmark.getYFeet(upnodeString);
-			downX = landmark.getXFeet(downnodeString);
-			downY = landmark.getYFeet(downnodeString);
+				System.out.println("landmark=" + _landmark);
+			if (_landmark == null)
+				_landmark = csdpFrame.getLandmark(); // load landmark file
+			upX = _landmark.getXFeet(upnodeString);
+			upY = _landmark.getYFeet(upnodeString);
+			downX = _landmark.getXFeet(downnodeString);
+			downY = _landmark.getYFeet(downnodeString);
 
 			if (upX < 0.0f || upY < 0.0f) {
 				JOptionPane.showMessageDialog(csdpFrame, "ERROR:  insufficient information in landmark file for node " + upnodeString + ".", 
@@ -2514,7 +2622,7 @@ public class CsdpFunctions {
 			if (landmarkError) {
 				int response = JOptionPane.showConfirmDialog(csdpFrame, "Load another landmark file?", "", JOptionPane.YES_NO_CANCEL_OPTION);
 				if(response==JOptionPane.YES_OPTION) {
-					landmark = csdpFrame.getLandmark(); // load landmark file
+					_landmark = csdpFrame.getLandmark(); // load landmark file
 				}else if(response==JOptionPane.NO_OPTION || response==JOptionPane.CANCEL_OPTION) {
 					giveUp = true;
 				}
@@ -2526,22 +2634,22 @@ public class CsdpFunctions {
 		if (channelsInpError == false && landmarkError == false) {
 			// getX function returns -BIG_FLOAT if node not found in open
 			// landmark file
-			if (upX < 0.0f || upY < 0.0f || downX < 0.0f || downY < 0.0) {
-				landmark = csdpFrame.getLandmark(); // load landmark file
-			} // could use a while loop, but user would never get out if no
-				// landmark file
-			upnodeX = landmark.getXFeet(upnodeString);
-			upnodeY = landmark.getYFeet(upnodeString);
-			downnodeX = landmark.getXFeet(downnodeString);
-			downnodeY = landmark.getYFeet(downnodeString);
+			//			if (upX < 0.0f || upY < 0.0f || downX < 0.0f || downY < 0.0) {
+			//				_landmark = csdpFrame.getLandmark(); // load landmark file
+			//			} // could use a while loop, but user would never get out if no
+			// landmark file
+			upnodeX = _landmark.getXFeet(upnodeString);
+			upnodeY = _landmark.getYFeet(upnodeString);
+			downnodeX = _landmark.getXFeet(downnodeString);
+			downnodeY = _landmark.getYFeet(downnodeString);
 			centerline.addDownstreamCenterlinePointFeet(upnodeX, upnodeY);
 			centerline.addDownstreamCenterlinePointFeet(downnodeX, downnodeY);
 			if (DEBUG)
 				System.out.println("landmark coordinates: upstream xy, downstream xy=" + upnodeX + "," + upnodeY
 						+ "," + downnodeX + "," + downnodeY);
 
-			network.setSelectedCenterlineName(centerlineName);
-			network.setSelectedCenterline(network.getCenterline(centerlineName));
+			_net.setSelectedCenterlineName(centerlineName);
+			_net.setSelectedCenterline(_net.getCenterline(centerlineName));
 			csdpFrame.enableAfterCenterlineSelected();
 			csdpFrame.getPlanViewCanvas(0).setUpdateNetwork(true);
 			// removed for conversion to swing
@@ -2569,7 +2677,12 @@ public class CsdpFunctions {
 	public static String getIconImagePath() {
 		return _iconImagePath;
 	}
-	
+
+	public static DSMChannels getDSMChannels() {return _dsmChannels;}
+	public static Network getNetwork() {return _net;}
+	public static void setNetwork(Network net) {_net=net;}
+	public static Landmark getLandmark() {return _landmark;}
+
 	/*
 	 * The path to use to look for images used to create icons
 	 */
@@ -2579,12 +2692,27 @@ public class CsdpFunctions {
 	public static void appendGitHashToVersionNumber(String gitHash) {
 		_version += "_#"+gitHash;
 	}
-	
+
+
 	/**
 	 * version number-displayed at top of frame
 	 */
 	private static String _version = "2025-10-13";
+	public static final String DSMChannels_TYPE = "inp";
 
+	public static void setDSMChannels(DSMChannels dsmChannels) {_dsmChannels = dsmChannels;}
+	private static Network _net;
+	private static Landmark _landmark;
+
+	private static LandmarkMenu _landmarkMenu;
+	private static ActionListener _landmarkListener;
+	private static ActionEvent _nullActionEvent;
+
+	
+	
+	public static void setLandmark(Landmark landmark) {
+		_landmark = landmark;
+	}
 
 
 }// class CsdpFunctions

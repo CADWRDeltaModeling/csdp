@@ -57,7 +57,7 @@ public class FileMenu {
 				boolean saveInside = Boolean.parseBoolean(dataEntryDialog.getValue(names[1]));
 //				try {
 				
-					Network network = csdpFrame.getNetwork();
+					Network network = CsdpFunctions.getNetwork();
 					System.out.println("app, network="+_app+","+network);
 					_app.fSaveBathymetryDataInsideOrOutsidePolygonCenterline(outputPrnDirectory, outputPrnFilename, network.getSelectedCenterline(), saveInside);
 //					JOptionPane.showMessageDialog(csdpFrame, "Ascii Raster Conversion to CSDP .prn file succeeded!", "Success", JOptionPane.INFORMATION_MESSAGE);
@@ -321,7 +321,7 @@ public class FileMenu {
 		}// actionPerformed
 
 		private void exitProgram() {
-			Network net = _gui.getNetwork();
+			Network net = CsdpFunctions.getNetwork();
 			if (net != null) {
 				if (net.isUpdated()) {
 					int response = JOptionPane.showConfirmDialog(_gui, "Network file is not saved.  Save(y/n)?", "Save?", JOptionPane.YES_NO_CANCEL_OPTION);
