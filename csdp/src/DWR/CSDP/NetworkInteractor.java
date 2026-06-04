@@ -1052,9 +1052,21 @@ public class NetworkInteractor extends ElementInteractor {
 	
 	/*
 	 * Create a cross-section line at every computational point location
+	 * Originally, deltaX was a constant that was set using Display-Parameters.
+	 * That option still exists, but now that channel_std_delta_grid.inp includes
+	 * a separate DX field for each channel, this value will be used if it exists
+	 * (if an older version of the file is loaded that does not include the DX field,
+	 * then the Display-Parameters value will be used. 
 	 */
-	public void addXsectsAtComputationalPoints(double deltaX, double xsectLineLength) {
+	public void addXsectsAtComputationalPoints(double xsectLineLength) {
 		Centerline centerline = _net.getSelectedCenterline();
+		
+		double deltaX = CsdpFunctions.DELTAX; 
+		DSMChannels dsmChannels = CsdpFunctions.getDSMChannels();
+		if(dsmChannels!=null && dsmChannels.getIncludesDx()) {
+			deltaX = dsmChannels.getDX(centerline.getCenterlineName());
+		}
+
 		int numXSToAdd = centerline.getNumComputationalPoints(deltaX);
 		double length = centerline.getLengthFeet();
 		double deltaXActual = length / (double)(numXSToAdd - 1);

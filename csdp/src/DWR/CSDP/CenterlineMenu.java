@@ -771,7 +771,7 @@ public class CenterlineMenu {
 		
 		public void actionPerformed(ActionEvent arg0) {
 			// TODO Auto-generated method stub
-			this.networkInteractor.addXsectsAtComputationalPoints(CsdpFunctions.DELTAX, CsdpFunctions.CROSS_SECTION_LINE_LENGTH);
+			this.networkInteractor.addXsectsAtComputationalPoints(CsdpFunctions.CROSS_SECTION_LINE_LENGTH);
 		}
 	}//class AddXSAtComputationalPoints
 
