@@ -2,13 +2,12 @@ package DWR.CSDP;
 
 import java.awt.Rectangle;
 import java.awt.geom.Line2D;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Vector;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-
-import vista.graph.DoubleRect;
 
 /**
  * A centerline contains centerline points and cross-sections. Centerline points
@@ -20,8 +19,11 @@ import vista.graph.DoubleRect;
 public class Centerline {
 	
 	private int _numCenterlinePoints;
-	private Vector _centerlinePoints = new Vector();
-	private Vector _xsects = new Vector();
+	private Vector<CenterlinePoint> _centerlinePoints = new Vector<CenterlinePoint>();
+	/*
+	 * stores all of the Xsect objects in the centerline
+	 */
+	private Vector<Xsect> _xsects = new Vector<Xsect>();
 	private String _centerlineName = null;
 	private double _maxX = -Double.MAX_VALUE;
 	private double _minX = Double.MAX_VALUE;
@@ -35,13 +37,13 @@ public class Centerline {
 	 */
 	private int _numXsects = 0;
 	private int _numRectXsects = 0;
-	private Vector _rectXsects = new Vector();
-	private Vector _copiedXsects = new Vector();
+	private Vector<Xsect> _rectXsects = new Vector<Xsect>();
+	private Vector<Xsect> _copiedXsects = new Vector<Xsect>();
 	private int _numCopiedXsects = 0;
 
 	Rectangle _r;
 	private int _numCombinedXsects = 0;
-	private Vector _allXsects = new Vector();
+	private Vector<Xsect> _allXsects = new Vector<Xsect>();
 
 	/*
 	 * To specify deleting points inside a window drawn by user
@@ -442,7 +444,7 @@ public class Centerline {
 		ResizableIntArray xsectIndices = new ResizableIntArray(1, 1);
 		int left = 0;
 		int right = numXsects - 1;
-		Vector sortedXsects = new Vector();
+		Vector<Xsect> sortedXsects = new Vector<Xsect>();
 		Xsect xsect = null;
 		for (int i = 0; i <= right; i++) {
 			xsect = getXsect(i);
@@ -500,10 +502,10 @@ public class Centerline {
 	}// getNearestPoint
 
 	/**
-	 * reverse order of points
+	 * reverse order of centerline points and cross-sections, keeping cross-sections in same geographic location
 	 */
 	public void reverseOrder() {
-		Vector temp = new Vector();
+		Vector<CenterlinePoint> temp = new Vector<CenterlinePoint>();
 		for (int i = 0; i <= getNumCenterlinePoints() - 1; i++) {
 			temp.addElement(getCenterlinePoint(getNumCenterlinePoints() - 1 - i));
 		}
@@ -518,8 +520,12 @@ public class Centerline {
 				xsectDistances[i] = getXsect(i).getDistAlongCenterlineFeet();
 			}
 			for(int i=0; i<numXsects; i++) {
-				getXsect(i).putDistAlongCenterlineFeet(getLengthFeet()-xsectDistances[numXsects-i-1]);
+//				getXsect(i).putDistAlongCenterlineFeet(getLengthFeet()-xsectDistances[numXsects-i-1]);
+				getXsect(i).putDistAlongCenterlineFeet(getLengthFeet()-xsectDistances[i]);
 			}
+
+			//need to reverse order of cross-sections in _xsects vector
+			Collections.reverse(_xsects);
 		}		
 	}//reserveOrder
 
@@ -573,7 +579,7 @@ public class Centerline {
 	 * returns xsect object at specified index
 	 */
 	public Xsect getXsect(int index) {
-		return (Xsect) _xsects.elementAt(index);
+		return _xsects.elementAt(index);
 	}
 
 	/**
@@ -585,7 +591,7 @@ public class Centerline {
 		getAllXsects();
 
 		for (int i = 0; i <= _numCombinedXsects - 1; i++) {
-			xsect = (Xsect) (_allXsects.get(i));
+			xsect = _allXsects.get(i);
 			if (xsect.getMinimumElevationFeet() < minElev) {
 				minElev = xsect.getMinimumElevationFeet();
 			}
@@ -693,7 +699,7 @@ public class Centerline {
 		// upstream node and first cross-section).
 		if (_numCombinedXsects > 0) {
 			double normalizedDistFirst = -Double.MAX_VALUE;
-			xsect1 = (Xsect) (_allXsects.elementAt(0));
+			xsect1 = _allXsects.elementAt(0);
 			normalizedDistFirst = getNormalizedDist(xsect1);
 			// if it's a copied cross-section, the distAlongCenterline is
 			// actually
@@ -706,12 +712,12 @@ public class Centerline {
 			averageArea = area1 * normalizedDistFirst;
 
 			if (_numCombinedXsects == 1) {
-				xsect1 = (Xsect) (_allXsects.elementAt(0));
+				xsect1 = _allXsects.elementAt(0);
 				averageArea = xsect1.getAreaSqft(elev);
 			} else if (_numCombinedXsects >= 2) {
 				for (int j = 0; j <= _numCombinedXsects - 2; j++) {
-					xsect1 = (Xsect) (_allXsects.elementAt(j));
-					xsect2 = (Xsect) (_allXsects.elementAt(j + 1));
+					xsect1 = _allXsects.elementAt(j);
+					xsect2 = _allXsects.elementAt(j + 1);
 					normalizedDistance1 = getNormalizedDist(xsect1);
 					normalizedDistance2 = getNormalizedDist(xsect2);
 
@@ -778,7 +784,7 @@ public class Centerline {
 		if (_numCombinedXsects > 0) {
 
 			double normalizedDistFirst = -Double.MAX_VALUE;
-			xsect1 = (Xsect) (_allXsects.elementAt(0));
+			xsect1 = _allXsects.elementAt(0);
 			normalizedDistFirst = getNormalizedDist(xsect1);
 			if (Double.isNaN(normalizedDistFirst) || normalizedDistFirst < 0.0f
 					|| normalizedDistFirst > Double.MAX_VALUE) {
@@ -788,12 +794,12 @@ public class Centerline {
 			averageWidth = width1 * normalizedDistFirst;
 
 			if (_numCombinedXsects == 1) {
-				xsect1 = (Xsect) (_allXsects.elementAt(0));
+				xsect1 = _allXsects.elementAt(0);
 				averageWidth = xsect1.getWidthFeet(elev);
 			} else if (_numCombinedXsects >= 2) {
 				for (int j = 0; j <= _numCombinedXsects - 2; j++) {
-					xsect1 = (Xsect) (_allXsects.elementAt(j));
-					xsect2 = (Xsect) (_allXsects.elementAt(j + 1));
+					xsect1 = _allXsects.elementAt(j);
+					xsect2 = _allXsects.elementAt(j + 1);
 					normalizedDistance1 = getNormalizedDist(xsect1);
 					normalizedDistance2 = getNormalizedDist(xsect2);
 					if (getNumRectXsects() == _numCombinedXsects) {
@@ -855,7 +861,7 @@ public class Centerline {
 
 			double normalizedDistFirst = -Double.MAX_VALUE;
 
-			xsect1 = (Xsect) (_allXsects.elementAt(0));
+			xsect1 = _allXsects.elementAt(0);
 
 			normalizedDistFirst = getNormalizedDist(xsect1);
 			if (Double.isNaN(normalizedDistFirst) || normalizedDistFirst < 0.0f
@@ -866,12 +872,12 @@ public class Centerline {
 			averageWettedPerimeter = wettedPerimeter1 * normalizedDistFirst;
 
 			if (_numCombinedXsects == 1) {
-				xsect1 = (Xsect) (_allXsects.elementAt(0));
+				xsect1 = _allXsects.elementAt(0);
 				averageWettedPerimeter = xsect1.getWettedPerimeterFeet(elev);
 			} else if (_numCombinedXsects >= 2) {
 				for (int j = 0; j <= _numCombinedXsects - 2; j++) {
-					xsect1 = (Xsect) (_allXsects.elementAt(j));
-					xsect2 = (Xsect) (_allXsects.elementAt(j + 1));
+					xsect1 = _allXsects.elementAt(j);
+					xsect2 = _allXsects.elementAt(j + 1);
 
 					normalizedDistance1 = getNormalizedDist(xsect1);
 					normalizedDistance2 = getNormalizedDist(xsect2);
@@ -897,7 +903,7 @@ public class Centerline {
 			} // if 2 or more cross-sections
 			// estimate volume of downstream portion of channel
 			// (between last cross-section and downstream node).
-			xsect2 = (Xsect) (_allXsects.elementAt(_numCombinedXsects - 1));
+			xsect2 = _allXsects.elementAt(_numCombinedXsects - 1);
 
 			normalizedDistLast = getNormalizedDist(xsect2);
 			if (Double.isNaN(normalizedDistLast) || normalizedDistLast < 0.0f
@@ -941,11 +947,11 @@ public class Centerline {
 	}
 
 	public Xsect getCopiedXsect(int index) {
-		return (Xsect) (_copiedXsects.elementAt(index));
+		return _copiedXsects.elementAt(index);
 	}
 
 	public Xsect getRectXsect(int index) {
-		return (Xsect) (_rectXsects.elementAt(index));
+		return _rectXsects.elementAt(index);
 	}
 
 	/**
