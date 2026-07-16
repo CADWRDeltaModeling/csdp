@@ -520,11 +520,9 @@ public class Centerline {
 				xsectDistances[i] = getXsect(i).getDistAlongCenterlineFeet();
 			}
 			for(int i=0; i<numXsects; i++) {
-//				getXsect(i).putDistAlongCenterlineFeet(getLengthFeet()-xsectDistances[numXsects-i-1]);
 				getXsect(i).putDistAlongCenterlineFeet(getLengthFeet()-xsectDistances[i]);
 			}
-
-			//need to reverse order of cross-sections in _xsects vector
+			//reverse order of cross-sections in _xsects vector
 			Collections.reverse(_xsects);
 		}		
 	}//reserveOrder
